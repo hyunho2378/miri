@@ -79,3 +79,6 @@ GradeChip 과 DeadlineClock 은 다른 에이전트도 사용. 소유자만 수�
 - 2026-10-02 빌드 미검증. Aside 샌드박스가 rolldown 네이티브 바이너리(.node) 로드를 막아 vite build 실패. 코드 문제 아님. 사용자 터미널에서 SETUP_PROMPT 1절 실행 필요
 - 2026-10-02 금지 항목 grep (client/src): localStorage 0, TypeScript 0, hover scale 0, transition-all 0, type=date/time 0, gradient 0, tokens.js 밖 hex 0
 - 2026-10-02 미리 문서 글쓰기 금지 항목 (문자 단위 검사): 가운데점 0, 줄표 0, "것" 0, "니다" 0, 이모지 0. SOURCE.md 는 원문 보관이라 검사 제외
+- 2026-10-02 GitHub: github.com/hyunho2378/miri main 브랜치 push 완료 (275 파일)
+- 2026-10-02 Vercel: hyunho2378's projects, 프로젝트 miri, Root Directory client, Vite 프리셋, 환경변수 VITE_USE_MOCK=true VITE_ORG_NAME=동해시. 배포 성공. 도메인 miri-indol.vercel.app. Vercel 빌드는 정상 통과 (로컬 샌드박스 빌드 실패는 환경 문제로 확정)
+- 2026-10-02 배포 URL 확인: / /privacy /admin/login /facilities 직접 진입 404 없음. 화면은 아직 G-Chat 그대로 (1단계 기반 작업 전)
