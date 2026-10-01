@@ -44,29 +44,26 @@ export default function SettingsPage() {
   ]
 
   return (
-    <PageShell title="설정" intro="계산 기본값과 이상 탐지 임계값과 마을별 왕복 시간 관리. 변경 즉시 부족분 계산과 배정에 반영">
+    <PageShell title="설정">
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="기관 정보">
           <KeyValue items={[
             { label: '기관명', value: ORG_NAME, strong: true },
             { label: '행정동', value: `${dongs.length}개 (${dongs.map((d) => d.name).join(', ')})` },
-            { label: '산림 연접 마을', value: `${villages.filter((v) => v.forestAdjacent).length}곳 (가상마을)` },
-            { label: '대피소', value: `${shelters.length}곳 (가상)` }
+            { label: '산림 연접 마을', value: `${villages.filter((v) => v.forestAdjacent).length}곳` },
+            { label: '대피소', value: `${shelters.length}곳` }
           ]} />
-          <p className="mt-4 type-meta text-text-meta">기관명은 환경변수 VITE_ORG_NAME 값. 화면에서 변경 불가</p>
         </Card>
 
-        <Card title="계산 기본값" desc="부족분 공식: 왕복 가능 횟수는 준비 시간을 뺀 가용 시간을 왕복 시간으로 나눈 값">
+        <Card title="계산 기본값">
           <div className="divide-y divide-line-sub">
             <NumberStepper className="pb-3" label="준비 시간" unit="분" step={15} min={0} max={180} value={settings.prepMinutes} onChange={(v) => updateSettings({ prepMinutes: v })} hint="발령 후 첫 차량 출발까지" />
             <div className="py-3">
               <p className="type-caption text-text-sec">발령 기준 시간</p>
               <p className="mt-1 type-strong text-text-pri tabular-nums">{settings.windowHours}시간</p>
-              <p className="type-meta text-text-meta">재난취약자 도달 8시간 전 대피 (행정안전부 2025.4.16)</p>
             </div>
             <div className="pt-3">
               <p className="type-caption text-text-sec">이송 완료 기한</p>
-              <p className="type-meta text-text-meta">도달 5시간 전 선택 시 가용 시간이 크게 줄어 부족분 증가. 동해시 담당자 확인 항목</p>
               <SegmentControl
                 className="mt-3" label="이송 완료 기한"
                 value={settings.completeBeforeHours}
@@ -104,7 +101,7 @@ export default function SettingsPage() {
         </Card>
       </div>
 
-      <Card className="mt-4" title="차종별 회차당 탑승 정원" desc="가정값. 동해소방서와 요양시설 자문 전" padding="none">
+      <Card className="mt-4" title="차종별 회차당 탑승 정원" padding="none">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] text-left tabular-nums">
             <caption className="sr-only">차종과 등급별 정원</caption>

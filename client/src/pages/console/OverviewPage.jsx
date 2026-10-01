@@ -83,7 +83,7 @@ export default function OverviewPage() {
           <ShortageTable villages={myVillages} dongs={dongs} byVillage={result.byVillage} pageSize={10} />
         </Card>
         <div className="grid gap-4 content-start">
-          <Card title="등급별 대상자와 부족분" desc="침상과 휠체어 등급에 부족 집중 여부 확인">
+          <Card title="등급별 대상자와 부족분">
             <BarChart groups={groups} height={220} ariaLabel={`등급별 대상자와 부족분. ${GRADES.map((g) => `${g.label} 부족 ${result.byGrade[g.key]}명`).join(' ')}`} />
           </Card>
           <Card title="이상 탐지" desc="상위 5건">

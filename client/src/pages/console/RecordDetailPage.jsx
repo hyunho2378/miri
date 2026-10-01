@@ -27,7 +27,7 @@ export default function RecordDetailPage() {
     return (
       <PageShell title="이송 기록 상세">
         <Card as="div" padding="none">
-          <EmptyState title="기록을 찾을 수 없음" desc="가상 데이터는 새로고침 시 초기화됨" action={<Button as={Link} to="/console/records">이송 기록 목록</Button>} />
+          <EmptyState title="기록을 찾을 수 없음" action={<Button as={Link} to="/console/records">이송 기록 목록</Button>} />
         </Card>
       </PageShell>
     )
@@ -96,7 +96,7 @@ export default function RecordDetailPage() {
           <Card
             eyebrow={<span className="inline-flex items-center gap-1 text-primary-text"><Route size={14} aria-hidden="true" />AI 배정</span>}
             title="규칙 순서 대비 배정 지표"
-            desc="발령 당시 배정 계산 결과. 제약 조건 최적화와 원문 배정 규칙 비교"
+            desc="발령 당시 배정 계산 결과"
           >
             <dl className="grid gap-2 sm:grid-cols-3 tabular-nums">
               <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">미이송 예상</dt><dd className="mt-1 type-strong text-text-pri">규칙 순서 {b.unserved}명 → AI 배정 {m.unserved}명</dd></div>
@@ -110,7 +110,7 @@ export default function RecordDetailPage() {
           <DataTable columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={20} caption="마을별 이송 결과" />
         </Card>
 
-        <Card title="차량 협약 규모 산정 근거" desc="이번 발령에서 기한 안에 옮기지 못한 마을. 부족분 계산 화면에서 추가 협약 차량 시나리오로 확인">
+        <Card title="차량 협약 규모 산정 근거" desc="이번 발령에서 기한 안에 옮기지 못한 마을">
           {short.length ? (
             <ul className="divide-y divide-line-sub">
               {short.map((r) => (

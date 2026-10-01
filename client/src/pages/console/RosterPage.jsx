@@ -121,7 +121,6 @@ export default function RosterPage() {
   return (
     <PageShell
       title="대상자 명부"
-      intro="이송 대상자 목록. 이름과 주소는 지자체 서버 보관 전제로 화면과 클라우드에 없음. 대상자 코드와 마을과 이송 등급만 표시"
     >
       <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Select label="동" value={dong} onChange={setDong} options={dongOptions} disabled={user?.role === 'dong'} />
@@ -173,7 +172,7 @@ export default function RosterPage() {
               </div>
             ) : (
               <p className="rounded-md bg-subtle p-4 type-meta text-text-meta">
-                {open.gradeSource === 'ai' ? '판독 서류 원본은 지자체 서버 보관. 시제품에서는 서류 판독 화면에서 올린 서류만 근거 표시' : '담당자 직접 입력 건. 판독 근거 없음'}
+                {open.gradeSource === 'ai' ? '판독 근거는 서류 판독 화면에서 올린 서류만 표시' : '담당자 직접 입력 건. 판독 근거 없음'}
               </p>
             )}
           </div>

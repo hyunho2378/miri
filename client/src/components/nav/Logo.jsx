@@ -3,13 +3,15 @@ import { Timer } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import clsx from 'clsx'
 
-export default function Logo({ to = '/', className, compact = false }) {
+export default function Logo({ to = '/console', className, compact = false, linked = true }) {
+  const Root = linked ? Link : 'span'
+  const props = linked ? { to, 'aria-label': '미리 홈' } : {}
   return (
-    <Link to={to} className={clsx('inline-flex items-center gap-2 min-h-11 md:min-h-0 text-text-pri', className)} aria-label="미리 홈">
+    <Root {...props} className={clsx('inline-flex items-center gap-2 min-h-11 md:min-h-0 text-text-pri', className)}>
       <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-text-inverse">
         <Timer size={20} aria-hidden="true" />
       </span>
       {!compact && <span className="type-h3">미리</span>}
-    </Link>
+    </Root>
   )
 }

@@ -1,13 +1,12 @@
-// ROUTES.md 그대로. 소개 화면만 즉시 로드하고 나머지는 lazy.
+// ROUTES.md 그대로. 모든 화면 lazy. 루트는 담당자 콘솔로 이동.
 import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import AdminLayout from './components/layout/AdminLayout.jsx'
 import HelperLayout from './components/layout/HelperLayout.jsx'
 import PublicLayout from './components/layout/PublicLayout.jsx'
 import RequireAuth from './components/layout/RequireAuth.jsx'
 import Toast from './components/ui/Toast.jsx'
 import { LangProvider } from './i18n/LangContext.jsx'
-import IntroPage from './pages/public/IntroPage.jsx'
 
 const PrivacyPage = lazy(() => import('./pages/public/PrivacyPage.jsx'))
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage.jsx'))
@@ -39,7 +38,7 @@ export default function App() {
         <Suspense fallback={<div className="min-h-screen bg-canvas" aria-busy="true" />}>
           <Routes>
             <Route element={<PublicLayout />}>
-              <Route index element={<IntroPage />} />
+              <Route index element={<Navigate to="/console" replace />} />
               <Route path="privacy" element={<PrivacyPage />} />
             </Route>
             <Route path="/console/login" element={<LoginPage />} />

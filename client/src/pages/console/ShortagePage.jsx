@@ -1,5 +1,4 @@
-// 부족분 계산(IA 4.5). 핵심 기능 1. 봄철 산불 조심 기간 전 차량 협약 규모를 정하는 근거.
-// 마을별 값은 원문 배정 규칙으로 시뮬레이션한 미이송 수. 공식 표는 원문 공식 설명용.
+// 부족분 계산(IA 4.5). 마을별 값은 배정 규칙으로 시뮬레이션한 미이송 수.
 import { useEffect, useMemo, useState } from 'react'
 import { Save, Star } from 'lucide-react'
 import Card from '../../components/ui/Card.jsx'
@@ -9,7 +8,6 @@ import ShortageValue from '../../components/miri/ShortageValue.jsx'
 import GradeChip from '../../components/miri/GradeChip.jsx'
 import Badge from '../../components/ui/Badge.jsx'
 import Button from '../../components/ui/Button.jsx'
-import Disclosure from '../../components/ui/Disclosure.jsx'
 import Input from '../../components/ui/Input.jsx'
 import NumberStepper from '../../components/ui/NumberStepper.jsx'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
@@ -71,7 +69,7 @@ export default function ShortagePage() {
     : null
 
   return (
-    <PageShell title="부족분 계산" intro="산불 도달 시각 가정과 차량 협약 규모를 바꿔 마을별로 몇 명을 옮기지 못하는지 계산. 봄철 산불 조심 기간 전 민간 차량 협약 규모 결정 근거">
+    <PageShell title="부족분 계산">
       <div className="grid gap-4 xl:grid-cols-[minmax(0,400px)_minmax(0,1fr)]">
         <div className="grid gap-4 content-start">
           <Card title="시나리오">
@@ -80,7 +78,7 @@ export default function ShortagePage() {
             {dirty && <p className="mt-2 type-meta text-primary-text">저장하지 않은 변경 있음</p>}
           </Card>
 
-          <Card title="계산 조건" desc="발령은 산불 도달 8시간 전 기준">
+          <Card title="계산 조건">
             <div className="space-y-4">
               <div>
                 <p className="mb-1.5 type-caption text-text-sec">준비 시간</p>
@@ -91,10 +89,7 @@ export default function ShortagePage() {
                 <p className="mb-1.5 type-caption text-text-sec">이송 완료 기한</p>
                 <SegmentControl label="이송 완료 기한" value={draft.completeBeforeHours ?? 0} onChange={(v) => set({ completeBeforeHours: v })}
                   items={[{ value: 0, label: '도달 시각' }, { value: 5, label: '도달 5시간 전' }]} />
-                <p className="mt-1.5 type-meta text-text-meta">
-                  가용 시간 {(draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes}분.
-                  {(draft.completeBeforeHours ?? 0) === 5 ? ' 위험구역 전 주민 대피 시각 기준' : ' 원문 공식의 7시간과 같은 기준'}
-                </p>
+                <p className="mt-1.5 type-meta text-text-meta tabular-nums">가용 시간 {(draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes}분</p>
               </div>
             </div>
           </Card>
@@ -108,7 +103,7 @@ export default function ShortagePage() {
           </Card>
 
           <Card title="마을별 산불 도달 가정" desc="기준 대비 늦게 도달하면 + 시간">
-            <ul className="grid gap-x-6 gap-y-2 xl:grid-cols-2 max-h-[420px] overflow-y-auto pr-1">
+            <ul className="grid gap-y-2 max-h-[420px] overflow-y-auto pr-1">
               {villages.map((v) => (
                 <li key={v.code} className="min-w-0">
                   <NumberStepper layout="inline" label={v.label} value={draft.offsetHours?.[v.code] || 0} min={-2} max={8} step={0.5} unit="시간" format={offsetText} onChange={(h) => setOffset(v.code, h)} />
@@ -137,52 +132,12 @@ export default function ShortagePage() {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-3 type-meta text-text-meta">차종별 정원은 자문 전 가정값. 차량 한 대씩 더해 실제 재계산한 결과</p>
               </div>
             </div>
           </Card>
 
           <Card title="마을별 부족분">
             <ShortageTable villages={villages} dongs={dongs} byVillage={result.byVillage} />
-          </Card>
-
-          <Card title="공식 보기">
-            <Disclosure summary="원문 공식과 등급별 계산값">
-              <div className="rounded-md bg-subtle p-4 type-body-sm text-text-sec space-y-1">
-                <p>□ (부족분 공식) 부족분은 대상자 수에서 8시간 안 이송 가능 인원을 뺀 값</p>
-                <p>ㅇ 이송 가능 인원은 보유 차량 수에 왕복 가능 횟수를 곱한 값</p>
-                <p>ㅇ 왕복 가능 횟수는 준비 1시간을 뺀 7시간을 왕복 시간으로 나눈 값</p>
-                <p>▪ 계산 예시: 침상 환자 12명에 침상 차량 2대이고 왕복 2시간이면 이송 가능 인원 6명으로 부족분 6명</p>
-                <p className="pt-2 type-meta text-text-meta">출처: 미리 계획서(2026.9.26) 실현 및 구체화 방안. 보완: 차종별 회차당 정원 변수 추가, 왕복 가능 횟수 소수 버림</p>
-              </div>
-              <div className="mt-3 overflow-x-auto">
-                <table className="w-full text-left tabular-nums">
-                  <caption className="sr-only">등급별 원문 공식 계산값</caption>
-                  <thead>
-                    <tr className="bg-subtle">
-                      {['등급', '대상자', '호환 차량', '평균 정원', '평균 왕복', '왕복 횟수', '이송 가능', '공식 부족분'].map((h) => (
-                        <th key={h} scope="col" className="px-3 py-2 type-caption text-text-meta whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.formula.map((f) => (
-                      <tr key={f.grade} className="border-t border-line-sub">
-                        <td className="px-3 py-2"><GradeChip grade={f.grade} size="sm" /></td>
-                        <td className="px-3 py-2 type-body-sm">{f.persons}명</td>
-                        <td className="px-3 py-2 type-body-sm">{f.vehicles}대</td>
-                        <td className="px-3 py-2 type-body-sm">{f.capacity}명</td>
-                        <td className="px-3 py-2 type-body-sm">{f.roundTrip}분</td>
-                        <td className="px-3 py-2 type-body-sm">{f.trips}회</td>
-                        <td className="px-3 py-2 type-body-sm">{f.movable}명</td>
-                        <td className={`px-3 py-2 ${f.shortage ? 'type-strong text-danger-text' : 'type-body-sm text-text-meta'}`}>{f.shortage ? `${f.shortage}명` : '없음'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p className="mt-3 type-meta text-text-meta">공식 부족분은 등급 단위 단순 계산. 위 마을별 부족분은 차량이 마을을 오가는 순서까지 반영한 원문 배정 규칙 시뮬레이션 결과라 두 값이 다를 수 있음</p>
-            </Disclosure>
           </Card>
 
           <Card

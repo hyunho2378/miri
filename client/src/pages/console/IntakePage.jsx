@@ -116,8 +116,8 @@ export default function IntakePage() {
     } catch (e) {
       setReading(null)
       setError(e.code === 'NO_KEY' || e.code === 503 || e.code === 404 || e.code === 405
-        ? { title: '판독 서버 미연결', desc: '샘플 서류로 시연 가능. 실제 판독은 서버에 GEMINI_API_KEY 설정 필요' }
-        : { title: '판독 실패', desc: `${e.message}. 샘플 서류로 시연 가능` })
+        ? { title: '판독 서버 미연결', desc: '샘플 서류로 판독 가능' }
+        : { title: '판독 실패', desc: `${e.message}. 샘플 서류로 판독 가능` })
     }
   }
 
@@ -130,7 +130,6 @@ export default function IntakePage() {
   return (
     <PageShell
       title="서류 판독"
-      intro="종이 대피계획서와 대피카드를 AI가 읽어 이송 등급과 특이사항을 판정. 근거 문구가 전사문에 없으면 신뢰도 하로 강제. 담당자 확인 전까지 명부 확정 아님"
     >
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
         <Card title="서류 올리기" desc="사진과 스캔 이미지 판독">
@@ -179,7 +178,7 @@ export default function IntakePage() {
             ))}
           </ul>
         ) : (
-          <Card as="div" padding="none"><EmptyState title="확인 대기 없음" desc="새 서류를 올리거나 샘플 서류로 판독 시연" /></Card>
+          <Card as="div" padding="none"><EmptyState title="확인 대기 없음" desc="새 서류를 올리거나 샘플 서류 선택" /></Card>
         )}
       </section>
 

@@ -102,7 +102,7 @@ export default function HandoverPage() {
   const live = ['assigned', 'sent'].includes(d.status) && d.result
 
   return (
-    <PageShell title="소방 인계" intro="기한 안에 옮기지 못하는 대상자를 동해소방서에 일괄 전달. 대상자 이름 대신 코드와 마을과 등급으로 전달하고 상세 위치는 발령 중 별도 확인">
+    <PageShell title="소방 인계">
       {!live ? (
         <Card as="div" padding="none">
           <EmptyState

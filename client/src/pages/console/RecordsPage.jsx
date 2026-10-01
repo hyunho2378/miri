@@ -60,7 +60,7 @@ export default function RecordsPage() {
   }, [records, villages])
 
   return (
-    <PageShell title="이송 기록" intro="발령마다 쌓이는 결과. 마을별 미이송 추이를 차량 협약 규모 산정 근거로 사용">
+    <PageShell title="이송 기록">
       {!records.length ? (
         <Card as="div" padding="none">
           <EmptyState

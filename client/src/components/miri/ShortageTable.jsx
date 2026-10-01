@@ -32,7 +32,7 @@ export default function ShortageTable({ villages, dongs, byVillage, initialView 
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="type-meta text-text-meta">원문 배정 규칙 기준 미이송 인원. 차량이 마을 사이에 공유되는 조건 반영</p>
+        <p className="type-meta text-text-meta">마을별 미이송 인원. 차량이 마을 사이에 공유되는 조건 반영</p>
         <SegmentControl label="보기 전환" value={view} onChange={setView} items={[{ value: 'table', label: '표' }, { value: 'heat', label: '히트맵' }]} />
       </div>
       {view === 'table' ? (

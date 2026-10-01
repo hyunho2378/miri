@@ -83,9 +83,9 @@ function StartPanel() {
             <SegmentControl label="발령 종류" items={KINDS} value={kind} onChange={(v) => { setKind(v); if (v === 'real') setSpeed(1) }} />
           </div>
           <div>
-            <p className="mb-1.5 type-caption text-text-sec">가상 시계 배속</p>
-            <SegmentControl label="가상 시계 배속" items={kind === 'real' ? SPEEDS.slice(0, 1) : SPEEDS} value={speed} onChange={setSpeed} />
-            <p className="mt-1.5 type-meta text-text-meta">{kind === 'real' ? '실제 발령은 실제 시각 기준' : '60배는 8시간 창을 8분에 진행. 발표 시연용'}</p>
+            <p className="mb-1.5 type-caption text-text-sec">배속</p>
+            <SegmentControl label="배속" items={kind === 'real' ? SPEEDS.slice(0, 1) : SPEEDS} value={speed} onChange={setSpeed} />
+            <p className="mt-1.5 type-meta text-text-meta">{kind === 'real' ? '실제 발령은 실제 시각 기준' : '60배는 8시간 창을 8분에 진행'}</p>
           </div>
           {role === 'city' ? (
             <Button size="lg" leftIcon={<Siren size={16} aria-hidden="true" />} onClick={() => start({ kind, speed })}>
@@ -127,8 +127,7 @@ function StandbyPanel({ now, meta }) {
     <div className="space-y-4">
       <Card
         title="AI 배정 실행"
-        desc="차량 정원과 회차 순서와 마을별 이송 완료 기한을 동시에 고려한 제약 조건 최적화. 담당자 확정 전까지 적용 안 됨"
-        actions={<Button size="lg" loading={busy} leftIcon={<Route size={16} aria-hidden="true" />} onClick={onAssign}>AI 배정 실행</Button>}
+                actions={<Button size="lg" loading={busy} leftIcon={<Route size={16} aria-hidden="true" />} onClick={onAssign}>AI 배정 실행</Button>}
       >
         <p className="type-meta text-text-meta">
           발령 기한 = 산불 도달 예측 − {settings.windowHours}시간. 이송 완료 기한 = 도달 예측{settings.completeBeforeHours ? ` − ${settings.completeBeforeHours}시간` : ''}. 준비 시간 {settings.prepMinutes}분
@@ -300,9 +299,9 @@ function SentPanel({ now, meta }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="type-body-sm text-text-sec tabular-nums">가상 시각 {fmtHM(now)}. 전송 후 {remainText(now - d.sentAt).replace(' 경과', '')} 경과</p>
+        <p className="type-body-sm text-text-sec tabular-nums">훈련 시각 {fmtHM(now)}. 전송 후 {remainText(now - d.sentAt).replace(' 경과', '')} 경과</p>
         <div className="flex flex-wrap items-center gap-2">
-          {d.kind === 'drill' && <SegmentControl label="가상 시계 배속" items={SPEEDS} value={d.speed} onChange={d.setSpeed} />}
+          {d.kind === 'drill' && <SegmentControl label="배속" items={SPEEDS} value={d.speed} onChange={d.setSpeed} />}
           {role === 'city' && <Button variant="danger" onClick={() => setConfirmClose(true)}>발령 종료</Button>}
         </div>
       </div>

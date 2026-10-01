@@ -8,7 +8,7 @@ export default function HelperLayout() {
     <div className="min-h-dvh bg-canvas flex flex-col">
       <header className="sticky top-0 z-nav h-14 bg-page border-b border-line-sub">
         <div className="mx-auto flex h-full w-full max-w-[480px] items-center justify-between gap-3 px-4">
-          <Logo to="/" />
+          <Logo linked={false} />
           <DispatchStatusPill />
         </div>
       </header>

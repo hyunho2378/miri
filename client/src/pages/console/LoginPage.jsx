@@ -3,7 +3,6 @@
 import { Building2, UserRound } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import Logo from '../../components/nav/Logo.jsx'
-import MockDataBadge from '../../components/miri/MockDataBadge.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Card from '../../components/ui/Card.jsx'
 import Input from '../../components/ui/Input.jsx'
@@ -22,15 +21,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-canvas flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-[440px]">
-        <div className="flex items-center justify-between">
-          <Logo to="/" />
-          <MockDataBadge />
-        </div>
+        <Logo to="/console" />
         <Card as="div" padding="lg" className="mt-6">
           <h1 className="type-h1 text-text-pri">담당자 로그인</h1>
           {USE_MOCK ? (
             <>
-              <p className="mt-2 type-body-sm text-text-sec">데모 계정 선택. 역할에 따라 메뉴와 편집 권한이 다름</p>
               <ul className="mt-6 space-y-3">
                 {DEMO.map(({ role, Icon, desc }) => (
                   <li key={role}>
@@ -57,12 +52,11 @@ export default function LoginPage() {
               <Input label="이메일" type="email" autoComplete="username" disabled />
               <Input label="비밀번호" type="password" autoComplete="current-password" disabled />
               <Button type="submit" size="lg" className="w-full" disabled>로그인</Button>
-              <p className="type-meta text-text-meta">서버 연결 후 사용</p>
             </form>
           )}
         </Card>
         <p className="mt-6 text-center">
-          <Link to="/" className="type-body-sm text-text-sec underline underline-offset-2 hover:text-text-pri">소개 화면으로</Link>
+          <Link to="/privacy" className="type-body-sm text-text-sec underline underline-offset-2 hover:text-text-pri">개인정보 처리 방침</Link>
         </p>
       </div>
     </div>
