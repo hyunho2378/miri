@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000" role="img" aria-label="묵호동 가상마을 2">
+<rect width="800" height="1000" fill="#F8F9FB"/>
+<rect x="32" y="32" width="736" height="936" rx="16" fill="#FFFFFF" stroke="#9A9EA5" stroke-width="2"/>
+<rect x="32" y="32" width="736" height="110" rx="16" fill="#EFF6FF"/>
+<text x="400" y="100" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="34" font-weight="700" fill="#1E40AF">대피카드</text>
+<text x="80" y="200" font-family="Pretendard, sans-serif" font-size="22" fill="#3D3F45">묵호동 가상마을 2</text>
+<line x1="80" y1="260" x2="720" y2="260" stroke="#DDE1E6" stroke-width="2"/>
+<line x1="80" y1="340" x2="720" y2="340" stroke="#DDE1E6" stroke-width="2"/>
+<line x1="80" y1="420" x2="720" y2="420" stroke="#DDE1E6" stroke-width="2"/>
+<line x1="80" y1="500" x2="720" y2="500" stroke="#DDE1E6" stroke-width="2"/>
+<line x1="80" y1="580" x2="720" y2="580" stroke="#DDE1E6" stroke-width="2"/>
+<line x1="80" y1="660" x2="720" y2="660" stroke="#DDE1E6" stroke-width="2"/>
+<line x1="80" y1="740" x2="720" y2="740" stroke="#DDE1E6" stroke-width="2"/>
+<line x1="80" y1="820" x2="720" y2="820" stroke="#DDE1E6" stroke-width="2"/>
+<text x="80" y="374" font-family="Pretendard, sans-serif" font-size="18" fill="#6B6F76">거동 상태</text>
+<text x="96" y="420" font-family="'Nanum Pen Script', 'Nanum Pen', cursive" font-size="40" fill="#1E40AF" transform="rotate(-1.2 96 420)">휠체어 타고 계심 계단 있음</text>
+<text x="96" y="464" font-family="'Nanum Pen Script', 'Nanum Pen', cursive" font-size="40" fill="#1E40AF" transform="rotate(-1.2 96 464)">혼자 사심</text>
+<text x="80" y="614" font-family="Pretendard, sans-serif" font-size="18" fill="#6B6F76">거동 상태</text>
+<text x="96" y="660" font-family="'Nanum Pen Script', 'Nanum Pen', cursive" font-size="40" fill="#1E40AF" transform="rotate(-1.2 96 660)">걸을 수 있으나 치매 증상 있음</text>
+<text x="96" y="704" font-family="'Nanum Pen Script', 'Nanum Pen', cursive" font-size="40" fill="#1E40AF" transform="rotate(-1.2 96 704)">인솔 필요</text>
+<text x="80" y="930" font-family="Pretendard, sans-serif" font-size="16" fill="#6B6F76">가상 데이터. 실제 개인정보 없음</text>
+</svg>

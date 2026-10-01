@@ -2,6 +2,7 @@
 // 가상 시계: 훈련 발령은 배속으로 진행해 8시간 창을 몇 분 안에 시연한다.
 import { create } from 'zustand'
 import { planDispatch } from '../lib/assign.js'
+import { capOf } from '../lib/shortage.js'
 import { scenarioArrivals } from '../lib/shortageCalc.js'
 import { indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
 import { MIN } from '../lib/time.js'
@@ -122,16 +123,21 @@ export const useDispatchStore = create((set, get) => ({
     const completeBy = d.arrivals[village.code] - data.settings.completeBeforeHours * 60 * MIN
     const result = structuredClone(d.result)
     let best = null
-    for (const a of result.assignments) {
-      const vehicle = data.vehicles.find((v) => v.code === a.vehicleCode)
-      if (!vehicle || !a.trips.some((t) => t.grade === person.grade)) continue
-      const free = Math.max(vnow, ...a.trips.map((t) => t.finishAt))
+    // 같은 등급을 태울 수 있는 가용 차량 전체에서, 지금 이후 가장 빨리 비는 차량
+    for (const vehicle of data.vehicles) {
+      if (vehicle.available === false || capOf(vehicle, person.grade) === 0) continue
+      const a = result.assignments.find((x) => x.vehicleCode === vehicle.code)
+      const free = Math.max(vnow, ...(a ? a.trips.map((t) => t.finishAt) : []))
       const finish = free + village.roundTripMin * MIN
-      if (finish <= completeBy && (!best || finish < best.finish)) best = { a, free, finish }
+      if (finish <= completeBy && (!best || finish < best.finish)) best = { a, vehicle, free, finish }
     }
     if (!best) return false
     for (const a of result.assignments) for (const tr of a.trips) tr.personCodes = tr.personCodes.filter((c) => c !== code)
     result.unassigned = result.unassigned.filter((u) => u.personCode !== code)
+    if (!best.a) {
+      best.a = { vehicleCode: best.vehicle.code, trips: [], helperCodes: [], reasons: ['실패 대상자 재배정용 추가 차량'] }
+      result.assignments.push(best.a)
+    }
     best.a.trips.push({ index: best.a.trips.length + 1, vehicle: best.a.vehicleCode, village: village.code, grade: person.grade, personCodes: [code], departAt: best.free, finishAt: best.finish, added: true })
     const events = { ...d.events }
     delete events[code]
@@ -157,6 +163,7 @@ export const useDispatchStore = create((set, get) => ({
     const counts = {}
     const byVillage = {}
     for (const p of data.persons) {
+      if (p.review === 'rejected') continue
       let s = stepOf(d, p.code, vnow, stops)
       if (!s) s = d.events[p.code]?.step || 'unassigned'
       counts[s] = (counts[s] || 0) + 1

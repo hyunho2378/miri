@@ -81,14 +81,14 @@ export default {
       date: "날짜",
       facility: "시설",
       category: "카테고리",
-      preparing: "준비 중입니다"
+      preparing: "준비 중"
     },
     empty: {
-      title: "자료가 없습니다",
-      desc: "조건을 바꿔 다시 조회해 주시기 바랍니다.",
-      searchTitle: "검색 결과가 없습니다",
-      searchDesc: "다른 말로 다시 찾아 주시기 바랍니다.",
-      filterDesc: "필터를 바꾸면 다른 결과를 볼 수 있습니다."
+      title: "자료 없음",
+      desc: "조건 변경 후 다시 조회",
+      searchTitle: "검색 결과 없음",
+      searchDesc: "다른 검색어로 다시 조회",
+      filterDesc: "필터 변경 시 다른 결과 확인 가능"
     },
     a11y: {
       pagination: "페이지 이동",
@@ -96,26 +96,26 @@ export default {
       nextPage: "다음 페이지"
     },
     error: {
-      loadTitle: "자료를 불러오지 못했습니다",
-      loadDesc: "네트워크 상태를 확인하고 다시 시도해 주시기 바랍니다.",
-      network: "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주시기 바랍니다.",
-      notFound: "요청하신 자료를 찾을 수 없습니다.",
-      unauthorized: "로그인이 필요합니다.",
-      notFoundPage: "요청하신 화면을 찾을 수 없습니다",
-      notFoundDesc: "주소가 바뀌었거나 삭제된 화면입니다. 상담 홈에서 다시 찾아 주시기 바랍니다."
+      loadTitle: "자료 불러오기 실패",
+      loadDesc: "네트워크 상태 확인 후 다시 시도",
+      network: "서버 연결 실패. 잠시 후 다시 시도",
+      notFound: "요청 자료 없음",
+      unauthorized: "로그인 필요",
+      notFoundPage: "화면 없음",
+      notFoundDesc: "주소 변경 또는 삭제된 화면"
     },
     footer: {
       privacy: "개인정보처리방침",
       contact: "대표 연락처",
-      desc: "이 서비스는 공식 자료를 바탕으로 안내합니다. 정확한 확인이 필요하면 담당 부서로 문의해 주시기 바랍니다."
+      desc: "공식 자료 기반 안내"
     },
     notice: {
       title: "공지",
-      subtitle: "시설 운영에 관한 안내를 확인합니다",
+      subtitle: "운영 안내",
       related: "관련 시설",
       ask: "이 공지에 대해 물어보기",
-      empty: "등록된 공지가 없습니다",
-      notFound: "공지를 찾을 수 없습니다",
+      empty: "등록된 공지 없음",
+      notFound: "공지 없음",
       list: "공지 목록"
     },
     faq: {
@@ -128,9 +128,9 @@ export default {
         closed: "휴관"
       },
       title: "자주 묻는 질문",
-      subtitle: "많이 묻는 질문과 답변을 모았습니다",
+      subtitle: "자주 묻는 질문",
       askMore: "더 자세히 물어보기",
-      empty: "해당 카테고리에 등록된 질문이 없습니다"
+      empty: "등록된 질문 없음"
     }
   }
 }
