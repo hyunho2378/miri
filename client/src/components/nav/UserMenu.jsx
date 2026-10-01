@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import usePopExit from '../../hooks/usePopExit.js'
-import useAuthStore from '../../store/useAuthStore.js'
+import useAuthStore, { ROLE_LABEL } from '../../store/useAuthStore.js'
 import { useLang } from '../../i18n/LangContext.jsx'
 import Avatar from '../ui/Avatar.jsx'
 
@@ -50,7 +50,7 @@ export default function UserMenu({ compact = false, className }) {
         {!compact && (
           <span className="min-w-0 flex-1">
             <span className="block truncate type-body-sm font-medium text-text-pri">{user.name}</span>
-            <span className="block truncate type-meta text-text-meta">{t(`admin.role.${user.role}`)}</span>
+            <span className="block truncate type-meta text-text-meta">{ROLE_LABEL[user.role]}</span>
           </span>
         )}
       </button>
@@ -67,7 +67,7 @@ export default function UserMenu({ compact = false, className }) {
           <li role="none">
             <button
               type="button" role="menuitem"
-              onClick={async () => { setOpen(false); await logout(); navigate('/admin/login', { replace: true }) }}
+              onClick={async () => { setOpen(false); await logout(); navigate('/console/login', { replace: true }) }}
               className="flex w-full items-center gap-2 min-h-11 px-3 rounded-xs type-body-sm text-text-sec hover:bg-mute hover:text-text-pri transition-colors duration-fast"
             >
               <LogOut size={16} aria-hidden="true" />

@@ -1,4 +1,4 @@
-// 상태 문자열 → 색과 라벨 매핑 단일 출처. IA.md 상태 정의 표 기준.
+// 상태 문자열 → 색과 라벨 매핑 단일 출처. 미리 IA.md 7절 상태 정의 표 기준.
 // 다른 파일에서 상태 색 매핑을 다시 정의하지 않는다(PATTERNS.md 절대 금지 패턴).
 import clsx from 'clsx'
 
@@ -27,27 +27,31 @@ export const TONE_FILL = {
 // 상태 → [톤, 한국어 라벨]. 톤은 중립 주목 위험 셋뿐이다.
 // 긍정과 기본 상태는 전부 중립이다. 색을 쓰면 그것이 주목해야 할 것이라는 뜻이 된다
 export const STATUS = {
-  // 시설 운영
-  normal: ['neutral', '정상'], maintenance: ['neutral', '유지보수'], closed: ['danger', '휴관'],
-  // 예약 가능
-  open: ['neutral', '여유'], stable: ['neutral', '안정적'], limited: ['neutral', '제한됨'], full: ['danger', '마감'],
-  booked: ['primary', '예약됨'],
-  // 상담 처리
-  auto: ['neutral', '자동처리'], handoff: ['primary', '인계'], unresolved: ['danger', '미해결'],
-  // 인계 진행
-  wait: ['neutral', '대기'], progress: ['primary', '처리 중'], done: ['neutral', '완료'],
-  // 색인
-  indexed: ['neutral', '색인됨'], pending: ['neutral', '대기'], failed: ['danger', '실패'],
-  // 리뷰 판정
-  correct: ['neutral', '정답'], wrong: ['danger', '오답'], hold: ['neutral', '보류'],
-  // KPI 목표
-  achieved: ['neutral', '달성'], near: ['neutral', '근접'], missed: ['danger', '미달']
+  // 판독 확인
+  reading: ['primary', '판독 중'], pending: ['primary', '확인 대기'], confirmed: ['neutral', '확인 완료'],
+  edited: ['neutral', '담당자 수정'], rejected: ['danger', '반려'],
+  // 판독 신뢰도
+  high: ['neutral', '신뢰도 상'], mid: ['neutral', '신뢰도 중'], low: ['danger', '신뢰도 하'],
+  // 발령
+  idle: ['neutral', '평시'], standby: ['primary', '실행대기 발령'], assigned: ['primary', '배정 검토'],
+  sent: ['primary', '이송 진행'], closed: ['neutral', '종료'],
+  // 도우미 응답
+  none: ['neutral', '응답 대기'], accept: ['neutral', '수락'], decline: ['danger', '불가'], noack: ['danger', '무응답'],
+  // 이송 단계
+  wait: ['neutral', '대기'], depart: ['primary', '출발'], arrive: ['primary', '도착'], board: ['primary', '탑승'],
+  handover: ['neutral', '인계 완료'], fail: ['danger', '실패'], handedToFire: ['danger', '소방 인계'], unassigned: ['danger', '미배정'],
+  // 차량
+  available: ['neutral', '가용'], unavailable: ['neutral', '응급 대기'], expiring: ['danger', '협약 만료 임박'], expired: ['danger', '협약 만료'],
+  // 부족분
+  noShortage: ['neutral', '부족 없음'], shortage: ['danger', '부족 발생'], provisional: ['primary', '잠정'],
+  // 기한
+  onTime: ['neutral', '기한 내'], late: ['danger', '기한 초과 예상']
 }
 
 // 예약 캘린더 셀처럼 안에 라벨을 넣을 수 없는 자리용. 중립을 명도 두 단계로 나눈다.
 // 여유와 유지보수가 같은 중립이라 같은 회색이면 두 상태를 구분할 수 없다.
 // 색을 늘리지 않고 명도로 가르므로 3색 체계는 그대로다
-const BLOCKED = new Set(['maintenance', 'closed'])
+const BLOCKED = new Set(['unavailable', 'closed'])
 
 export const statusTone = (status) => STATUS[status]?.[0] || 'neutral'
 
