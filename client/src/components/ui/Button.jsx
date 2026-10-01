@@ -3,17 +3,18 @@
 import clsx from 'clsx'
 import { Loader2 } from 'lucide-react'
 
-const BASE = 'pressable inline-flex items-center justify-center gap-2 rounded-md font-medium disabled:opacity-40 disabled:cursor-not-allowed'
+const BASE = 'pressable inline-flex items-center justify-center gap-2 rounded-md font-semibold disabled:opacity-40 disabled:cursor-not-allowed'
 // 모바일 터치 타깃 44(플레이북 5.2, DESIGN.md 접근성 절). md 이상은 데스크톱 밀도를 그대로 둔다
 const SIZE = {
   sm: 'h-8 min-h-11 min-w-11 md:min-h-0 md:min-w-0 px-3 type-caption',
   md: 'h-10 min-h-11 min-w-11 md:min-h-0 md:min-w-0 px-4 type-body-sm',
-  lg: 'h-11 px-5 type-body-sm'
+  lg: 'h-11 px-5 type-body-sm',
+  // 도우미 화면 단계 버튼. 높이 56, 고령 사용자 기준
+  xl: 'h-14 w-full px-5 rounded-xl type-h3'
 }
 const VARIANT = {
   primary: 'bg-primary text-text-inverse hover:bg-primary-hover',
   secondary: 'bg-page text-primary ring-1 ring-inset ring-line-def hover:bg-mute',
-  'secondary-primary': 'bg-page text-primary ring-1 ring-inset ring-primary hover:bg-mute',
   ghost: 'bg-transparent text-text-sec hover:bg-mute hover:text-text-pri',
   danger: 'bg-danger text-text-inverse hover:bg-danger-text'
 }

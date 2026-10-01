@@ -74,14 +74,17 @@ export const contrastOverrides = {
 // 인접해 놓이는 짝은 최소 200 차이가 난다. 라벨(caption 600) 대 값(kpi 800), 카드 타이틀(h3 700) 대 본문(body 400),
 // 델타(caption 600) 대 보조 문구(meta 400) 다. 큰 활자는 크기 하한을 올리고 자간을 좁혀 덩어리감을 줬다.
 // 폰트는 Pretendard 그대로다. 800 은 Pretendard Variable 이 가진 웨이트다
+// 미리 UI_PLAYBOOK 2.2: 800 display kpi / 700 h1 h2 h3 / 600 caption strong 버튼 탭 표 헤더 / 400 본문. 500 금지
 export const typography = {
-  display: { size: 'clamp(30px, 2vw + 21px, 42px)', weight: 700, tracking: '-0.035em', leading: 1.14 },
+  display: { size: 'clamp(30px, 2vw + 21px, 42px)', weight: 800, tracking: '-0.035em', leading: 1.14 },
   h1:      { size: 'clamp(24px, 1vw + 19px, 32px)', weight: 700, tracking: '-0.025em', leading: 1.2 },
-  h2:      { size: 'clamp(18px, 0.5vw + 16px, 22px)', weight: 600, tracking: '-0.02em', leading: 1.25 },
+  h2:      { size: 'clamp(18px, 0.5vw + 16px, 22px)', weight: 700, tracking: '-0.02em', leading: 1.25 },
   h3:      { size: 'clamp(17px, 0.3vw + 15.5px, 19px)', weight: 700, tracking: '-0.02em', leading: 1.3 },
   kpi:     { size: 'clamp(28px, 1.2vw + 22px, 40px)', weight: 800, tracking: '-0.03em', leading: 1.05 },
   body:    { size: 'clamp(15px, 0.2vw + 14px, 17px)', weight: 400, tracking: '-0.01em', leading: 1.7 },
   bodySm:  { size: 'clamp(13px, 0.15vw + 12.5px, 14px)', weight: 400, tracking: '-0.005em', leading: 1.55 },
+  strong:  { size: 'clamp(13px, 0.15vw + 12.5px, 14px)', weight: 600, tracking: '-0.005em', leading: 1.55 },
+  bodyStrong: { size: 'clamp(15px, 0.2vw + 14px, 17px)', weight: 600, tracking: '-0.01em', leading: 1.7 },
   caption: { size: 'clamp(11px, 0.1vw + 10.5px, 12px)', weight: 600, tracking: '0', leading: 1.4 },
   meta:    { size: '12px', weight: 400, tracking: '0.01em', leading: 1.4 },
   // 알림 카운트 전용. 벨 아이콘을 가리지 않으려면 배지가 16px 이어야 하고 그 안에 들어가는 유일한 크기다

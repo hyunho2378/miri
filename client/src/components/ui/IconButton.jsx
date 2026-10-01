@@ -17,7 +17,7 @@ const VARIANT = {
 const IconButton = forwardRef(function IconButton(
   { size = 'md', variant = 'ghost', radius = 'full', className, children, ...rest }, ref
 ) {
-  if (!rest['aria-label']) console.warn('IconButton: aria-label 이 필요합니다')
+  if (!rest['aria-label']) console.warn('IconButton: aria-label 필요')
   return (
     <button
       ref={ref}

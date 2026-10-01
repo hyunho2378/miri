@@ -23,7 +23,7 @@ export default function Pagination({ page = 1, total = 0, pageSize = 20, onChang
         <button
           key={p} type="button" aria-current={p === page ? 'page' : undefined}
           onClick={() => onChange?.(p)}
-          className={clsx(btn, p === page ? 'bg-primary-soft text-primary-text font-medium' : 'text-text-sec hover:bg-mute')}
+          className={clsx(btn, p === page ? 'bg-primary-soft text-primary-text type-strong' : 'text-text-sec hover:bg-mute')}
         >
           {p}
         </button>

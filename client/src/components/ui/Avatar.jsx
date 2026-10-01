@@ -9,7 +9,7 @@ export default function Avatar({ name = '', size = 'md', className }) {
   return (
     <span
       aria-hidden="true"
-      className={clsx('inline-flex shrink-0 items-center justify-center rounded-full bg-primary text-text-inverse font-bold', SIZE[size], className)}
+      className={clsx('inline-flex shrink-0 items-center justify-center rounded-full bg-primary text-text-inverse type-strong', SIZE[size], className)}
     >
       {initial}
     </span>

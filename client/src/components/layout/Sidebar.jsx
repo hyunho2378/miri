@@ -47,19 +47,18 @@ export default function Sidebar({ rail = false, orgName = '', onNavigate }) {
       className={({ isActive }) => clsx(
         'relative flex items-center min-h-11 rounded-md transition-colors duration-fast',
         rail ? 'justify-center w-11 mx-auto' : 'gap-3 px-3',
-        isActive ? 'bg-primary-soft text-primary-text font-medium' : 'text-text-sec hover:bg-mute hover:text-text-pri'
+        isActive ? 'bg-primary-soft text-primary-text' : 'text-text-sec hover:bg-mute hover:text-text-pri'
       )}
     >
       {({ isActive }) => (
         <>
-          {isActive && <span aria-hidden="true" className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-primary" />}
           <span className="relative inline-flex">
             <m.Icon size={20} aria-hidden="true" className="shrink-0" />
             {rail && m.queue && pending > 0 && (
               <span className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 ring-2 ring-canvas type-count text-text-inverse">{pending}</span>
             )}
           </span>
-          {!rail && <span className="min-w-0 flex-1 truncate type-body-sm">{m.label}</span>}
+          {!rail && <span className={clsx('min-w-0 flex-1 truncate', isActive ? 'type-strong' : 'type-body-sm')}>{m.label}</span>}
           {!rail && m.queue && pending > 0 && (
             <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 type-count text-text-inverse" aria-label={`확인 대기 ${pending}건`}>{pending}</span>
           )}

@@ -49,7 +49,7 @@ export default function UserMenu({ compact = false, className }) {
         <Avatar name={user.name} />
         {!compact && (
           <span className="min-w-0 flex-1">
-            <span className="block truncate type-body-sm font-medium text-text-pri">{user.name}</span>
+            <span className="block truncate type-strong text-text-pri">{user.name}</span>
             <span className="block truncate type-meta text-text-meta">{ROLE_LABEL[user.role]}</span>
           </span>
         )}

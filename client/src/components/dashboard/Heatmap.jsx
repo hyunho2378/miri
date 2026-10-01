@@ -21,11 +21,11 @@ export default function Heatmap({ matrix = [], ariaLabel }) {
         <table className="border-separate border-spacing-0.5" aria-label={ariaLabel}>
           <thead>
             <tr>
-              <th className="sticky left-0 z-raised bg-page pr-2 text-left type-caption font-semibold text-text-meta">
+              <th className="sticky left-0 z-raised bg-page pr-2 text-left type-caption text-text-meta">
                 {t('admin.analytics.weekday')}
               </th>
               {Array.from({ length: 24 }, (_, h) => (
-                <th key={h} className="w-6 pb-1 type-meta font-normal text-text-meta tabular-nums">
+                <th key={h} className="w-6 pb-1 type-meta text-text-meta tabular-nums">
                   {h % 3 === 0 ? h : ''}
                 </th>
               ))}
@@ -34,7 +34,7 @@ export default function Heatmap({ matrix = [], ariaLabel }) {
           <tbody>
             {matrix.map((row, d) => (
               <tr key={DAYS[d]}>
-                <th scope="row" className="sticky left-0 z-raised bg-page pr-2 text-left type-caption font-semibold text-text-meta">
+                <th scope="row" className="sticky left-0 z-raised bg-page pr-2 text-left type-caption text-text-meta">
                   {t(`facility.day.${DAYS[d]}`)}
                 </th>
                 {row.map((v, h) => (

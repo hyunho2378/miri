@@ -25,6 +25,7 @@
 [작업 성격별: 해당하면 반드시]
 - 계산, 배정, 이상 탐지, AI 판독, 백엔드, DB, API, mock 데이터 → docs/API_CONTRACT.md
 - 화면 문구, 시드 데이터, 정책 근거와 수치 인용 → docs/SOURCE.md (문자 그대로 복사, 요약 금지)
+- UI, 컴포넌트, 스타일 작업 → docs/UI_PLAYBOOK.md (작업 후 cd client && node scripts/ui-audit.mjs 위반 0건)
 - 모션과 반응형 → docs/DESIGN.md 14절(모션)과 9절(브레이크포인트). 별도 MOTION.md RESPONSIVE.md 없음
 - G-Chat 원래 구조 확인이 필요할 때만 → docs/_ref_gchat/ (값이 아니라 구조만 참고)
 

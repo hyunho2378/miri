@@ -30,7 +30,7 @@ export default function Tabs({ items = [], value, onChange, variant = 'underline
             ref={(el) => { refs.current[i] = el }}
             onClick={() => onChange?.(t.value)}
             className={clsx(
-              'relative h-10 min-h-11 min-w-11 md:min-h-0 md:min-w-0 px-3 type-body-sm font-medium transition-colors duration-fast',
+              'relative h-10 min-h-11 min-w-11 md:min-h-0 md:min-w-0 px-3 type-strong transition-colors duration-fast',
               variant === 'pill' && 'rounded-full',
               variant === 'pill' && active && 'bg-primary-soft text-primary-text',
               active ? 'text-text-pri' : 'text-text-meta hover:text-text-sec'

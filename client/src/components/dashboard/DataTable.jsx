@@ -61,7 +61,7 @@ export default function DataTable({
                   <th
                     key={c.key} scope="col" style={c.width ? { width: c.width } : undefined}
                     aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
-                    className={clsx('px-4 py-3 type-caption font-semibold text-text-meta', c.align === 'right' && 'text-right', HIDE[c.hideBelow])}
+                    className={clsx('px-4 py-3 type-caption text-text-meta', c.align === 'right' && 'text-right', HIDE[c.hideBelow])}
                   >
                     {c.sortable ? (
                       <button

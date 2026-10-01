@@ -73,16 +73,18 @@ G-Chat 금지 목록 그대로. 그라데이션, 정의 외 hex, 초록 주황 �
 
 ## 4. 폰트와 타이포그래피
 
-Pretendard Variable 단독. 웨이트 400 / 600 / 700 / 800. 인접 짝 최소 200 차이.
+Pretendard Variable 단독. 웨이트 400 / 600 / 700 / 800, 500 금지. 인접 짝 최소 200 차이. 굵기는 활자 클래스로만 지정(font-medium 등 직접 사용 금지). 상세는 UI_PLAYBOOK.md 2.2.
 
 | 역할 | 토큰 | size | weight | tracking | leading | 미리 사용처 |
 |------|------|------|--------|----------|---------|-----------|
-| Display | display | clamp(30px, 2vw + 21px, 42px) | 700 | -0.035em | 1.14 | 소개 면 헤드라인 |
+| Display | display | clamp(30px, 2vw + 21px, 42px) | 800 | -0.035em | 1.14 | 소개 면 헤드라인 |
 | H1 | h1 | clamp(24px, 1vw + 19px, 32px) | 700 | -0.025em | 1.2 | 페이지 타이틀 |
-| H2 | h2 | clamp(18px, 0.5vw + 16px, 22px) | 600 | -0.02em | 1.25 | 섹션 헤딩 |
+| H2 | h2 | clamp(18px, 0.5vw + 16px, 22px) | 700 | -0.02em | 1.25 | 섹션 헤딩 |
 | H3 | h3 | clamp(17px, 0.3vw + 15.5px, 19px) | 700 | -0.02em | 1.3 | 카드 타이틀, 배정 묶음 제목 |
 | KPI | kpi | clamp(28px, 1.2vw + 22px, 40px) | 800 | -0.03em | 1.05 | 총 부족분, 미이송자 수, 기한까지 남은 시간 |
 | Body | body | clamp(15px, 0.2vw + 14px, 17px) | 400 | -0.01em | 1.7 | 도우미 면 본문, 설명 |
+| Strong | strong | clamp(13px, 0.15vw + 12.5px, 14px) | 600 | -0.005em | 1.55 | 표 셀 강조값, 버튼, 탭, 활성 메뉴 |
+| Body Strong | body-strong | clamp(15px, 0.2vw + 14px, 17px) | 600 | -0.01em | 1.7 | 본문 크기 강조 |
 | Body Small | body-sm | clamp(13px, 0.15vw + 12.5px, 14px) | 400 | -0.005em | 1.55 | 표 셀, 카드 설명 |
 | Caption | caption | clamp(11px, 0.1vw + 10.5px, 12px) | 600 | 0 | 1.4 | 라벨, 배지, 표 헤더 |
 | Meta | meta | 12px | 400 | 0.01em | 1.4 | 갱신 시각, 출처 |
@@ -185,7 +187,7 @@ G-Chat DESIGN_DELTA 값 그대로.
 | md | 카드 hover |
 | lg (float) | 드로어, 모달, 드롭다운, 토스트 |
 
-무보더 원칙 승계. 카드 액센트 보더 금지. 구분선은 line-sub 1px 수평만.
+무보더 원칙 승계. 카드, 목록 행, 사이드바 활성 메뉴, 알림의 좌측 상단 액센트 보더 전면 금지(2026-10-02 사용자 지시). 현재 항목은 배경 톤 + type-strong + 라벨로 표시. 구분선은 line-sub 1px 수평만. 모든 흰 표면은 Card 프리미티브.
 
 ## 9. 브레이크포인트와 구조 변화
 
