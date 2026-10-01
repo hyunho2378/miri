@@ -6,6 +6,7 @@ import BarChart from '../../components/dashboard/BarChart.jsx'
 import AnomalyList from '../../components/miri/AnomalyList.jsx'
 import Card from '../../components/ui/Card.jsx'
 import MetricCard from '../../components/miri/MetricCard.jsx'
+import OpenDataCard from '../../components/miri/OpenDataCard.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import ShortageTable from '../../components/miri/ShortageTable.jsx'
 import { byGradeLine } from '../../components/miri/ShortageValue.jsx'
@@ -89,6 +90,7 @@ export default function OverviewPage() {
           <Card title="이상 탐지" desc="상위 5건">
             <AnomalyList items={anomalies} limit={5} />
           </Card>
+          <OpenDataCard />
         </div>
       </div>
     </PageShell>
