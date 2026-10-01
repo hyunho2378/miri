@@ -1,0 +1,98 @@
+[
+  {
+    "id": "rep-2026-09",
+    "periodKey": "month",
+    "period": "2026-09",
+    "from": "2026-09-01",
+    "to": "2026-09-06",
+    "status": "draft",
+    "createdAt": "2026-09-06",
+    "patternIds": [
+      "pat-002"
+    ],
+    "stats": {
+      "total": 47,
+      "auto": 31,
+      "handoff": 11,
+      "unresolved": 5,
+      "autoRate": 66
+    },
+    "nextActionKeys": [
+      "collect"
+    ]
+  },
+  {
+    "id": "rep-2026-08",
+    "periodKey": "month",
+    "period": "2026-08",
+    "from": "2026-08-01",
+    "to": "2026-08-31",
+    "status": "published",
+    "createdAt": "2026-09-01",
+    "patternIds": [
+      "pat-001",
+      "pat-002",
+      "pat-003",
+      "pat-004"
+    ],
+    "stats": {
+      "total": 213,
+      "auto": 142,
+      "handoff": 44,
+      "unresolved": 27,
+      "autoRate": 66.7
+    },
+    "nextActionKeys": [
+      "signage",
+      "staffing",
+      "faq"
+    ]
+  },
+  {
+    "id": "rep-2026-07",
+    "periodKey": "month",
+    "period": "2026-07",
+    "from": "2026-07-01",
+    "to": "2026-07-31",
+    "status": "published",
+    "createdAt": "2026-08-01",
+    "patternIds": [
+      "pat-003",
+      "pat-004"
+    ],
+    "stats": {
+      "total": 186,
+      "auto": 116,
+      "handoff": 47,
+      "unresolved": 23,
+      "autoRate": 62.4
+    },
+    "nextActionKeys": [
+      "faq",
+      "notice"
+    ]
+  },
+  {
+    "id": "rep-2026-q2",
+    "periodKey": "quarter",
+    "period": "2026-Q2",
+    "from": "2026-04-01",
+    "to": "2026-06-30",
+    "status": "published",
+    "createdAt": "2026-07-04",
+    "patternIds": [
+      "pat-003"
+    ],
+    "stats": {
+      "total": 498,
+      "auto": 262,
+      "handoff": 148,
+      "unresolved": 88,
+      "autoRate": 52.6
+    },
+    "nextActionKeys": [
+      "faq",
+      "kb"
+    ]
+  }
+]

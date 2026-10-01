@@ -1,0 +1,215 @@
+{
+  "docs": [
+    {
+      "id": "doc-001",
+      "title": "국민체육센터 운영 매뉴얼 2026",
+      "kind": "manual",
+      "facilityIds": [
+        "fac-001"
+      ],
+      "updatedAt": "2026-08-18",
+      "indexStatus": "indexed",
+      "chunks": 42
+    },
+    {
+      "id": "doc-002",
+      "title": "망상 오토캠핑리조트 이용 규정",
+      "kind": "regulation",
+      "facilityIds": [
+        "fac-002"
+      ],
+      "updatedAt": "2026-08-30",
+      "indexStatus": "indexed",
+      "chunks": 28
+    },
+    {
+      "id": "doc-003",
+      "title": "천곡황금박쥐동굴 안내 자료",
+      "kind": "manual",
+      "facilityIds": [
+        "fac-003"
+      ],
+      "updatedAt": "2026-06-02",
+      "indexStatus": "indexed",
+      "chunks": 19
+    },
+    {
+      "id": "doc-004",
+      "title": "무릉별유천지 운영 매뉴얼",
+      "kind": "manual",
+      "facilityIds": [
+        "fac-004"
+      ],
+      "updatedAt": "2026-07-20",
+      "indexStatus": "indexed",
+      "chunks": 35
+    },
+    {
+      "id": "doc-005",
+      "title": "문화예술회관 대관 규정",
+      "kind": "regulation",
+      "facilityIds": [
+        "fac-005"
+      ],
+      "updatedAt": "2026-07-15",
+      "indexStatus": "indexed",
+      "chunks": 24
+    },
+    {
+      "id": "doc-006",
+      "title": "공영주차장 요금 및 감면 기준",
+      "kind": "regulation",
+      "facilityIds": [
+        "fac-006"
+      ],
+      "updatedAt": "2026-05-20",
+      "indexStatus": "indexed",
+      "chunks": 11
+    },
+    {
+      "id": "doc-007",
+      "title": "시설관리공단 공통 민원 응대 매뉴얼",
+      "kind": "manual",
+      "facilityIds": [],
+      "updatedAt": "2026-04-10",
+      "indexStatus": "indexed",
+      "chunks": 57
+    },
+    {
+      "id": "doc-008",
+      "title": "실내테니스장 예약 운영 지침",
+      "kind": "manual",
+      "facilityIds": [
+        "fac-008"
+      ],
+      "updatedAt": "2026-08-25",
+      "indexStatus": "indexed",
+      "chunks": 16
+    },
+    {
+      "id": "doc-009",
+      "title": "공공시설 예약 시스템 연동 안내",
+      "kind": "reservation",
+      "facilityIds": [
+        "fac-001",
+        "fac-002",
+        "fac-004",
+        "fac-005",
+        "fac-008"
+      ],
+      "updatedAt": "2026-08-01",
+      "indexStatus": "indexed",
+      "chunks": 9
+    },
+    {
+      "id": "doc-010",
+      "title": "2026년 하반기 시설 요금 개정안",
+      "kind": "regulation",
+      "facilityIds": [],
+      "updatedAt": "2026-09-03",
+      "indexStatus": "pending",
+      "chunks": 0
+    },
+    {
+      "id": "doc-011",
+      "title": "무릉별유천지 스카이글라이더 점검 공지",
+      "kind": "notice",
+      "facilityIds": [
+        "fac-004"
+      ],
+      "updatedAt": "2026-09-04",
+      "indexStatus": "indexed",
+      "chunks": 3
+    },
+    {
+      "id": "doc-012",
+      "title": "추석 연휴 시설 운영 계획",
+      "kind": "notice",
+      "facilityIds": [],
+      "updatedAt": "2026-09-05",
+      "indexStatus": "failed",
+      "chunks": 0
+    },
+    {
+      "id": "doc-013",
+      "title": "국민여가캠핑장 휴장 공지",
+      "kind": "notice",
+      "facilityIds": [
+        "fac-007"
+      ],
+      "updatedAt": "2026-08-27",
+      "indexStatus": "indexed",
+      "chunks": 2
+    }
+  ],
+  "pending": [
+    {
+      "id": "pend-001",
+      "question": "국민체육센터 헬스장 월 이용권 환불이 되나요",
+      "answer": "이용 개시 후 잔여 일수 기준으로 환불하며 위약금 10퍼센트를 공제합니다.",
+      "sourceDocId": "doc-001",
+      "occurrences": 14,
+      "createdAt": "2026-09-01"
+    },
+    {
+      "id": "pend-002",
+      "question": "망상 오토캠핑리조트 반려동물 동반이 가능한가요",
+      "answer": "반려동물 동반은 카라반 B형과 일반 사이트만 가능하며 사전 신고가 필요합니다.",
+      "sourceDocId": "doc-002",
+      "occurrences": 31,
+      "createdAt": "2026-09-02"
+    },
+    {
+      "id": "pend-003",
+      "question": "황금박쥐동굴 유모차로 들어갈 수 있나요",
+      "answer": "동굴 내부는 계단 구간이 있어 유모차 진입이 어렵습니다. 입구에 유모차 보관소를 운영합니다.",
+      "sourceDocId": "doc-003",
+      "occurrences": 9,
+      "createdAt": "2026-09-03"
+    },
+    {
+      "id": "pend-004",
+      "question": "실내테니스장 예약 취소는 언제까지 되나요",
+      "answer": "이용 2시간 전까지 온라인에서 취소할 수 있습니다. 이후 취소는 노쇼로 처리됩니다.",
+      "sourceDocId": "doc-008",
+      "occurrences": 22,
+      "createdAt": "2026-09-04"
+    },
+    {
+      "id": "pend-005",
+      "question": "문화예술회관 주차장은 공연 관람객 무료인가요",
+      "answer": "공연 관람객은 관람 당일 4시간까지 무료입니다.",
+      "sourceDocId": "doc-005",
+      "occurrences": 17,
+      "createdAt": "2026-09-05"
+    }
+  ],
+  "index": {
+    "lastReindexAt": "2026-09-06T03:00:00",
+    "nextReindexAt": "2026-09-07T03:00:00",
+    "logs": [
+      {
+        "at": "2026-09-06T03:00:00",
+        "result": "success",
+        "docs": 12,
+        "chunks": 246,
+        "durationSec": 84
+      },
+      {
+        "at": "2026-09-05T03:00:00",
+        "result": "partial",
+        "docs": 12,
+        "chunks": 243,
+        "durationSec": 91,
+        "message": "doc-012 파싱 실패. 표 구조 인식 불가"
+      },
+      {
+        "at": "2026-09-04T03:00:00",
+        "result": "success",
+        "docs": 11,
+        "chunks": 240,
+        "durationSec": 80
+      }
+    ]
+  }
+}

@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* DESIGN_DELTA.md 변경 4. tokens.motion 과 1:1. CSS 애니메이션이 이 변수만 본다 */
+  :root {
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-spring: cubic-bezier(0.32, 1.32, 0.5, 1);
+    --dur-press: 120ms;
+    --dur-fast: 160ms;
+    --dur-pop: 180ms;
+    --dur: 280ms;
+    --dur-sheet: 360ms;
+  }
+
+  html { font-family: 'Pretendard Variable', 'Pretendard'; -webkit-font-smoothing: antialiased; }
+  body { @apply bg-page text-text-pri; letter-spacing: -0.01em; }
+  h1, h2, h3, h4 { letter-spacing: -0.02em; line-height: 1.2; text-wrap: balance; }
+  p, li, dd, figcaption { text-wrap: pretty; }
+  *:focus { outline: none; }
+  *:focus-visible { outline: 2px solid theme('colors.primary.DEFAULT'); outline-offset: 2px; border-radius: 4px; }
+  /* 전역 가로 스크롤 차단. clip 은 hidden 과 달리 스크롤 컨테이너를 만들지 않아 sticky 가 살아 있다 */
+  html, body { overflow-x: clip; }
+}
+
+@layer components {
+  /* tokens.typography 와 1:1. 8단계에서 웨이트 사다리를 400 / 600 / 700 / 800 으로 벌렸다 */
+  .type-display { font-size: clamp(30px, 2vw + 21px, 42px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.14; }
+  .type-h1      { font-size: clamp(24px, 1vw + 19px, 32px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; }
+  .type-h2      { font-size: clamp(18px, 0.5vw + 16px, 22px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.25; }
+  .type-h3      { font-size: clamp(17px, 0.3vw + 15.5px, 19px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; }
+  .type-kpi     { font-size: clamp(28px, 1.2vw + 22px, 40px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .type-body    { font-size: clamp(15px, 0.2vw + 14px, 17px); font-weight: 400; letter-spacing: -0.01em; line-height: 1.7; }
+  .type-body-sm { font-size: clamp(13px, 0.15vw + 12.5px, 14px); font-weight: 400; letter-spacing: -0.005em; line-height: 1.55; }
+  .type-caption { font-size: clamp(11px, 0.1vw + 10.5px, 12px); font-weight: 600; line-height: 1.4; }
+  .type-meta    { font-size: 12px; font-weight: 400; letter-spacing: 0.01em; line-height: 1.4; }
+  .type-count   { font-size: 10px; font-weight: 700; letter-spacing: 0.01em; line-height: 1; font-variant-numeric: tabular-nums; }
+
+  /* DESIGN_DELTA.md 변경 4. press 피드백. 버튼 칩 클릭 카드에 붙인다.
+     transition 을 여기서 통째로 선언한다. 컴포넌트가 transition-[...] 유틸을 또 붙이면
+     그 유틸이 transition-property 를 덮어써 transform 이 안 움직인다 */
+  .pressable {
+    transition-property: transform, background-color, color, box-shadow;
+    transition-duration: var(--dur-press);
+    transition-timing-function: var(--ease-out);
+  }
+  .pressable:active { transform: scale(0.97); }
+  .pressable:disabled:active, .pressable[aria-disabled='true']:active { transform: none; }
+
+  /* 팝 진입 퇴장. 드롭다운 Select LangSwitch 공용. usePopExit 훅과 짝 */
+  .pop-panel { animation: popPanel var(--dur-pop) var(--ease-out); transform-origin: top; }
+  .pop-panel-exit { animation: popPanel var(--dur-pop) var(--ease-out) reverse forwards; }
+  .pop-instant { animation: none; }
+}
+
+@keyframes flowDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+@keyframes popPanel { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+@keyframes pageEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes skeleton { 0%, 100% { background-color: theme('colors.line.def'); } 50% { background-color: theme('colors.text.ter'); } }
+@keyframes caretBlink { 0%, 45% { opacity: 1; } 50%, 95% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-6px); } }
+
+.animate-flow-down { animation: flowDown var(--dur) var(--ease-out); }
+.animate-flow-down-late { animation: flowDown var(--dur) var(--ease-out) 80ms backwards; }
+.animate-fade-in { animation: fadeIn var(--dur-fast) var(--ease-out); }
+.animate-slide-in-right { animation: slideInRight var(--dur-sheet) var(--ease-drawer); }
+.animate-slide-in-left { animation: slideInLeft var(--dur-sheet) var(--ease-drawer); }
+.animate-pop-in { animation: popIn var(--dur-pop) var(--ease-out); }
+.page-enter { animation: pageEnter var(--dur) var(--ease-out); }
+.skeleton-bar { animation: skeleton 1.4s ease-in-out infinite; }
+/* 시트 딤은 패널과 같은 시간으로 떠야 층이 같이 움직인다 */
+.animate-fade-in-sheet { animation: fadeIn var(--dur-sheet) var(--ease-drawer); }
+/* 스트리밍 커서. 스트리밍 동안만 존재하는 상태 표시다. 장식이 아니라 reduced-motion 에서는 아예 지운다 */
+.stream-caret { animation: caretBlink 1s steps(1) infinite; }
+/* 토스트는 들어올 때 흘러들고 사라지기 직전에 스스로 빠진다. 스토어가 4초 뒤 제거한다 */
+.toast-item { animation: flowDown var(--dur-pop) var(--ease-out), toastOut var(--dur-fast) var(--ease-out) 3720ms forwards; }
+.skeleton-bar-2 { animation-delay: 0.18s; }
+.skeleton-bar-3 { animation-delay: 0.36s; }
+
+/* word-break: keep-all(break-keep)은 한국어 어절을 안 끊으려는 규칙이다.
+   일본어 중국어는 낱말 사이에 공백이 없어 그대로 두면 줄이 아예 안 바뀌고 컨테이너를 넘친다.
+   두 언어에서만 일반 줄바꿈으로 되돌린다(7단계) */
+html[lang='ja'] .break-keep, html[lang='zh'] .break-keep { word-break: normal; line-break: strict; }
+
+/* tokens.contrastOverrides. 컴포넌트가 CSS 변수를 쓰지 않으므로 유틸리티 재정의로 최소 적용한다 */
+@media (prefers-contrast: more) {
+  .border-line-sub { border-color: theme('colors.line.def'); }
+  .bg-line-sub { background-color: theme('colors.line.def'); }
+  .text-text-meta { color: theme('colors.text.sec'); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .pressable:active { transform: none; }
+  /* 깜빡이는 커서는 줄이는 게 아니라 없앤다 */
+  .stream-caret { display: none; }
+  /* 토스트가 순간 사라지지 않게 퇴장 애니메이션만 끈다 */
+  .toast-item { animation: none; }
+}

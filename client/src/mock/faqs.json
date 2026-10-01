@@ -1,0 +1,134 @@
+[
+  {
+    "id": "faq-001",
+    "category": "운영시간",
+    "question": "국민체육센터 수영장은 몇 시부터 이용할 수 있나요",
+    "answer": "평일 06:00부터 22:00까지, 토요일 08:00부터 18:00까지 이용할 수 있습니다. 일요일은 휴관입니다.",
+    "facilityId": "fac-001",
+    "sourceDocId": "doc-001",
+    "visible": true,
+    "hits30d": 412,
+    "updatedAt": "2026-08-21"
+  },
+  {
+    "id": "faq-002",
+    "category": "운영시간",
+    "question": "무릉별유천지 야간 개장은 몇 시까지인가요",
+    "answer": "화요일부터 일요일 22:00까지 개장합니다. 월요일은 휴관입니다.",
+    "facilityId": "fac-004",
+    "sourceDocId": "doc-004",
+    "visible": true,
+    "hits30d": 287,
+    "updatedAt": "2026-08-22"
+  },
+  {
+    "id": "faq-003",
+    "category": "요금",
+    "question": "묵호항 공영주차장 요금은 어떻게 되나요",
+    "answer": "최초 30분 무료, 이후 10분당 300원, 1일 최대 8,000원입니다. 경차와 저공해차는 50퍼센트 감면됩니다.",
+    "facilityId": "fac-006",
+    "sourceDocId": "doc-006",
+    "visible": true,
+    "hits30d": 356,
+    "updatedAt": "2026-08-23"
+  },
+  {
+    "id": "faq-004",
+    "category": "요금",
+    "question": "황금박쥐동굴 단체 할인이 있나요",
+    "answer": "20인 이상 단체는 1인당 500원 할인됩니다. 단체 예약은 방문 3일 전까지 전화로 접수합니다.",
+    "facilityId": "fac-003",
+    "sourceDocId": "doc-003",
+    "visible": true,
+    "hits30d": 98,
+    "updatedAt": "2026-08-24"
+  },
+  {
+    "id": "faq-005",
+    "category": "예약",
+    "question": "망상 오토캠핑리조트 예약은 언제 열리나요",
+    "answer": "이용일 30일 전 오전 10시에 온라인 예약이 열립니다. 취소는 이용일 3일 전까지 수수료 없이 가능합니다.",
+    "facilityId": "fac-002",
+    "sourceDocId": "doc-002",
+    "visible": true,
+    "hits30d": 521,
+    "updatedAt": "2026-08-25"
+  },
+  {
+    "id": "faq-006",
+    "category": "예약",
+    "question": "실내테니스장은 하루에 몇 시간까지 예약할 수 있나요",
+    "answer": "1인 1일 2시간까지 예약할 수 있습니다. 노쇼가 2회 누적되면 30일간 예약이 제한됩니다.",
+    "facilityId": "fac-008",
+    "sourceDocId": "doc-008",
+    "visible": true,
+    "hits30d": 173,
+    "updatedAt": "2026-08-26"
+  },
+  {
+    "id": "faq-007",
+    "category": "예약",
+    "question": "문화예술회관 대관 신청은 언제까지 해야 하나요",
+    "answer": "이용일 60일 전까지 대관 신청서를 접수해야 합니다. 심의 결과는 접수 후 10일 이내에 통보합니다.",
+    "facilityId": "fac-005",
+    "sourceDocId": "doc-005",
+    "visible": true,
+    "hits30d": 64,
+    "updatedAt": "2026-08-27"
+  },
+  {
+    "id": "faq-008",
+    "category": "이용안내",
+    "question": "수영장 이용 시 준비물이 있나요",
+    "answer": "수영모 착용이 필수입니다. 라커는 100원 동전 반환식으로 운영합니다.",
+    "facilityId": "fac-001",
+    "sourceDocId": "doc-001",
+    "visible": true,
+    "hits30d": 201,
+    "updatedAt": "2026-08-28"
+  },
+  {
+    "id": "faq-009",
+    "category": "이용안내",
+    "question": "동굴 내부는 춥나요",
+    "answer": "동굴 내부 온도는 연중 12도입니다. 겉옷을 준비하시기 바랍니다.",
+    "facilityId": "fac-003",
+    "sourceDocId": "doc-003",
+    "visible": true,
+    "hits30d": 145,
+    "updatedAt": "2026-08-29"
+  },
+  {
+    "id": "faq-010",
+    "category": "찾아오는길",
+    "question": "국민체육센터 주차는 무료인가요",
+    "answer": "시설 이용자는 3시간까지 무료입니다. 이후 30분당 500원입니다.",
+    "facilityId": "fac-001",
+    "sourceDocId": "doc-001",
+    "visible": true,
+    "hits30d": 188,
+    "updatedAt": "2026-08-21"
+  },
+  {
+    "id": "faq-011",
+    "category": "휴관",
+    "question": "국민여가캠핑장은 지금 이용할 수 있나요",
+    "answer": "2026년 9월 한 달간 배수 공사로 휴장합니다. 10월 1일부터 재개장 예정이며 동절기 11월부터 3월은 휴장합니다.",
+    "facilityId": "fac-007",
+    "sourceDocId": "doc-013",
+    "visible": true,
+    "hits30d": 233,
+    "updatedAt": "2026-08-22"
+  },
+  {
+    "id": "faq-012",
+    "category": "휴관",
+    "question": "시설 정기 휴관일이 언제인가요",
+    "answer": "시설마다 다릅니다. 국민체육센터는 일요일과 매월 넷째 주 월요일, 문화예술회관과 무릉별유천지는 월요일 휴관입니다.",
+    "facilityId": null,
+    "sourceDocId": "doc-001",
+    "visible": true,
+    "hits30d": 119,
+    "updatedAt": "2026-08-23"
+  }
+]

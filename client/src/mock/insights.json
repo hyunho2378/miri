@@ -1,0 +1,70 @@
+{
+  "autoRate": {
+    "labels": [
+      "26 1Q",
+      "26 2Q",
+      "26 3Q",
+      "26 4Q",
+      "27 2Q",
+      "27 4Q",
+      "28 2Q",
+      "28 4Q"
+    ],
+    "actual": [
+      41.2,
+      52.6,
+      63.8,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "milestones": [
+      {
+        "index": 3,
+        "year": 2026,
+        "target": 60
+      },
+      {
+        "index": 5,
+        "year": 2027,
+        "target": 80
+      },
+      {
+        "index": 7,
+        "year": 2028,
+        "target": 90
+      }
+    ],
+    "target": [
+      41.2,
+      50.6,
+      55.3,
+      60,
+      70,
+      80,
+      85,
+      90
+    ],
+    "current": 63.8,
+    "currentTarget": 60,
+    "currentStatus": "achieved"
+  },
+  "conversion": {
+    "windowDays": 30,
+    "unresolved": 32,
+    "converted": 12,
+    "prevConverted": 7,
+    "autoRateGain": 1.9,
+    "pendingHint": 5
+  },
+  "demand": {
+    "weekLabel": "09.07",
+    "expected": 63,
+    "prevActual": 58,
+    "peakWeekLabel": "09.21",
+    "peakExpected": 78,
+    "peakEventKey": "chuseok"
+  }
+}

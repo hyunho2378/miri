@@ -1,0 +1,985 @@
+{
+  "ranges": {
+    "7d": {
+      "autoRate": {
+        "value": 63.8,
+        "delta": 2.4,
+        "target": 60,
+        "status": "achieved"
+      },
+      "nps": {
+        "value": 24,
+        "delta": 3,
+        "target": 20,
+        "status": "achieved"
+      },
+      "handoffMinutes": {
+        "value": 41,
+        "delta": -9,
+        "baseline": 92,
+        "reduction": 55.4,
+        "target": 50,
+        "status": "achieved"
+      },
+      "accuracy": {
+        "value": 88.4,
+        "delta": -1.2,
+        "target": 90,
+        "status": "near"
+      },
+      "trend": {
+        "labels": [
+          "08.31",
+          "09.01",
+          "09.02",
+          "09.03",
+          "09.04",
+          "09.05",
+          "09.06"
+        ],
+        "auto": [
+          38,
+          44,
+          41,
+          52,
+          49,
+          57,
+          46
+        ],
+        "handoff": [
+          14,
+          12,
+          15,
+          13,
+          17,
+          11,
+          12
+        ],
+        "unresolved": [
+          6,
+          5,
+          8,
+          4,
+          7,
+          5,
+          6
+        ]
+      },
+      "topQuestions": [
+        {
+          "rank": 1,
+          "label": "시설 운영시간 문의",
+          "count": 124,
+          "delta": 12,
+          "facilityId": null
+        },
+        {
+          "rank": 2,
+          "label": "주차 요금과 감면",
+          "count": 97,
+          "delta": 31,
+          "facilityId": "fac-006"
+        },
+        {
+          "rank": 3,
+          "label": "캠핑장 예약 오픈 시점",
+          "count": 83,
+          "delta": -4,
+          "facilityId": "fac-002"
+        },
+        {
+          "rank": 4,
+          "label": "수영장 이용료",
+          "count": 61,
+          "delta": 2,
+          "facilityId": "fac-001"
+        },
+        {
+          "rank": 5,
+          "label": "휴장 사유와 재개장",
+          "count": 58,
+          "delta": 40,
+          "facilityId": "fac-007"
+        }
+      ],
+      "facilityShare": [
+        {
+          "facilityId": "fac-001",
+          "count": 142,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-002",
+          "count": 118,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-006",
+          "count": 97,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-004",
+          "count": 71,
+          "status": "maintenance"
+        },
+        {
+          "facilityId": "fac-003",
+          "count": 49,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-008",
+          "count": 33,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-005",
+          "count": 18,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-007",
+          "count": 24,
+          "status": "closed"
+        }
+      ],
+      "reviewQueue": {
+        "accuracy": 12,
+        "handoff": 2,
+        "knowledge": 5
+      }
+    },
+    "30d": {
+      "autoRate": {
+        "value": 61.2,
+        "delta": 5.9,
+        "target": 60,
+        "status": "achieved"
+      },
+      "nps": {
+        "value": 19,
+        "delta": 8,
+        "target": 20,
+        "status": "near"
+      },
+      "handoffMinutes": {
+        "value": 47,
+        "delta": -21,
+        "baseline": 92,
+        "reduction": 48.9,
+        "target": 50,
+        "status": "near"
+      },
+      "accuracy": {
+        "value": 89.1,
+        "delta": 2.6,
+        "target": 90,
+        "status": "near"
+      },
+      "trend": {
+        "labels": [
+          "08.08",
+          "08.09",
+          "08.10",
+          "08.11",
+          "08.12",
+          "08.13",
+          "08.14",
+          "08.15",
+          "08.16",
+          "08.17",
+          "08.18",
+          "08.19",
+          "08.20",
+          "08.21",
+          "08.22",
+          "08.23",
+          "08.24",
+          "08.25",
+          "08.26",
+          "08.27",
+          "08.28",
+          "08.29",
+          "08.30",
+          "08.31",
+          "09.01",
+          "09.02",
+          "09.03",
+          "09.04",
+          "09.05",
+          "09.06"
+        ],
+        "auto": [
+          38.5,
+          51.5,
+          41.0,
+          39.6,
+          58.9,
+          45.1,
+          55.5,
+          48.5,
+          30.9,
+          42.4,
+          43.1,
+          53.2,
+          40.4,
+          51.1,
+          46.1,
+          36.5,
+          55.9,
+          32.7,
+          54.6,
+          35.1,
+          30.0,
+          36.1,
+          52.9,
+          59.3,
+          30.1,
+          44.7,
+          44.7,
+          53.9,
+          35.5,
+          44.8
+        ],
+        "handoff": [
+          12.2,
+          18.0,
+          11.1,
+          19.3,
+          11.4,
+          10.6,
+          16.4,
+          14.0,
+          9.3,
+          15.6,
+          9.0,
+          17.5,
+          16.4,
+          17.4,
+          15.5,
+          12.3,
+          12.8,
+          12.7,
+          18.7,
+          9.0,
+          18.7,
+          8.3,
+          10.5,
+          11.2,
+          18.8,
+          14.0,
+          12.6,
+          18.6,
+          10.8,
+          13.5
+        ],
+        "unresolved": [
+          6.7,
+          8.3,
+          8.3,
+          7.5,
+          5.4,
+          5.3,
+          4.1,
+          8.9,
+          7.6,
+          8.2,
+          4.2,
+          6.1,
+          8.4,
+          7.1,
+          3.9,
+          6.2,
+          9.2,
+          4.7,
+          4.3,
+          5.1,
+          7.9,
+          8.9,
+          4.1,
+          4.1,
+          4.7,
+          5.3,
+          6.7,
+          4.1,
+          5.3,
+          4.3
+        ]
+      },
+      "topQuestions": [
+        {
+          "rank": 1,
+          "label": "시설 운영시간 문의",
+          "count": 486,
+          "delta": 9,
+          "facilityId": null
+        },
+        {
+          "rank": 2,
+          "label": "캠핑장 예약 오픈 시점",
+          "count": 352,
+          "delta": 15,
+          "facilityId": "fac-002"
+        },
+        {
+          "rank": 3,
+          "label": "주차 요금과 감면",
+          "count": 331,
+          "delta": 22,
+          "facilityId": "fac-006"
+        },
+        {
+          "rank": 4,
+          "label": "수영장 이용료",
+          "count": 240,
+          "delta": -3,
+          "facilityId": "fac-001"
+        },
+        {
+          "rank": 5,
+          "label": "테니스장 코트 잔여",
+          "count": 187,
+          "delta": 11,
+          "facilityId": "fac-008"
+        }
+      ],
+      "facilityShare": [
+        {
+          "facilityId": "fac-001",
+          "count": 590,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-002",
+          "count": 512,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-006",
+          "count": 388,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-004",
+          "count": 301,
+          "status": "maintenance"
+        },
+        {
+          "facilityId": "fac-003",
+          "count": 214,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-008",
+          "count": 190,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-005",
+          "count": 77,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-007",
+          "count": 96,
+          "status": "closed"
+        }
+      ],
+      "reviewQueue": {
+        "accuracy": 12,
+        "handoff": 2,
+        "knowledge": 5
+      }
+    },
+    "quarter": {
+      "autoRate": {
+        "value": 61.2,
+        "delta": 5.9,
+        "target": 60,
+        "status": "achieved"
+      },
+      "nps": {
+        "value": 19,
+        "delta": 8,
+        "target": 20,
+        "status": "near"
+      },
+      "handoffMinutes": {
+        "value": 47,
+        "delta": -21,
+        "baseline": 92,
+        "reduction": 48.9,
+        "target": 50,
+        "status": "near"
+      },
+      "accuracy": {
+        "value": 89.1,
+        "delta": 2.6,
+        "target": 90,
+        "status": "near"
+      },
+      "trend": {
+        "labels": [
+          "08.08",
+          "08.09",
+          "08.10",
+          "08.11",
+          "08.12",
+          "08.13",
+          "08.14",
+          "08.15",
+          "08.16",
+          "08.17",
+          "08.18",
+          "08.19",
+          "08.20",
+          "08.21",
+          "08.22",
+          "08.23",
+          "08.24",
+          "08.25",
+          "08.26",
+          "08.27",
+          "08.28",
+          "08.29",
+          "08.30",
+          "08.31",
+          "09.01",
+          "09.02",
+          "09.03",
+          "09.04",
+          "09.05",
+          "09.06"
+        ],
+        "auto": [
+          38.5,
+          51.5,
+          41.0,
+          39.6,
+          58.9,
+          45.1,
+          55.5,
+          48.5,
+          30.9,
+          42.4,
+          43.1,
+          53.2,
+          40.4,
+          51.1,
+          46.1,
+          36.5,
+          55.9,
+          32.7,
+          54.6,
+          35.1,
+          30.0,
+          36.1,
+          52.9,
+          59.3,
+          30.1,
+          44.7,
+          44.7,
+          53.9,
+          35.5,
+          44.8
+        ],
+        "handoff": [
+          12.2,
+          18.0,
+          11.1,
+          19.3,
+          11.4,
+          10.6,
+          16.4,
+          14.0,
+          9.3,
+          15.6,
+          9.0,
+          17.5,
+          16.4,
+          17.4,
+          15.5,
+          12.3,
+          12.8,
+          12.7,
+          18.7,
+          9.0,
+          18.7,
+          8.3,
+          10.5,
+          11.2,
+          18.8,
+          14.0,
+          12.6,
+          18.6,
+          10.8,
+          13.5
+        ],
+        "unresolved": [
+          6.7,
+          8.3,
+          8.3,
+          7.5,
+          5.4,
+          5.3,
+          4.1,
+          8.9,
+          7.6,
+          8.2,
+          4.2,
+          6.1,
+          8.4,
+          7.1,
+          3.9,
+          6.2,
+          9.2,
+          4.7,
+          4.3,
+          5.1,
+          7.9,
+          8.9,
+          4.1,
+          4.1,
+          4.7,
+          5.3,
+          6.7,
+          4.1,
+          5.3,
+          4.3
+        ]
+      },
+      "topQuestions": [
+        {
+          "rank": 1,
+          "label": "시설 운영시간 문의",
+          "count": 486,
+          "delta": 9,
+          "facilityId": null
+        },
+        {
+          "rank": 2,
+          "label": "캠핑장 예약 오픈 시점",
+          "count": 352,
+          "delta": 15,
+          "facilityId": "fac-002"
+        },
+        {
+          "rank": 3,
+          "label": "주차 요금과 감면",
+          "count": 331,
+          "delta": 22,
+          "facilityId": "fac-006"
+        },
+        {
+          "rank": 4,
+          "label": "수영장 이용료",
+          "count": 240,
+          "delta": -3,
+          "facilityId": "fac-001"
+        },
+        {
+          "rank": 5,
+          "label": "테니스장 코트 잔여",
+          "count": 187,
+          "delta": 11,
+          "facilityId": "fac-008"
+        }
+      ],
+      "facilityShare": [
+        {
+          "facilityId": "fac-001",
+          "count": 590,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-002",
+          "count": 512,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-006",
+          "count": 388,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-004",
+          "count": 301,
+          "status": "maintenance"
+        },
+        {
+          "facilityId": "fac-003",
+          "count": 214,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-008",
+          "count": 190,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-005",
+          "count": 77,
+          "status": "normal"
+        },
+        {
+          "facilityId": "fac-007",
+          "count": 96,
+          "status": "closed"
+        }
+      ],
+      "reviewQueue": {
+        "accuracy": 12,
+        "handoff": 2,
+        "knowledge": 5
+      }
+    }
+  },
+  "heatmap": [
+    [
+      0,
+      1,
+      0,
+      1,
+      3,
+      1,
+      1,
+      2,
+      26,
+      12,
+      16,
+      11,
+      9,
+      6,
+      23,
+      6,
+      11,
+      9,
+      15,
+      17,
+      4,
+      3,
+      3,
+      3
+    ],
+    [
+      1,
+      4,
+      2,
+      3,
+      0,
+      1,
+      2,
+      4,
+      26,
+      15,
+      3,
+      26,
+      10,
+      16,
+      25,
+      21,
+      21,
+      26,
+      23,
+      16,
+      10,
+      24,
+      4,
+      1
+    ],
+    [
+      1,
+      0,
+      3,
+      3,
+      2,
+      2,
+      0,
+      3,
+      10,
+      28,
+      15,
+      25,
+      25,
+      23,
+      8,
+      11,
+      16,
+      18,
+      17,
+      3,
+      22,
+      16,
+      4,
+      1
+    ],
+    [
+      2,
+      0,
+      3,
+      3,
+      0,
+      0,
+      2,
+      4,
+      9,
+      8,
+      25,
+      28,
+      9,
+      19,
+      14,
+      6,
+      21,
+      17,
+      20,
+      9,
+      25,
+      18,
+      4,
+      0
+    ],
+    [
+      2,
+      4,
+      2,
+      3,
+      3,
+      1,
+      1,
+      3,
+      19,
+      27,
+      6,
+      26,
+      22,
+      14,
+      23,
+      4,
+      11,
+      11,
+      15,
+      15,
+      4,
+      3,
+      0,
+      3
+    ],
+    [
+      3,
+      2,
+      4,
+      2,
+      0,
+      1,
+      2,
+      3,
+      19,
+      10,
+      28,
+      15,
+      17,
+      9,
+      8,
+      7,
+      27,
+      5,
+      28,
+      28,
+      23,
+      9,
+      3,
+      4
+    ],
+    [
+      1,
+      1,
+      2,
+      3,
+      3,
+      2,
+      4,
+      1,
+      27,
+      18,
+      14,
+      28,
+      10,
+      11,
+      25,
+      15,
+      24,
+      11,
+      16,
+      24,
+      8,
+      18,
+      0,
+      2
+    ]
+  ],
+  "npsBeforeAfter": {
+    "before": {
+      "nps": -4,
+      "n": 112,
+      "period": "2026.06 도입 전"
+    },
+    "after": {
+      "nps": 24,
+      "n": 140,
+      "period": "2026.09 도입 후"
+    }
+  },
+  "reservationSlots": {
+    "facilityId": "fac-008",
+    "from": "2026-09-08",
+    "hours": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21
+    ],
+    "days": [
+      [
+        "booked",
+        "open",
+        "maintenance",
+        "booked",
+        "booked",
+        "booked",
+        "booked",
+        "booked",
+        "full",
+        "maintenance",
+        "open",
+        "maintenance",
+        "booked",
+        "open",
+        "booked",
+        "booked"
+      ],
+      [
+        "open",
+        "open",
+        "full",
+        "booked",
+        "open",
+        "full",
+        "booked",
+        "maintenance",
+        "full",
+        "open",
+        "maintenance",
+        "open",
+        "open",
+        "open",
+        "maintenance",
+        "booked"
+      ],
+      [
+        "booked",
+        "full",
+        "open",
+        "full",
+        "open",
+        "open",
+        "open",
+        "booked",
+        "booked",
+        "open",
+        "open",
+        "booked",
+        "full",
+        "open",
+        "full",
+        "maintenance"
+      ],
+      [
+        "full",
+        "open",
+        "maintenance",
+        "full",
+        "maintenance",
+        "booked",
+        "open",
+        "booked",
+        "maintenance",
+        "open",
+        "full",
+        "open",
+        "maintenance",
+        "booked",
+        "maintenance",
+        "open"
+      ],
+      [
+        "full",
+        "open",
+        "booked",
+        "booked",
+        "open",
+        "open",
+        "booked",
+        "booked",
+        "full",
+        "open",
+        "booked",
+        "booked",
+        "open",
+        "maintenance",
+        "booked",
+        "open"
+      ],
+      [
+        "booked",
+        "open",
+        "full",
+        "full",
+        "maintenance",
+        "open",
+        "open",
+        "booked",
+        "booked",
+        "maintenance",
+        "full",
+        "booked",
+        "maintenance",
+        "booked",
+        "booked",
+        "booked"
+      ],
+      [
+        "booked",
+        "booked",
+        "maintenance",
+        "open",
+        "open",
+        "maintenance",
+        "booked",
+        "maintenance",
+        "maintenance",
+        "open",
+        "open",
+        "full",
+        "open",
+        "maintenance",
+        "maintenance",
+        "booked"
+      ]
+    ],
+    "syncedAt": "2026-09-06T08:50:00"
+  }
+}

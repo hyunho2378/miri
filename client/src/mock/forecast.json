@@ -1,0 +1,380 @@
+{
+  "basis": {
+    "logCount": 260,
+    "days": 31,
+    "weeks": 4,
+    "from": "2026-08-10",
+    "to": "2026-09-06"
+  },
+  "actualLabels": [
+    "08.10",
+    "08.17",
+    "08.24",
+    "08.31"
+  ],
+  "forecastLabels": [
+    "09.07",
+    "09.14",
+    "09.21",
+    "09.28"
+  ],
+  "total": {
+    "actual": [
+      67,
+      52,
+      64,
+      58
+    ],
+    "forecast": [
+      63,
+      65,
+      78,
+      67
+    ],
+    "lower": [
+      55,
+      55,
+      63,
+      52
+    ],
+    "upper": [
+      71,
+      75,
+      93,
+      82
+    ]
+  },
+  "series": [
+    {
+      "facilityId": "fac-001",
+      "actual": [
+        17,
+        13,
+        13,
+        7
+      ],
+      "forecast": [
+        13,
+        13,
+        12,
+        13
+      ],
+      "lower": [
+        11,
+        11,
+        10,
+        10
+      ],
+      "upper": [
+        15,
+        15,
+        14,
+        16
+      ]
+    },
+    {
+      "facilityId": "fac-002",
+      "actual": [
+        9,
+        7,
+        13,
+        11
+      ],
+      "forecast": [
+        10,
+        11,
+        15,
+        12
+      ],
+      "lower": [
+        9,
+        9,
+        12,
+        9
+      ],
+      "upper": [
+        11,
+        13,
+        18,
+        15
+      ]
+    },
+    {
+      "facilityId": "fac-003",
+      "actual": [
+        9,
+        5,
+        8,
+        8
+      ],
+      "forecast": [
+        8,
+        8,
+        11,
+        9
+      ],
+      "lower": [
+        7,
+        7,
+        9,
+        7
+      ],
+      "upper": [
+        9,
+        9,
+        13,
+        11
+      ]
+    },
+    {
+      "facilityId": "fac-004",
+      "actual": [
+        9,
+        3,
+        4,
+        9
+      ],
+      "forecast": [
+        7,
+        7,
+        10,
+        7
+      ],
+      "lower": [
+        6,
+        6,
+        8,
+        5
+      ],
+      "upper": [
+        8,
+        8,
+        12,
+        9
+      ]
+    },
+    {
+      "facilityId": "fac-005",
+      "actual": [
+        3,
+        6,
+        3,
+        7
+      ],
+      "forecast": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "lower": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "upper": [
+        6,
+        6,
+        6,
+        6
+      ]
+    },
+    {
+      "facilityId": "fac-006",
+      "actual": [
+        8,
+        7,
+        13,
+        4
+      ],
+      "forecast": [
+        8,
+        9,
+        12,
+        9
+      ],
+      "lower": [
+        7,
+        8,
+        10,
+        7
+      ],
+      "upper": [
+        9,
+        10,
+        14,
+        11
+      ]
+    },
+    {
+      "facilityId": "fac-007",
+      "actual": [
+        6,
+        3,
+        4,
+        5
+      ],
+      "forecast": [
+        5,
+        5,
+        7,
+        5
+      ],
+      "lower": [
+        4,
+        4,
+        6,
+        4
+      ],
+      "upper": [
+        6,
+        6,
+        8,
+        6
+      ]
+    },
+    {
+      "facilityId": "fac-008",
+      "actual": [
+        6,
+        8,
+        6,
+        7
+      ],
+      "forecast": [
+        7,
+        7,
+        6,
+        7
+      ],
+      "lower": [
+        6,
+        6,
+        5,
+        5
+      ],
+      "upper": [
+        8,
+        8,
+        7,
+        9
+      ]
+    }
+  ],
+  "events": [
+    {
+      "week": "09.21",
+      "key": "chuseok",
+      "from": "2026-09-24",
+      "to": "2026-09-26"
+    }
+  ],
+  "staffing": [
+    {
+      "week": "09.07",
+      "facilityId": "fac-004",
+      "expected": 7,
+      "baseline": 6.3,
+      "staff": 1
+    },
+    {
+      "week": "09.07",
+      "facilityId": "fac-007",
+      "expected": 5,
+      "baseline": 4.5,
+      "staff": 1
+    },
+    {
+      "week": "09.14",
+      "facilityId": "fac-004",
+      "expected": 7,
+      "baseline": 6.3,
+      "staff": 1
+    },
+    {
+      "week": "09.14",
+      "facilityId": "fac-006",
+      "expected": 9,
+      "baseline": 8,
+      "staff": 2
+    },
+    {
+      "week": "09.14",
+      "facilityId": "fac-007",
+      "expected": 5,
+      "baseline": 4.5,
+      "staff": 1
+    },
+    {
+      "week": "09.21",
+      "facilityId": "fac-002",
+      "expected": 15,
+      "baseline": 10,
+      "staff": 2
+    },
+    {
+      "week": "09.21",
+      "facilityId": "fac-003",
+      "expected": 11,
+      "baseline": 7.5,
+      "staff": 2
+    },
+    {
+      "week": "09.21",
+      "facilityId": "fac-004",
+      "expected": 10,
+      "baseline": 6.3,
+      "staff": 2
+    },
+    {
+      "week": "09.21",
+      "facilityId": "fac-006",
+      "expected": 12,
+      "baseline": 8,
+      "staff": 2
+    },
+    {
+      "week": "09.21",
+      "facilityId": "fac-007",
+      "expected": 7,
+      "baseline": 4.5,
+      "staff": 1
+    },
+    {
+      "week": "09.28",
+      "facilityId": "fac-002",
+      "expected": 12,
+      "baseline": 10,
+      "staff": 2
+    },
+    {
+      "week": "09.28",
+      "facilityId": "fac-003",
+      "expected": 9,
+      "baseline": 7.5,
+      "staff": 2
+    },
+    {
+      "week": "09.28",
+      "facilityId": "fac-004",
+      "expected": 7,
+      "baseline": 6.3,
+      "staff": 1
+    },
+    {
+      "week": "09.28",
+      "facilityId": "fac-006",
+      "expected": 9,
+      "baseline": 8,
+      "staff": 2
+    },
+    {
+      "week": "09.28",
+      "facilityId": "fac-007",
+      "expected": 5,
+      "baseline": 4.5,
+      "staff": 1
+    }
+  ]
+}

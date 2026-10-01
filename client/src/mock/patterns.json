@@ -1,0 +1,124 @@
+[
+  {
+    "id": "pat-001",
+    "key": "parking",
+    "facilityId": "fac-006",
+    "severity": "high",
+    "evidence": [
+      {
+        "key": "weekendAvg",
+        "value": 1.63,
+        "unit": "perDay"
+      },
+      {
+        "key": "weekdayAvg",
+        "value": 1,
+        "unit": "perDay"
+      },
+      {
+        "key": "ratio",
+        "value": 1.6,
+        "unit": "times"
+      },
+      {
+        "key": "total",
+        "value": 36,
+        "unit": "count"
+      }
+    ],
+    "effect": {
+      "key": "onsiteInquiry",
+      "value": 30,
+      "unit": "percentDown"
+    }
+  },
+  {
+    "id": "pat-002",
+    "key": "night",
+    "facilityId": null,
+    "severity": "high",
+    "evidence": [
+      {
+        "key": "nightCount",
+        "value": 64,
+        "unit": "count"
+      },
+      {
+        "key": "nightShare",
+        "value": 24.6,
+        "unit": "percent"
+      },
+      {
+        "key": "nightAuto",
+        "value": 45,
+        "unit": "count"
+      },
+      {
+        "key": "nightAutoRate",
+        "value": 70.3,
+        "unit": "percent"
+      }
+    ],
+    "effect": {
+      "key": "offHours",
+      "value": 64,
+      "unit": "count"
+    }
+  },
+  {
+    "id": "pat-003",
+    "key": "fee",
+    "facilityId": null,
+    "severity": "medium",
+    "evidence": [
+      {
+        "key": "feeCount",
+        "value": 75,
+        "unit": "count"
+      },
+      {
+        "key": "feeShare",
+        "value": 28.8,
+        "unit": "percent"
+      },
+      {
+        "key": "feeNotAuto",
+        "value": 28,
+        "unit": "count"
+      }
+    ],
+    "effect": {
+      "key": "autoRate",
+      "value": 4.2,
+      "unit": "percentUp"
+    }
+  },
+  {
+    "id": "pat-004",
+    "key": "reserve",
+    "facilityId": "fac-002",
+    "severity": "medium",
+    "evidence": [
+      {
+        "key": "reserveCount",
+        "value": 36,
+        "unit": "count"
+      },
+      {
+        "key": "facilityTotal",
+        "value": 43,
+        "unit": "count"
+      },
+      {
+        "key": "reserveShare",
+        "value": 83.7,
+        "unit": "percent"
+      }
+    ],
+    "effect": {
+      "key": "handoff",
+      "value": 25,
+      "unit": "percentDown"
+    }
+  }
+]

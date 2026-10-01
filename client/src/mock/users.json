@@ -1,0 +1,58 @@
+[
+  {
+    "id": "usr-001",
+    "name": "박정민",
+    "email": "admin@gchat.dev",
+    "role": "admin",
+    "facilities": [],
+    "lastLoginAt": "2026-09-06T09:12:00",
+    "status": "active"
+  },
+  {
+    "id": "usr-002",
+    "name": "이수진",
+    "email": "sujin@gchat.dev",
+    "role": "operator",
+    "facilities": [
+      "fac-001",
+      "fac-008"
+    ],
+    "lastLoginAt": "2026-09-05T17:40:00",
+    "status": "active"
+  },
+  {
+    "id": "usr-003",
+    "name": "최현우",
+    "email": "hyunwoo@gchat.dev",
+    "role": "operator",
+    "facilities": [
+      "fac-002",
+      "fac-003",
+      "fac-004",
+      "fac-007"
+    ],
+    "lastLoginAt": "2026-09-06T08:05:00",
+    "status": "active"
+  },
+  {
+    "id": "usr-004",
+    "name": "김하늘",
+    "email": "haneul@gchat.dev",
+    "role": "reviewer",
+    "facilities": [],
+    "lastLoginAt": "2026-09-04T14:22:00",
+    "status": "active"
+  },
+  {
+    "id": "usr-005",
+    "name": "정도현",
+    "email": "dohyun@gchat.dev",
+    "role": "operator",
+    "facilities": [
+      "fac-005",
+      "fac-006"
+    ],
+    "lastLoginAt": null,
+    "status": "invited"
+  }
+]
