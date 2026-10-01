@@ -15,7 +15,7 @@
 - client/package.json name, .env.example, index.html title 교체
 - npm install 완료, 빌드 결과는 아래 검증 기록
 
-### 1. 기반 (단독)  [ ]
+### 1. 기반 (단독)  [x]  2026-10-02
 나머지가 의존하는 파일. 한 에이전트가 확정 후 2단계 시작.
 - lib/shortage.js: GRADES 상수, 3.2 구현식, 원문 예시 단위 테스트 (침상 12, 차량 2, 왕복 120 → 부족 6)
 - lib/assign.js: 기준선 배정 + 지역 탐색 최적화 + 사유 템플릿 + 기준선 비교. 단위 테스트
@@ -29,7 +29,7 @@
 - i18n ko 단일화 (en ja zh 삭제, LangSwitch 제거)
 - G-Chat 전용 페이지와 컴포넌트와 mock 삭제 (COMPONENTS.md 삭제 대상)
 
-### 2. 화면 (병렬)  [ ]
+### 2. 화면 (병렬)  [x]  2026-10-02
 파일 소유 계약. 각자 자기 페이지와 miri/ 하위 자기 컴포넌트만 수정. 기반 파일(tokens, ui, layout, lib, store, index.css) 수정 금지. 필요하면 PROGRESS 에 요청 기록.
 
 | 에이전트 | 페이지 | 소유 컴포넌트 |
@@ -82,3 +82,15 @@ GradeChip 과 DeadlineClock 은 다른 에이전트도 사용. 소유자만 수�
 - 2026-10-02 GitHub: github.com/hyunho2378/miri main 브랜치 push 완료 (275 파일)
 - 2026-10-02 Vercel: hyunho2378's projects, 프로젝트 miri, Root Directory client, Vite 프리셋, 환경변수 VITE_USE_MOCK=true VITE_ORG_NAME=동해시. 배포 성공. 도메인 miri-indol.vercel.app. Vercel 빌드는 정상 통과 (로컬 샌드박스 빌드 실패는 환경 문제로 확정)
 - 2026-10-02 배포 URL 확인: / /privacy /admin/login /facilities 직접 진입 404 없음. 화면은 아직 G-Chat 그대로 (1단계 기반 작업 전)
+- 2026-10-02 미리 전체 구현 배포 (커밋 335ea74). G-Chat 화면과 코드 전부 제거, 15개 라우트 미리 화면으로 교체
+- 2026-10-02 단위 테스트 8개 통과: 원문 예시 부족 6, 기준선과 최적화 동일 결과, 최적화 결과가 기준선보다 나쁘지 않음, 원문 대조 신뢰도 하, 이상 탐지 5규칙
+- 2026-10-02 가상 데이터 기준 결과: 대상자 332명, 규칙 순서 부족 48명(침상 24 휠체어 24), AI 배정 최적화 41명(7명 감소), 리프트 승합차 2대와 침상 승합차 2대 추가 시 부족 0
+- 2026-10-02 로컬 브라우저 확인: 13개 경로 콘솔 오류 0. 320 390 768 폭 요소 잘림 0, 9개 폭(320~3840) 가로 스크롤 0. 발령 개시 → AI 배정 → 전송 → 도우미 수락 → 단계 보고 클릭 시연 확인
+- 2026-10-02 금지 grep (client/src): 가운데점 0(tokens.js 주석 1건 제외), 줄표 0, 이모지 0, tokens 밖 hex 0, localStorage 0, transition-all 0, hover scale 0, type=date/time 0, 네이티브 select 0, 그라데이션 0, backdrop-blur 0
+- 2026-10-02 배포본 확인: miri-indol.vercel.app 현황판 정상, /api/intake 503 NO_KEY(키 미설정 정상 응답), 직접 진입 200
+
+## 남은 작업
+- Vercel 환경변수 GEMINI_API_KEY 설정 시 실제 서류 사진 판독 동작 (지금은 샘플 서류 판독만)
+- 인쇄 전용 CSS (소방 인계, 기록 상세)
+- 백엔드(서버 저장). 지금은 브라우저 메모리라 새로고침하면 초기 가상 데이터로 복귀
+- 사용성 평가와 판독 정확도 측정 (Deliver 단계)
