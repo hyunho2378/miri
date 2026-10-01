@@ -12,9 +12,9 @@ export default function ShortageValue({ value, byGrade, provisional = 0, size = 
     <div>
       {label && <p className="type-caption text-text-sec">{label}</p>}
       {value === 0
-        ? <p className={clsx(big ? 'mt-2 type-kpi' : 'type-body-sm font-semibold', 'text-text-pri')}>부족 없음</p>
+        ? <p className={clsx(big ? 'mt-2 type-kpi' : 'type-strong', 'text-text-pri')}>부족 없음</p>
         : (
-          <p className={clsx(big ? 'mt-2 type-kpi' : 'type-body-sm font-semibold', 'text-danger-text tabular-nums')}>
+          <p className={clsx(big ? 'mt-2 type-kpi' : 'type-strong', 'text-danger-text tabular-nums')}>
             부족 {value}<span className={big ? 'ml-1 type-h3' : ''}>명</span>
           </p>
         )}

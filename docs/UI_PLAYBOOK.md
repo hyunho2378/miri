@@ -263,7 +263,18 @@ ui-audit 규칙.
 
 ### 2026-10-02 2차 (이관 후)
 
-(이관 완료 후 ui-audit 결과 기록)
+| 항목 | 건수 |
+|------|------|
+| ui-audit 위반 | 0 (11개 규칙 전부 통과. 카드 표면 규칙은 shadow-card 단독 검출로 강화) |
+| 13개 경로 × 9개 폭 가로 스크롤과 화면 밖 잘림 | 0 |
+| 콘솔 오류 | 0 |
+| 단위 테스트 | 8 통과 |
+
+이관 내용: 카드 표면 21곳 Card 로, 접힘 5곳 Disclosure 로, 키값 6곳 KeyValue 로, 로컬 스테퍼 2개 NumberStepper 로(긴 목록은 layout inline), 사유 칩 ChoiceChips 로, 도우미 단계 버튼 Button xl 로, 체크박스 Checkbox 로. 사이드바 활성 좌측 바, 도우미 현재 카드 링, 업로더 드래그 테두리 제거.
+
+프리미티브 추가 옵션: SectionTitle size lg, eyebrow, descSize, id / KeyValue size lg / Card media / NumberStepper layout inline.
+
+남은 과제: 클릭형 선택 카드 프리미티브(OptionCard) 미작성. 로그인 데모 계정 선택은 Link 로 구현.
 
 ---
 

@@ -1,16 +1,17 @@
 // 부족분 계산(IA 4.5). 핵심 기능 1. 봄철 산불 조심 기간 전 차량 협약 규모를 정하는 근거.
 // 마을별 값은 원문 배정 규칙으로 시뮬레이션한 미이송 수. 공식 표는 원문 공식 설명용.
 import { useEffect, useMemo, useState } from 'react'
-import { Minus, Plus, Save, Star } from 'lucide-react'
-import Card from '../../components/miri/Card.jsx'
+import { Save, Star } from 'lucide-react'
+import Card from '../../components/ui/Card.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import ShortageTable from '../../components/miri/ShortageTable.jsx'
 import ShortageValue from '../../components/miri/ShortageValue.jsx'
 import GradeChip from '../../components/miri/GradeChip.jsx'
 import Badge from '../../components/ui/Badge.jsx'
 import Button from '../../components/ui/Button.jsx'
-import IconButton from '../../components/ui/IconButton.jsx'
+import Disclosure from '../../components/ui/Disclosure.jsx'
 import Input from '../../components/ui/Input.jsx'
+import NumberStepper from '../../components/ui/NumberStepper.jsx'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
@@ -21,23 +22,6 @@ import useMiriStore from '../../store/useMiriStore.js'
 
 const MAX_SCENARIOS = 5
 const EXTRA_TYPES = [...new Set(Object.values(EXTRA_TYPE))]
-
-function Stepper({ label, value, onChange, min = 0, max = 20, step = 1, unit = '', format }) {
-  return (
-    <div className="flex items-center justify-between gap-3 min-w-0">
-      <span className="min-w-0 truncate type-body-sm text-text-sec">{label}</span>
-      <div className="flex shrink-0 items-center gap-1">
-        <IconButton size="sm" aria-label={`${label} 줄이기`} disabled={value <= min} onClick={() => onChange(Math.max(min, +(value - step).toFixed(2)))}>
-          <Minus size={16} aria-hidden="true" />
-        </IconButton>
-        <span className="w-16 text-center type-body-sm font-semibold text-text-pri tabular-nums" aria-live="polite">{format ? format(value) : `${value}${unit}`}</span>
-        <IconButton size="sm" aria-label={`${label} 늘리기`} disabled={value >= max} onClick={() => onChange(Math.min(max, +(value + step).toFixed(2)))}>
-          <Plus size={16} aria-hidden="true" />
-        </IconButton>
-      </div>
-    </div>
-  )
-}
 
 const offsetText = (h) => (h === 0 ? '기준' : `${h > 0 ? '+' : ''}${h}시간`)
 
@@ -116,18 +100,18 @@ export default function ShortagePage() {
           </Card>
 
           <Card title="추가 협약 차량" desc="부족 등급에 맞는 차종을 더해 재계산">
-            <div className="space-y-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               {EXTRA_TYPES.map((t) => (
-                <Stepper key={t} label={typeOf(t).label} value={draft.extraVehicles?.[t] || 0} unit="대" onChange={(n) => setExtra(t, n)} />
+                <NumberStepper key={t} label={typeOf(t).label} value={draft.extraVehicles?.[t] || 0} min={0} max={20} unit="대" onChange={(n) => setExtra(t, n)} />
               ))}
             </div>
           </Card>
 
           <Card title="마을별 산불 도달 가정" desc="기준 대비 늦게 도달하면 + 시간">
-            <ul className="space-y-1 max-h-[420px] overflow-y-auto pr-1">
+            <ul className="grid gap-x-6 gap-y-2 xl:grid-cols-2 max-h-[420px] overflow-y-auto pr-1">
               {villages.map((v) => (
-                <li key={v.code}>
-                  <Stepper label={v.label} value={draft.offsetHours?.[v.code] || 0} min={-2} max={8} step={0.5} format={offsetText} onChange={(h) => setOffset(v.code, h)} />
+                <li key={v.code} className="min-w-0">
+                  <NumberStepper layout="inline" label={v.label} value={draft.offsetHours?.[v.code] || 0} min={-2} max={8} step={0.5} unit="시간" format={offsetText} onChange={(h) => setOffset(v.code, h)} />
                 </li>
               ))}
             </ul>
@@ -162,10 +146,9 @@ export default function ShortagePage() {
             <ShortageTable villages={villages} dongs={dongs} byVillage={result.byVillage} />
           </Card>
 
-          <Card title="공식 보기" bodyClassName="pt-0 lg:pt-0">
-            <details>
-              <summary className="cursor-pointer type-body-sm text-primary-text min-h-11 inline-flex items-center">원문 공식과 등급별 계산값 펼치기</summary>
-              <div className="mt-3 rounded-md bg-subtle p-4 type-body-sm text-text-sec space-y-1">
+          <Card title="공식 보기">
+            <Disclosure summary="원문 공식과 등급별 계산값">
+              <div className="rounded-md bg-subtle p-4 type-body-sm text-text-sec space-y-1">
                 <p>□ (부족분 공식) 부족분은 대상자 수에서 8시간 안 이송 가능 인원을 뺀 값</p>
                 <p>ㅇ 이송 가능 인원은 보유 차량 수에 왕복 가능 횟수를 곱한 값</p>
                 <p>ㅇ 왕복 가능 횟수는 준비 1시간을 뺀 7시간을 왕복 시간으로 나눈 값</p>
@@ -192,14 +175,14 @@ export default function ShortagePage() {
                         <td className="px-3 py-2 type-body-sm">{f.roundTrip}분</td>
                         <td className="px-3 py-2 type-body-sm">{f.trips}회</td>
                         <td className="px-3 py-2 type-body-sm">{f.movable}명</td>
-                        <td className={`px-3 py-2 type-body-sm font-semibold ${f.shortage ? 'text-danger-text' : 'text-text-meta'}`}>{f.shortage ? `${f.shortage}명` : '없음'}</td>
+                        <td className={`px-3 py-2 ${f.shortage ? 'type-strong text-danger-text' : 'type-body-sm text-text-meta'}`}>{f.shortage ? `${f.shortage}명` : '없음'}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
               <p className="mt-3 type-meta text-text-meta">공식 부족분은 등급 단위 단순 계산. 위 마을별 부족분은 차량이 마을을 오가는 순서까지 반영한 원문 배정 규칙 시뮬레이션 결과라 두 값이 다를 수 있음</p>
-            </details>
+            </Disclosure>
           </Card>
 
           <Card
@@ -227,14 +210,14 @@ export default function ShortagePage() {
                   {compare.map(({ sc, r }) => (
                     <tr key={sc.id} className="border-t border-line-sub">
                       <td className="px-3 py-2 type-body-sm min-w-48">
-                        <span className="text-text-pri">{sc.name}</span>
+                        <span className="type-strong text-text-pri">{sc.name}</span>
                         {sc.id === activeId && <Badge tone="primary" className="ml-2">현황판 기준</Badge>}
                       </td>
                       <td className="px-3 py-2 type-body-sm whitespace-nowrap">{sc.prepMinutes}분</td>
                       <td className="px-3 py-2 type-body-sm whitespace-nowrap">{sc.completeBeforeHours ? `도달 ${sc.completeBeforeHours}시간 전` : '도달 시각'}</td>
                       <td className="px-3 py-2 type-meta text-text-sec whitespace-nowrap">{Object.entries(sc.extraVehicles || {}).filter(([, n]) => n).map(([t, n]) => `${typeOf(t).label} ${n}`).join(', ') || '없음'}</td>
                       {GRADES.map((g) => <td key={g.key} className="px-3 py-2 type-body-sm">{r.byGrade[g.key] || '-'}</td>)}
-                      <td className={`px-3 py-2 type-body-sm font-semibold whitespace-nowrap ${r.total ? 'text-danger-text' : 'text-text-sec'}`}>{r.total ? `부족 ${r.total}명` : '부족 없음'}</td>
+                      <td className={`px-3 py-2 type-strong whitespace-nowrap ${r.total ? 'text-danger-text' : 'text-text-sec'}`}>{r.total ? `부족 ${r.total}명` : '부족 없음'}</td>
                       <td className="px-3 py-2 whitespace-nowrap">
                         {canEdit && sc.id !== activeId && (
                           <span className="inline-flex gap-1">

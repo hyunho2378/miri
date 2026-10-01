@@ -4,6 +4,7 @@ import clsx from 'clsx'
 import { CircleAlert, CircleCheck, ScanText } from 'lucide-react'
 import { CONF_LABEL } from '../../lib/intake.js'
 import StatusPill from '../dashboard/StatusPill.jsx'
+import Disclosure from '../ui/Disclosure.jsx'
 
 function Highlighted({ transcript, quote }) {
   const i = quote ? transcript.indexOf(quote) : -1
@@ -39,10 +40,9 @@ export default function EvidencePanel({ quote, matched, confidence, conflict, tr
         </p>
       )}
       {transcript && (
-        <details className="mt-3">
-          <summary className="cursor-pointer type-caption text-text-sec min-h-11 md:min-h-0 inline-flex items-center">전사문 보기</summary>
-          <p className="mt-2 type-meta text-text-sec leading-relaxed"><Highlighted transcript={transcript} quote={quote} /></p>
-        </details>
+        <Disclosure className="mt-3" summary="전사문 보기">
+          <p className="type-meta text-text-sec leading-relaxed"><Highlighted transcript={transcript} quote={quote} /></p>
+        </Disclosure>
       )}
     </aside>
   )

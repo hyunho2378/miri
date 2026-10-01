@@ -4,14 +4,15 @@ import clsx from 'clsx'
 import { Minus, Plus } from 'lucide-react'
 import IconButton from './IconButton.jsx'
 
-export default function NumberStepper({ label, value, onChange, min = 0, max = 999, step = 1, unit = '', hint, format, className }) {
+// layout inline: 라벨 왼쪽, 스테퍼 오른쪽 한 줄(긴 목록용)
+export default function NumberStepper({ label, value, onChange, min = 0, max = 999, step = 1, unit = '', hint, format, layout = 'stack', className }) {
   const id = useId()
   const set = (v) => onChange?.(Math.min(max, Math.max(min, Math.round(v * 100) / 100)))
   const shown = format ? format(value) : `${value}${unit}`
   return (
-    <div className={clsx('min-w-0', className)} role="group" aria-labelledby={`${id}-l`}>
-      {label && <p id={`${id}-l`} className="mb-1.5 type-caption text-text-sec">{label}</p>}
-      <div className="inline-flex items-center gap-1 rounded-md bg-mute p-1">
+    <div className={clsx('min-w-0', layout === 'inline' && 'flex items-center justify-between gap-3', className)} role="group" aria-labelledby={`${id}-l`}>
+      {label && <p id={`${id}-l`} className={clsx(layout === 'inline' ? 'min-w-0 truncate type-body-sm text-text-sec' : 'mb-1.5 type-caption text-text-sec')}>{label}</p>}
+      <div className="inline-flex shrink-0 items-center gap-1 rounded-md bg-mute p-1">
         <IconButton size="sm" radius="md" aria-label={`${label || '값'} ${step}${unit} 감소`} disabled={value <= min} onClick={() => set(value - step)}>
           <Minus size={16} aria-hidden="true" />
         </IconButton>

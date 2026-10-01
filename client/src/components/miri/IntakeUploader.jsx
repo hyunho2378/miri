@@ -46,13 +46,13 @@ export default function IntakeUploader({ villages, onFile, onSample, busy }) {
         onDragOver={(e) => { e.preventDefault(); setDrag(true) }}
         onDragLeave={() => setDrag(false)}
         onDrop={(e) => { e.preventDefault(); setDrag(false); take(e.dataTransfer.files?.[0]) }}
-        className={clsx('rounded-lg border-2 border-dashed p-6 text-center transition-colors duration-fast', drag ? 'border-primary bg-primary-soft' : 'border-line-def bg-subtle')}
+        className={clsx('rounded-lg border-2 border-dashed p-6 text-center transition-colors duration-fast', drag ? 'border-line-strong bg-primary-soft' : 'border-line-def bg-subtle')}
       >
-        <FileUp size={32} aria-hidden="true" className="mx-auto text-text-meta" />
-        <p className="mt-2 type-body-sm text-text-sec">사진, 스캔 이미지를 끌어 놓기</p>
+        <FileUp size={32} aria-hidden="true" className={clsx('mx-auto', drag ? 'text-primary' : 'text-text-meta')} />
+        <p className={clsx('mt-2', drag ? 'type-strong text-primary-text' : 'type-body-sm text-text-sec')}>{drag ? '여기에 놓으면 판독 시작' : '사진, 스캔 이미지를 끌어 놓기'}</p>
         <p className="mt-1 type-meta text-text-meta">손글씨 대피카드 포함. 판독 결과는 담당자 확인 전까지 확정 아님</p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <label htmlFor={inputId} className={clsx('pressable inline-flex items-center gap-2 h-10 min-h-11 md:min-h-0 px-4 rounded-md bg-page text-primary ring-1 ring-inset ring-line-def hover:bg-mute type-body-sm font-medium cursor-pointer', busy && 'pointer-events-none opacity-40')}>
+          <label htmlFor={inputId} className={clsx('pressable inline-flex items-center gap-2 h-10 min-h-11 md:min-h-0 px-4 rounded-md bg-page text-primary ring-1 ring-inset ring-line-def hover:bg-mute type-strong cursor-pointer', busy && 'pointer-events-none opacity-40')}>
             <FileUp size={16} aria-hidden="true" />파일 선택
           </label>
           <input id={inputId} ref={fileRef} type="file" accept="image/*" className="sr-only" disabled={busy}

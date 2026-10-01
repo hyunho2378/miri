@@ -3,13 +3,14 @@
 import { useMemo, useState } from 'react'
 import { Ambulance, Printer } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import Card from '../../components/miri/Card.jsx'
+import Card from '../../components/ui/Card.jsx'
 import GradeChip from '../../components/miri/GradeChip.jsx'
 import MetricCard from '../../components/miri/MetricCard.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import DataTable from '../../components/dashboard/DataTable.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Button from '../../components/ui/Button.jsx'
+import Checkbox from '../../components/ui/Checkbox.jsx'
 import EmptyState from '../../components/ui/EmptyState.jsx'
 import ExportButton from '../../components/ui/ExportButton.jsx'
 import useNow from '../../hooks/useNow.js'
@@ -79,10 +80,10 @@ export default function HandoverPage() {
       render: (r) => (r.status === 'handedToFire'
         ? <span className="tabular-nums">{r.code}</span>
         : (
-          <label className="inline-flex min-h-11 md:min-h-0 items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={selected.has(r.code)} onChange={() => toggle(r.code)} className="h-4 w-4 accent-primary" aria-label={`${r.code} 선택`} onClick={(e) => e.stopPropagation()} />
+          <span className="inline-flex items-center gap-1">
+            <Checkbox checked={selected.has(r.code)} onChange={() => toggle(r.code)} label={`${r.code} 선택`} srOnlyLabel />
             <span className="tabular-nums">{r.code}</span>
-          </label>
+          </span>
         ))
     },
     { key: 'dong', label: '동', hideBelow: 'lg' },
@@ -103,13 +104,13 @@ export default function HandoverPage() {
   return (
     <PageShell title="소방 인계" intro="기한 안에 옮기지 못하는 대상자를 동해소방서에 일괄 전달. 대상자 이름 대신 코드와 마을과 등급으로 전달하고 상세 위치는 발령 중 별도 확인">
       {!live ? (
-        <div className="bg-page rounded-lg shadow-card">
+        <Card as="div" padding="none">
           <EmptyState
             title="진행 중인 발령 없음"
             desc={d.status === 'standby' ? 'AI 배정 실행 후 미이송자 목록 생성' : '발령 개시 후 배정 결과에서 미이송자 목록 생성'}
             action={<Button as={Link} to="/console/dispatch">발령 운영</Button>}
           />
-        </div>
+        </Card>
       ) : (
         <div className="space-y-4">
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
@@ -147,7 +148,7 @@ export default function HandoverPage() {
               <ul className="divide-y divide-line-sub">
                 {d.handovers.map((h, i) => (
                   <li key={`${h.at}-${i}`} className="flex flex-wrap items-center gap-3 py-3">
-                    <span className="type-body-sm text-text-pri tabular-nums">{fmtDateTime(h.at)}</span>
+                    <span className="type-strong text-text-pri tabular-nums">{fmtDateTime(h.at)}</span>
                     <span className="type-body-sm text-text-sec">{h.receiver}</span>
                     <span className="type-body-sm text-text-sec tabular-nums">{h.codes.length}명</span>
                     <span className="min-w-0 basis-full truncate type-meta text-text-meta tabular-nums">{h.codes.join(' ')}</span>

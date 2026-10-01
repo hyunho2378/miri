@@ -3,6 +3,8 @@
 import { Route, Truck, Users } from 'lucide-react'
 import { capOf, typeOf } from '../../lib/shortage.js'
 import { fmtHM } from '../../lib/time.js'
+import Card from '../ui/Card.jsx'
+import Disclosure from '../ui/Disclosure.jsx'
 import Select from '../ui/Select.jsx'
 import GradeChip from './GradeChip.jsx'
 
@@ -25,7 +27,7 @@ export default function AssignmentBundle({ assignment, vehicle, villageLabel = (
   const last = assignment.trips[assignment.trips.length - 1]
   const persons = assignment.trips.reduce((s, t) => s + t.personCodes.length, 0)
   return (
-    <section className="bg-page rounded-lg shadow-card min-w-0 animate-flow-down">
+    <Card padding="none" className="animate-flow-down">
       <header className="flex flex-wrap items-center gap-x-3 gap-y-1 p-4 lg:p-5 border-b border-line-sub">
         <Truck size={20} aria-hidden="true" className="text-text-sec" />
         <h3 className="type-h3 text-text-pri tabular-nums">{assignment.vehicleCode}</h3>
@@ -40,7 +42,7 @@ export default function AssignmentBundle({ assignment, vehicle, villageLabel = (
         {assignment.trips.map((t) => (
           <li key={`${t.index}-${t.departAt}`} className="px-4 lg:px-5 py-3">
             <p className="flex flex-wrap items-center gap-2 type-caption text-text-sec tabular-nums">
-              <span className="text-text-pri">{t.index}회차</span>
+              <span className="type-strong text-text-pri">{t.index}회차</span>
               <span>{villageLabel(t.village)}</span>
               <span className="text-text-meta">출발 {fmtHM(t.departAt)} 완료 {fmtHM(t.finishAt)}</span>
               {t.added && <span className="text-primary-text">재배정 추가</span>}
@@ -73,15 +75,15 @@ export default function AssignmentBundle({ assignment, vehicle, villageLabel = (
         ))}
       </ol>
       {assignment.reasons?.length > 0 && (
-        <details className="px-4 lg:px-5 py-3 border-t border-line-sub">
-          <summary className="cursor-pointer min-h-11 md:min-h-0 inline-flex items-center gap-1 type-caption text-text-sec">
-            <Route size={14} aria-hidden="true" />AI 배정 사유
-          </summary>
-          <ul className="mt-2 space-y-1 type-body-sm text-text-sec">
+        <Disclosure
+          className="px-4 lg:px-5 py-3 border-t border-line-sub"
+          summary={<span className="inline-flex items-center gap-1"><Route size={14} aria-hidden="true" />AI 배정 사유</span>}
+        >
+          <ul className="space-y-1 type-body-sm text-text-sec">
             {assignment.reasons.map((r) => <li key={r}>- {r}</li>)}
           </ul>
-        </details>
+        </Disclosure>
       )}
-    </section>
+    </Card>
   )
 }

@@ -7,7 +7,11 @@ import {
 import { Link } from 'react-router-dom'
 import GradeChip from '../../components/miri/GradeChip.jsx'
 import MockDataBadge from '../../components/miri/MockDataBadge.jsx'
+import Badge from '../../components/ui/Badge.jsx'
 import Button from '../../components/ui/Button.jsx'
+import Card from '../../components/ui/Card.jsx'
+import KeyValue from '../../components/ui/KeyValue.jsx'
+import SectionTitle from '../../components/ui/SectionTitle.jsx'
 import { computeShortage } from '../../lib/shortageCalc.js'
 import { GRADES } from '../../lib/shortage.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
@@ -48,15 +52,8 @@ const FACTS = [
   { value: '3,120명', label: '동해시 노인장기요양 인정자', src: '국민건강보험공단 2023.12' }
 ]
 
-function SectionHead({ eyebrow, title, desc }) {
-  return (
-    <div className="max-w-text">
-      <p className="type-caption text-primary-text">{eyebrow}</p>
-      <h2 className="mt-2 type-h1 text-text-pri">{title}</h2>
-      {desc && <p className="mt-2 type-body text-text-sec">{desc}</p>}
-    </div>
-  )
-}
+// 소개 면 섹션 머리: type-h1 700 + 본문 크기 설명. 카드 제목(h3)과 크기 차이로 위계를 만든다
+const SectionHead = ({ title, desc }) => <SectionTitle size="lg" descSize="body" title={title} desc={desc} className="mb-0" />
 
 export default function IntroPage() {
   const data = useMiriStore()
@@ -82,7 +79,7 @@ export default function IntroPage() {
           <Button as={Link} to="/h/demo" size="lg" variant="secondary" leftIcon={<Smartphone size={16} aria-hidden="true" />}>도우미 화면 보기</Button>
         </div>
 
-        <div className="mt-10 rounded-lg bg-subtle p-5 lg:p-6">
+        <Card as="div" tone="mute" padding="lg" className="mt-10">
           <div className="flex flex-wrap items-center gap-2">
             <p className="type-caption text-text-sec">지금 산불이 나면</p>
             <MockDataBadge />
@@ -95,23 +92,23 @@ export default function IntroPage() {
           <p className="mt-2 type-body-sm text-text-sec">
             {sc?.name}. 산림 연접 가상마을 18곳, 원문 배정 규칙 기준 계산{shortage.total > 0 && `. 부족 등급 ${byGradeLine(shortage.byGrade)}`}
           </p>
-        </div>
+        </Card>
       </section>
 
       {/* 문제 */}
       <section className="bg-subtle py-[clamp(40px,6vw,80px)]">
         <div className={WRAP}>
-          <SectionHead eyebrow="Problem" title="재난 알림 체계는 갖춰졌으나 이송 체계는 비어 있음" desc="의료시설 부족 문제와 구분되는 이송 자원 부족 문제" />
+          <SectionHead title="재난 알림 체계는 갖춰졌으나 이송 체계는 비어 있음" desc="의료시설 부족 문제와 구분되는 이송 자원 부족 문제" />
           <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PROBLEMS.map((p, i) => (
-              <li key={p.title} className="bg-page rounded-lg shadow-card p-5 lg:p-6">
+              <Card as="li" key={p.title} padding="lg" headingLevel={3} title={p.title} media={
                 <div className="flex items-center gap-3">
                   <span className="type-caption text-text-meta tabular-nums">0{i + 1}</span>
                   <p.Icon size={24} aria-hidden="true" className="text-primary" />
                 </div>
-                <h3 className="mt-4 type-h3 text-text-pri">{p.title}</h3>
+              }>
                 <p className="mt-2 type-body-sm text-text-sec">{p.body}</p>
-              </li>
+              </Card>
             ))}
           </ul>
           <p className="mt-6 type-meta text-text-meta">
@@ -123,15 +120,15 @@ export default function IntroPage() {
       {/* 동해 */}
       <section className="py-[clamp(40px,6vw,80px)]">
         <div className={WRAP}>
-          <SectionHead eyebrow="Why Donghae" title="왜 동해인가" desc="2022년 강릉 옥계 산불이 동해로 번진 피해 지역. 2026년 1월 인구감소관심지역 신규 지정. 위기 확정 전 단계라 미리 원칙과 시점 일치" />
+          <SectionHead title="왜 동해인가" desc="2022년 강릉 옥계 산불이 동해로 번진 피해 지역. 2026년 1월 인구감소관심지역 신규 지정. 위기 확정 전 단계라 미리 원칙과 시점 일치" />
           <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {FACTS.map((f) => (
-              <div key={f.label} className="rounded-lg bg-subtle p-5">
+              <Card as="div" key={f.label} tone="mute" padding="lg">
                 <dt className="type-caption text-text-sec">{f.label}</dt>
                 <dd className="mt-2 type-kpi text-text-pri">{f.value}</dd>
                 {f.note && <dd className="mt-1 type-body-sm text-text-sec">{f.note}</dd>}
                 <dd className="mt-2 type-meta text-text-meta">출처: {f.src}</dd>
-              </div>
+              </Card>
             ))}
           </dl>
         </div>
@@ -140,20 +137,19 @@ export default function IntroPage() {
       {/* 기능 */}
       <section className="bg-subtle py-[clamp(40px,6vw,80px)]">
         <div className={WRAP}>
-          <SectionHead eyebrow="Service" title="미리 계산하고 미리 옮김" />
+          <SectionHead title="미리 계산하고 미리 옮김" />
           <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f) => (
-              <li key={f.title} className="bg-page rounded-lg shadow-card p-5 lg:p-6 flex flex-col">
+              <Card as="li" key={f.title} padding="lg" bodyClassName="flex h-full flex-col">
                 <f.Icon size={24} aria-hidden="true" className="text-primary" />
                 <h3 className="mt-4 type-h3 text-text-pri">{f.title}</h3>
                 <p className="mt-2 type-body-sm text-text-sec">{f.body}</p>
                 <p className="mt-auto pt-4 type-meta text-text-meta">사용 시점: {f.when}</p>
-              </li>
+              </Card>
             ))}
           </ul>
-          <div className="mt-8 bg-page rounded-lg shadow-card p-5 lg:p-6">
-            <h3 className="type-h3 text-text-pri">이송 등급 4단계</h3>
-            <ul className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Card as="div" className="mt-8" padding="lg" title="이송 등급 4단계" headingLevel={3}>
+            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {GRADES.map((g) => (
                 <li key={g.key} className="min-w-0">
                   <GradeChip grade={g.key} />
@@ -162,25 +158,25 @@ export default function IntroPage() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Card>
         </div>
       </section>
 
       {/* AI */}
       <section className="py-[clamp(40px,6vw,80px)]">
         <div className={WRAP}>
-          <SectionHead eyebrow="AI" title="AI는 판단하고 사람이 확정" desc="AI 결과에는 근거와 확인 상태 표시. 인명이 걸린 부족분 계산은 공식 그대로 계산해 재현성 확보" />
+          <SectionHead title="AI는 판단하고 사람이 확정" desc="AI 결과에는 근거와 확인 상태 표시. 인명이 걸린 부족분 계산은 공식 그대로 계산해 재현성 확보" />
           <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {AI.map((a) => (
-              <li key={a.title} className="bg-page rounded-lg shadow-card p-5 lg:p-6 flex flex-col">
+              <Card as="li" key={a.title} padding="lg" bodyClassName="flex h-full flex-col">
                 <div className="flex items-center justify-between gap-2">
                   <a.Icon size={24} aria-hidden="true" className="text-primary" />
-                  <span className="inline-flex h-6 items-center rounded-xs bg-primary-soft px-2 type-caption text-primary-text">{a.role}</span>
+                  <Badge tone="primary">{a.role}</Badge>
                 </div>
                 <h3 className="mt-4 type-h3 text-text-pri">{a.title}</h3>
                 <p className="mt-2 type-body-sm text-text-sec">{a.body}</p>
                 <p className="mt-auto pt-4 type-meta text-text-meta">사람의 역할: {a.human}</p>
-              </li>
+              </Card>
             ))}
           </ul>
         </div>
@@ -189,8 +185,8 @@ export default function IntroPage() {
       {/* 여정 */}
       <section className="bg-subtle py-[clamp(40px,6vw,80px)]">
         <div className={WRAP}>
-          <SectionHead eyebrow="Journey" title="현재와 미리 도입 후" />
-          <div className="mt-8 hidden md:block overflow-hidden rounded-lg shadow-card bg-page">
+          <SectionHead title="현재와 미리 도입 후" />
+          <Card as="div" padding="none" className="mt-8 hidden md:block overflow-hidden">
             <table className="w-full text-left">
               <caption className="sr-only">현재와 미리 도입 후 여정 비교</caption>
               <thead>
@@ -203,25 +199,19 @@ export default function IntroPage() {
               <tbody>
                 {JOURNEY.map(([step, now, after]) => (
                   <tr key={step} className="border-t border-line-sub">
-                    <th scope="row" className="px-5 py-4 type-body-sm font-semibold text-text-pri">{step}</th>
+                    <th scope="row" className="px-5 py-4 type-strong text-text-pri">{step}</th>
                     <td className="px-5 py-4 type-body-sm text-text-sec">{now}</td>
                     <td className="px-5 py-4 type-body-sm text-text-pri">{after}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </Card>
           <ul className="mt-8 space-y-3 md:hidden">
             {JOURNEY.map(([step, now, after]) => (
-              <li key={step} className="bg-page rounded-lg shadow-card p-4">
-                <p className="type-h3 text-text-pri">{step}</p>
-                <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
-                  <dt className="type-caption text-text-meta">현재</dt>
-                  <dd className="type-body-sm text-text-sec">{now}</dd>
-                  <dt className="type-caption text-text-meta">도입 후</dt>
-                  <dd className="type-body-sm text-text-pri">{after}</dd>
-                </dl>
-              </li>
+              <Card as="li" key={step} title={step} headingLevel={3}>
+                <KeyValue dense items={[{ label: '현재', value: now }, { label: '도입 후', value: after, strong: true }]} />
+              </Card>
             ))}
           </ul>
         </div>

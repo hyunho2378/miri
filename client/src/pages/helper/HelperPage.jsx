@@ -7,7 +7,9 @@ import FailReportSheet from '../../components/miri/FailReportSheet.jsx'
 import HelperAssignmentCard from '../../components/miri/HelperAssignmentCard.jsx'
 import HelperStepBar from '../../components/miri/HelperStepBar.jsx'
 import Button from '../../components/ui/Button.jsx'
-import Chip from '../../components/ui/Chip.jsx'
+import Card from '../../components/ui/Card.jsx'
+import ChoiceChips from '../../components/ui/ChoiceChips.jsx'
+import KeyValue from '../../components/ui/KeyValue.jsx'
 import useNow from '../../hooks/useNow.js'
 import useToast from '../../hooks/useToast.js'
 import { USE_MOCK } from '../../lib/api.js'
@@ -66,7 +68,7 @@ export default function HelperPage() {
   }
 
   const demoButton = USE_MOCK && (
-    <Button size="lg" className="w-full h-14 type-h3" onClick={startDemo}>데모 발령 시작</Button>
+    <Button size="xl" onClick={startDemo}>데모 발령 시작</Button>
   )
 
   if (d.status === 'closed') {
@@ -103,23 +105,23 @@ export default function HelperPage() {
   const shelters = [...new Set(trips.map((tr) => shelterOf(tr.village)))]
 
   const summary = (
-    <section className="bg-page rounded-lg shadow-card p-4">
+    <Card>
       <div className="flex items-center gap-2">
         <Truck size={20} aria-hidden="true" className="text-primary" />
         <h1 className="type-h2 text-text-pri">내 배정</h1>
         <span className="ml-auto type-body-sm text-text-meta tabular-nums">{me}</span>
       </div>
-      <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-        <dt className="type-body-sm text-text-sec">차량</dt>
-        <dd className="type-body text-text-pri">{vehicle?.code} {typeOf(vehicle?.type)?.label}</dd>
-        <dt className="type-body-sm text-text-sec">대상자</dt>
-        <dd className="type-body text-text-pri tabular-nums">{list.length}명 {trips.length}회차</dd>
-        <dt className="type-body-sm text-text-sec">대피소</dt>
-        <dd className="type-body text-text-pri">{shelters.join(', ')}</dd>
-        <dt className="type-body-sm text-text-sec">첫 출발</dt>
-        <dd className="type-body text-text-pri tabular-nums">{fmtHM(trips[0]?.departAt)}</dd>
-      </dl>
-    </section>
+      <KeyValue
+        size="lg"
+        className="mt-3"
+        items={[
+          { label: '차량', value: <>{vehicle?.code} {typeOf(vehicle?.type)?.label}</> },
+          { label: '대상자', value: <>{list.length}명 {trips.length}회차</> },
+          { label: '대피소', value: <>{shelters.join(', ')}</> },
+          { label: '첫 출발', value: <>{fmtHM(trips[0]?.departAt)}</> }
+        ]}
+      />
+    </Card>
   )
 
   if (ack.answer === 'decline') {
@@ -140,21 +142,20 @@ export default function HelperPage() {
         {summary}
         {!declining ? (
           <div className="mt-auto space-y-2 pb-4">
-            <Button size="lg" className="w-full h-14 type-h3" onClick={() => { useDispatchStore.getState().helperAck(me, 'accept'); toast('수락 완료. 첫 대상자부터 진행', 'primary') }}>
+            <Button size="xl" onClick={() => { useDispatchStore.getState().helperAck(me, 'accept'); toast('수락 완료. 첫 대상자부터 진행', 'primary') }}>
               수락
             </Button>
-            <Button variant="secondary" size="lg" className="w-full h-14 type-h3" onClick={() => setDeclining(true)}>불가</Button>
+            <Button variant="secondary" size="xl" onClick={() => setDeclining(true)}>불가</Button>
           </div>
         ) : (
-          <section className="bg-page rounded-lg shadow-card p-4">
-            <h2 className="type-h3 text-text-pri">불가 사유 선택</h2>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {Object.entries(DECLINE_REASONS).map(([k, label]) => (
-                <Chip key={k} size="md" onClick={() => useDispatchStore.getState().helperAck(me, 'decline', k)}>{label}</Chip>
-              ))}
-            </div>
+          <Card title="불가 사유 선택">
+            <ChoiceChips
+              label="불가 사유" size="lg" value={null}
+              onChange={(k) => useDispatchStore.getState().helperAck(me, 'decline', k)}
+              options={Object.entries(DECLINE_REASONS).map(([value, label]) => ({ value, label }))}
+            />
             <Button variant="ghost" size="lg" className="mt-3 w-full" onClick={() => setDeclining(false)}>돌아가기</Button>
-          </section>
+          </Card>
         )}
       </div>
     )

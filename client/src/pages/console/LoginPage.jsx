@@ -1,10 +1,11 @@
 // 담당자 로그인(ROUTES /console/login). AdminLayout 밖 단독 화면.
 // mock 이면 데모 계정 선택. 실서버용 폼은 mock 이 아닐 때만 표시.
 import { Building2, UserRound } from 'lucide-react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import Logo from '../../components/nav/Logo.jsx'
 import MockDataBadge from '../../components/miri/MockDataBadge.jsx'
 import Button from '../../components/ui/Button.jsx'
+import Card from '../../components/ui/Card.jsx'
 import Input from '../../components/ui/Input.jsx'
 import { USE_MOCK } from '../../lib/api.js'
 import useAuthStore, { DEMO_USERS, ROLE_LABEL } from '../../store/useAuthStore.js'
@@ -16,7 +17,6 @@ const DEMO = [
 
 export default function LoginPage() {
   const setDemoUser = useAuthStore((s) => s.setDemoUser)
-  const navigate = useNavigate()
   const from = useLocation().state?.from?.pathname || '/console'
 
   return (
@@ -26,7 +26,7 @@ export default function LoginPage() {
           <Logo to="/" />
           <MockDataBadge />
         </div>
-        <div className="mt-6 bg-page rounded-xl shadow-card p-6 lg:p-8">
+        <Card as="div" padding="lg" className="mt-6">
           <h1 className="type-h1 text-text-pri">담당자 로그인</h1>
           {USE_MOCK ? (
             <>
@@ -34,10 +34,10 @@ export default function LoginPage() {
               <ul className="mt-6 space-y-3">
                 {DEMO.map(({ role, Icon, desc }) => (
                   <li key={role}>
-                    <button
-                      type="button"
-                      onClick={() => { setDemoUser(role); navigate(from, { replace: true }) }}
-                      className="pressable flex w-full items-start gap-3 rounded-lg p-4 text-left ring-1 ring-inset ring-line-def hover:bg-mute"
+                    <Link
+                      to={from} replace
+                      onClick={() => setDemoUser(role)}
+                      className="pressable flex w-full items-start gap-3 rounded-lg bg-subtle p-4 text-left hover:bg-mute"
                     >
                       <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary-soft text-primary-text">
                         <Icon size={20} aria-hidden="true" />
@@ -47,7 +47,7 @@ export default function LoginPage() {
                         <span className="block type-meta text-text-meta">{DEMO_USERS[role].name}</span>
                         <span className="mt-1 block type-body-sm text-text-sec">{desc}</span>
                       </span>
-                    </button>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -60,7 +60,7 @@ export default function LoginPage() {
               <p className="type-meta text-text-meta">서버 연결 후 사용</p>
             </form>
           )}
-        </div>
+        </Card>
         <p className="mt-6 text-center">
           <Link to="/" className="type-body-sm text-text-sec underline underline-offset-2 hover:text-text-pri">소개 화면으로</Link>
         </p>

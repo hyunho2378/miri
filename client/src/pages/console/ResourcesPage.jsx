@@ -89,7 +89,7 @@ export default function ResourcesPage() {
   const openHelper = (h) => { setErrors({}); setForm({ kind: 'helper', mode: 'edit', value: { ...h } }) }
 
   const vehicleColumns = [
-    { key: 'code', label: '차량 코드', sortable: true, render: (v) => <span className="font-medium tabular-nums">{v.code}</span> },
+    { key: 'code', label: '차량 코드', sortable: true, render: (v) => <span className="type-strong tabular-nums">{v.code}</span> },
     { key: 'type', label: '차종', sortable: true, render: (v) => typeOf(v.type)?.label },
     { key: 'cap', label: '회차당 정원', hideBelow: 'lg', render: (v) => <span className="type-meta text-text-sec">{capText(v.type)}</span> },
     { key: 'owner', label: '소속', sortable: true, render: (v) => OWNERS[v.owner] },
@@ -109,7 +109,7 @@ export default function ResourcesPage() {
     { key: 'edit', label: '편집', render: (v) => <EditPencil resource="vehicles" label={`${v.code} 수정`} onClick={() => openVehicle(v)} /> }
   ]
   const helperColumns = [
-    { key: 'code', label: '도우미 코드', sortable: true, render: (h) => <span className="font-medium tabular-nums">{h.code}</span> },
+    { key: 'code', label: '도우미 코드', sortable: true, render: (h) => <span className="type-strong tabular-nums">{h.code}</span> },
     { key: 'villages', label: '담당 마을', render: (h) => <span className="type-body-sm">{h.villages.map(vlabel).join(', ')}</span> },
     { key: 'grades', label: '지원 등급', hideBelow: 'md', render: (h) => <span className="flex flex-wrap gap-1">{GRADES.filter((g) => h.grades.includes(g.key)).map((g) => <GradeChip key={g.key} grade={g.key} size="sm" />)}</span> },
     { key: 'channel', label: '연락 수단', hideBelow: 'lg', render: () => '문자' },

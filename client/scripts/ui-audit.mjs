@@ -19,7 +19,7 @@ const isPage = (p) => rel(p).startsWith('pages/')
 const RULES = [
   { id: '액센트 보더', re: /border-l-|border-l\b|border-t-[2-9]|w-\[3px\]|ring-2 ring-primary\b|\bborder-primary\b/g, skip: (p) => inUi(p) || rel(p) === 'components/miri/ReviewRow.jsx' },
   { id: '굵기 직접 지정', re: /\bfont-(thin|light|normal|medium|semibold|bold|extrabold|black)\b/g, skip: (p) => rel(p) === 'components/ui/Button.jsx' },
-  { id: '카드 표면 직접 작성', re: /bg-page rounded-lg shadow-card/g, skip: (p) => inUi(p) || rel(p).startsWith('components/dashboard/') || rel(p) === 'components/miri/MetricCard.jsx' },
+  { id: '카드 표면 직접 작성', re: /\bshadow-card\b/g, skip: (p) => inUi(p) || rel(p).startsWith('components/dashboard/') || rel(p) === 'components/miri/MetricCard.jsx' },
   { id: 'details 직접 사용', re: /<details\b/g, skip: (p) => rel(p) === 'components/ui/Disclosure.jsx' },
   { id: '키값 dl 직접 작성', re: /grid-cols-\[auto_1fr\]/g, skip: (p) => rel(p) === 'components/ui/KeyValue.jsx' || rel(p) === 'components/dashboard/DataTable.jsx' },
   { id: '페이지 원시 컨트롤', re: /<(button|input|textarea|select)\b/g, skip: (p) => !isPage(p) },

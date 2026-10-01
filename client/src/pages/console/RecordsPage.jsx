@@ -1,7 +1,7 @@
 // 이송 기록(IA 4.8). 발령별 결과 목록과 마을별 미이송 추이.
 import { useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import Card from '../../components/miri/Card.jsx'
+import Card from '../../components/ui/Card.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import BarChart from '../../components/dashboard/BarChart.jsx'
 import DataTable from '../../components/dashboard/DataTable.jsx'
@@ -62,13 +62,13 @@ export default function RecordsPage() {
   return (
     <PageShell title="이송 기록" intro="발령마다 쌓이는 결과. 마을별 미이송 추이를 차량 협약 규모 산정 근거로 사용">
       {!records.length ? (
-        <div className="bg-page rounded-lg shadow-card">
+        <Card as="div" padding="none">
           <EmptyState
             title="이송 기록 없음"
             desc="발령 종료 시 결과가 자동 저장됨. 훈련 발령으로 기록 생성 가능"
             action={<Button as={Link} to="/console/dispatch">발령 운영</Button>}
           />
-        </div>
+        </Card>
       ) : (
         <div className="space-y-4">
           <DataTable

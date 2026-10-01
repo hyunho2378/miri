@@ -4,7 +4,7 @@ import { Calculator, Route } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import BarChart from '../../components/dashboard/BarChart.jsx'
 import AnomalyList from '../../components/miri/AnomalyList.jsx'
-import Card from '../../components/miri/Card.jsx'
+import Card from '../../components/ui/Card.jsx'
 import MetricCard from '../../components/miri/MetricCard.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import ShortageTable from '../../components/miri/ShortageTable.jsx'
@@ -54,12 +54,12 @@ export default function OverviewPage() {
       title="현황판"
       actions={<Button as={Link} to="/console/shortage" variant="secondary" size="md" className="hidden md:inline-flex" leftIcon={<Calculator size={16} aria-hidden="true" />}>부족분 계산</Button>}
     >
-      <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md bg-page shadow-card px-4 py-3">
+      <Card as="div" padding="sm" className="mb-5" bodyClassName="flex flex-wrap items-center gap-x-3 gap-y-1">
         <span className="type-caption text-text-sec">기준 시나리오</span>
-        <span className="type-body-sm text-text-pri min-w-0">{scenario.name}</span>
+        <span className="type-strong text-text-pri min-w-0">{scenario.name}</span>
         <span className="type-meta text-text-meta">준비 {scenario.prepMinutes}분, 도달 {scenario.windowHours}시간 전 발령</span>
         <Link to="/console/shortage" className="ml-auto type-caption text-primary-text underline underline-offset-2 min-h-11 md:min-h-0 inline-flex items-center">시나리오 변경</Link>
-      </div>
+      </Card>
 
       <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
         <MetricCard label="총 부족분" value={result.total ? result.total : '0'} unit="명" tone={result.total ? 'danger' : 'neutral'}
@@ -69,14 +69,14 @@ export default function OverviewPage() {
         <MetricCard label="이상 탐지" value={anomalies.length} unit="건" tone={anomalies.length ? 'danger' : 'neutral'} sub="규칙 기반 탐지" />
       </div>
 
-      <div className="mt-4 flex items-start gap-2 rounded-md bg-primary-soft px-4 py-3 text-primary-text">
+      <Card as="div" tone="primary" padding="sm" className="mt-4" bodyClassName="flex items-start gap-2 text-primary-text">
         <Route size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
         <p className="type-body-sm">
-          AI 배정 최적화 적용 시 미이송 {optUnserved}명.{' '}
+          <span className="type-strong">AI 배정 최적화 적용 시 미이송 {optUnserved}명.</span>{' '}
           {diff < 0 ? `규칙 순서 배정 대비 ${-diff}명 감소` : '규칙 순서 배정과 같은 결과'}.
           <span className="type-meta"> 남은 부족분은 차량 추가 협약 대상</span>
         </p>
-      </div>
+      </Card>
 
       <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
         <Card title="마을별 부족분" desc={user?.role === 'dong' ? '본인 동 마을' : '산림 연접 마을 전체'}>

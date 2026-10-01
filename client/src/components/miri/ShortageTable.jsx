@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import clsx from 'clsx'
 import { GRADES } from '../../lib/shortage.js'
 import DataTable from '../dashboard/DataTable.jsx'
+import Card from '../ui/Card.jsx'
 import SegmentControl from '../ui/SegmentControl.jsx'
 import { byGradeLine } from './ShortageValue.jsx'
 
@@ -17,14 +18,14 @@ export default function ShortageTable({ villages, dongs, byVillage, initialView 
   const level = (x) => (x <= 0 ? 0 : Math.min(4, Math.ceil((x / max) * 4)))
 
   const columns = [
-    { key: 'label', label: '마을', sortable: true, render: (r) => <span className="font-medium">{r.label}</span> },
+    { key: 'label', label: '마을', sortable: true, render: (r) => <span className="type-strong">{r.label}</span> },
     { key: 'dong', label: '동', hideBelow: 'lg', render: (r) => dongName(r.dongCode) },
     { key: 'roundTripMin', label: '왕복', align: 'right', sortable: true, hideBelow: 'md', render: (r) => `${r.roundTripMin}분` },
     { key: 'targetTotal', label: '대상자', align: 'right', sortable: true, render: (r) => `${r.targetTotal}명` },
     { key: 'targets', label: '등급별 대상자', hideBelow: 'lg', render: (r) => <span className="type-meta text-text-meta">{byGradeLine(r.targets)}</span> },
     {
       key: 'total', label: '부족분', align: 'right', sortable: true,
-      render: (r) => (r.total ? <span className="font-semibold text-danger-text tabular-nums">부족 {r.total}명</span> : <span className="text-text-meta">부족 없음</span>)
+      render: (r) => (r.total ? <span className="type-strong text-danger-text tabular-nums">부족 {r.total}명</span> : <span className="text-text-meta">부족 없음</span>)
     }
   ]
 
@@ -37,7 +38,7 @@ export default function ShortageTable({ villages, dongs, byVillage, initialView 
       {view === 'table' ? (
         <DataTable columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={pageSize} caption="마을별 부족분" />
       ) : (
-        <div className="bg-page rounded-lg shadow-card p-4">
+        <Card as="div">
           <div className="overflow-x-auto">
             <table className="w-full border-separate border-spacing-1 tabular-nums" aria-label="마을별 등급별 부족분 히트맵">
               <thead>
@@ -68,7 +69,7 @@ export default function ShortageTable({ villages, dongs, byVillage, initialView 
             {STEPS.map((s) => <span key={s} className={clsx('h-3 w-6 rounded-xs', s.split(' ')[0])} />)}
             <span className="type-meta text-text-meta tabular-nums">{max}명</span>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   )

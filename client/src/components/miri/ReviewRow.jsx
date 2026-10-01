@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { GRADES } from '../../lib/shortage.js'
 import { TAGS } from '../../lib/intake.js'
 import Button from '../ui/Button.jsx'
+import Card from '../ui/Card.jsx'
 import MultiSelect from '../ui/MultiSelect.jsx'
 import Select from '../ui/Select.jsx'
 import EvidencePanel from './EvidencePanel.jsx'
@@ -31,7 +32,7 @@ export default function ReviewRow({ doc, result, villageLabel, canEdit, onConfir
   const [tags, setTags] = useState(result.tags || [])
   const changed = grade !== result.grade || [...tags].sort().join() !== [...(result.tags || [])].sort().join()
   return (
-    <li className="bg-page rounded-lg shadow-card p-4 lg:p-5">
+    <Card as="li">
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <p className="type-h3 text-text-pri tabular-nums">{result.personCode}</p>
         <span className="type-meta text-text-meta">{villageLabel}</span>
@@ -53,6 +54,6 @@ export default function ReviewRow({ doc, result, villageLabel, canEdit, onConfir
           <Button variant="primary" disabled={changed} onClick={onConfirm}>판독 확인</Button>
         </div>
       )}
-    </li>
+    </Card>
   )
 }

@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { ExternalLink, MessageSquareText, Minus, Plus, Route, Siren, UserRoundCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import Card from '../../components/miri/Card.jsx'
+import Card from '../../components/ui/Card.jsx'
 import DeadlineClock from '../../components/miri/DeadlineClock.jsx'
 import GradeChip from '../../components/miri/GradeChip.jsx'
 import MetricCard from '../../components/miri/MetricCard.jsx'
@@ -15,6 +15,9 @@ import TransportStatusTable from '../../components/miri/TransportStatusTable.jsx
 import DataTable from '../../components/dashboard/DataTable.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Button from '../../components/ui/Button.jsx'
+import Disclosure from '../../components/ui/Disclosure.jsx'
+import KeyValue from '../../components/ui/KeyValue.jsx'
+import SectionTitle from '../../components/ui/SectionTitle.jsx'
 import Modal from '../../components/ui/Modal.jsx'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import useNow from '../../hooks/useNow.js'
@@ -94,13 +97,12 @@ function StartPanel() {
         </div>
       </Card>
       <Card title="발령 기준" desc="부족분 계산 화면의 현황판 기준 시나리오 사용">
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 type-body-sm">
-          <dt className="text-text-meta">시나리오</dt><dd className="min-w-0 text-text-pri">{scenario?.name}</dd>
-          <dt className="text-text-meta">이송 대상</dt>
-          <dd className="text-text-pri tabular-nums">{targets.length}명{pending > 0 && <span className="text-primary-text"> (확인 대기 {pending}건 포함)</span>}</dd>
-          <dt className="text-text-meta">가용 차량</dt><dd className="text-text-pri tabular-nums">{vehicles.filter((v) => v.available !== false).length}대 / 전체 {vehicles.length}대</dd>
-          <dt className="text-text-meta">도우미</dt><dd className="text-text-pri tabular-nums">{helpers.filter((h) => h.active !== false).length}명</dd>
-        </dl>
+        <KeyValue items={[
+          { label: '시나리오', value: scenario?.name, strong: true },
+          { label: '이송 대상', value: <>{targets.length}명{pending > 0 && <span className="text-primary-text"> (확인 대기 {pending}건 포함)</span>}</> },
+          { label: '가용 차량', value: `${vehicles.filter((v) => v.available !== false).length}대 / 전체 ${vehicles.length}대` },
+          { label: '도우미', value: `${helpers.filter((h) => h.active !== false).length}명` }
+        ]} />
         <Link to="/console/shortage" className="mt-4 inline-flex min-h-11 md:min-h-0 items-center type-body-sm text-primary-text underline underline-offset-2">시나리오 바꾸기</Link>
       </Card>
     </div>
@@ -133,7 +135,7 @@ function StandbyPanel({ now, meta }) {
         </p>
       </Card>
       <section>
-        <h2 className="mb-3 type-h2 text-text-pri">마을별 8시간 시계</h2>
+        <SectionTitle title="마을별 8시간 시계" desc="발령 기한 이른 순. 도달 예측 30분 단위 조정" />
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {list.map(([code, arrival]) => (
             <li key={code} className="min-w-0 flex flex-col gap-2">
@@ -183,20 +185,23 @@ function AssignedPanel({ meta }) {
       </div>
       <BaselineCompare result={result} villageLabel={meta.label} />
       {result.warnings?.length > 0 && (
-        <p role="alert" className="rounded-md bg-danger-soft p-3 type-body-sm text-danger-text">
-          도우미 부족 차량 {result.warnings.map((w) => `${w.vehicleCode} (${w.got}/${w.need}명)`).join(' ')}. 차량과 도우미 화면에서 도우미 추가 필요
-        </p>
+        <Card as="div" role="alert" tone="danger" padding="sm">
+          <p className="type-body-sm text-danger-text">
+            <span className="type-strong">도우미 부족 차량 {result.warnings.map((w) => `${w.vehicleCode} (${w.got}/${w.need}명)`).join(' ')}.</span> 차량과 도우미 화면에서 도우미 추가 필요
+          </p>
+        </Card>
       )}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 type-caption text-primary-text"><Route size={16} aria-hidden="true" />AI 배정</span>
-          <h2 className="type-h2 text-text-pri">배정표</h2>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => { runAssign(); toast('배정 다시 계산 완료') }}>다시 계산</Button>
-          <Button leftIcon={<MessageSquareText size={16} aria-hidden="true" />} onClick={() => { confirmAndSend(); toast('배정 확정. 도우미 배정표 전송 완료', 'primary') }}>배정 확정 후 전송</Button>
-        </div>
-      </div>
+      <SectionTitle
+        className="mt-2"
+        title="배정표"
+        desc={<span className="inline-flex items-center gap-1"><Route size={14} aria-hidden="true" className="text-primary-text" />AI 배정. 제약 조건 최적화 결과. 차량별 회차와 대상자 순서</span>}
+        actions={(
+          <>
+            <Button variant="secondary" onClick={() => { runAssign(); toast('배정 다시 계산 완료') }}>다시 계산</Button>
+            <Button leftIcon={<MessageSquareText size={16} aria-hidden="true" />} onClick={() => { confirmAndSend(); toast('배정 확정. 도우미 배정표 전송 완료', 'primary') }}>배정 확정 후 전송</Button>
+          </>
+        )}
+      />
       <div className="grid gap-4 lg:grid-cols-2">
         {result.assignments.map((a) => (
           <AssignmentBundle
@@ -304,9 +309,8 @@ function SentPanel({ now, meta }) {
 
       <ul aria-label="이송 단계별 인원" className="grid gap-2 grid-cols-2 sm:grid-cols-4 xl:grid-cols-8">
         {COUNT_ORDER.map((k) => (
-          <li key={k} className="bg-page rounded-lg shadow-card p-3 min-w-0">
-            <p className="type-caption text-text-sec">{COUNT_LABEL[k]}</p>
-            <p className={`mt-1 type-h2 tabular-nums ${ISSUE.includes(k) && counts[k] ? 'text-danger-text' : 'text-text-pri'}`}>{counts[k]}</p>
+          <li key={k} className="min-w-0">
+            <MetricCard size="sm" label={COUNT_LABEL[k]} value={counts[k]} unit="명" tone={ISSUE.includes(k) && counts[k] ? 'danger' : 'neutral'} />
           </li>
         ))}
       </ul>
@@ -314,29 +318,29 @@ function SentPanel({ now, meta }) {
       {fails.length > 0 && (
         <section aria-label="이송 실패" className="space-y-2">
           {fails.map((r) => (
-            <div key={r.code} role="alert" className="flex flex-wrap items-center gap-3 rounded-lg bg-danger-soft p-4">
+            <Card key={r.code} as="div" role="alert" tone="danger" padding="sm" bodyClassName="flex flex-wrap items-center gap-3">
               <StatusPill status="fail" />
               <GradeChip grade={r.grade} size="sm" />
-              <span className="type-body-sm font-semibold text-text-pri tabular-nums">{r.code}</span>
+              <span className="type-strong text-text-pri tabular-nums">{r.code}</span>
               <span className="type-body-sm text-text-sec">{r.village}</span>
-              <span className="type-body-sm text-danger-text">사유 {FAIL_REASONS[failReasonOf(d, r.code)] || '미상'}</span>
+              <span className="type-strong text-danger-text">사유 {FAIL_REASONS[failReasonOf(d, r.code)] || '미상'}</span>
               <span className="ml-auto flex flex-wrap gap-2">
                 <Button size="sm" variant="secondary" onClick={() => { const v = d.reassign(r.code); toast(v ? `${r.code} ${v} 차량 새 회차로 재배정` : '기한 안에 옮길 차량 없음. 소방 인계 필요', v ? 'primary' : 'danger') }}>재배정</Button>
                 {role === 'city' && <Button size="sm" variant="danger" onClick={() => { d.handover([r.code]); toast(`${r.code} 동해소방서 인계`) }}>소방 인계</Button>}
               </span>
-            </div>
+            </Card>
           ))}
         </section>
       )}
 
       {d.manualHelper && helpers.includes(d.manualHelper) && (
-        <div className="flex flex-wrap items-center gap-3 rounded-lg bg-primary-soft p-4">
+        <Card as="div" tone="primary" padding="sm" bodyClassName="flex flex-wrap items-center gap-3">
           <UserRoundCheck size={20} aria-hidden="true" className="text-primary-text" />
           <p className="min-w-0 flex-1 type-body-sm text-primary-text">도우미 {d.manualHelper} 배정은 자동 진행 없이 도우미 화면 보고로만 진행. 시연 시 휴대폰 화면 사용</p>
-          <a href="/h/demo" target="_blank" rel="noreferrer" className="inline-flex min-h-11 md:min-h-0 items-center gap-1 type-body-sm font-medium text-primary-text underline underline-offset-2">
+          <a href="/h/demo" target="_blank" rel="noreferrer" className="inline-flex min-h-11 md:min-h-0 items-center gap-1 type-strong text-primary-text underline underline-offset-2">
             도우미 화면에서 직접 보고<ExternalLink size={14} aria-hidden="true" />
           </a>
-        </div>
+        </Card>
       )}
 
       <div className="grid gap-4 xl:grid-cols-[1fr_1.4fr]">
@@ -355,22 +359,23 @@ function SentPanel({ now, meta }) {
       </div>
 
       <section className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="type-h2 text-text-pri">대상자별 이송 현황</h2>
-          <SegmentControl
-            label="현황 필터" value={filter} onChange={setFilter}
-            items={[{ value: 'all', label: `전체 ${rows.length}` }, { value: 'moving', label: '이동 중' }, { value: 'issue', label: '실패와 미이송' }]}
-          />
-        </div>
+        <SectionTitle
+          className="mb-0"
+          title="대상자별 이송 현황"
+          actions={(
+            <SegmentControl
+              label="현황 필터" value={filter} onChange={setFilter}
+              items={[{ value: 'all', label: `전체 ${rows.length}` }, { value: 'moving', label: '이동 중' }, { value: 'issue', label: '실패와 미이송' }]}
+            />
+          )}
+        />
         <TransportStatusTable rows={shown} />
       </section>
 
       {d.smsLog.length > 0 && (
-        <details className="bg-page rounded-lg shadow-card p-4 lg:p-5">
-          <summary className="cursor-pointer min-h-11 md:min-h-0 inline-flex items-center gap-2 type-caption text-text-sec">
-            <MessageSquareText size={16} aria-hidden="true" />모의 문자 발송 기록 {d.smsLog.length}건
-          </summary>
-          <ul className="mt-3 divide-y divide-line-sub">
+        <Card as="div">
+          <Disclosure summary={<span className="inline-flex items-center gap-2"><MessageSquareText size={16} aria-hidden="true" />모의 문자 발송 기록 {d.smsLog.length}건</span>}>
+          <ul className="divide-y divide-line-sub">
             {d.smsLog.map((m, i) => (
               <li key={`${m.helper}-${i}`} className="flex gap-3 py-2 type-body-sm">
                 <span className="shrink-0 type-meta text-text-meta tabular-nums">{fmtHM(m.at)}</span>
@@ -378,7 +383,8 @@ function SentPanel({ now, meta }) {
               </li>
             ))}
           </ul>
-        </details>
+          </Disclosure>
+        </Card>
       )}
 
       <Modal
@@ -415,13 +421,13 @@ export default function DispatchPage() {
 
   return (
     <PageShell title="발령 운영">
-      <div className="mb-5 bg-page rounded-lg shadow-card p-4 lg:p-5">
+      <Card as="div" className="mb-5">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           {live && <StatusPill status={status} label={`${kind === 'drill' ? '훈련 ' : ''}${STEP_NAME[status]}`} />}
           <span className="type-meta text-text-meta">8시간 시계와 배정표. 시 관리자 발령 개시 후 동 담당자 배정 확인</span>
         </div>
         <StepIndicator status={status} />
-      </div>
+      </Card>
       {(status === 'idle' || status === 'closed') && <StartPanel />}
       {status === 'standby' && <StandbyPanel now={now} meta={meta} />}
       {status === 'assigned' && hasResult && <AssignedPanel meta={meta} />}

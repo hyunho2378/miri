@@ -12,6 +12,7 @@ import GradeChip from '../../components/miri/GradeChip.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import { DocImage, GRADE_OPTIONS, TAG_OPTIONS } from '../../components/miri/ReviewRow.jsx'
 import Button from '../../components/ui/Button.jsx'
+import KeyValue from '../../components/ui/KeyValue.jsx'
 import Drawer from '../../components/ui/Drawer.jsx'
 import MultiSelect from '../../components/ui/MultiSelect.jsx'
 import Select from '../../components/ui/Select.jsx'
@@ -104,7 +105,7 @@ export default function RosterPage() {
   const evidence = docResult ? verifyResult(doc.transcript, docResult) : null
 
   const columns = [
-    { key: 'code', label: '대상자 코드', sortable: true, render: (p) => <span className="font-medium tabular-nums">{p.code}</span> },
+    { key: 'code', label: '대상자 코드', sortable: true, render: (p) => <span className="type-strong tabular-nums">{p.code}</span> },
     { key: 'village', label: '마을', sortable: true, sortValue: (p) => p.villageCode, render: (p) => vlabel(p.villageCode) },
     { key: 'grade', label: '등급', sortable: true, sortValue: (p) => GRADE_RANK[p.grade], render: (p) => <GradeChip grade={p.grade} /> },
     { key: 'tags', label: '특이사항', hideBelow: 'lg', render: (p) => <span className="type-meta text-text-sec">{p.tags.map((t) => TAGS[t]).join(', ') || '없음'}</span> },
@@ -155,15 +156,15 @@ export default function RosterPage() {
           <EntityForm fields={fields} value={editing.value} errors={errors} onChange={(value) => setEditing({ ...editing, value })} />
         ) : open && (
           <div className="space-y-5">
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-              <dt className="type-caption text-text-meta">마을</dt><dd className="type-body-sm text-text-pri">{vlabel(open.villageCode)}</dd>
-              <dt className="type-caption text-text-meta">이송 등급</dt><dd><GradeChip grade={open.grade} /></dd>
-              <dt className="type-caption text-text-meta">특이사항</dt><dd className="type-body-sm text-text-pri">{open.tags.map((t) => TAGS[t]).join(', ') || '없음'}</dd>
-              <dt className="type-caption text-text-meta">판정 출처</dt><dd><SourceLabel source={open.gradeSource} /></dd>
-              <dt className="type-caption text-text-meta">확인 상태</dt><dd><StatusPill status={open.review} /></dd>
-              <dt className="type-caption text-text-meta">근거 서류</dt><dd className="type-body-sm text-text-pri tabular-nums">{open.docId || '없음'}</dd>
-              <dt className="type-caption text-text-meta">갱신일</dt><dd className="type-body-sm text-text-pri tabular-nums">{fmtDate(open.updatedAt)}</dd>
-            </dl>
+            <KeyValue items={[
+              { label: '마을', value: vlabel(open.villageCode), strong: true },
+              { label: '이송 등급', value: <GradeChip grade={open.grade} /> },
+              { label: '특이사항', value: open.tags.map((t) => TAGS[t]).join(', ') || '없음' },
+              { label: '판정 출처', value: <SourceLabel source={open.gradeSource} /> },
+              { label: '확인 상태', value: <StatusPill status={open.review} /> },
+              { label: '근거 서류', value: open.docId || '없음' },
+              { label: '갱신일', value: fmtDate(open.updatedAt) }
+            ]} />
             {evidence ? (
               <div className="space-y-3">
                 <h3 className="type-h3 text-text-pri">판독 근거</h3>

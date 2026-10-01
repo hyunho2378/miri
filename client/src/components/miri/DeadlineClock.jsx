@@ -2,6 +2,7 @@
 // 막대는 scaleX. 기한 초과 예상으로 바뀌는 순간만 role=status.
 import clsx from 'clsx'
 import { fmtHM, remainText } from '../../lib/time.js'
+import Card from '../ui/Card.jsx'
 
 export default function DeadlineClock({ title, dispatchDeadline, completeDeadline, now, dispatched = true, finishEta, compact = false, sub }) {
   const target = dispatched ? completeDeadline : dispatchDeadline
@@ -9,15 +10,16 @@ export default function DeadlineClock({ title, dispatchDeadline, completeDeadlin
   const span = completeDeadline - dispatchDeadline
   const ratio = Math.min(1, Math.max(0, (now - dispatchDeadline) / span))
   const remain = target - now
+  const Wrap = compact ? 'div' : Card
   return (
-    <div className={clsx(!compact && 'bg-page rounded-lg shadow-card p-4 lg:p-5')}>
+    <Wrap {...(compact ? {} : { as: 'div' })}>
       {title && (
         <div className="flex items-baseline justify-between gap-3">
           <p className="min-w-0 truncate type-h3 text-text-pri">{title}</p>
           <p className="shrink-0 type-meta text-text-meta tabular-nums">{dispatched ? '완료 기한' : '발령 기한'} {fmtHM(target)}</p>
         </div>
       )}
-      <p className={clsx(compact ? 'type-body-sm font-semibold' : 'mt-2 type-kpi', 'tabular-nums', late || remain < 0 ? 'text-danger-text' : 'text-text-pri')}>
+      <p className={clsx(compact ? 'type-strong' : 'mt-2 type-kpi', 'tabular-nums', late || remain < 0 ? 'text-danger-text' : 'text-text-pri')}>
         {remain < 0 ? remainText(remain) : `${remainText(remain)} 남음`}
       </p>
       {!compact && (
@@ -31,6 +33,6 @@ export default function DeadlineClock({ title, dispatchDeadline, completeDeadlin
         </p>
       )}
       {late && <p role="status" className="mt-1 type-caption text-danger-text">기한 초과 예상</p>}
-    </div>
+    </Wrap>
   )
 }

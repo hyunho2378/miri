@@ -3,7 +3,8 @@ import { useMemo, useRef, useState } from 'react'
 import { CircleAlert, ScanText } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
-import Card from '../../components/miri/Card.jsx'
+import Card from '../../components/ui/Card.jsx'
+import SectionTitle from '../../components/ui/SectionTitle.jsx'
 import IntakeUploader, { ReadTimeline } from '../../components/miri/IntakeUploader.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import ReviewRow from '../../components/miri/ReviewRow.jsx'
@@ -141,7 +142,7 @@ export default function IntakePage() {
             <div role="alert" className="mt-4 flex items-start gap-2 rounded-md bg-danger-soft p-4 text-danger-text">
               <CircleAlert size={20} aria-hidden="true" className="shrink-0" />
               <div>
-                <p className="type-body-sm font-semibold">{error.title}</p>
+                <p className="type-strong">{error.title}</p>
                 <p className="mt-1 type-meta">{error.desc}</p>
               </div>
             </div>
@@ -158,16 +159,14 @@ export default function IntakePage() {
         </Card>
       </div>
 
-      <section ref={queueRef} className="mt-8 scroll-mt-24" aria-labelledby="queue-title">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 id="queue-title" className="type-h2 text-text-pri">확인 대기열 <span className="text-text-meta tabular-nums">{queue.length}건</span></h2>
-            <p className="mt-1 type-meta text-text-meta">신뢰도 하부터 정렬. 신뢰도 중과 하는 한 건씩 확인</p>
-          </div>
-          {canEdit && highCount > 0 && (
+      <section ref={queueRef} className="mt-8 scroll-mt-24" aria-label="확인 대기열">
+        <SectionTitle
+          title={<>확인 대기열 <span className="text-text-meta tabular-nums">{queue.length}건</span></>}
+          desc="신뢰도 하부터 정렬. 신뢰도 중과 하는 한 건씩 확인"
+          actions={canEdit && highCount > 0 && (
             <Button variant="secondary" onClick={confirmAllHigh} leftIcon={<ScanText size={16} aria-hidden="true" />}>신뢰도 상 {highCount}건 일괄 확인</Button>
           )}
-        </div>
+        />
         {queue.length ? (
           <ul className="space-y-4">
             {queue.map(({ doc, result }) => (
@@ -180,17 +179,17 @@ export default function IntakePage() {
             ))}
           </ul>
         ) : (
-          <div className="bg-page rounded-lg shadow-card"><EmptyState title="확인 대기 없음" desc="새 서류를 올리거나 샘플 서류로 판독 시연" /></div>
+          <Card as="div" padding="none"><EmptyState title="확인 대기 없음" desc="새 서류를 올리거나 샘플 서류로 판독 시연" /></Card>
         )}
       </section>
 
-      <section className="mt-8" aria-labelledby="done-title">
-        <h2 id="done-title" className="mb-3 type-h2 text-text-pri">처리 완료 문서</h2>
+      <section className="mt-8" aria-label="처리 완료 문서">
+        <SectionTitle title="처리 완료 문서" />
         {doneDocs.length ? (
           <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {doneDocs.map((d) => (
-              <li key={d.id} className="bg-page rounded-lg shadow-card p-4">
-                <p className="type-body-sm font-medium text-text-pri">{d.name}</p>
+              <Card key={d.id} as="li" padding="sm">
+                <p className="type-strong text-text-pri">{d.name}</p>
                 <p className="mt-1 type-meta text-text-meta tabular-nums">{d.id} {KIND_LABEL[d.kind]} {fmtDate(d.uploadedAt)}</p>
                 <ul className="mt-3 flex flex-wrap gap-2">
                   {d.results.map((r) => (
@@ -202,7 +201,7 @@ export default function IntakePage() {
                     </li>
                   ))}
                 </ul>
-              </li>
+              </Card>
             ))}
           </ul>
         ) : <p className="type-body-sm text-text-meta">처리 완료 문서 없음</p>}

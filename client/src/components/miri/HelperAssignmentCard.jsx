@@ -7,6 +7,8 @@ import { TAGS } from '../../lib/intake.js'
 import { gradeOf } from '../../lib/shortage.js'
 import { fmtHM } from '../../lib/time.js'
 import StatusPill from '../dashboard/StatusPill.jsx'
+import Badge from '../ui/Badge.jsx'
+import Card from '../ui/Card.jsx'
 import GradeChip from './GradeChip.jsx'
 
 const DONE = new Set(['handover', 'fail', 'handedToFire'])
@@ -20,18 +22,21 @@ export default function HelperAssignmentCard({
   const g = gradeOf(person.grade)
   const tags = (person.tags || []).filter((t) => t !== 'bedridden').map((t) => TAGS[t]).filter(Boolean)
   return (
-    <li className={clsx('bg-page rounded-lg shadow-card', current && 'ring-2 ring-primary')}>
+    <Card as="li" padding="none">
       <button
         type="button" onClick={current ? undefined : onToggle} aria-expanded={open}
         disabled={current}
         className="flex w-full items-center gap-3 p-4 min-h-14 text-left disabled:cursor-default"
       >
         <span className={clsx(
-          'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full type-body font-semibold tabular-nums',
+          'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full type-body-strong tabular-nums',
           current ? 'bg-primary text-text-inverse' : 'bg-mute text-text-sec'
         )}>{order}</span>
         <span className="min-w-0 flex-1">
-          <span className="block type-body font-semibold text-text-pri tabular-nums">{person.code}</span>
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="type-h3 text-text-pri tabular-nums">{person.code}</span>
+            {current && <Badge tone="primary">현재</Badge>}
+          </span>
           <span className="mt-0.5 flex flex-wrap items-center gap-2">
             <GradeChip grade={person.grade} />
             <span className="type-body-sm text-text-sec">{tripIndex}회차</span>
@@ -74,6 +79,6 @@ export default function HelperAssignmentCard({
           </div>
         </div>
       )}
-    </li>
+    </Card>
   )
 }

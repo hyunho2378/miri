@@ -1,5 +1,8 @@
 // 개인정보 처리 안내(IA 3.2). 개인정보 설계와 근거 조항은 SOURCE B 문자 그대로.
 import { ShieldCheck } from 'lucide-react'
+import Card from '../../components/ui/Card.jsx'
+import KeyValue from '../../components/ui/KeyValue.jsx'
+import SectionTitle from '../../components/ui/SectionTitle.jsx'
 
 const DESIGN = [
   '명부 원본은 지자체 서버에 보관',
@@ -27,20 +30,20 @@ export default function PrivacyPage() {
       <p className="mt-3 type-body text-text-sec">미리는 재난취약자 이름을 저장하지 않는 구조로 설계. 이송에 필요한 정보만 필요한 기간에 필요한 사람에게 표시</p>
 
       <section className="mt-8">
-        <h2 className="type-h2 text-text-pri">개인정보 설계</h2>
-        <ul className="mt-4 space-y-3">
+        <SectionTitle title="개인정보 설계" />
+        <ul className="space-y-3">
           {DESIGN.map((d) => (
-            <li key={d} className="flex items-start gap-3 rounded-lg bg-subtle p-4">
+            <Card as="li" key={d} tone="mute" bodyClassName="flex items-start gap-3">
               <ShieldCheck size={20} aria-hidden="true" className="mt-0.5 shrink-0 text-primary" />
               <span className="type-body text-text-pri">{d}</span>
-            </li>
+            </Card>
           ))}
         </ul>
       </section>
 
       <section className="mt-10">
-        <h2 className="type-h2 text-text-pri">법적 근거</h2>
-        <div className="mt-4 overflow-hidden rounded-lg shadow-card bg-page">
+        <SectionTitle title="법적 근거" />
+        <Card as="div" padding="none" className="overflow-hidden">
           <table className="w-full text-left">
             <caption className="sr-only">구분별 근거 조항</caption>
             <thead>
@@ -52,36 +55,29 @@ export default function PrivacyPage() {
             <tbody>
               {LAWS.map(([k, v]) => (
                 <tr key={k} className="border-t border-line-sub">
-                  <th scope="row" className="px-4 py-3 align-top type-body-sm font-semibold text-text-pri">{k}</th>
+                  <th scope="row" className="px-4 py-3 align-top type-strong text-text-pri">{k}</th>
                   <td className="px-4 py-3 type-body-sm text-text-sec">{v}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       </section>
 
       <section className="mt-10">
-        <h2 className="type-h2 text-text-pri">데이터 확보 경로</h2>
-        <ul className="mt-4 space-y-3">
+        <SectionTitle title="데이터 확보 경로" />
+        <ul className="space-y-3">
           {DATA.map(([name, path, use]) => (
-            <li key={name} className="rounded-lg bg-subtle p-4">
-              <p className="type-body font-semibold text-text-pri">{name}</p>
-              <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-                <dt className="type-caption text-text-meta">확보 경로</dt>
-                <dd className="type-body-sm text-text-sec">{path}</dd>
-                <dt className="type-caption text-text-meta">용도</dt>
-                <dd className="type-body-sm text-text-sec">{use}</dd>
-              </dl>
-            </li>
+            <Card as="li" key={name} tone="mute" title={name} headingLevel={3}>
+              <KeyValue dense items={[{ label: '확보 경로', value: path }, { label: '용도', value: use }]} />
+            </Card>
           ))}
         </ul>
       </section>
 
-      <section className="mt-10 rounded-lg bg-primary-soft p-5">
-        <h2 className="type-h3 text-primary-text">시제품 데이터 안내</h2>
-        <p className="mt-2 type-body-sm text-primary-text">이 시제품은 가상 데이터만 사용. 대상자 코드와 주소와 연락처는 모두 가상 값이며 실제 개인정보 없음. 새로고침하면 초기 상태로 복귀</p>
-      </section>
+      <Card tone="primary" padding="lg" className="mt-10" title="시제품 데이터 안내">
+        <p className="type-body-sm text-primary-text">이 시제품은 가상 데이터만 사용. 대상자 코드와 주소와 연락처는 모두 가상 값이며 실제 개인정보 없음. 새로고침하면 초기 상태로 복귀</p>
+      </Card>
     </div>
   )
 }
