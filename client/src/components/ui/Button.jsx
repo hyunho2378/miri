@@ -16,7 +16,7 @@ const VARIANT = {
   primary: 'bg-primary text-text-inverse hover:bg-primary-hover',
   secondary: 'bg-page text-primary ring-1 ring-inset ring-line-def hover:bg-mute',
   ghost: 'bg-transparent text-text-sec hover:bg-mute hover:text-text-pri',
-  danger: 'bg-danger text-text-inverse hover:bg-danger-text'
+  danger: 'bg-danger text-text-inverse hover:bg-danger-strong'
 }
 
 export default function Button({

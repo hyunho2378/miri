@@ -19,12 +19,12 @@ export default function DeadlineClock({ title, dispatchDeadline, completeDeadlin
           <p className="shrink-0 type-meta text-text-meta tabular-nums">{dispatched ? '완료 기한' : '발령 기한'} {fmtHM(target)}</p>
         </div>
       )}
-      <p className={clsx(compact ? 'type-strong' : 'mt-2 type-kpi', 'tabular-nums', late || remain < 0 ? 'text-danger-text' : 'text-text-pri')}>
+      <p className={clsx(compact ? 'type-strong' : 'mt-2 type-kpi', 'tabular-nums', remain < 0 ? 'text-danger-text' : late ? 'text-warning-text' : 'text-text-pri')}>
         {remain < 0 ? remainText(remain) : `${remainText(remain)} 남음`}
       </p>
       {!compact && (
         <div className="mt-3 h-1.5 rounded-full bg-mute overflow-hidden" aria-hidden="true">
-          <div className={clsx('h-full w-full origin-left', late ? 'bg-danger' : 'bg-primary')} style={{ transform: `scaleX(${ratio})` }} />
+          <div className={clsx('h-full w-full origin-left', remain < 0 ? 'bg-danger' : late ? 'bg-warning' : 'bg-primary')} style={{ transform: `scaleX(${ratio})` }} />
         </div>
       )}
       {(sub || finishEta != null) && (
@@ -32,7 +32,7 @@ export default function DeadlineClock({ title, dispatchDeadline, completeDeadlin
           {sub}{finishEta != null && `${sub ? ' ' : ''}마지막 이송 완료 예상 ${fmtHM(finishEta)}`}
         </p>
       )}
-      {late && <p role="status" className="mt-1 type-caption text-danger-text">기한 초과 예상</p>}
+      {late && <p role="status" className="mt-1 type-caption text-warning-text">기한 초과 예상</p>}
     </Wrap>
   )
 }

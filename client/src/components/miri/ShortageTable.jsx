@@ -7,7 +7,7 @@ import TableCard from '../dashboard/TableCard.jsx'
 import SegmentControl from '../ui/SegmentControl.jsx'
 import { byGradeLine } from './ShortageValue.jsx'
 
-const STEPS = ['bg-mute text-text-meta', 'bg-chart-heat-1 text-text-pri', 'bg-chart-heat-2 text-text-pri', 'bg-chart-heat-3 text-text-pri', 'bg-chart-heat-4 text-text-inverse']
+const STEPS = ['bg-mute text-text-meta', 'bg-chart-heatDanger-1 text-text-pri', 'bg-chart-heatDanger-2 text-text-pri', 'bg-chart-heatDanger-3 text-text-pri', 'bg-chart-heatDanger-4 text-text-inverse']
 
 export default function ShortageTable({ title = '마을별 부족분', headingLevel = 2, villages, dongs, byVillage, initialView = 'table', pageSize = 20, className }) {
   const [view, setView] = useState(initialView)

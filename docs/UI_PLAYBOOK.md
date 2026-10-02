@@ -58,13 +58,15 @@
 
 ### 2.1 색과 표면
 
-G-Chat 9단계 KRDS 3색 체계 그대로(사용자 결정 2026-10-02). 값은 tokens.js.
+2026-10-02 10단계 심각도 체계(DESIGN.md 3절). 쨍한 빨강 #E0001B 는 critical 면 전용. 값은 tokens.js.
 
 | 층 | 토큰 | 쓰는 곳 |
 |----|------|--------|
 | 주색 | primary #2563EB | 주요 행동, 선택, 진행 중, 차트 주 계열 |
 | 무채색 | text, line, mute, subtle, canvas | 나머지 전부 |
-| 위험 | danger #E11414 | 부족 발생, 기한 초과, 실패, 미이송, 신뢰도 하 |
+| 위험 | danger #E0001B (critical 면), danger-text #D10019 | 실패, 미배정, 소방 인계, 부족 발생 / 불가, 무응답 |
+| 경고 | warning #EA580C, warning-text #B54708 | 기한 초과 예상, 협약 만료 임박, 신뢰도 하 |
+| 완료 | success #16A34A, success-text #047857 | 확인 완료, 수락, 인계 완료, 기한 내 |
 
 표면 위계.
 

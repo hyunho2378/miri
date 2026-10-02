@@ -16,7 +16,7 @@ export default function DispatchBanner() {
   const unserved = d.result?.unassigned?.length || 0
   const late = unserved > 0
   return (
-    <div role="status" className={clsx('sticky top-topbar z-nav flex flex-wrap items-center gap-x-3 gap-y-1 px-4 lg:px-8 py-2', late ? 'bg-danger-soft text-danger-text' : 'bg-primary-soft text-primary-text')}>
+    <div role="status" className={clsx('sticky top-topbar z-nav flex flex-wrap items-center gap-x-3 gap-y-1 px-4 lg:px-8 py-2', late ? 'bg-danger text-text-inverse' : 'bg-primary-soft text-primary-text')}>
       <Siren size={16} aria-hidden="true" />
       <span className="type-caption">{d.kind === 'drill' ? '훈련 발령' : '실제 발령'} {remainText(now - d.vStart).replace(' 경과', '')} 경과</span>
       <span className="type-caption tabular-nums">가장 이른 산불 도달까지 {remainText(earliest - now)}</span>
