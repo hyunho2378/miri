@@ -7,7 +7,7 @@ import { Check, ChevronDown, X } from 'lucide-react'
 import usePopExit from '../../hooks/usePopExit.js'
 
 export default function MultiSelect({
-  label, values = [], onChange, options = [], placeholder = '선택', disabled, id, className
+  label, values = [], onChange, options = [], placeholder = '선택', disabled, id, className, compact = false
 }) {
   const auto = useId()
   const btnId = id || auto
@@ -68,11 +68,12 @@ export default function MultiSelect({
 
   return (
     <div className={clsx('relative', className)} ref={rootRef} onKeyDown={onKeyDown}>
-      {label && <label htmlFor={btnId} className="block type-caption text-text-sec mb-1.5">{label}</label>}
+      {label && !compact && <label htmlFor={btnId} className="block type-caption text-text-sec mb-1.5">{label}</label>}
       <button
         ref={triggerRef} id={btnId} type="button" role="combobox"
         aria-haspopup="listbox" aria-expanded={open} aria-controls={`${btnId}-list`}
         aria-activedescendant={open ? `${btnId}-opt-${highlight}` : undefined}
+        aria-label={compact ? label : undefined}
         disabled={disabled}
         onClick={(e) => { setInstantPop(e.detail === 0); setOpen((o) => !o) }}
         className={clsx(
@@ -81,7 +82,14 @@ export default function MultiSelect({
           open ? 'ring-primary ring-2' : 'ring-line-def hover:ring-line-strong'
         )}
       >
-        {selected.length ? (
+        {compact ? (
+          <>
+            <span className="shrink-0 type-caption text-text-meta">{label}</span>
+            <span className={clsx('truncate type-body-sm', selected.length ? 'text-text-pri' : 'text-text-ter')}>
+              {selected.length ? (selected.length === 1 ? selected[0].label : `${selected[0].label} 외 ${selected.length - 1}`) : placeholder}
+            </span>
+          </>
+        ) : selected.length ? (
           <span className="flex flex-wrap items-center gap-1.5">
             {selected.map((o) => (
               <span key={o.value} className="inline-flex items-center gap-1 h-6 pl-2 pr-1 rounded-full bg-primary-soft text-primary-text type-caption">

@@ -27,7 +27,12 @@ const RULES = [
   { id: 'hex 직접 입력', re: /#[0-9A-Fa-f]{6}\b/g, skip: (p) => rel(p) === 'tokens.js' },
   { id: '금지 속성', re: /transition-all|hover:scale|hover:-?translate|localStorage|sessionStorage|type="(date|time)"|bg-gradient|linear-gradient|backdrop-blur/g, skip: () => false },
   { id: '금지 문자', re: /[·—–]|[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, skip: (p) => rel(p) === 'tokens.js' },
-  { id: '니다체', re: /니다/g, skip: () => false }
+  { id: '니다체', re: /니다/g, skip: () => false },
+  // 2026-10-02 3차: 레퍼런스 3종(make-interfaces-feel-better, emil/apple, material3) 반영
+  { id: '원시 표', re: /<table\b/g, skip: (p) => ['components/dashboard/DataTable.jsx', 'components/dashboard/Heatmap.jsx', 'components/miri/ShortageTable.jsx'].includes(rel(p)) },
+  { id: 'DataTable 직접 사용', re: /import DataTable\b/g, skip: (p) => rel(p) === 'components/dashboard/TableCard.jsx' },
+  { id: '아이콘 타일', re: /h-(8|9|10|11|12) w-\1[^"']*bg-(primary|danger|mute)-soft|bg-(primary|danger)-soft[^"']*h-(8|9|10|11|12) w-(8|9|10|11|12)/g, skip: () => false },
+  { id: '설명 문장', re: /desc=["'`][^"'`]{28,}["'`]|>\s*[가-힣][^<>{}]{44,}</g, skip: (p) => !/^(pages|components)\//.test(rel(p)) || rel(p).startsWith('components/ui/') }
 ]
 
 let total = 0

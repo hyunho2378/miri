@@ -14,7 +14,7 @@ export default function OpenDataCard() {
       <div className="space-y-4">
         <div>
           <p className="mb-2 inline-flex items-center gap-1.5 type-caption text-text-sec"><Flame size={16} aria-hidden="true" />동해시 산불위험예보</p>
-          {fire.data ? (
+          {fire.data?.analyzedAt ? (
             <KeyValue dense items={[
               { label: '평균 지수', value: `${fire.data.mean}`, strong: true },
               { label: '최대 지수', value: `${fire.data.max}` },
@@ -24,10 +24,10 @@ export default function OpenDataCard() {
         </div>
         <div>
           <p className="mb-2 inline-flex items-center gap-1.5 type-caption text-text-sec"><Building size={16} aria-hidden="true" />민방위대피시설</p>
-          {shelters.data ? (
+          {Number.isFinite(shelters.data?.count) ? (
             <KeyValue dense items={[
               { label: '사용 중 시설', value: `${shelters.data.count}곳`, strong: true },
-              { label: '수용 인원 합계', value: `${shelters.data.capacity.toLocaleString('ko-KR')}명` }
+              { label: '수용 인원 합계', value: `${(shelters.data.capacity || 0).toLocaleString('ko-KR')}명` }
             ]} />
           ) : <p className="type-body-sm text-text-meta">{none(shelters)}</p>}
         </div>

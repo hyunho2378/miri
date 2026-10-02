@@ -10,8 +10,9 @@ export default function useOpenData(kind) {
     let off = false
     fetch(`/api/opendata?kind=${kind}`)
       .then(async (r) => {
-        const j = await r.json().catch(() => ({}))
-        if (!r.ok) throw new Error(j?.error?.code || `HTTP ${r.status}`)
+        const isJson = (r.headers.get('content-type') || '').includes('application/json')
+        const j = isJson ? await r.json().catch(() => null) : null
+        if (!r.ok || !j || j.error) throw new Error(j?.error?.code || `HTTP ${r.status}`)
         return j
       })
       .then((data) => { const s = { data, error: null, loading: false }; cache.set(kind, s); if (!off) setState(s) })

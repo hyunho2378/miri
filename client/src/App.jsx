@@ -5,6 +5,7 @@ import AdminLayout from './components/layout/AdminLayout.jsx'
 import HelperLayout from './components/layout/HelperLayout.jsx'
 import PublicLayout from './components/layout/PublicLayout.jsx'
 import RequireAuth from './components/layout/RequireAuth.jsx'
+import ErrorBoundary from './components/layout/ErrorBoundary.jsx'
 import Toast from './components/ui/Toast.jsx'
 import { LangProvider } from './i18n/LangContext.jsx'
 
@@ -29,12 +30,19 @@ function ScrollToTop() {
   return null
 }
 
+// 경로가 바뀌면 오류 상태를 초기화
+function RouteBoundary({ children }) {
+  const { pathname } = useLocation()
+  return <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
+}
+
 export default function App() {
   return (
     <LangProvider>
       <BrowserRouter>
         <ScrollToTop />
         <Toast />
+        <RouteBoundary>
         <Suspense fallback={<div className="min-h-screen bg-canvas" aria-busy="true" />}>
           <Routes>
             <Route element={<PublicLayout />}>
@@ -66,6 +74,7 @@ export default function App() {
             </Route>
           </Routes>
         </Suspense>
+        </RouteBoundary>
       </BrowserRouter>
     </LangProvider>
   )

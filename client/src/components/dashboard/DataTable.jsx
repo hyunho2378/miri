@@ -1,6 +1,7 @@
 // PATTERNS.md 12번. 관리자 표 공통.
 // 정렬과 페이지는 이 컴포넌트가 전체 rows 위에서 처리한다. 페이지 안에서만 정렬하면 사용자를 속인다.
-// 768 미만은 표를 카드 리스트로 바꾼다(PITFALLS 22). 상태 색은 StatusPill 한 곳이므로 여기서 정의하지 않는다.
+// 768 미만은 표를 행 목록으로 바꾼다. 상태 색은 StatusPill 한 곳이므로 여기서 정의하지 않는다.
+// 표면(흰 배경, 그림자, 반경)은 갖지 않는다. 페이지는 TableCard 로만 표를 쓴다(카드 안 카드 금지).
 import { useMemo, useState } from 'react'
 import clsx from 'clsx'
 import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react'
@@ -49,7 +50,7 @@ export default function DataTable({
   return (
     <div>
       {/* 768 이상 표 */}
-      <div className="hidden md:block overflow-x-auto rounded-lg shadow-card bg-page">
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left tabular-nums">
           {caption && <caption className="sr-only">{caption}</caption>}
           <thead>
@@ -61,7 +62,7 @@ export default function DataTable({
                   <th
                     key={c.key} scope="col" style={c.width ? { width: c.width } : undefined}
                     aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
-                    className={clsx('px-4 py-3 type-caption text-text-meta', c.align === 'right' && 'text-right', HIDE[c.hideBelow])}
+                    className={clsx('px-4 py-3 lg:px-5 type-caption text-text-meta', c.align === 'right' && 'text-right', HIDE[c.hideBelow])}
                   >
                     {c.sortable ? (
                       <button
@@ -88,7 +89,7 @@ export default function DataTable({
                 className={clsx('border-t border-line-sub', onRowClick && 'cursor-pointer hover:bg-mute transition-colors duration-fast')}
               >
                 {columns.map((c) => (
-                  <td key={c.key} className={clsx('px-4 py-3 type-body-sm text-text-pri', c.align === 'right' && 'text-right', HIDE[c.hideBelow])}>
+                  <td key={c.key} className={clsx('px-4 py-3 lg:px-5 type-body-sm text-text-pri', c.align === 'right' && 'text-right', HIDE[c.hideBelow])}>
                     {cell(c, row)}
                   </td>
                 ))}
@@ -99,21 +100,21 @@ export default function DataTable({
       </div>
 
       {/* 768 미만 카드 전환. 첫 열이 카드 타이틀, 나머지는 라벨과 값 2열 */}
-      <ul className="md:hidden space-y-3">
+      <ul className="md:hidden divide-y divide-line-sub border-t border-line-sub">
         {view.map((row) => {
           const [first, ...rest] = columns
           return (
-            <li key={rowKey(row)} className="bg-page rounded-lg shadow-card p-4">
+            <li key={rowKey(row)} className="px-4 py-3">
               {/* 카드 전체를 버튼으로 감싸면 셀 안의 Toggle 이 button 안 button 이 된다. 제목만 버튼이다 */}
               {onRowClick ? (
                 <button
                   type="button" onClick={() => onRowClick(row)}
-                  className="pressable flex w-full items-center min-h-11 md:min-h-0 text-left type-h3 text-text-pri"
+                  className="pressable flex w-full items-center min-h-11 md:min-h-0 text-left type-body-strong text-text-pri"
                 >
                   {cell(first, row)}
                 </button>
               ) : (
-                <p className="type-h3 text-text-pri">{cell(first, row)}</p>
+                <p className="type-body-strong text-text-pri">{cell(first, row)}</p>
               )}
               <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
                 {rest.map((c) => (
@@ -128,7 +129,7 @@ export default function DataTable({
         })}
       </ul>
 
-      <Pagination className="mt-4" page={safePage} total={total} pageSize={pageSize} onChange={setPage} />
+      <Pagination className="px-4 py-3 lg:px-5 border-t border-line-sub" page={safePage} total={total} pageSize={pageSize} onChange={setPage} />
     </div>
   )
 }

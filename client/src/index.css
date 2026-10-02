@@ -50,7 +50,7 @@
     transition-duration: var(--dur-press);
     transition-timing-function: var(--ease-out);
   }
-  .pressable:active { transform: scale(0.97); }
+  .pressable:active { transform: scale(0.96); }
   .pressable:disabled:active, .pressable[aria-disabled='true']:active { transform: none; }
 
   /* 팝 진입 퇴장. 드롭다운 Select LangSwitch 공용. usePopExit 훅과 짝 */

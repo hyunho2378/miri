@@ -24,7 +24,7 @@ const IconButton = forwardRef(function IconButton(
       type={rest.type || 'button'}
       className={clsx(
         'pressable inline-flex shrink-0 items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed',
-        radius === 'full' ? 'rounded-full' : 'rounded-md',
+        radius === 'full' ? 'rounded-full' : radius === 'xs' ? 'rounded-xs' : 'rounded-md',
         SIZE[size], VARIANT[variant], className
       )}
       {...rest}

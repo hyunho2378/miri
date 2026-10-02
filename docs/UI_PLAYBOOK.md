@@ -138,6 +138,39 @@ press 120 / fast 160 / pop 180 / dur 280 / sheet 360. transform 과 opacity 만.
 
 lucide-react 단독, stroke 1.75, 크기 16 20 24 32 48. 아이콘 버튼은 IconButton + aria-label. 등급 아이콘은 GradeChip 한 곳(BedSingle Accessibility HandHelping Footprints).
 
+### 2.8 페이지 골격 (2026-10-02 3차, 모든 담당자 화면 동일)
+
+페이지마다 머리와 버튼 위치가 달라지는 것을 막기 위한 고정 골격. 이 순서 밖의 구조를 만들지 않음.
+
+| 순서 | 영역 | 컴포넌트 | 들어가는 것 |
+|------|------|----------|------------|
+| 1 | 상단바 | Topbar (PageShell title, actions) | 페이지 제목. 페이지 전체에 걸친 주요 행동 1개까지. 다른 화면으로 가는 링크 버튼은 두지 않음(사이드바와 중복) |
+| 2 | 페이지 탭 | Tabs | 같은 화면 안 데이터 전환(차량, 도우미)이 있을 때만 |
+| 3 | 본문 | Card, TableCard, MetricCard | 섹션은 카드 단위. 카드 밖 구획 제목이 필요할 때만 SectionTitle |
+
+카드 머리 규칙
+- 제목(type-h3) 옆 meta 에 건수나 기준값(332명, 가용 17 / 20대)
+- 오른쪽 actions 에 그 카드에만 해당하는 행동(추가, 일괄 확인, 저장)
+- 필터는 머리 아래 toolbar 줄. Select 와 MultiSelect 는 compact
+- desc 는 제목에 없는 사실이 있을 때만. 제목을 풀어 쓰는 부제와 동작 설명 문장 금지
+- 표는 TableCard 로만. DataTable 은 표면이 없고 TableCard 안에서만 렌더(카드 안 카드 금지)
+
+### 2.9 레퍼런스 반영 (make-interfaces-feel-better, emil-design-eng, apple-design, material-3)
+
+| 규칙 | 미리 적용 |
+|------|----------|
+| 동심 반경: 바깥 반경 = 안쪽 반경 + 여백 | SegmentControl, NumberStepper 바깥 sm(10) + 여백 4 + 안쪽 xs(6) |
+| 깊이는 그림자, 구조는 선 | 카드 깊이는 shadow-card, 표 행 구분은 line-sub 1px, 입력창은 ring |
+| 누름 피드백 scale 0.96 | .pressable:active 0.96 (0.95 미만 금지, hover 확대 금지 유지) |
+| 숫자 tabular-nums | 표, KPI, 시계, 건수 |
+| 제목 text-wrap balance, 본문 pretty | index.css 전역 |
+| 글꼴 antialiased | html 전역 |
+| 빈번한 상호작용에 애니메이션 금지 | 행 hover 와 탭 전환은 색 변화만 |
+| 모션만으로 상태 전달 금지 | 상태 변화는 색, 아이콘, 라벨 동반 |
+| 터치 영역 44, 데스크톱 최소 40 | min-h-11 md:min-h-0 패턴 유지 |
+| 같은 표면 위 아이콘 세트 하나 | lucide 단독 |
+| MD3 tonal surface | 강조 카드는 tone(primary, danger, mute) 배경만, 테두리 없음 |
+
 ---
 
 ## 3. 컴포넌트 계층과 상태 계약
@@ -146,7 +179,9 @@ lucide-react 단독, stroke 1.75, 크기 16 20 24 32 48. 아이콘 버튼은 Ico
 
 | 컴포넌트 | 대체 대상 | 계약 |
 |----------|----------|------|
-| Card | 페이지의 bg-page rounded-lg shadow-card 직접 작성 | title desc actions eyebrow, padding sm md lg none, tone default primary danger mute |
+| Card | 페이지의 bg-page rounded-lg shadow-card 직접 작성 | title meta desc actions toolbar eyebrow media, padding sm md lg none, tone default primary danger mute |
+| TableCard | DataTable 직접 사용, 표 위 건수 줄, 원시 table | title count actions filters + DataTable props, 또는 children(히트맵) |
+| FilterBar | 필터 Select 를 그리드로 나열 | toolbar 안. Select, MultiSelect compact |
 | SectionTitle | 카드 밖 h2 직접 작성 | title desc actions |
 | KeyValue | dl grid-cols-[auto_1fr] 직접 작성 | items [{label, value, strong}] |
 | NumberStepper | 페이지 로컬 Stepper | label value onChange min max step unit hint format |
@@ -275,6 +310,35 @@ ui-audit 규칙.
 프리미티브 추가 옵션: SectionTitle size lg, eyebrow, descSize, id / KeyValue size lg / Card media / NumberStepper layout inline.
 
 남은 과제: 클릭형 선택 카드 프리미티브(OptionCard) 미작성. 로그인 데모 계정 선택은 Link 로 구현.
+
+### 2026-10-02 3차 크리틱 (레퍼런스 3종 대조, 1440 캡처 12화면)
+
+AI가 만든 화면처럼 보이는 원인
+
+| 원인 | 근거 위치 | 조치 |
+|------|----------|------|
+| 모든 카드 제목 아래 부제(desc 24곳). 제목을 다시 풀어 쓴 문장 | 현황판 마을별 부족분 "산림 연접 마을 전체", 이상 탐지 임계값 "규칙 기반 탐지 기준" 등 | 정보 없는 desc 삭제. 건수와 기준은 meta 로 |
+| 표가 카드 안의 카드. DataTable 이 자체 흰 표면과 그림자를 가지고 Card 안에 다시 들어감 | DataTable.jsx:52, 현황판, 부족분 계산, 발령, 기록 상세 | DataTable 표면 제거, TableCard 로 통일 |
+| 화면 안 설명서 | 서류 판독 "판독 원칙" 카드, 발령 단계 카드 위 문장, ShortageTable 머리 문장 | 삭제. 규칙은 동작(신뢰도 표시, 버튼 비활성)으로 보여 줌 |
+| 아이콘 타일(연한 색 사각형 안 아이콘) | LoginPage.jsx:37 | 삭제. 텍스트 행 + 화살표 |
+| 4칸 KPI + 파란 안내 띠 + 2열 카드의 템플릿 배치 | 현황판 | 파란 띠 삭제, 배정 최적화 결과는 총 부족분 카드 보조 줄로 |
+| 같은 행동이 화면마다 다른 이름 | "시나리오 변경"(현황판) 과 "시나리오 바꾸기"(발령) | "시나리오 변경" 하나로 |
+
+화면 사이 불일치
+
+| 항목 | 화면별 현재 | 통일 기준 |
+|------|------------|----------|
+| 추가 버튼 위치 | 명부, 차량: 표 위 건수 줄 오른쪽. 서류 판독: 구획 제목 오른쪽. 부족분: 카드 머리 | 해당 카드 머리 actions |
+| 건수 표기 | 명부 "332명" 맨 글자, 차량 "가용 17대 / 전체 20대" 맨 글자, 서류 판독 제목 안 "7건" | 카드 meta |
+| 필터 | 명부만 라벨 달린 Select 5개 그리드, 다른 화면 없음 | TableCard filters + compact |
+| 표 | DataTable 9곳, 원시 table 4곳(설정 차종 정원, 부족분 시나리오 비교, 개인정보, 배정 비교) | 전부 TableCard |
+| 상단바 버튼 | 현황판만 "부족분 계산" 링크 버튼 | 상단바에는 그 화면의 주요 행동만 |
+
+공통 컴포넌트 신설과 수정: Card(meta, toolbar), TableCard, FilterBar, MultiSelect compact, DataTable 표면 제거와 모바일 행 목록, SegmentControl NumberStepper 동심 반경, pressable 0.96, 오류 경계(ErrorBoundary, 렌더 오류 시 흰 화면 방지).
+
+발견한 기능 결함: 공공데이터 응답이 JSON 이 아니면 현황판 카드가 렌더 오류를 내고 오류 경계가 없어 앱 전체가 흰 화면. useOpenData 응답 형식 검사와 ErrorBoundary 로 수정.
+
+ui-audit 추가 규칙: 원시 표, DataTable 직접 사용, 아이콘 타일, 설명 문장(desc 28자 이상, 본문 문장 44자 이상).
 
 ---
 
