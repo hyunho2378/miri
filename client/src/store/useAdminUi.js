@@ -1,5 +1,5 @@
 // useAdminUi.js 관리자 면 공통 UI 상태. 기간 탭은 전역이라 화면을 옮겨도 유지된다.
-import { useEffect } from 'react'
+import { useLayoutEffect } from 'react'
 import { create } from 'zustand'
 
 export const useAdminUi = create((set) => ({
@@ -19,7 +19,7 @@ export const useAdminUi = create((set) => ({
 // 페이지가 Topbar 슬롯을 등록한다. actions 는 매 렌더 새 JSX 라 의존성에서 뺀다(무한 루프 방지).
 export function useTopbar({ title, actions = null }) {
   const setTopbar = useAdminUi((s) => s.setTopbar)
-  useEffect(() => { setTopbar({ title, actions }) }, [title, setTopbar])   // eslint-disable-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => { setTopbar({ title, actions }) }, [title, setTopbar])   // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 export default useAdminUi

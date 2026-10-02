@@ -9,20 +9,35 @@ import ErrorBoundary from './components/layout/ErrorBoundary.jsx'
 import Toast from './components/ui/Toast.jsx'
 import { LangProvider } from './i18n/LangContext.jsx'
 
+const loaders = {
+  Overview: () => import('./pages/console/OverviewPage.jsx'),
+  Roster: () => import('./pages/console/RosterPage.jsx'),
+  Intake: () => import('./pages/console/IntakePage.jsx'),
+  Resources: () => import('./pages/console/ResourcesPage.jsx'),
+  Shortage: () => import('./pages/console/ShortagePage.jsx'),
+  Dispatch: () => import('./pages/console/DispatchPage.jsx'),
+  Handover: () => import('./pages/console/HandoverPage.jsx'),
+  Records: () => import('./pages/console/RecordsPage.jsx'),
+  RecordDetail: () => import('./pages/console/RecordDetailPage.jsx'),
+  Settings: () => import('./pages/console/SettingsPage.jsx'),
+  Helper: () => import('./pages/helper/HelperPage.jsx')
+}
+const PRELOAD = Object.values(loaders)
+
 const PrivacyPage = lazy(() => import('./pages/public/PrivacyPage.jsx'))
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage.jsx'))
 const LoginPage = lazy(() => import('./pages/console/LoginPage.jsx'))
-const OverviewPage = lazy(() => import('./pages/console/OverviewPage.jsx'))
-const RosterPage = lazy(() => import('./pages/console/RosterPage.jsx'))
-const IntakePage = lazy(() => import('./pages/console/IntakePage.jsx'))
-const ResourcesPage = lazy(() => import('./pages/console/ResourcesPage.jsx'))
-const ShortagePage = lazy(() => import('./pages/console/ShortagePage.jsx'))
-const DispatchPage = lazy(() => import('./pages/console/DispatchPage.jsx'))
-const HandoverPage = lazy(() => import('./pages/console/HandoverPage.jsx'))
-const RecordsPage = lazy(() => import('./pages/console/RecordsPage.jsx'))
-const RecordDetailPage = lazy(() => import('./pages/console/RecordDetailPage.jsx'))
-const SettingsPage = lazy(() => import('./pages/console/SettingsPage.jsx'))
-const HelperPage = lazy(() => import('./pages/helper/HelperPage.jsx'))
+const OverviewPage = lazy(loaders.Overview)
+const RosterPage = lazy(loaders.Roster)
+const IntakePage = lazy(loaders.Intake)
+const ResourcesPage = lazy(loaders.Resources)
+const ShortagePage = lazy(loaders.Shortage)
+const DispatchPage = lazy(loaders.Dispatch)
+const HandoverPage = lazy(loaders.Handover)
+const RecordsPage = lazy(loaders.Records)
+const RecordDetailPage = lazy(loaders.RecordDetail)
+const SettingsPage = lazy(loaders.Settings)
+const HelperPage = lazy(loaders.Helper)
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -30,19 +45,23 @@ function ScrollToTop() {
   return null
 }
 
-// 경로가 바뀌면 오류 상태를 초기화
-function RouteBoundary({ children }) {
-  const { pathname } = useLocation()
-  return <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
+// 담당자 화면 코드를 첫 화면이 뜬 뒤 한가할 때 미리 받는다. 메뉴를 눌렀을 때 로딩 대기가 생기지 않게 한다
+function usePreloadPages() {
+  useEffect(() => {
+    const run = () => PRELOAD.forEach((load) => load().catch(() => {}))
+    const id = window.requestIdleCallback ? window.requestIdleCallback(run, { timeout: 3000 }) : setTimeout(run, 1200)
+    return () => (window.cancelIdleCallback ? window.cancelIdleCallback(id) : clearTimeout(id))
+  }, [])
 }
 
 export default function App() {
+  usePreloadPages()
   return (
     <LangProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
         <Toast />
-        <RouteBoundary>
+        <ErrorBoundary>
         <Suspense fallback={<div className="min-h-screen bg-canvas" aria-busy="true" />}>
           <Routes>
             <Route element={<PublicLayout />}>
@@ -74,7 +93,7 @@ export default function App() {
             </Route>
           </Routes>
         </Suspense>
-        </RouteBoundary>
+        </ErrorBoundary>
       </BrowserRouter>
     </LangProvider>
   )

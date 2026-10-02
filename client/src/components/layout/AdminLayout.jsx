@@ -1,11 +1,12 @@
 // 담당자 레이아웃. lg 240 / md 레일 64 / md 미만 사이드바 숨김 + 햄버거 Drawer.
 // 768 미만 진입 시 데스크톱 권장 배너. 발령 진행 중이면 상단바 아래 전역 발령 띠.
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { X } from 'lucide-react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import useMediaQuery from '../../hooks/useMediaQuery.js'
 import useAdminUi from '../../store/useAdminUi.js'
 import useMiriStore from '../../store/useMiriStore.js'
+import ErrorBoundary from './ErrorBoundary.jsx'
 import Drawer from '../ui/Drawer.jsx'
 import IconButton from '../ui/IconButton.jsx'
 import DispatchBanner from '../miri/DispatchBanner.jsx'
@@ -20,6 +21,7 @@ export default function AdminLayout() {
   const orgName = useMiriStore((s) => s.settings.orgName)
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const isRail = useMediaQuery('(min-width: 768px) and (max-width: 1023px)')
+  const { pathname } = useLocation()
 
   useEffect(() => { if (isDesktop) setSidebarOpen(false) }, [isDesktop, setSidebarOpen])
 
@@ -43,7 +45,13 @@ export default function AdminLayout() {
           <Topbar />
           <DispatchBanner />
           <main className="min-w-0 flex-1">
-            <Outlet />
+            {/* 본문만 경로별로 다시 만든다. 사이드바와 상단바는 유지 */}
+            {/* Suspense 는 경계 바깥에 둔다. 경계에 경로 키를 달아도 대기 영역은 유지돼 전환 중 기존 화면이 남는다 */}
+            <Suspense fallback={<div className="min-h-[60vh]" aria-busy="true" />}>
+              <ErrorBoundary key={pathname}>
+                <Outlet />
+              </ErrorBoundary>
+            </Suspense>
           </main>
         </div>
       </div>
