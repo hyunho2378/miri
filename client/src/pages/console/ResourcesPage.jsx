@@ -1,7 +1,7 @@
 // 차량과 도우미(IA 4.4). 탭 두 개. ?tab=helpers. 차종 탑승 정원은 자문 전 가정값.
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import DataTable from '../../components/dashboard/DataTable.jsx'
+import TableCard from '../../components/dashboard/TableCard.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import EditPencil from '../../components/edit/EditPencil.jsx'
 import EntityForm, { msToYmd, validate, ymdToMs } from '../../components/edit/EntityForm.jsx'
@@ -125,17 +125,19 @@ export default function ResourcesPage() {
         onChange={(t) => setParams(t === 'helpers' ? { tab: 'helpers' } : {})}
         items={[{ value: 'vehicles', label: `차량 ${vehicles.length}` }, { value: 'helpers', label: `도우미 ${helpers.length}` }]}
       />
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="type-body-sm text-text-sec tabular-nums">
-          {tab === 'vehicles' ? `가용 ${usable}대 / 전체 ${vehicles.length}대` : `활동 중 ${helpers.filter((h) => h.active !== false).length}명. 침상 등급은 구급대원 담당이라 도우미 배정 제외`}
-        </p>
-        {tab === 'vehicles'
-          ? <InlineEditBar resource="vehicles" addLabel="차량 추가" onAdd={() => { setErrors({}); setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'contract', baseDong: 'MS', available: true, contractUntil: '', note: '' } }) }} />
-          : <InlineEditBar resource="helpers" addLabel="도우미 추가" onAdd={() => { setErrors({}); setForm({ kind: 'helper', mode: 'add', value: { code: '', villages: [], grades: ['assist', 'walk'], active: true } }) }} />}
-      </div>
-      {tab === 'vehicles'
-        ? <DataTable columns={vehicleColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={vehicles} rowKey={(v) => v.code} caption="차량 목록" />
-        : <DataTable columns={helperColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={helpers} rowKey={(h) => h.code} caption="도우미 목록" />}
+      {tab === 'vehicles' ? (
+        <TableCard
+          key="vehicles" title="차량" count={`가용 ${usable} / 전체 ${vehicles.length}대`}
+          actions={<InlineEditBar resource="vehicles" addLabel="차량 추가" onAdd={() => { setErrors({}); setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'contract', baseDong: 'MS', available: true, contractUntil: '', note: '' } }) }} />}
+          columns={vehicleColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={vehicles} rowKey={(v) => v.code} caption="차량 목록"
+        />
+      ) : (
+        <TableCard
+          key="helpers" title="도우미" count={`활동 중 ${helpers.filter((h) => h.active !== false).length} / 전체 ${helpers.length}명`}
+          actions={<InlineEditBar resource="helpers" addLabel="도우미 추가" onAdd={() => { setErrors({}); setForm({ kind: 'helper', mode: 'add', value: { code: '', villages: [], grades: ['assist', 'walk'], active: true } }) }} />}
+          columns={helperColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={helpers} rowKey={(h) => h.code} caption="도우미 목록"
+        />
+      )}
 
       <Drawer
         open={!!form} onClose={() => setForm(null)}

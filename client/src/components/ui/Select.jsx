@@ -99,14 +99,15 @@ export default function Select({
         disabled={disabled}
         onClick={(e) => { setInstantPop(e.detail === 0); setOpen((o) => !o) }}
         className={clsx(
-          'flex w-full items-center gap-2 h-11 px-3 rounded-md bg-page transition-colors duration-fast',
+          'flex items-center gap-2 h-11 px-3 rounded-md bg-page transition-colors duration-fast',
+          compact ? 'w-auto max-w-full md:h-9' : 'w-full',
           'ring-1 ring-inset disabled:opacity-40 disabled:cursor-not-allowed',
           error ? 'ring-danger' : open ? 'ring-primary ring-2' : 'ring-line-def hover:ring-line-strong',
-          compact ? 'justify-between' : 'justify-between'
+          compact ? 'justify-start' : 'justify-between'
         )}
       >
         {compact && label && <span className="shrink-0 type-caption text-text-meta">{label}</span>}
-        <span className={clsx('flex min-w-0 items-center gap-2', compact && 'justify-end')}>
+        <span className="flex min-w-0 items-center gap-2">
           {!compact && SelectedIcon && <SelectedIcon size={16} className="shrink-0 text-text-meta" aria-hidden="true" />}
           <span className={clsx('truncate type-body-sm', selected ? 'text-text-pri' : 'text-text-ter')}>
             {selected ? selected.label : placeholder}

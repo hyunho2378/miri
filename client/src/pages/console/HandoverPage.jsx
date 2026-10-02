@@ -7,7 +7,7 @@ import Card from '../../components/ui/Card.jsx'
 import GradeChip from '../../components/miri/GradeChip.jsx'
 import MetricCard from '../../components/miri/MetricCard.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
-import DataTable from '../../components/dashboard/DataTable.jsx'
+import TableCard from '../../components/dashboard/TableCard.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Checkbox from '../../components/ui/Checkbox.jsx'
@@ -107,7 +107,7 @@ export default function HandoverPage() {
         <Card as="div" padding="none">
           <EmptyState
             title="진행 중인 발령 없음"
-            desc={d.status === 'standby' ? 'AI 배정 실행 후 미이송자 목록 생성' : '발령 개시 후 배정 결과에서 미이송자 목록 생성'}
+            desc={d.status === 'standby' ? 'AI 배정 실행 후 목록 생성' : '발령 개시 후 목록 생성'}
             action={<Button as={Link} to="/console/dispatch">발령 운영</Button>}
           />
         </Card>
@@ -119,9 +119,8 @@ export default function HandoverPage() {
             <MetricCard label="전달 횟수" value={d.handovers.length} unit="회" sub={d.status === 'assigned' ? '배정 확정 전. 미배정 예상 목록' : undefined} />
           </div>
 
-          <Card
-            title="미이송자 목록"
-            desc="실패 건이 위. 선택 후 일괄 소방 인계"
+          <TableCard
+            title="미이송자" count={`${rows.length}명`} desc="실패 건 우선"
             actions={(
               <>
                 <Button variant="ghost" size="sm" disabled={!waiting.length} onClick={() => setSelected(allOn ? new Set() : new Set(waiting.map((r) => r.code)))}>
@@ -137,13 +136,11 @@ export default function HandoverPage() {
                 </Button>
               </>
             )}
-          >
-            {rows.length
-              ? <DataTable columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={20} caption="미이송자 목록" />
-              : <p className="type-body-sm text-text-meta">미이송자 없음. 전원 기한 내 이송 진행</p>}
-          </Card>
+            columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={20} caption="미이송자 목록"
+            emptyTitle="미이송자 없음" emptyDesc="전원 기한 내 이송 진행"
+          />
 
-          <Card title="전달 기록">
+          <Card title="전달 기록" meta={`${d.handovers.length}회`}>
             {d.handovers.length ? (
               <ul className="divide-y divide-line-sub">
                 {d.handovers.map((h, i) => (

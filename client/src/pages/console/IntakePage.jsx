@@ -131,37 +131,26 @@ export default function IntakePage() {
     <PageShell
       title="서류 판독"
     >
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
-        <Card title="서류 올리기" desc="사진과 스캔 이미지 판독">
-          {canEdit ? (
-            <IntakeUploader villages={villages} onFile={onFile} onSample={onSample} busy={!!reading && !reading.failed} />
-          ) : <p className="type-body-sm text-text-meta">서류 판독 권한 없음</p>}
-          {reading && <div className="mt-4"><ReadTimeline name={reading.name} step={reading.step} failed={reading.failed} /></div>}
-          {error && (
-            <div role="alert" className="mt-4 flex items-start gap-2 rounded-md bg-danger-soft p-4 text-danger-text">
-              <CircleAlert size={20} aria-hidden="true" className="shrink-0" />
-              <div>
-                <p className="type-strong">{error.title}</p>
-                <p className="mt-1 type-meta">{error.desc}</p>
-              </div>
+      <Card title="서류 올리기">
+        {canEdit ? (
+          <IntakeUploader villages={villages} onFile={onFile} onSample={onSample} busy={!!reading && !reading.failed} />
+        ) : <p className="type-body-sm text-text-meta">서류 판독 권한 없음</p>}
+        {reading && <div className="mt-4"><ReadTimeline name={reading.name} step={reading.step} failed={reading.failed} /></div>}
+        {error && (
+          <div role="alert" className="mt-4 flex items-start gap-2 rounded-md bg-danger-soft p-4 text-danger-text">
+            <CircleAlert size={20} aria-hidden="true" className="shrink-0" />
+            <div>
+              <p className="type-strong">{error.title}</p>
+              <p className="mt-1 type-meta">{error.desc}</p>
             </div>
-          )}
-        </Card>
-        <Card title="판독 원칙">
-          <ul className="space-y-2 type-body-sm text-text-sec">
-            <li>- 등급 기준: 도보, 부축, 휠체어, 침상 4단계</li>
-            <li>- 근거 문구 없으면 판정 불가로 처리</li>
-            <li>- 등급과 특이사항이 모순이면 신뢰도 하향</li>
-            <li>- 확인 대기 판독은 부족분에 잠정값으로 포함</li>
-            <li>- 이름과 연락처는 판독 결과에 출력하지 않음</li>
-          </ul>
-        </Card>
-      </div>
+          </div>
+        )}
+      </Card>
 
       <section ref={queueRef} className="mt-8 scroll-mt-24" aria-label="확인 대기열">
         <SectionTitle
           title={<>확인 대기열 <span className="text-text-meta tabular-nums">{queue.length}건</span></>}
-          desc="신뢰도 하부터 정렬. 신뢰도 중과 하는 한 건씩 확인"
+          desc="신뢰도 낮은 순"
           actions={canEdit && highCount > 0 && (
             <Button variant="secondary" onClick={confirmAllHigh} leftIcon={<ScanText size={16} aria-hidden="true" />}>신뢰도 상 {highCount}건 일괄 확인</Button>
           )}

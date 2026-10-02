@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ScanText, Trash2, UserRound } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
-import DataTable from '../../components/dashboard/DataTable.jsx'
+import TableCard from '../../components/dashboard/TableCard.jsx'
 import EditPencil from '../../components/edit/EditPencil.jsx'
 import EntityForm, { validate } from '../../components/edit/EntityForm.jsx'
 import InlineEditBar from '../../components/edit/InlineEditBar.jsx'
@@ -14,6 +14,7 @@ import { DocImage, GRADE_OPTIONS, TAG_OPTIONS } from '../../components/miri/Revi
 import Button from '../../components/ui/Button.jsx'
 import KeyValue from '../../components/ui/KeyValue.jsx'
 import Drawer from '../../components/ui/Drawer.jsx'
+import FilterBar from '../../components/ui/FilterBar.jsx'
 import MultiSelect from '../../components/ui/MultiSelect.jsx'
 import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
@@ -122,18 +123,20 @@ export default function RosterPage() {
     <PageShell
       title="대상자 명부"
     >
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <Select label="동" value={dong} onChange={setDong} options={dongOptions} disabled={user?.role === 'dong'} />
-        <Select label="마을" value={village} onChange={setVillage} options={villageOptions} />
-        <MultiSelect label="등급" values={grades} onChange={setGrades} options={GRADE_OPTIONS} placeholder="전체 등급" />
-        <Select label="판정 출처" value={source} onChange={setSource} options={SOURCE_OPTIONS} />
-        <Select label="확인 상태" value={review} onChange={setReview} options={REVIEW_OPTIONS} />
-      </div>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="type-body-sm text-text-sec tabular-nums">{rows.length}명</p>
-        <InlineEditBar resource="persons" addLabel="대상자 추가" onAdd={() => { setErrors({}); setEditing({ mode: 'add', value: { villageCode: village !== 'all' ? village : villageOptions[1]?.value, grade: 'assist', tags: [] } }) }} />
-      </div>
-      <DataTable columns={columns} rows={rows} rowKey={(p) => p.code} onRowClick={(p) => { setEditing(null); openPerson(p.code) }} emptyTitle="조건에 맞는 대상자 없음" emptyDesc="필터 조정 필요" caption="대상자 명부" />
+      <TableCard
+        title="대상자" count={`${rows.length}명`}
+        actions={<InlineEditBar resource="persons" addLabel="대상자 추가" onAdd={() => { setErrors({}); setEditing({ mode: 'add', value: { villageCode: village !== 'all' ? village : villageOptions[1]?.value, grade: 'assist', tags: [] } }) }} />}
+        filters={(
+          <FilterBar>
+            <Select compact label="동" value={dong} onChange={setDong} options={dongOptions} disabled={user?.role === 'dong'} />
+            <Select compact label="마을" value={village} onChange={setVillage} options={villageOptions} />
+            <MultiSelect compact label="등급" values={grades} onChange={setGrades} options={GRADE_OPTIONS} placeholder="전체" />
+            <Select compact label="판정 출처" value={source} onChange={setSource} options={SOURCE_OPTIONS} />
+            <Select compact label="확인 상태" value={review} onChange={setReview} options={REVIEW_OPTIONS} />
+          </FilterBar>
+        )}
+        columns={columns} rows={rows} rowKey={(p) => p.code} onRowClick={(p) => { setEditing(null); openPerson(p.code) }} emptyTitle="조건에 맞는 대상자 없음" emptyDesc="필터 조정 필요" caption="대상자 명부"
+      />
 
       <Drawer
         open={!!open || editing?.mode === 'add'}

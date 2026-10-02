@@ -77,7 +77,8 @@ export default function MultiSelect({
         disabled={disabled}
         onClick={(e) => { setInstantPop(e.detail === 0); setOpen((o) => !o) }}
         className={clsx(
-          'flex w-full items-center justify-between gap-2 min-h-11 px-3 py-2 rounded-md bg-page transition-colors duration-fast',
+          'flex items-center gap-2 px-3 rounded-md bg-page transition-colors duration-fast',
+          compact ? 'w-auto max-w-full h-11 md:h-9 justify-start' : 'w-full min-h-11 py-2 justify-between',
           'ring-1 ring-inset disabled:opacity-40 disabled:cursor-not-allowed',
           open ? 'ring-primary ring-2' : 'ring-line-def hover:ring-line-strong'
         )}

@@ -10,7 +10,7 @@ export default function OpenDataCard() {
   const none = (s) => (s.loading ? '불러오는 중' : '연결 안 됨')
 
   return (
-    <Card title="공공데이터 연계" desc="공공데이터포털 실시간 조회">
+    <Card title="공공데이터 연계" meta="공공데이터포털">
       <div className="space-y-4">
         <div>
           <p className="mb-2 inline-flex items-center gap-1.5 type-caption text-text-sec"><Flame size={16} aria-hidden="true" />동해시 산불위험예보</p>

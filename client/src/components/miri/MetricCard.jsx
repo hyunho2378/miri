@@ -1,4 +1,5 @@
 // 숫자 카드. 라벨 caption 600 / 값 kpi 800 (size sm 은 h2 700). 위험 값은 글자만 danger.
+// sub 는 문자열 또는 노드(여러 줄 가능, div 로 감싼다).
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 
@@ -14,7 +15,7 @@ export default function MetricCard({ label, value, unit, sub, tone = 'neutral', 
         {value}
         {unit && <span className={clsx('ml-1 text-text-meta', sm ? 'type-caption' : 'type-h3')}>{unit}</span>}
       </p>
-      {sub && <p className="mt-2 type-meta text-text-meta">{sub}</p>}
+      {sub && <div className="mt-2 type-meta text-text-meta">{sub}</div>}
     </>
   )
   const cls = clsx('block bg-page rounded-lg shadow-card min-w-0', sm ? 'p-3 lg:p-4' : 'p-5 lg:p-6')

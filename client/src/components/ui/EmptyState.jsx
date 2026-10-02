@@ -6,17 +6,17 @@ import { RotateCw } from 'lucide-react'
 import { useLang } from '../../i18n/LangContext.jsx'
 import Button from './Button.jsx'
 
-export default function EmptyState({ tone = 'empty', title, desc, action, onRetry, image, className }) {
+export default function EmptyState({ tone = 'empty', title, desc, action, onRetry, image, className, compact = false }) {
   const { t } = useLang()
   const isError = tone === 'error'
   const src = image || '/images/illustrations/empty.svg'
   return (
     <div
-      className={clsx('py-16 flex flex-col items-center text-center', className)}
+      className={clsx(compact ? 'py-8' : 'py-16', 'flex flex-col items-center text-center', className)}
       role={isError ? 'alert' : undefined}
     >
-      <img src={src} alt="" className="w-24 h-24" />
-      <p className="mt-4 type-h3 text-text-pri">{title || (isError ? t('common.error.loadTitle') : '')}</p>
+      {!compact && <img src={src} alt="" className="w-24 h-24" />}
+      <p className={clsx(compact ? 'type-body-strong' : 'mt-4 type-h3', 'text-text-pri')}>{title || (isError ? t('common.error.loadTitle') : '')}</p>
       {(desc || isError) && (
         <p className="mt-1 type-body-sm text-text-meta max-w-[320px]">{desc || t('common.error.loadDesc')}</p>
       )}

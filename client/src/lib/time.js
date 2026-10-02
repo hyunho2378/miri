@@ -34,3 +34,10 @@ export function minutesText(min) {
   const m = Math.round(min % 60)
   return h > 0 ? `${h}시간 ${m}분` : `${m}분`
 }
+
+// 기준 시각과 날짜가 다르면 익일 표기. 자정을 넘긴 완료 시각이 이른 시각처럼 읽히는 것을 막는다
+export function fmtHMFrom(ms, baseMs) {
+  if (ms == null || Number.isNaN(ms)) return '--:--'
+  const nextDay = baseMs != null && new Date(ms).toDateString() !== new Date(baseMs).toDateString()
+  return `${nextDay ? '익일 ' : ''}${fmtHM(ms)}`
+}

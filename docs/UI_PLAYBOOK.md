@@ -340,6 +340,12 @@ AI가 만든 화면처럼 보이는 원인
 
 ui-audit 추가 규칙: 원시 표, DataTable 직접 사용, 아이콘 타일, 설명 문장(desc 28자 이상, 본문 문장 44자 이상).
 
+3차 이관 결과
+- ui-audit 15개 규칙 위반 0, 단위 테스트 8 통과
+- 12개 경로 × 8개 폭(320~3840) 가로 넘침 0, 흰 화면 0, 콘솔 오류 0
+- 표 13곳 전부 TableCard. 카드 안 카드 0
+- 추가 수정: Select MultiSelect Input compact, EmptyState compact, 본문 없는 Card, 발령 단계 카드 안 중복 상태 표시 삭제, 배정 계산 시간 줄 삭제, 자정 넘긴 완료 시각 익일 표기(fmtHMFrom)
+
 ---
 
 ## 7. 화면별 체크리스트

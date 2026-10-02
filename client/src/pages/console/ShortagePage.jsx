@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Save, Star } from 'lucide-react'
 import Card from '../../components/ui/Card.jsx'
+import TableCard from '../../components/dashboard/TableCard.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import ShortageTable from '../../components/miri/ShortageTable.jsx'
 import ShortageValue from '../../components/miri/ShortageValue.jsx'
@@ -64,6 +65,35 @@ export default function ShortagePage() {
   }
   const overwrite = () => { saveScenario({ ...draft, id: base.id }); toast(`${base.name} 갱신 완료`, 'primary') }
 
+  const compareCols = [
+    {
+      key: 'name', label: '시나리오',
+      render: ({ sc }) => (
+        <span className="inline-flex flex-wrap items-center gap-2">
+          <span className="type-strong text-text-pri">{sc.name}</span>
+          {sc.id === activeId && <Badge tone="primary">현황판 기준</Badge>}
+        </span>
+      )
+    },
+    { key: 'prep', label: '준비', render: ({ sc }) => <span className="whitespace-nowrap">{sc.prepMinutes}분</span> },
+    { key: 'complete', label: '완료 기한', hideBelow: 'lg', render: ({ sc }) => <span className="whitespace-nowrap">{sc.completeBeforeHours ? `도달 ${sc.completeBeforeHours}시간 전` : '도달 시각'}</span> },
+    { key: 'extra', label: '추가 차량', hideBelow: 'lg', render: ({ sc }) => <span className="type-meta text-text-sec">{Object.entries(sc.extraVehicles || {}).filter(([, n]) => n).map(([t, n]) => `${typeOf(t).label} ${n}`).join(', ') || '없음'}</span> },
+    ...GRADES.map((g) => ({ key: g.key, label: g.label, align: 'right', hideBelow: 'md', render: ({ r }) => r.byGrade[g.key] || '-' })),
+    {
+      key: 'total', label: '총 부족분', align: 'right',
+      render: ({ r }) => <span className={`type-strong whitespace-nowrap ${r.total ? 'text-danger-text' : 'text-text-sec'}`}>{r.total ? `부족 ${r.total}명` : '부족 없음'}</span>
+    },
+    ...(canEdit ? [{
+      key: 'actions', label: '관리', align: 'right',
+      render: ({ sc }) => (sc.id !== activeId ? (
+        <span className="inline-flex gap-1">
+          <Button size="sm" variant="ghost" leftIcon={<Star size={14} aria-hidden="true" />} onClick={() => { setActiveScenario(sc.id); toast(`${sc.name} 현황판 기준 지정`, 'primary') }}>기준 지정</Button>
+          {scenarios.length > 1 && <Button size="sm" variant="ghost" onClick={() => { removeScenario(sc.id); if (selectedId === sc.id) setSelectedId(activeId); toast('시나리오 삭제 완료') }}>삭제</Button>}
+        </span>
+      ) : null)
+    }] : [])
+  ]
+
   const extraLine = extra.length
     ? extra.map((e) => `${e.typeLabel} ${e.count}대`).join(', ')
     : null
@@ -94,7 +124,7 @@ export default function ShortagePage() {
             </div>
           </Card>
 
-          <Card title="추가 협약 차량" desc="부족 등급에 맞는 차종을 더해 재계산">
+          <Card title="추가 협약 차량">
             <div className="grid gap-4 sm:grid-cols-2">
               {EXTRA_TYPES.map((t) => (
                 <NumberStepper key={t} label={typeOf(t).label} value={draft.extraVehicles?.[t] || 0} min={0} max={20} unit="대" onChange={(n) => setExtra(t, n)} />
@@ -102,7 +132,7 @@ export default function ShortagePage() {
             </div>
           </Card>
 
-          <Card title="마을별 산불 도달 가정" desc="기준 대비 늦게 도달하면 + 시간">
+          <Card title="마을별 산불 도달 가정">
             <ul className="grid gap-y-2 max-h-[420px] overflow-y-auto pr-1">
               {villages.map((v) => (
                 <li key={v.code} className="min-w-0">
@@ -136,57 +166,20 @@ export default function ShortagePage() {
             </div>
           </Card>
 
-          <Card title="마을별 부족분">
-            <ShortageTable villages={villages} dongs={dongs} byVillage={result.byVillage} />
-          </Card>
+          <ShortageTable villages={villages} dongs={dongs} byVillage={result.byVillage} />
 
-          <Card
+          <TableCard
             title="시나리오 저장과 비교"
-            desc={`최대 ${MAX_SCENARIOS}개. 현황판 기준 하나 지정`}
+            count={`${scenarios.length} / ${MAX_SCENARIOS}개`}
             actions={canEdit && (
               <>
                 {dirty && <Button variant="secondary" onClick={overwrite}>현재 시나리오 갱신</Button>}
                 <Button variant="primary" onClick={saveAsNew} leftIcon={<Save size={16} aria-hidden="true" />}>시나리오 저장</Button>
               </>
             )}
-          >
-            {canEdit && <Input label="새 시나리오 이름" value={name} onChange={(e) => setName(e.target.value)} placeholder={`${base.name} 변형`} className="mb-4 max-w-md" />}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left tabular-nums">
-                <caption className="sr-only">시나리오 비교</caption>
-                <thead>
-                  <tr className="bg-subtle">
-                    {['시나리오', '준비', '완료 기한', '추가 차량', ...GRADES.map((g) => g.label), '총 부족분', ''].map((h, i) => (
-                      <th key={`${h}${i}`} scope="col" className="px-3 py-2 type-caption text-text-meta whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {compare.map(({ sc, r }) => (
-                    <tr key={sc.id} className="border-t border-line-sub">
-                      <td className="px-3 py-2 type-body-sm min-w-48">
-                        <span className="type-strong text-text-pri">{sc.name}</span>
-                        {sc.id === activeId && <Badge tone="primary" className="ml-2">현황판 기준</Badge>}
-                      </td>
-                      <td className="px-3 py-2 type-body-sm whitespace-nowrap">{sc.prepMinutes}분</td>
-                      <td className="px-3 py-2 type-body-sm whitespace-nowrap">{sc.completeBeforeHours ? `도달 ${sc.completeBeforeHours}시간 전` : '도달 시각'}</td>
-                      <td className="px-3 py-2 type-meta text-text-sec whitespace-nowrap">{Object.entries(sc.extraVehicles || {}).filter(([, n]) => n).map(([t, n]) => `${typeOf(t).label} ${n}`).join(', ') || '없음'}</td>
-                      {GRADES.map((g) => <td key={g.key} className="px-3 py-2 type-body-sm">{r.byGrade[g.key] || '-'}</td>)}
-                      <td className={`px-3 py-2 type-strong whitespace-nowrap ${r.total ? 'text-danger-text' : 'text-text-sec'}`}>{r.total ? `부족 ${r.total}명` : '부족 없음'}</td>
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        {canEdit && sc.id !== activeId && (
-                          <span className="inline-flex gap-1">
-                            <Button size="sm" variant="ghost" leftIcon={<Star size={14} aria-hidden="true" />} onClick={() => { setActiveScenario(sc.id); toast(`${sc.name} 현황판 기준 지정`, 'primary') }}>기준 지정</Button>
-                            {scenarios.length > 1 && <Button size="sm" variant="ghost" onClick={() => { removeScenario(sc.id); if (selectedId === sc.id) setSelectedId(activeId); toast('시나리오 삭제 완료') }}>삭제</Button>}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+            filters={canEdit && <Input compact label="새 시나리오 이름" value={name} onChange={(e) => setName(e.target.value)} placeholder={`${base.name} 변형`} className="w-full max-w-md" />}
+            columns={compareCols} rows={compare} rowKey={({ sc }) => sc.id} pageSize={MAX_SCENARIOS} caption="시나리오 비교"
+          />
         </div>
       </div>
     </PageShell>

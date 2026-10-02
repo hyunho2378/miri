@@ -62,7 +62,7 @@ export default function HelperPage() {
   if (token !== 'demo') {
     return (
       <Notice icon={LinkIcon} title="유효하지 않은 링크">
-        발령 종료 또는 잘못된 주소. 담당자에게 새 링크 요청
+        담당자에게 새 링크 요청
       </Notice>
     )
   }
@@ -74,21 +74,21 @@ export default function HelperPage() {
   if (d.status === 'closed') {
     return (
       <Notice icon={CircleCheck} title="발령 종료. 배정 정보 삭제 완료" action={demoButton}>
-        대상자 주소와 연락처는 이 휴대폰에서 삭제됨
+        주소와 연락처 삭제 완료
       </Notice>
     )
   }
   if (d.status === 'idle') {
     return (
       <Notice image="/images/illustrations/empty.svg" title="배정 대기 중" action={demoButton}>
-        발령 시 이 화면에 배정 표시. 평시에는 확인할 내용 없음
+        발령 시 배정 표시
       </Notice>
     )
   }
   if (d.status === 'standby' || d.status === 'assigned') {
     return (
       <Notice title="배정 준비 중">
-        담당자가 배정표 확인 중. 전송되면 문자와 이 화면으로 도착
+        전송되면 문자와 이 화면으로 도착
       </Notice>
     )
   }
@@ -129,7 +129,7 @@ export default function HelperPage() {
       <div className="flex flex-1 flex-col gap-4 p-4">
         {summary}
         <Notice icon={CircleX} title="불가 응답 완료">
-          사유 {DECLINE_REASONS[ack.reason] || '기타'}. 담당자가 다른 도우미로 대체 배정
+          사유 {DECLINE_REASONS[ack.reason] || '기타'}. 대체 배정 진행
         </Notice>
       </div>
     )

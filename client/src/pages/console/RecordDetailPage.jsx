@@ -1,10 +1,10 @@
 // 이송 기록 상세. 마을별 결과, 단계별 카운트, 규칙 순서 대비 지표, 차량 협약 규모 근거.
-import { ArrowLeft, Printer, Route } from 'lucide-react'
+import { ArrowLeft, Printer } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
 import MetricCard from '../../components/miri/MetricCard.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
-import DataTable from '../../components/dashboard/DataTable.jsx'
+import TableCard from '../../components/dashboard/TableCard.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Button from '../../components/ui/Button.jsx'
 import EmptyState from '../../components/ui/EmptyState.jsx'
@@ -78,7 +78,7 @@ export default function RecordDetailPage() {
           <MetricCard label="대상자" value={t.total} unit="명" />
           <MetricCard label="인계 완료" value={t.done} unit="명" />
           <MetricCard label="소방 인계" value={t.fire} unit="명" tone={t.fire ? 'danger' : 'neutral'} />
-          <MetricCard label="미완료" value={t.open} unit="명" tone={t.open ? 'danger' : 'neutral'} sub="종료 시점 이송 중 또는 실패" />
+          <MetricCard label="미완료" value={t.open} unit="명" tone={t.open ? 'danger' : 'neutral'} sub="이송 중 또는 실패" />
         </div>
 
         <Card title="종료 시점 단계별 인원">
@@ -89,28 +89,25 @@ export default function RecordDetailPage() {
               </li>
             ))}
           </ul>
-          <p className="mt-3 type-meta text-text-meta tabular-nums">도우미 {rec.helpers}명 참여. 소방 전달 {rec.handovers?.length || 0}회</p>
+          <p className="mt-3 type-meta text-text-meta tabular-nums">도우미 {rec.helpers}명, 소방 전달 {rec.handovers?.length || 0}회</p>
         </Card>
 
         {m && b && (
-          <Card
-            eyebrow={<span className="inline-flex items-center gap-1 text-primary-text"><Route size={14} aria-hidden="true" />AI 배정</span>}
-            title="규칙 순서 대비 배정 지표"
-            desc="발령 당시 배정 계산 결과"
-          >
+          <Card title="규칙 순서 대비 배정 지표" meta="발령 당시 계산">
             <dl className="grid gap-2 sm:grid-cols-3 tabular-nums">
-              <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">미이송 예상</dt><dd className="mt-1 type-strong text-text-pri">규칙 순서 {b.unserved}명 → AI 배정 {m.unserved}명</dd></div>
+              <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">미이송 예상</dt><dd className="mt-1 type-strong text-text-pri">규칙 순서 {b.unserved}명 → 최적화 {m.unserved}명</dd></div>
               <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">등급 가중 미이송</dt><dd className="mt-1 type-strong text-text-pri">{b.weightedUnserved}점 → {m.weightedUnserved}점</dd></div>
               <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">마지막 이송 완료</dt><dd className="mt-1 type-strong text-text-pri">{fmtHM(b.lastFinishAt)} → {fmtHM(m.lastFinishAt)}</dd></div>
             </dl>
           </Card>
         )}
 
-        <Card title="마을별 결과" desc="미완료와 소방 인계가 많은 마을 순">
-          <DataTable columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={20} caption="마을별 이송 결과" />
-        </Card>
+        <TableCard
+          title="마을별 결과" count={`${rows.length}곳`}
+          columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={20} caption="마을별 이송 결과"
+        />
 
-        <Card title="차량 협약 규모 산정 근거" desc="이번 발령에서 기한 안에 옮기지 못한 마을">
+        <Card title="차량 협약 규모 산정 근거" meta={short.length ? `미이송 마을 ${short.length}곳` : null}>
           {short.length ? (
             <ul className="divide-y divide-line-sub">
               {short.map((r) => (
@@ -120,7 +117,7 @@ export default function RecordDetailPage() {
                 </li>
               ))}
             </ul>
-          ) : <p className="type-body-sm text-text-meta">전 마을 기한 내 인계 완료. 현 협약 규모로 충분</p>}
+          ) : <p className="type-body-sm text-text-meta">전 마을 기한 내 인계 완료</p>}
           <Link to="/console/shortage" className="mt-3 inline-flex min-h-11 md:min-h-0 items-center type-body-sm text-primary-text underline underline-offset-2">부족분 계산</Link>
         </Card>
       </div>

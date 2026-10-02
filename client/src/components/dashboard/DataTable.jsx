@@ -13,7 +13,7 @@ const HIDE = { md: 'hidden md:table-cell', lg: 'hidden lg:table-cell' }
 
 export default function DataTable({
   columns = [], rows = [], rowKey = (r) => r.id, onRowClick,
-  emptyTitle, emptyDesc, emptyImage, pageSize = 20, caption
+  emptyTitle, emptyDesc, emptyImage, emptyCompact = false, pageSize = 20, caption
 }) {
   const { t } = useLang()
   const [sort, setSort] = useState(null)   // { key, dir: 'asc' | 'desc' }
@@ -42,7 +42,7 @@ export default function DataTable({
   }
 
   if (!rows.length) {
-    return <EmptyState image={emptyImage} title={emptyTitle || t('common.empty.title')} desc={emptyDesc || t('common.empty.desc')} />
+    return <EmptyState compact={emptyCompact} image={emptyImage} title={emptyTitle || t('common.empty.title')} desc={emptyDesc || t('common.empty.desc')} />
   }
 
   const cell = (col, row) => (col.render ? col.render(row) : row[col.key])

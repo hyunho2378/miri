@@ -4,11 +4,11 @@ import { useNavigate, Link } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import BarChart from '../../components/dashboard/BarChart.jsx'
-import DataTable from '../../components/dashboard/DataTable.jsx'
+import TableCard from '../../components/dashboard/TableCard.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Button from '../../components/ui/Button.jsx'
 import EmptyState from '../../components/ui/EmptyState.jsx'
-import { MIN, fmtDateTime, fmtHM, minutesText } from '../../lib/time.js'
+import { MIN, fmtDateTime, minutesText } from '../../lib/time.js'
 import useMiriStore from '../../store/useMiriStore.js'
 
 const SERIES = [
@@ -65,22 +65,22 @@ export default function RecordsPage() {
         <Card as="div" padding="none">
           <EmptyState
             title="이송 기록 없음"
-            desc="발령 종료 시 결과가 자동 저장됨. 훈련 발령으로 기록 생성 가능"
+            desc="발령 종료 시 자동 저장"
             action={<Button as={Link} to="/console/dispatch">발령 운영</Button>}
           />
         </Card>
       ) : (
         <div className="space-y-4">
-          <DataTable
+          <TableCard
+            title="발령 기록" count={`${records.length}건`}
             columns={columns} rows={rows} rowKey={(r) => r.id} pageSize={20} caption="이송 기록"
             onRowClick={(r) => navigate(`/console/records/${r.id}`)}
           />
-          <Card title="마을별 미이송 추이" desc="최근 발령 3건. 미완료와 소방 인계 합계">
-            {chart === null && <p className="type-body-sm text-text-meta">기록 2건 이상부터 추이 표시. 현재 {records.length}건</p>}
+          <Card title="마을별 미이송 추이" meta="최근 3건, 미완료와 소방 인계 합계">
+            {chart === null && <p className="type-body-sm text-text-meta">기록 2건 이상부터 표시</p>}
             {Array.isArray(chart) && !chart.length && <p className="type-body-sm text-text-meta">최근 발령 모두 전원 인계 완료</p>}
             {Array.isArray(chart) && chart.length > 0 && <BarChart groups={chart} height={260} ariaLabel="마을별 미이송 추이 막대 차트" />}
           </Card>
-          <p className="type-meta text-text-meta tabular-nums">마지막 기록 종료 {fmtHM(records[0].closedAt)}</p>
         </div>
       )}
     </PageShell>

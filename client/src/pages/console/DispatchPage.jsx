@@ -12,7 +12,7 @@ import AssignmentBundle from '../../components/miri/AssignmentBundle.jsx'
 import BaselineCompare from '../../components/miri/BaselineCompare.jsx'
 import StepIndicator from '../../components/miri/StepIndicator.jsx'
 import TransportStatusTable from '../../components/miri/TransportStatusTable.jsx'
-import DataTable from '../../components/dashboard/DataTable.jsx'
+import TableCard from '../../components/dashboard/TableCard.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Disclosure from '../../components/ui/Disclosure.jsx'
@@ -24,7 +24,7 @@ import useNow from '../../hooks/useNow.js'
 import useToast from '../../hooks/useToast.js'
 import { UNSERVED_REASON } from '../../lib/assign.js'
 import { DECLINE_REASONS, FAIL_REASONS, STEP_LABEL, ackOf, failReasonOf, indexStops, stepOf } from '../../lib/dispatchSim.js'
-import { MIN, fmtHM, remainText } from '../../lib/time.js'
+import { MIN, fmtHM, fmtHMFrom, remainText } from '../../lib/time.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
@@ -70,7 +70,7 @@ function StartPanel() {
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-      <Card title="발령 개시" desc="산림청 도달 예측 시각을 받으면 실행대기 발령. 마을별 8시간 시계 시작">
+      <Card title="발령 개시">
         {status === 'closed' && closedRecordId && (
           <div role="status" className="mb-4 rounded-md bg-subtle p-3">
             <p className="type-body-sm text-text-pri">발령 종료. 이송 기록 저장 완료</p>
@@ -92,18 +92,18 @@ function StartPanel() {
               {kind === 'drill' ? '훈련 발령 개시' : '실행대기 발령 개시'}
             </Button>
           ) : (
-            <p className="rounded-md bg-subtle p-3 type-body-sm text-text-sec">발령 개시와 종료는 시 관리자 권한. 동 담당자는 발령 후 배정 확인과 조정 담당</p>
+            <p className="rounded-md bg-subtle p-3 type-body-sm text-text-sec">발령 개시와 종료는 시 관리자 권한</p>
           )}
         </div>
       </Card>
-      <Card title="발령 기준" desc="부족분 계산 화면의 현황판 기준 시나리오 사용">
+      <Card title="발령 기준" meta="현황판 기준 시나리오">
         <KeyValue items={[
           { label: '시나리오', value: scenario?.name, strong: true },
           { label: '이송 대상', value: <>{targets.length}명{pending > 0 && <span className="text-primary-text"> (확인 대기 {pending}건 포함)</span>}</> },
           { label: '가용 차량', value: `${vehicles.filter((v) => v.available !== false).length}대 / 전체 ${vehicles.length}대` },
           { label: '도우미', value: `${helpers.filter((h) => h.active !== false).length}명` }
         ]} />
-        <Link to="/console/shortage" className="mt-4 inline-flex min-h-11 md:min-h-0 items-center type-body-sm text-primary-text underline underline-offset-2">시나리오 바꾸기</Link>
+        <Link to="/console/shortage" className="mt-4 inline-flex min-h-11 md:min-h-0 items-center type-body-sm text-primary-text underline underline-offset-2">시나리오 변경</Link>
       </Card>
     </div>
   )
@@ -127,14 +127,11 @@ function StandbyPanel({ now, meta }) {
     <div className="space-y-4">
       <Card
         title="AI 배정 실행"
-                actions={<Button size="lg" loading={busy} leftIcon={<Route size={16} aria-hidden="true" />} onClick={onAssign}>AI 배정 실행</Button>}
-      >
-        <p className="type-meta text-text-meta">
-          발령 기한 = 산불 도달 예측 − {settings.windowHours}시간. 이송 완료 기한 = 도달 예측{settings.completeBeforeHours ? ` − ${settings.completeBeforeHours}시간` : ''}. 준비 시간 {settings.prepMinutes}분
-        </p>
-      </Card>
+        meta={`준비 ${settings.prepMinutes}분, 완료 기한 ${settings.completeBeforeHours ? `도달 ${settings.completeBeforeHours}시간 전` : '도달 시각'}`}
+        actions={<Button size="lg" loading={busy} leftIcon={<Route size={16} aria-hidden="true" />} onClick={onAssign}>AI 배정 실행</Button>}
+      />
       <section>
-        <SectionTitle title="마을별 8시간 시계" desc="발령 기한 이른 순. 도달 예측 30분 단위 조정" />
+        <SectionTitle title="마을별 8시간 시계" desc="발령 기한 이른 순" />
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {list.map(([code, arrival]) => (
             <li key={code} className="min-w-0 flex flex-col gap-2">
@@ -173,14 +170,12 @@ function AssignedPanel({ meta }) {
 
   return (
     <div className="space-y-4">
-      <p role="status" className="type-body-sm text-text-sec">
-        AI 배정 완료. 계산 시간 <span className="tabular-nums">{result.elapsedMs}ms</span>{result.manualEdits ? `. 수동 조정 ${result.manualEdits}건 반영` : ''}
-      </p>
+      {result.manualEdits ? <p role="status" className="type-body-sm text-text-sec">수동 조정 {result.manualEdits}건 반영</p> : null}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <MetricCard label="배정 차량" value={result.assignments.length} unit="대" />
         <MetricCard label="회차" value={trips} unit="회" />
         <MetricCard label="미이송 예상" value={result.unassigned.length} unit="명" tone={result.unassigned.length ? 'danger' : 'neutral'} sub={result.unassigned.length ? '소방 인계 대상' : '전원 기한 내 이송'} />
-        <MetricCard label="마지막 이송 완료" value={fmtHM(result.metrics.lastFinishAt)} sub={`도우미 부담 편차 ${result.metrics.helperLoadStd}`} />
+        <MetricCard label="마지막 이송 완료" value={fmtHMFrom(result.metrics.lastFinishAt, Math.min(...result.assignments.flatMap((a) => (a.trips || []).map((t) => t.departAt)).filter(Number.isFinite)))} sub={`도우미 부담 편차 ${result.metrics.helperLoadStd}`} />
       </div>
       <BaselineCompare result={result} villageLabel={meta.label} />
       {result.warnings?.length > 0 && (
@@ -193,7 +188,7 @@ function AssignedPanel({ meta }) {
       <SectionTitle
         className="mt-2"
         title="배정표"
-        desc={<span className="inline-flex items-center gap-1"><Route size={14} aria-hidden="true" className="text-primary-text" />AI 배정. 제약 조건 최적화 결과. 차량별 회차와 대상자 순서</span>}
+        desc={<span className="inline-flex items-center gap-1"><Route size={14} aria-hidden="true" className="text-primary-text" />AI 배정. 차량별 회차와 대상자 순서</span>}
         actions={(
           <>
             <Button variant="secondary" onClick={() => { runAssign(); toast('배정 다시 계산 완료') }}>다시 계산</Button>
@@ -210,11 +205,11 @@ function AssignedPanel({ meta }) {
           />
         ))}
       </div>
-      <Card title={`미배정 ${result.unassigned.length}명`} desc="기한 안에 옮길 차량이 없는 대상자. 이송 진행 단계에서 소방 인계">
-        {result.unassigned.length
-          ? <DataTable columns={unassignedCols} rows={unassignedRows} rowKey={(r) => r.code} pageSize={10} caption="미배정 대상자" />
-          : <p className="type-body-sm text-text-meta">미배정 없음</p>}
-      </Card>
+      <TableCard
+        title="미배정" count={`${result.unassigned.length}명`} desc="이송 진행 단계에서 소방 인계"
+        columns={unassignedCols} rows={unassignedRows} rowKey={(r) => r.code} pageSize={10} caption="미배정 대상자"
+        emptyCompact emptyTitle="미배정 없음" emptyDesc="전원 기한 내 배정"
+      />
     </div>
   )
 }
@@ -335,7 +330,7 @@ function SentPanel({ now, meta }) {
       {d.manualHelper && helpers.includes(d.manualHelper) && (
         <Card as="div" tone="primary" padding="sm" bodyClassName="flex flex-wrap items-center gap-3">
           <UserRoundCheck size={20} aria-hidden="true" className="text-primary-text" />
-          <p className="min-w-0 flex-1 type-body-sm text-primary-text">도우미 {d.manualHelper} 배정은 자동 진행 없이 도우미 화면 보고로만 진행. 시연 시 휴대폰 화면 사용</p>
+          <p className="min-w-0 flex-1 type-body-sm text-primary-text">도우미 {d.manualHelper} 배정은 도우미 화면 보고로만 진행</p>
           <a href="/h/demo" target="_blank" rel="noreferrer" className="inline-flex min-h-11 md:min-h-0 items-center gap-1 type-strong text-primary-text underline underline-offset-2">
             도우미 화면에서 직접 보고<ExternalLink size={14} aria-hidden="true" />
           </a>
@@ -343,10 +338,11 @@ function SentPanel({ now, meta }) {
       )}
 
       <div className="grid gap-4 xl:grid-cols-[1fr_1.4fr]">
-        <Card title="도우미 응답" desc={`전송 후 ${settings.noAckMinutes}분 응답 없으면 무응답 처리`}>
-          <DataTable columns={helperCols} rows={helperRows} rowKey={(r) => r.code} pageSize={8} caption="도우미 응답" />
-        </Card>
-        <Card title="마을별 이송 완료 기한" desc="마지막 이송 완료 예상이 기한을 넘으면 기한 초과 예상">
+        <TableCard
+          title="도우미 응답" count={`${helperRows.length}명`} desc={`무응답 기준 ${settings.noAckMinutes}분`}
+          columns={helperCols} rows={helperRows} rowKey={(r) => r.code} pageSize={8} caption="도우미 응답"
+        />
+        <Card title="마을별 이송 완료 기한" meta={`${villageClocks.length}곳`}>
           <ul className="grid gap-3 sm:grid-cols-2">
             {villageClocks.map((v) => (
               <li key={v.code} className="rounded-md bg-subtle p-3 min-w-0">
@@ -357,19 +353,15 @@ function SentPanel({ now, meta }) {
         </Card>
       </div>
 
-      <section className="space-y-3">
-        <SectionTitle
-          className="mb-0"
-          title="대상자별 이송 현황"
-          actions={(
-            <SegmentControl
-              label="현황 필터" value={filter} onChange={setFilter}
-              items={[{ value: 'all', label: `전체 ${rows.length}` }, { value: 'moving', label: '이동 중' }, { value: 'issue', label: '실패와 미이송' }]}
-            />
-          )}
-        />
-        <TransportStatusTable rows={shown} />
-      </section>
+      <TransportStatusTable
+        rows={shown} count={`${shown.length} / ${rows.length}명`}
+        filters={(
+          <SegmentControl
+            label="현황 필터" value={filter} onChange={setFilter}
+            items={[{ value: 'all', label: `전체 ${rows.length}` }, { value: 'moving', label: '이동 중' }, { value: 'issue', label: '실패와 미이송' }]}
+          />
+        )}
+      />
 
       {d.smsLog.length > 0 && (
         <Card as="div">
@@ -395,7 +387,7 @@ function SentPanel({ now, meta }) {
           </>
         )}
       >
-        <p className="type-body-sm text-text-sec">종료하면 도우미 화면의 대상자 주소와 연락처가 삭제되고 결과가 이송 기록으로 저장됨</p>
+        <p className="type-body-sm text-text-sec">종료 시 도우미 화면 배정 정보 삭제, 결과는 이송 기록에 저장</p>
         <dl className="mt-4 grid grid-cols-2 gap-2 tabular-nums">
           {['handover', 'handedToFire', 'fail', 'unassigned'].map((k) => (
             <div key={k} className="rounded-md bg-subtle p-3">
@@ -421,10 +413,6 @@ export default function DispatchPage() {
   return (
     <PageShell title="발령 운영">
       <Card as="div" className="mb-5">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          {live && <StatusPill status={status} label={`${kind === 'drill' ? '훈련 ' : ''}${STEP_NAME[status]}`} />}
-          <span className="type-meta text-text-meta">8시간 시계와 배정표. 시 관리자 발령 개시 후 동 담당자 배정 확인</span>
-        </div>
         <StepIndicator status={status} />
       </Card>
       {(status === 'idle' || status === 'closed') && <StartPanel />}

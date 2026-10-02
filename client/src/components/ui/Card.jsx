@@ -15,10 +15,11 @@ export default function Card({
 }) {
   const H = `h${headingLevel}`
   const hasHead = title || actions || eyebrow || media
+  const hasBody = children != null && children !== false
   return (
     <As className={clsx('rounded-lg min-w-0', padding === 'none' && 'overflow-hidden', TONE[tone], className)} {...rest}>
       {hasHead && (
-        <header className={clsx('flex flex-wrap items-center justify-between gap-x-3 gap-y-2', HEAD[padding], padding === 'none' && 'pb-3 lg:pb-4')}>
+        <header className={clsx('flex flex-wrap items-center justify-between gap-x-3 gap-y-2', HEAD[padding], (padding === 'none' || !hasBody) && 'pb-3 lg:pb-4', !hasBody && padding !== 'none' && 'pb-4 lg:pb-5')}>
           <div className="min-w-0">
             {media && <div className="mb-3">{media}</div>}
             {eyebrow && <p className="mb-1 type-caption text-text-meta">{eyebrow}</p>}
@@ -32,7 +33,7 @@ export default function Card({
         </header>
       )}
       {toolbar && <div className={clsx('flex flex-wrap items-center gap-2', padding === 'none' ? 'px-4 pb-3 lg:px-5' : clsx(HEAD[padding].replace(/pt-\S+/g, ''), 'pt-3'))}>{toolbar}</div>}
-      <div className={clsx(PAD[padding], (hasHead || toolbar) && padding !== 'none' && 'pt-3 lg:pt-4', bodyClassName)}>{children}</div>
+      {hasBody && <div className={clsx(PAD[padding], (hasHead || toolbar) && padding !== 'none' && 'pt-3 lg:pt-4', bodyClassName)}>{children}</div>}
     </As>
   )
 }

@@ -2,12 +2,11 @@
 import { Minus, Plus } from 'lucide-react'
 import Card from '../../components/ui/Card.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
-import DataTable from '../../components/dashboard/DataTable.jsx'
+import TableCard from '../../components/dashboard/TableCard.jsx'
 import Badge from '../../components/ui/Badge.jsx'
 import IconButton from '../../components/ui/IconButton.jsx'
 import KeyValue from '../../components/ui/KeyValue.jsx'
 import NumberStepper from '../../components/ui/NumberStepper.jsx'
-import SectionTitle from '../../components/ui/SectionTitle.jsx'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import { ORG_NAME } from '../../lib/api.js'
 import { GRADES, VEHICLE_TYPES } from '../../lib/shortage.js'
@@ -43,6 +42,11 @@ export default function SettingsPage() {
     }
   ]
 
+  const capacityCols = [
+    { key: 'label', label: '차종', render: (t) => <span className="type-strong text-text-pri">{t.label}</span> },
+    ...GRADES.map((g) => ({ key: g.key, label: g.label, align: 'right', render: (t) => <span className="text-text-sec">{t.capacity[g.key] ? `${t.capacity[g.key]}명` : '불가'}</span> }))
+  ]
+
   return (
     <PageShell title="설정">
       <div className="grid gap-4 lg:grid-cols-2">
@@ -74,7 +78,7 @@ export default function SettingsPage() {
           </div>
         </Card>
 
-        <Card title="이상 탐지 임계값" desc="규칙 기반 탐지 기준">
+        <Card title="이상 탐지 임계값">
           <div className="divide-y divide-line-sub">
             <NumberStepper className="pb-3" label="판독 장기 미확인" unit="일" min={1} max={60} value={settings.pendingDays} onChange={(v) => updateSettings({ pendingDays: v })} />
             <NumberStepper className="py-3" label="협약 만료 임박" unit="일" step={5} min={5} max={120} value={settings.contractWarnDays} onChange={(v) => updateSettings({ contractWarnDays: v })} />
@@ -101,34 +105,15 @@ export default function SettingsPage() {
         </Card>
       </div>
 
-      <Card className="mt-4" title="차종별 회차당 탑승 정원" padding="none">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-left tabular-nums">
-            <caption className="sr-only">차종과 등급별 정원</caption>
-            <thead>
-              <tr className="bg-subtle">
-                <th scope="col" className="px-4 py-3 type-caption text-text-meta">차종</th>
-                {GRADES.map((g) => <th key={g.key} scope="col" className="px-4 py-3 type-caption text-text-meta text-right">{g.label}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {VEHICLE_TYPES.map((t) => (
-                <tr key={t.key} className="border-t border-line-sub">
-                  <th scope="row" className="px-4 py-3 type-strong text-text-pri">{t.label}</th>
-                  {GRADES.map((g) => (
-                    <td key={g.key} className="px-4 py-3 type-body-sm text-right text-text-sec">{t.capacity[g.key] ? `${t.capacity[g.key]}명` : '불가'}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <TableCard
+        className="mt-4" title="차종별 회차당 탑승 정원" count={`${VEHICLE_TYPES.length}종`}
+        columns={capacityCols} rows={VEHICLE_TYPES} rowKey={(t) => t.key} pageSize={20} caption="차종과 등급별 정원"
+      />
 
-      <section className="mt-8">
-        <SectionTitle title="마을과 대피소 왕복 시간" desc="승차와 하차 포함 왕복. 5분 단위 조정" />
-        <DataTable columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 대피소와 왕복 시간" pageSize={30} />
-      </section>
+      <TableCard
+        className="mt-4" title="마을과 대피소 왕복 시간" count={`${villages.length}곳`} desc="승차와 하차 포함. 5분 단위 조정"
+        columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 대피소와 왕복 시간" pageSize={30}
+      />
     </PageShell>
   )
 }
