@@ -47,9 +47,13 @@ export default function TimeAxis({ t, onT, timeline, t0, progress, total, playin
   }, [playing]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 라벨은 발령, 첫 도달, 마지막 도달 셋. 준비 완료는 눈금과 안내 문장으로만 보인다(라벨이 겹치지 않게)
+  // 첫 도달과 마지막 도달이 가까우면(축의 30% 이내) 오른쪽 끝 라벨 하나로 합친다
   const single = Math.abs(firstArrivalH - endH) < 0.01
+  const close = !single && (endH - firstArrivalH) / endH < 0.3
   const ticks = single
     ? [{ h: 0, label: '발령' }, { h: endH, label: '도달' }]
+    : close
+      ? [{ h: 0, label: '발령' }, { h: endH, label: `첫 도달 ${fmtElapsed(firstArrivalH)}, 마지막 도달`, raw: true }]
     : [{ h: 0, label: '발령' }, { h: firstArrivalH, label: '첫 도달' }, { h: endH, label: '마지막 도달' }]
   const hours = Array.from({ length: Math.floor(endH) + 1 }, (_, i) => i)
 

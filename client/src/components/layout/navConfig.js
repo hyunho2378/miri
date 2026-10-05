@@ -12,7 +12,8 @@ export const MAIN_NAV = [
 
 export const SUB_NAV = [
   { to: '/console/records', label: '이송 기록' },
-  { to: '/console/settings', label: '설정', role: 'city' }
+  { to: '/console/settings', label: '설정', role: 'city' },
+  { href: '/diagrams/index.html', label: '서비스 도식' }
 ]
 
 // 같은 일을 하는 화면을 한 줄 탭으로 묶는다

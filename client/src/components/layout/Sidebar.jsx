@@ -52,12 +52,16 @@ export default function Sidebar({ rail = false, orgName = '', onNavigate }) {
       </nav>
       {!rail && (
         <div className="shrink-0 mb-2 flex flex-col">
-          {subs.map((m) => (
+          {subs.map((m) => (m.href ? (
+            <a key={m.href} href={m.href} target="_blank" rel="noopener" className="flex min-h-9 items-center rounded-md px-3 type-body-sm text-text-meta transition-colors duration-fast hover:text-text-sec">
+              {m.label}<span className="sr-only">(새 창)</span>
+            </a>
+          ) : (
             <NavLink key={m.to} to={m.to} onClick={onNavigate}
               className={({ isActive }) => clsx('flex min-h-9 items-center rounded-md px-3 type-body-sm transition-colors duration-fast', isActive ? 'text-text-pri type-strong' : 'text-text-meta hover:text-text-sec')}>
               {m.label}
             </NavLink>
-          ))}
+          )))}
         </div>
       )}
       <div className={clsx('shrink-0 border-t border-line-sub pt-3', rail && 'flex justify-center')}>
