@@ -11,7 +11,7 @@
 | kyungro.csv | 마을회관과 경로당 138곳(좌표 포함) | 공공데이터포털 표준데이터 15114136(동해시) | 2025. 11. 4. |
 | facilities.json | 노인요양시설 12곳, 주야간보호 9곳, 동 행정복지센터 10곳 | 국민건강보험공단 장기요양기관 검색, 동해시청 누리집 | 2026. 10. 6. 조회 |
 | villages0.json | 법정동 기준점(OSM place 노드)과 행정동 대응 | OpenStreetMap(ODbL) | 2026. 10. 조회 |
-| archhub_bdong.json | 법정동별 단독주택 동수, 공동주택 연면적 | 건축HUB 건축물대장 집계(archhub MCP) | 2026. 10. 조회, 일부 법정동 미수신 |
+| archhub_bdong.json | 법정동 36곳 단독주택 동수, 공동주택 연면적 | 건축HUB 건축물대장 집계(archhub MCP) | 2026. 10. 6. 조회 |
 | osrm_village_shelter.json | 마을 집결지에서 임시주거시설까지 도로 주행 시간과 거리 | OSRM 공개 서버(OpenStreetMap) | 빌드 때 계산, 좌표가 같으면 재사용 |
 
 ## 추정 규칙

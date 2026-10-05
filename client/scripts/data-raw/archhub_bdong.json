@@ -15,6 +15,38 @@
 "apartmentArea": 264445,
 "total": 471
 },
+"10300": {
+"name": "송정동",
+"detached": 696,
+"detachedArea": 57268,
+"apartments": 10,
+"apartmentArea": 23014,
+"total": 1340
+},
+"10400": {
+"name": "용정동",
+"detached": 316,
+"detachedArea": 29745,
+"apartments": 22,
+"apartmentArea": 33288,
+"total": 583
+},
+"10500": {
+"name": "지흥동",
+"detached": 202,
+"detachedArea": 25493,
+"apartments": 1,
+"apartmentArea": 658,
+"total": 303
+},
+"10600": {
+"name": "효가동",
+"detached": 536,
+"detachedArea": 63725,
+"apartments": 75,
+"apartmentArea": 256347,
+"total": 924
+},
 "10700": {
 "name": "동회동",
 "detached": 231,
@@ -47,6 +79,14 @@
 "apartmentArea": 165987,
 "total": 1018
 },
+"11100": {
+"name": "발한동",
+"detached": 2647,
+"detachedArea": 158175,
+"apartments": 125,
+"apartmentArea": 238852,
+"total": 3694
+},
 "11200": {
 "name": "북평동",
 "detached": 127,
@@ -78,6 +118,14 @@
 "apartments": 2,
 "apartmentArea": 1231,
 "total": 533
+},
+"11600": {
+"name": "단봉동",
+"detached": 222,
+"detachedArea": 16055,
+"apartments": 20,
+"apartmentArea": 31174,
+"total": 385
 },
 "11700": {
 "name": "지가동",
@@ -143,6 +191,14 @@
 "apartmentArea": 0,
 "total": 423
 },
+"12500": {
+"name": "이기동",
+"detached": 29,
+"detachedArea": 1194,
+"apartments": 0,
+"apartmentArea": 0,
+"total": 35
+},
 "12600": {
 "name": "이로동",
 "detached": 490,
@@ -150,6 +206,14 @@
 "apartments": 22,
 "apartmentArea": 32584,
 "total": 774
+},
+"12700": {
+"name": "어달동",
+"detached": 228,
+"detachedArea": 17611,
+"apartments": 0,
+"apartmentArea": 0,
+"total": 273
 },
 "12800": {
 "name": "대진동",
@@ -159,6 +223,14 @@
 "apartmentArea": 2848,
 "total": 240
 },
+"12900": {
+"name": "망상동",
+"detached": 223,
+"detachedArea": 27448,
+"apartments": 0,
+"apartmentArea": 0,
+"total": 438
+},
 "13000": {
 "name": "심곡동",
 "detached": 101,
@@ -166,6 +238,14 @@
 "apartments": 0,
 "apartmentArea": 0,
 "total": 137
+},
+"13100": {
+"name": "초구동",
+"detached": 85,
+"detachedArea": 6593,
+"apartments": 0,
+"apartmentArea": 0,
+"total": 162
 },
 "13200": {
 "name": "괴란동",
