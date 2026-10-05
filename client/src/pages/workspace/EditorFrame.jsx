@@ -3,6 +3,7 @@
 import { ArrowLeft, Cloud } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import useWorkspaceStore from '../../store/useWorkspaceStore.js'
 
 export function download(filename, content, type) {
   const blob = content instanceof Blob ? content : new Blob([content], { type })
@@ -18,6 +19,9 @@ export default function EditorFrame({ fill = false, kind, Icon, title, onTitle, 
   const [draft, setDraft] = useState(title)
   useEffect(() => { setDraft(title) }, [title])
   const commit = () => { const t = draft.trim(); if (t && t !== title) onTitle(t); else setDraft(title) }
+  const mode = useWorkspaceStore((s) => s.mode)
+  const sync = useWorkspaceStore((s) => s.sync)
+  const savedAt = useWorkspaceStore((s) => s.savedAt)
   const time = updatedAt ? new Date(updatedAt).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' }) : ''
   return (
     <div className={fill ? 'flex h-dvh flex-col overflow-hidden bg-canvas' : 'flex min-h-dvh flex-col bg-canvas'}>
@@ -34,7 +38,9 @@ export default function EditorFrame({ fill = false, kind, Icon, title, onTitle, 
             className="min-w-0 flex-1 rounded-xs bg-transparent px-2 py-1 type-h3 text-text-pri outline-none hover:ring-1 hover:ring-line-def focus:ring-2 focus:ring-primary-line"
           />
           <span className="hidden items-center gap-1 type-meta text-text-meta md:inline-flex">
-            <Cloud size={14} aria-hidden="true" />{time ? `${time} 저장됨` : '저장됨'}
+            <Cloud size={14} aria-hidden="true" />{mode === 'server'
+              ? (sync === 'saving' ? '저장 중' : sync === 'error' ? '저장 실패, 다시 시도 중' : `서버에 저장됨${savedAt ? ` ${new Date(savedAt).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}` : ''}`)
+              : (time ? `${time} 저장됨(이 창)` : '저장됨(이 창)')}
           </span>
           <div className="flex shrink-0 items-center gap-2">{actions}</div>
         </div>

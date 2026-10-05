@@ -9,7 +9,7 @@ import { byGradeLine } from './ShortageValue.jsx'
 
 const STEPS = ['bg-mute text-text-meta', 'bg-chart-heatDanger-1 text-text-pri', 'bg-chart-heatDanger-2 text-text-pri', 'bg-chart-heatDanger-3 text-text-pri', 'bg-chart-heatDanger-4 text-text-inverse']
 
-export default function ShortageTable({ title = '마을별 부족분', headingLevel = 2, villages, dongs, byVillage, initialView = 'table', pageSize = 20, className }) {
+export default function ShortageTable({ title = '마을별 부족분', basis, headingLevel = 2, villages, dongs, byVillage, initialView = 'table', pageSize = 20, className }) {
   const [view, setView] = useState(initialView)
   const dongName = (c) => dongs.find((d) => d.code === c)?.name || c
   const rows = useMemo(() => villages.map((v) => ({ ...v, ...byVillage[v.code] }))
@@ -20,7 +20,7 @@ export default function ShortageTable({ title = '마을별 부족분', headingLe
   const columns = [
     { key: 'label', label: '마을', sortable: true, render: (r) => <span className="type-strong">{r.label}</span> },
     { key: 'dong', label: '동', hideBelow: 'lg', render: (r) => dongName(r.dongCode) },
-    { key: 'roundTripMin', label: '왕복', align: 'right', sortable: true, hideBelow: 'md', render: (r) => `${r.roundTripMin}분` },
+    { key: 'roundTripMin', label: '왕복 시간', align: 'right', sortable: true, hideBelow: 'md', render: (r) => `${r.roundTripMin}분` },
     { key: 'targetTotal', label: '대상자', align: 'right', sortable: true, render: (r) => `${r.targetTotal}명` },
     { key: 'targets', label: '등급별 대상자', hideBelow: 'lg', render: (r) => <span className="type-meta text-text-meta">{byGradeLine(r.targets)}</span> },
     {
@@ -36,7 +36,7 @@ export default function ShortageTable({ title = '마을별 부족분', headingLe
     return (
       <TableCard
         title={title} headingLevel={headingLevel} className={className}
-        count={shortVillages ? `${shortVillages}곳 부족` : '부족 없음'} actions={toggle}
+        count={shortVillages ? `부족 ${shortVillages}곳` : '부족 없음'} desc={basis} actions={toggle}
         columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={pageSize} caption={title}
       />
     )
@@ -45,7 +45,7 @@ export default function ShortageTable({ title = '마을별 부족분', headingLe
   return (
     <TableCard
       title={title} headingLevel={headingLevel} className={className}
-      count={shortVillages ? `${shortVillages}곳 부족` : '부족 없음'} actions={toggle}
+      count={shortVillages ? `부족 ${shortVillages}곳` : '부족 없음'} desc={basis} actions={toggle}
     >
       <div className="px-4 pb-4 lg:px-5 lg:pb-5">
         <div className="overflow-x-auto">

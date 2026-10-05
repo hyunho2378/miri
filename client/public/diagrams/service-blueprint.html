@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>미리 서비스 블루프린트</title>
+<style>
+/* ================= 미리 도식 공통 스타일 (client/src/tokens.js 값) ================= */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+:root{
+  --pri:#2563EB; --pri-hover:#1D4ED8; --pri-soft:#D6E4FD; --pri-line:#BFDBFE; --pri-text:#1E40AF; --pri-wash:#F3F7FE;
+  --ink:#101010; --sec:#3D3F45; --meta:#6B6F76; --ter:#9A9EA5;
+  --canvas:#F5F7FA; --mute:#F0F2F5; --subtle:#F8F9FB;
+  --line:#DDE1E6; --line-sub:#ECEEF1; --line-strong:#C5CAD1;
+  --warn:#EA580C; --warn-soft:#FFF1E6; --warn-text:#B54708; --warn-line:#F7C9A6;
+  --crit:#E0001B; --crit-soft:#FFE8EA; --crit-text:#D10019;
+  --font:'Pretendard','Pretendard Variable','Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',-apple-system,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E9ECF1;font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased;padding:28px 18px;word-break:keep-all;overflow-wrap:anywhere;}
+.fig-stage{max-width:1352px;margin:0 auto;background:#fff;border-radius:16px;
+  box-shadow:0 14px 44px rgba(16,16,16,.10);padding:36px 36px 26px;}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;max-width:1280px;margin:0 auto 22px;}
+.kick{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--pri);}
+h1{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-top:6px;}
+.lede{font-size:14px;line-height:1.55;color:var(--sec);margin-top:8px;max-width:640px;}
+.assume{display:inline-flex;align-items:center;gap:6px;margin-top:12px;height:28px;padding:0 12px;border-radius:999px;
+  background:var(--warn-soft);border:1px solid var(--warn-line);color:var(--warn-text);font-size:13px;font-weight:700;}
+.assume svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.legend{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;font-size:13px;color:var(--sec);
+  background:var(--subtle);border:1px solid var(--line-sub);border-radius:12px;padding:12px 14px;min-width:330px;}
+.legend .lt{grid-column:1/-1;font-size:12px;font-weight:700;color:var(--meta);letter-spacing:.04em}
+.tag{display:inline-flex;align-items:center;justify-content:center;height:20px;padding:0 7px;border-radius:6px;
+  font-size:12px;font-weight:700;line-height:1;white-space:nowrap;flex:0 0 auto;}
+.tag.ai{background:var(--pri);color:#fff;}
+.tag.rule{background:#fff;color:var(--sec);border:1px solid var(--line-strong);}
+.tag.human{background:var(--warn-soft);color:var(--warn-text);border:1px solid var(--warn-line);}
+.tag.hyp{background:#fff;color:var(--meta);border:1px dashed var(--line-strong);font-weight:600}
+.tag.off{background:var(--crit-soft);color:var(--crit-text);}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;letter-spacing:-.02em}
+.foot{display:flex;justify-content:space-between;gap:20px;max-width:1280px;margin:18px auto 0;padding-top:12px;
+  border-top:1px solid var(--line-sub);font-size:12px;line-height:1.5;color:var(--meta);}
+.ico{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+
+/* ---- 블루프린트 ---- */
+.ph{background:transparent;border:none;}
+.ph .pb{width:100%;height:100%;background:var(--pri);color:#fff;padding:10px 12px 10px 22px;
+  clip-path:polygon(0 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,0 100%,12px 50%);}
+.ph.first .pb{clip-path:polygon(0 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,0 100%);padding-left:14px;border-radius:10px 0 0 10px}
+.ph.alert .pb{background:var(--pri-hover)}
+.ph .n{font-size:12px;font-weight:700;opacity:.78;letter-spacing:.04em}
+.ph .t{font-size:16px;font-weight:800;letter-spacing:-.02em;line-height:1.2;margin-top:2px}
+.ph .s{font-size:12px;opacity:.86;margin-top:1px}
+.rl{background:var(--subtle);border:1px solid var(--line-sub);border-radius:12px;padding:12px 12px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.rl .k{font-size:12px;font-weight:700;color:var(--meta);letter-spacing:.02em}
+.rl .t{font-size:15px;font-weight:800;line-height:1.3;color:var(--ink)}
+.rl .d{font-size:12px;color:var(--meta);line-height:1.4}
+.rl.scr{background:var(--pri-wash);border-color:var(--pri-line)} .rl.scr .k{color:var(--pri-text)}
+.cell{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;color:var(--sec);}
+.cell .h{display:block;font-size:14px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:3px}
+.cell .who{display:block;font-size:12px;font-weight:700;color:var(--meta);margin-bottom:2px}
+.cell .who + .h{margin-top:0}
+.cell .sep{height:1px;background:var(--line-sub);margin:7px 0}
+.cell .tg{margin-top:5px;display:flex;flex-wrap:wrap;gap:4px}
+.cust{border-style:dashed;border-color:var(--line-strong);background:#fff}
+.scr-cell{background:var(--pri-wash);border-color:var(--pri-line);display:flex;flex-direction:column;gap:5px;padding:9px 10px}
+.chip{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--pri-line);border-radius:8px;padding:5px 8px;
+  font-size:13px;font-weight:700;color:var(--pri-text);line-height:1.25}
+.chip small{display:block;font-size:12px;font-weight:400;color:var(--meta)}
+.chip.m{border-style:dashed}
+.back .it{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+.back .it + .it{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line-sub)}
+.back .it b{font-size:13px;color:var(--ink);font-weight:700}
+.supp{background:var(--canvas);border-color:var(--line-sub)}
+.supp .src{display:block;font-size:12px;color:var(--meta);margin-top:3px}
+.bl{background:transparent;border:none}
+.bl .ln{position:absolute;left:136px;right:0;top:50%;border-top:1.5px dashed var(--line-strong)}
+.bl .lb{position:absolute;left:0;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--meta);
+  background:#fff;padding-right:6px;white-space:nowrap}
+
+</style>
+
+<style id="fig-static-css">/* fig-static: 배포본 최소 스타일. fig-editor.css의 규약 부분과 같게 유지한다 */
+.fig-scale{position:relative;overflow:visible}
+.fig-canvas{position:relative;transform-origin:0 0}
+.fig-node{position:absolute;box-sizing:border-box}
+.fig-node *{box-sizing:border-box}
+.fig-edge{display:none}
+.fig-edges{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:5}
+.fig-elabel{position:absolute;z-index:6;font-size:12px;font-weight:700;padding:2px 8px;border-radius:12px;background:rgba(255,255,255,.94);box-shadow:0 1px 4px rgba(15,23,42,.14);white-space:nowrap;transform:translate(-50%,-50%);pointer-events:none}
+@keyframes figFlow{to{stroke-dashoffset:-28}}
+.fig-edges g.fig-flow .fe-main{stroke-dasharray:7 7 !important;animation:figFlow 1.05s linear infinite}
+</style></head>
+<body>
+<div class="fig-stage">
+
+  <!-- ======== FIG:CONTENT START: 이 안을 작성한다 ======== -->
+  <div class="head">
+    <div>
+      <div class="kick">TEAM 오아시스 / 미리 서비스 도식 1</div>
+      <h1>서비스 블루프린트</h1>
+      <p class="lede">평시 준비부터 인계와 종료까지 6단계에서 취약자와 가족, 담당자와 도우미, 미리 화면, 후면 처리, 지원 기관이 하는 일을 한 장에 정리한 도식입니다.</p>
+      <span class="assume"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9L2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg>가정 기반, 리서치 후 재작성 (발견 단계 조사 전)</span>
+    </div>
+    <div class="legend">
+      <span class="lt">처리 주체 표시</span>
+      <span class="tag ai">AI</span><span>멀티모달 LLM 판독. 결과를 확정하지 않음</span>
+      <span class="tag rule">규칙</span><span>고정 공식과 탐색 규칙. 같은 입력이면 같은 결과</span>
+      <span class="tag human">사람 확인</span><span>담당자 또는 시 관리자가 확정</span>
+      <span class="tag hyp">가설</span><span>조사로 확인할 항목</span>
+    </div>
+  </div>
+
+  <div class="fig-canvas" data-size="1280x970" style="margin: 0px auto; width: 1280px; height: 970px;"><svg class="fig-edges" viewBox="0 0 1280 970" width="1280" height="970"><g opacity="1"><path class="fe-main" fill="none" d="M232,390 Q232,400 232,403.52" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M232,410 L227.05,401 L236.95,401 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M232,576.48 Q232,584 232,591.52" stroke="#2563EB" stroke-width="1.8" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M232,598 L227.05,589 L236.95,589 Z"></path><path class="fe-a2" fill="#2563EB" d="M232,570 L236.95,579 L227.05,579 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M424,598 Q424,584 424,576.48" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M424,570 L428.95,579 L419.05,579 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M424,858 Q424,844 424,836.48" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-dasharray="4.800000000000001 3.84" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M424,830 L428.95,839 L419.05,839 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M616,390 Q616,400 616,403.52" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M616,410 L611.05,401 L620.95,401 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M616,598 Q616,584 616,576.48" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M616,570 L620.95,579 L611.05,579 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M616,858 Q616,844 616,836.48" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-dasharray="4.800000000000001 3.84" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M616,830 L620.95,839 L611.05,839 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M808,230 Q808,216 808,208.48" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M808,202 L812.95,211 L803.05,211 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M808,410 Q808,400 808,396.48" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M808,390 L812.95,399 L803.05,399 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M808,598 Q808,584 808,576.48" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M808,570 L812.95,579 L803.05,579 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M808,858 Q808,844 808,836.48" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-dasharray="4.800000000000001 3.84" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M808,830 L812.95,839 L803.05,839 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M1000,223.52 Q1000,216 1000,208.48" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M1000,202 L1004.95,211 L995.05,211 Z"></path><path class="fe-a2" fill="#9A9EA5" d="M1000,230 L995.05,221 L1004.95,221 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M1000,390 Q1000,400 1000,403.52" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M1000,410 L995.05,401 L1004.95,401 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M1000,570 Q1000,584 1000,591.52" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M1000,598 L995.05,589 L1004.95,589 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M1192,390 Q1192,400 1192,403.52" stroke="#9A9EA5" stroke-width="1.6" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M1192,410 L1187.05,401 L1196.95,401 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M1192,830 Q1192,844 1192,851.52" stroke="#E0001B" stroke-width="1.8" stroke-linecap="butt" stroke-dasharray="5.4 4.32" stroke-opacity="1"></path><path class="fe-a1" fill="#E0001B" d="M1192,858 L1187.05,849 L1196.95,849 Z"></path><path class="fe-a2" fill="#E0001B" d=""></path></g></svg>
+
+    <!-- 구분선 (배경) -->
+    <div class="fig-node bl" id="ln-interact" style="left:0px;top:206px;width:1280px;height:20px"><span class="ln"></span><span class="lb">상호작용선</span></div>
+    <div class="fig-node bl" id="ln-visible" style="left:0px;top:574px;width:1280px;height:20px"><span class="ln"></span><span class="lb">가시선</span></div>
+    <div class="fig-node bl" id="ln-internal" style="left:0px;top:834px;width:1280px;height:20px"><span class="ln"></span><span class="lb">내부 상호작용선</span></div>
+
+    <!-- 단계 머리 -->
+    <div class="fig-node" id="hd-corner" style="left:0px;top:0px;width:128px;height:64px;background:transparent;border:none;display:flex;flex-direction:column;justify-content:center">
+      <div style="font-size:12px;font-weight:700;color:var(--meta)">단계</div>
+      <div style="font-size:13px;color:var(--sec);line-height:1.35">산불 대응 기준<br>도달 8시간 전 대피</div>
+    </div>
+    <div class="fig-node ph first" id="ph1" style="left:144px;top:0px;width:180px;height:64px"><div class="pb"><div class="n">01</div><div class="t">평시 준비</div><div class="s">월 1회 명부 갱신</div></div></div>
+    <div class="fig-node ph" id="ph2" style="left:336px;top:0px;width:180px;height:64px"><div class="pb"><div class="n">02</div><div class="t">위험 예보</div><div class="s">산불 위험 상승</div></div></div>
+    <div class="fig-node ph alert" id="ph3" style="left:528px;top:0px;width:180px;height:64px"><div class="pb"><div class="n">03</div><div class="t">발령</div><div class="s">도달 8시간 전</div></div></div>
+    <div class="fig-node ph alert" id="ph4" style="left:720px;top:0px;width:180px;height:64px"><div class="pb"><div class="n">04</div><div class="t">연락과 배정</div><div class="s">발령 직후</div></div></div>
+    <div class="fig-node ph alert" id="ph5" style="left:912px;top:0px;width:180px;height:64px"><div class="pb"><div class="n">05</div><div class="t">이송</div><div class="s">도달 시각까지</div></div></div>
+    <div class="fig-node ph" id="ph6" style="left:1104px;top:0px;width:176px;height:64px"><div class="pb"><div class="n">06</div><div class="t">인계와 종료</div><div class="s">미이송자 처리</div></div></div>
+
+    <!-- 행 머리 -->
+    <div class="fig-node rl" id="rl1" style="left:0px;top:84px;width:128px;height:118px"><span class="k">고객 행동</span><span class="t">취약자와 가족</span><span class="d">조작 없음. 도우미와 차량을 맞이함</span></div>
+    <div class="fig-node rl" id="rl2" style="left:0px;top:230px;width:128px;height:160px"><span class="k">전면 접점</span><span class="t">담당자와 도우미</span><span class="d">동 담당자, 시 관리자, 대피 도우미</span></div>
+    <div class="fig-node rl scr" id="rl3" style="left:0px;top:410px;width:128px;height:160px"><span class="k">웹 서비스 접점</span><span class="t">미리 화면</span><span class="d">담당자 콘솔과 도우미 휴대폰 화면</span></div>
+    <div class="fig-node rl" id="rl4" style="left:0px;top:598px;width:128px;height:232px"><span class="k">후면 행동</span><span class="t">미리 처리</span><span class="d">화면 뒤에서 도는 판독, 계산, 탐색, 점검</span></div>
+    <div class="fig-node rl" id="rl5" style="left:0px;top:858px;width:128px;height:112px"><span class="k">지원 프로세스</span><span class="t">외부 기관과 데이터</span></div>
+
+    <!-- R1 고객 행동 -->
+    <div class="fig-node cell cust" id="c1-1" style="left:144px;top:84px;width:176px;height:118px"><span class="h">서류 작성 협조</span>시설과 재가기관을 통해 대피계획서와 대피카드 작성</div>
+    <div class="fig-node cell cust" id="c1-2" style="left:336px;top:84px;width:176px;height:118px"><span class="h">기존 재난문자 수신</span>미리와 직접 접점 없음</div>
+    <div class="fig-node cell cust" id="c1-3" style="left:528px;top:84px;width:176px;height:118px"><span class="h">대피 대기</span>자력 대피가 어려워 차와 사람을 기다림</div>
+    <div class="fig-node cell cust" id="c1-4" style="left:720px;top:84px;width:176px;height:118px"><span class="h">방문 안내 수신</span>도우미 방문 예정 연락<div class="tg"><span class="tag hyp">가설</span><span style="font-size:12px;color:var(--meta)">낯선 사람 방문 수용</span></div></div>
+    <div class="fig-node cell cust" id="c1-5" style="left:912px;top:84px;width:176px;height:118px"><span class="h">탑승과 이동</span>도우미와 차량 도착, 탑승, 대피소 도착</div>
+    <div class="fig-node cell cust" id="c1-6" style="left:1104px;top:84px;width:176px;height:118px"><span class="h">구조 대기 또는 귀가</span>미이송 시 소방 구조 대기. 종료 후 귀가</div>
+
+    <!-- R2 전면 접점 -->
+    <div class="fig-node cell" id="c2-1" style="left:144px;top:230px;width:176px;height:160px"><span class="who">동 담당자</span><span class="h">서류 업로드와 판독 확인</span>명부 월 1회 갱신, 차량과 도우미 등록<div class="tg"><span class="tag human">사람 확인</span></div></div>
+    <div class="fig-node cell" id="c2-2" style="left:336px;top:230px;width:176px;height:160px"><span class="who">시 안전과 총괄</span><span class="h">동별 부족분 비교</span>필요 추가 차량 확인, 협약 차량 추가 요청</div>
+    <div class="fig-node cell" id="c2-3" style="left:528px;top:230px;width:176px;height:160px"><span class="who">시 관리자</span><span class="h">발령 개시</span>마을별 발령 기한 확인<div class="tg"><span class="tag human">사람 확인</span></div></div>
+    <div class="fig-node cell" id="c2-4" style="left:720px;top:230px;width:176px;height:160px"><span class="who">동 담당자</span><span class="h">추천 배정 검토와 확정</span><span class="tg" style="margin:0 0 6px"><span class="tag human">사람 확인</span></span><span class="who">도우미</span>수락 또는 불가 응답</div>
+    <div class="fig-node cell" id="c2-5" style="left:912px;top:230px;width:176px;height:160px"><span class="who">도우미</span><span class="h">단계 보고</span>출발, 도착, 탑승, 인계. 실패 보고<div class="sep"></div><span class="who">동 담당자</span>실패 건 재배정</div>
+    <div class="fig-node cell" id="c2-6" style="left:1104px;top:230px;width:176px;height:160px"><span class="who">시 관리자</span><span class="h">소방 인계와 종료</span>미이송자 목록 전달, 발령 종료<div class="tg"><span class="tag human">사람 확인</span></div></div>
+
+    <!-- R3 미리 화면 -->
+    <div class="fig-node cell scr-cell" id="c3-1" style="left:144px;top:410px;width:176px;height:160px">
+      <span class="chip"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>서류 읽기</span><span class="chip"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>대상자 명부</span><span class="chip"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>부족분 계산</span><span class="chip"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>문서함<small>&nbsp;모집 설문</small></span>
+    </div>
+    <div class="fig-node cell scr-cell" id="c3-2" style="left:336px;top:410px;width:176px;height:160px">
+      <span class="chip"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg><span>상황판<small>마을별 부족분 지도</small></span></span><span class="chip"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg><span>현황판<small>미이송 예상, 위험 지수</small></span></span>
+    </div>
+    <div class="fig-node cell scr-cell" id="c3-3" style="left:528px;top:410px;width:176px;height:160px">
+      <span class="chip"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg><span>발령 운영<small>8시간 시계, 발령 기한</small></span></span>
+    </div>
+    <div class="fig-node cell scr-cell" id="c3-4" style="left:720px;top:410px;width:176px;height:160px">
+      <span class="chip"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg><span>발령 운영<small>추천 배정, 기본 순서 비교</small></span></span><span class="chip m"><svg class="ico" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"></rect><path d="M11 18h2"></path></svg><span>도우미 화면<small>배정 요약, 수락</small></span></span>
+    </div>
+    <div class="fig-node cell scr-cell" id="c3-5" style="left:912px;top:410px;width:176px;height:160px">
+      <span class="chip m"><svg class="ico" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"></rect><path d="M11 18h2"></path></svg><span>도우미 화면<small>단계 버튼, 실패 보고</small></span></span><span class="chip"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg><span>발령 운영<small>진행 현황, 실패 건 상단</small></span></span>
+    </div>
+    <div class="fig-node cell scr-cell" id="c3-6" style="left:1104px;top:410px;width:176px;height:160px">
+      <span class="chip"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg><span>소방 인계<small>미이송자 목록</small></span></span><span class="chip"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>이송 기록</span><span class="chip"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>문서함<small>&nbsp;HWPX</small></span>
+    </div>
+
+    <!-- R4 후면 행동 -->
+    <div class="fig-node cell back" id="c4-1" style="left:144px;top:598px;width:176px;height:232px">
+      <div class="it"><span class="tag ai">AI</span><b>서류 읽기</b><span>전사, 등급 판정, 근거 문구</span></div>
+      <div class="it"><span class="tag rule">규칙</span><span>원문 대조, 불일치 시 신뢰도 하향</span></div>
+      <div class="it"><span class="tag rule">규칙</span><span>점검: 등급과 특이사항 모순, 중복 의심</span></div>
+    </div>
+    <div class="fig-node cell back" id="c4-2" style="left:336px;top:598px;width:176px;height:232px">
+      <div class="it"><span class="tag rule">규칙</span><b>부족분 계산</b><span>차량 수 × 왕복 횟수 × 정원, 시나리오별 재계산</span></div>
+      <div class="it"><span class="tag rule">규칙</span><span>점검: 협약 만료 임박</span></div>
+      <div class="it"><span>공공데이터 조회 (서버 함수)</span></div>
+    </div>
+    <div class="fig-node cell back" id="c4-3" style="left:528px;top:598px;width:176px;height:232px">
+      <div class="it"><span class="tag rule">규칙</span><b>발령 기한 역산</b><span>도달 예측 시각에서 8시간 역산</span></div>
+      <div class="it"><span>마을별 발령 기한 표시</span></div>
+    </div>
+    <div class="fig-node cell back" id="c4-4" style="left:720px;top:598px;width:176px;height:232px">
+      <div class="it"><span class="tag rule">규칙</span><b>추천 배정 탐색</b><span>침상 우선 기본 순서에서 출발한 지역 탐색, 시드 고정</span></div>
+      <div class="it"><span class="tag rule">규칙</span><span>점검: 도우미 과다 배정</span></div>
+    </div>
+    <div class="fig-node cell back" id="c4-5" style="left:912px;top:598px;width:176px;height:232px">
+      <div class="it"><span class="tag rule">규칙</span><b>진행 집계</b><span>단계 보고를 마을별로 합산</span></div>
+      <div class="it"><span class="tag rule">규칙</span><span>점검: 기한 초과 예상, 도우미 무응답</span></div>
+    </div>
+    <div class="fig-node cell back" id="c4-6" style="left:1104px;top:598px;width:176px;height:232px">
+      <div class="it"><span class="tag rule">규칙</span><b>미이송자 목록 작성</b><span>대상자 코드, 마을, 등급</span></div>
+      <div class="it"><span>이송 기록 저장, 도우미 화면 정보 삭제</span></div>
+    </div>
+
+    <!-- R5 지원 프로세스 -->
+    <div class="fig-node cell supp" id="c5-1" style="left:144px;top:858px;width:176px;height:112px"><span class="h">지자체와 시설</span>명부 원본 보관, 차량 협약, 도우미 모집</div>
+    <div class="fig-node cell supp" id="c5-2" style="left:336px;top:858px;width:176px;height:112px"><span class="h">공공데이터 API</span>산불위험예보, 민방위대피시설, 장기요양기관<span class="src">공공데이터포털</span></div>
+    <div class="fig-node cell supp" id="c5-3" style="left:528px;top:858px;width:176px;height:112px"><span class="h">산림청 정보</span>확산 예측, 마을 도달 예측 시각</div>
+    <div class="fig-node cell supp" id="c5-4" style="left:720px;top:858px;width:176px;height:112px"><span class="h">문자 발송</span>도우미 배정 링크, 협약 차량 가용 확인</div>
+    <div class="fig-node cell supp" id="c5-5" style="left:912px;top:858px;width:176px;height:112px"><span class="h">차량 협약과 대피소</span>협약 차량 운행, 민방위대피시설 수용</div>
+    <div class="fig-node cell supp" id="c5-6" style="left:1104px;top:858px;width:176px;height:112px"><span class="h">동해소방서</span>미이송자 인계 수신. 협약 규모 재산정</div>
+
+    <!-- 연결 -->
+    <div class="fig-edge" id="e-11" data-from="c2-1" data-to="c3-1" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-12" data-from="c3-1" data-to="c4-1" data-color="#2563EB" data-width="1.8" data-arrow="both"></div>
+    <div class="fig-edge" id="e-21" data-from="c4-2" data-to="c3-2" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-22" data-from="c5-2" data-to="c4-2" data-style="dashed" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-31" data-from="c2-3" data-to="c3-3" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-32" data-from="c4-3" data-to="c3-3" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-33" data-from="c5-3" data-to="c4-3" data-style="dashed" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-41" data-from="c2-4" data-to="c1-4" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-42" data-from="c3-4" data-to="c2-4" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-43" data-from="c4-4" data-to="c3-4" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-44" data-from="c5-4" data-to="c4-4" data-style="dashed" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-51" data-from="c2-5" data-to="c1-5" data-color="#9A9EA5" data-width="1.6" data-arrow="both"></div>
+    <div class="fig-edge" id="e-52" data-from="c2-5" data-to="c3-5" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-53" data-from="c3-5" data-to="c4-5" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-61" data-from="c2-6" data-to="c3-6" data-color="#9A9EA5" data-width="1.6" data-arrow="end"></div>
+    <div class="fig-edge" id="e-62" data-from="c4-6" data-to="c5-6" data-style="dashed" data-color="#E0001B" data-width="1.8" data-arrow="end"></div>
+  </div>
+
+  <div class="foot">
+    <span>근거: docs/PLAN.md 1.2절 이해관계자, 1.4절 AI 역할, 3.5절 블루프린트 / docs/PRD-v2.md / docs/IA.md. 화면 이름은 시제품 기준</span>
+    <span>작성 2026. 10. 6. / 가상 데이터 시제품</span>
+  </div>
+
+  <!-- ======== FIG:CONTENT END ======== -->
+
+</div>
+
+
+
+<script id="fig-static-js">/* fig-static: 창 폭에 맞춰 캔버스를 축소하는 뷰어. 편집 기능은 없다 */
+(function(){
+function fit(){Array.prototype.forEach.call(document.querySelectorAll(".fig-canvas"),function(cv){var m=(cv.getAttribute("data-size")||"").match(/^\s*(\d+)\s*[x\u00d7]\s*(\d+)/i);var w=m?+m[1]:cv.offsetWidth,h=m?+m[2]:cv.offsetHeight;cv.style.width=w+"px";cv.style.height=h+"px";var wrap=cv.parentElement;if(!wrap.classList.contains("fig-scale")){var d=document.createElement("div");d.className="fig-scale";cv.parentNode.insertBefore(d,cv);d.appendChild(cv);wrap=d;}var sc=Math.min(1,(wrap.clientWidth||w)/w);cv.style.transform=sc<1?"scale("+sc+")":"";wrap.style.height=(h*sc)+"px";});}
+window.addEventListener("resize",fit);if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fit);else fit();
+var noop=function(){};
+/* html-deck 런타임 등이 부르는 편집 API는 빈 함수로 둔다 */
+window.FigEditor=window.FigEditor||{static:true,fitAll:fit,renderAll:noop,setEdit:noop,onClean:noop,isEditing:function(){return false},selection:function(){return []},select:noop,clearSelection:noop,commit:noop,toast:noop,save:noop,serialize:function(){return "<!DOCTYPE html>\n"+document.documentElement.outerHTML},clean:function(){return document.body.innerHTML}};
+})();
+</script></body></html>

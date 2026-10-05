@@ -1,6 +1,6 @@
-// intake.js AI 서류 판독. API_CONTRACT 4.1.
-// 원문 대조: 판정 근거 문구가 전사문에 문자 그대로 없으면 신뢰도 하로 강제(환각 차단).
-// 규칙 대조: 등급과 특이사항이 모순이면 신뢰도 한 단계 하향.
+// intake.js 서류 자동 판독. API_CONTRACT 4.1.
+// 원문 대조: 판정 근거 문구가 전사문에 문자 그대로 없으면 일치도 하로 강제(환각 차단).
+// 규칙 대조: 등급과 특이사항이 모순이면 일치도 한 단계 하향.
 import { GRADE_KEYS } from './shortage.js'
 
 const DOWN = { high: 'mid', mid: 'low', low: 'low' }
@@ -50,4 +50,4 @@ export const TAGS = {
   medication: '상시 복약'
 }
 
-export const CONF_LABEL = { high: '확실', mid: '보통', low: '확인 필요' }
+export const CONF_LABEL = { high: '일치도 높음', mid: '일치도 보통', low: '확인 필요' }

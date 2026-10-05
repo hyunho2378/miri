@@ -18,10 +18,10 @@ export default function DispatchBanner() {
   return (
     <div role="status" className={clsx('sticky top-topbar z-nav flex flex-wrap items-center gap-x-3 gap-y-1 px-4 lg:px-8 py-2', late ? 'bg-danger text-text-inverse' : 'bg-primary-soft text-primary-text')}>
       <Siren size={16} aria-hidden="true" />
-      <span className="type-caption">{d.kind === 'drill' ? '훈련 발령' : '실제 발령'} {remainText(now - d.vStart).replace(' 경과', '')} 경과</span>
+      <span className="type-caption tabular-nums">{d.kind === 'drill' ? '훈련 발령' : '실제 발령'} 후 {remainText(now - d.vStart).replace(' 경과', '')} 경과</span>
       <span className="type-caption tabular-nums">가장 이른 산불 도달까지 {remainText(earliest - now)}</span>
-      {late && <span className="type-caption">미이송 예상 {unserved}명</span>}
-      {d.speed > 1 && <span className="type-caption">{d.speed}배속</span>}
+      {late && <span className="type-caption tabular-nums">미이송 예상 {unserved}명</span>}
+      {d.kind === 'drill' && d.speed > 1 && <span className="type-caption">훈련 시뮬레이션 속도 {d.speed}배</span>}
       {pathname !== '/console/dispatch' && (
         <Link to="/console/dispatch" className="ml-auto type-caption underline underline-offset-2 min-h-11 md:min-h-0 inline-flex items-center">발령 운영</Link>
       )}

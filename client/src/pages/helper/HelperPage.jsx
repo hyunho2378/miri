@@ -61,39 +61,39 @@ export default function HelperPage() {
 
   if (token !== 'demo') {
     return (
-      <Notice icon={LinkIcon} title="유효하지 않은 링크">
-        담당자에게 새 링크 요청
+      <Notice icon={LinkIcon} title="유효하지 않은 링크입니다">
+        담당자에게 새 링크를 요청해 주십시오.
       </Notice>
     )
   }
 
   const demoButton = USE_MOCK && (
-    <Button size="xl" onClick={startDemo}>데모 발령 시작</Button>
+    <Button size="xl" onClick={startDemo}>시연 발령 시작</Button>
   )
 
   if (d.status === 'closed') {
     return (
-      <Notice icon={CircleCheck} title="발령 종료. 배정 정보 삭제 완료" action={demoButton}>
-        주소와 연락처 삭제 완료
+      <Notice icon={CircleCheck} title="발령이 종료되었습니다" action={demoButton}>
+        배정 정보와 주소, 연락처를 삭제했습니다.
       </Notice>
     )
   }
   if (d.status === 'idle') {
     return (
       <Notice image="/images/illustrations/empty.svg" title="배정 대기 중" action={demoButton}>
-        발령 시 배정 표시
+        발령이 내려지면 이 화면에 배정이 표시됩니다.
       </Notice>
     )
   }
   if (d.status === 'standby' || d.status === 'assigned') {
     return (
       <Notice title="배정 준비 중">
-        전송되면 문자와 이 화면으로 도착
+        배정이 전송되면 문자와 이 화면으로 알려 드립니다.
       </Notice>
     )
   }
   if (!me || !mine) {
-    return <Notice icon={CircleX} title="이번 발령 배정 없음">대기 상태 유지. 담당자 연락 시 응답</Notice>
+    return <Notice icon={CircleX} title="이번 발령에 배정된 대상자가 없습니다">대기 상태를 유지하고, 담당자가 연락하면 응답해 주십시오.</Notice>
   }
 
   const ack = ackOf(d, me, vnow)
@@ -109,14 +109,14 @@ export default function HelperPage() {
       <div className="flex items-center gap-2">
         <Truck size={20} aria-hidden="true" className="text-primary" />
         <h1 className="type-h2 text-text-pri">내 배정</h1>
-        <span className="ml-auto type-body-sm text-text-meta tabular-nums">{me}</span>
+        <span className="ml-auto type-body-sm text-text-meta tabular-nums">도우미 코드 {me}</span>
       </div>
       <KeyValue
         size="lg"
         className="mt-3"
         items={[
-          { label: '차량', value: <>{vehicle?.code} {typeOf(vehicle?.type)?.label}</> },
-          { label: '대상자', value: <>{list.length}명 {trips.length}회차</> },
+          { label: '차량', value: <>{vehicle?.code}, {typeOf(vehicle?.type)?.label}</> },
+          { label: '대상자', value: <>{list.length}명, {trips.length}회차</> },
           { label: '대피소', value: <>{shelters.join(', ')}</> },
           { label: '첫 출발', value: <>{fmtHM(trips[0]?.departAt)}</> }
         ]}
@@ -128,8 +128,8 @@ export default function HelperPage() {
     return (
       <div className="flex flex-1 flex-col gap-4 p-4">
         {summary}
-        <Notice icon={CircleX} title="불가 응답 완료">
-          사유 {DECLINE_REASONS[ack.reason] || '기타'}. 대체 배정 진행
+        <Notice icon={CircleX} title="불가 응답을 전달했습니다">
+          사유는 {DECLINE_REASONS[ack.reason] || '기타'}입니다. 담당자가 대체 배정을 진행합니다.
         </Notice>
       </div>
     )
@@ -138,11 +138,11 @@ export default function HelperPage() {
   if (ack.answer === 'none') {
     return (
       <div className="flex flex-1 flex-col gap-4 p-4">
-        <p role="status" className="rounded-lg bg-primary-soft px-4 py-3 type-body text-primary-text">배정 도착. 수락 또는 불가 응답 필요</p>
+        <p role="status" className="rounded-lg bg-primary-soft px-4 py-3 type-body text-primary-text">배정이 도착했습니다. 수락 또는 불가로 응답해 주십시오.</p>
         {summary}
         {!declining ? (
           <div className="mt-auto space-y-2 pb-4">
-            <Button size="xl" onClick={() => { useDispatchStore.getState().helperAck(me, 'accept'); toast('수락 완료. 첫 대상자부터 진행', 'primary') }}>
+            <Button size="xl" onClick={() => { useDispatchStore.getState().helperAck(me, 'accept'); toast('수락했습니다. 첫 대상자부터 진행합니다.', 'primary') }}>
               수락
             </Button>
             <Button variant="secondary" size="xl" onClick={() => setDeclining(true)}>불가</Button>
@@ -180,11 +180,11 @@ export default function HelperPage() {
         {summary}
         <div className="flex items-center justify-between gap-3">
           <h2 className="type-h3 text-text-pri">대상자 순서</h2>
-          <p className="type-body-sm text-text-sec tabular-nums">완료 {doneCount} 실패 {failCount} / {list.length}</p>
+          <p className="type-body-sm text-text-sec tabular-nums">완료 {doneCount}명, 실패 {failCount}명, 전체 {list.length}명</p>
         </div>
         {!current && (
           <p role="status" className="rounded-lg bg-mute px-4 py-3 type-body text-text-pri">
-            배정 대상자 전원 처리 완료. 대피소 대기 후 담당자 안내 확인
+            배정된 대상자 전원의 처리가 끝났습니다. 대피소에서 대기하며 담당자 안내를 확인해 주십시오.
           </p>
         )}
         <ol className="space-y-3">
@@ -212,7 +212,7 @@ export default function HelperPage() {
         open={!!failFor} personCode={failFor} onClose={() => setFailFor(null)}
         onSubmit={(reason, memo) => {
           useDispatchStore.getState().report(failFor, 'fail', reason, memo)
-          toast(`${failFor} 실패 보고 완료. 다음 대상자로 진행`, 'danger')
+          toast(`${failFor} 실패 보고 완료. 다음 대상자로 넘어갑니다.`, 'danger')
           setFailFor(null)
         }}
       />

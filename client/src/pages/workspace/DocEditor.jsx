@@ -3,13 +3,20 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import {
   Bold, Download, FileText, Heading1, Heading2, History, Italic, Link2, List, ListOrdered,
-  Pilcrow, Printer, Redo2, RemoveFormatting, Underline, Undo2
+  Pilcrow, Printer, Redo2, RemoveFormatting, Scale, Underline, Undo2
 } from 'lucide-react'
 import { Navigate, useParams } from 'react-router-dom'
+import Badge from '../../components/ui/Badge.jsx'
 import Button from '../../components/ui/Button.jsx'
+import * as api from '../../lib/workspaceApi.js'
+import { findCitations, hashText, htmlToMarkdown } from './docConvert.js'
 import useToast from '../../hooks/useToast.js'
-import useWorkspaceStore from '../../store/useWorkspaceStore.js'
+import useWorkspaceStore, { useWorkspaceInit } from '../../store/useWorkspaceStore.js'
 import EditorFrame, { download } from './EditorFrame.jsx'
+
+const lawCache = new Map()
+const LAW_TONE = { exists: ['success', '실존'], not_found: ['danger', '없음'], unknown: ['warning', '확인 불가'] }
+const PRESETS = ['통지', '보고서', '계획서']
 
 const exec = (cmd, arg) => document.execCommand(cmd, false, arg)
 
@@ -45,6 +52,11 @@ export default function DocEditor() {
   const [outline, setOutline] = useState([])
   const [showHistory, setShowHistory] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
+  const [preset, setPreset] = useState('통지')
+  const [lawOpen, setLawOpen] = useState(false)
+  const [law, setLaw] = useState(null) // { state, results, message }
+  const latest = useRef(null)
+  const ready = useWorkspaceInit()
 
   const readOutline = useCallback(() => {
     const el = pageRef.current
@@ -54,18 +66,25 @@ export default function DocEditor() {
 
   useEffect(() => {
     if (pageRef.current && doc) { pageRef.current.innerHTML = doc.html; readOutline() }
+  }, [id, ready]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 화면을 떠날 때 저장 대기 중인 편집을 버리지 않는다
+  useEffect(() => () => {
+    clearTimeout(timer.current)
+    if (latest.current != null) { update(id, { html: latest.current }); saveVersion(id) }
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => () => clearTimeout(timer.current), [])
-
+  if (!ready) return <div className="flex min-h-dvh items-center justify-center bg-canvas type-body-sm text-text-meta">문서를 불러오는 중입니다.</div>
   if (!doc) return <Navigate to="/console/workspace?kind=doc" replace />
 
   const onInput = () => {
     readOutline()
+    latest.current = pageRef.current.innerHTML
     clearTimeout(timer.current)
     timer.current = setTimeout(() => {
       update(id, { html: pageRef.current.innerHTML })
       saveVersion(id)
+      latest.current = null
     }, 800)
   }
 
@@ -84,6 +103,13 @@ export default function DocEditor() {
       if (!w) { toast('팝업이 막혀 인쇄 창을 열지 못했습니다', 'danger'); return }
       w.document.write(wrapHtml(doc.title, html())); w.document.close(); w.focus(); w.print()
     }
+    if (type === 'hwpx') {
+      try {
+        const blob = await api.hwpx({ title: doc.title, markdown: htmlToMarkdown(html()), preset })
+        download(`${name}.hwpx`, blob)
+        toast(`${preset} 양식의 한글 문서를 받았습니다`, 'primary')
+      } catch (e) { toast(e.message, 'danger') }
+    }
     if (type === 'gdoc') {
       try {
         await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html()], { type: 'text/html' }), 'text/plain': new Blob([toText(html())], { type: 'text/plain' }) })])
@@ -92,6 +118,24 @@ export default function DocEditor() {
       } catch {
         toast('복사하지 못했습니다. 브라우저 권한을 확인하세요', 'danger')
       }
+    }
+  }
+
+  const checkLaw = async () => {
+    setLawOpen(true); setShowHistory(false)
+    const text = pageRef.current?.innerText || ''
+    const { citations, hasArticle } = findCitations(text)
+    if (!hasArticle || !citations.length) { setLaw({ state: 'empty' }); return }
+    const key = hashText(text)
+    if (lawCache.has(key)) { setLaw(lawCache.get(key)); return }
+    setLaw({ state: 'loading' })
+    try {
+      const r = await api.law(text)
+      if (r.status === 'rate_limited') { setLaw({ state: 'limited' }); return }
+      const v = { state: 'ok', results: r.results || [] }
+      lawCache.set(key, v); setLaw(v)
+    } catch {
+      setLaw({ state: 'ok', results: citations.map((c) => ({ citation: c, status: 'unknown', detail: '법령 서버에 연결하지 못했습니다' })) })
     }
   }
 
@@ -105,13 +149,23 @@ export default function DocEditor() {
 
   const actions = (
     <>
-      <Button variant="ghost" size="sm" leftIcon={<History size={16} aria-hidden="true" />} onClick={() => setShowHistory((v) => !v)}>버전 기록</Button>
+      <Button variant="ghost" size="sm" leftIcon={<Scale size={16} aria-hidden="true" />} onClick={checkLaw}>법령 인용 확인</Button>
+      <Button variant="ghost" size="sm" leftIcon={<History size={16} aria-hidden="true" />} onClick={() => { setShowHistory((v) => !v); setLawOpen(false) }}>버전 기록</Button>
       <div className="relative">
         <Button size="sm" leftIcon={<Download size={16} aria-hidden="true" />} onClick={() => setExportOpen((v) => !v)}>내보내기</Button>
         {exportOpen && (
           <div className="absolute right-0 top-11 z-dropdown w-56 rounded-md bg-page py-1 shadow-float ring-1 ring-line-sub">
+            <div className="border-b border-line-sub px-3 pb-2 pt-1">
+              <p className="type-caption text-text-meta">한글 문서 양식</p>
+              <div className="mt-1 flex gap-1">
+                {PRESETS.map((p) => (
+                  <button key={p} type="button" onClick={() => setPreset(p)} aria-pressed={preset === p}
+                    className={clsx('h-7 rounded-full px-2.5 type-caption', preset === p ? 'bg-primary-soft text-primary-text' : 'text-text-sec hover:bg-mute')}>{p}</button>
+                ))}
+              </div>
+            </div>
             {[
-              ['gdoc', '구글 문서로 복사'], ['doc', 'Word 파일(.doc)'], ['html', '웹페이지(.html)'], ['txt', '마크다운(.md)'], ['print', '인쇄 또는 PDF 저장']
+              ['hwpx', '한글 문서(.hwpx)'], ['gdoc', '구글 문서로 복사'], ['doc', 'Word 파일(.doc)'], ['html', '웹페이지(.html)'], ['txt', '마크다운(.md)'], ['print', '인쇄 또는 PDF 저장']
             ].map(([k, l]) => (
               <button key={k} type="button" onClick={() => doExport(k)} className="flex w-full items-center gap-2 px-3 py-2 text-left type-body-sm hover:bg-mute">
                 {k === 'print' ? <Printer size={16} aria-hidden="true" /> : <FileText size={16} aria-hidden="true" />}{l}
@@ -166,6 +220,38 @@ export default function DocEditor() {
             className="doc-page mx-auto min-h-[1000px] w-full max-w-[816px] bg-page px-8 py-10 shadow-card outline-none md:px-16 md:py-16"
           />
         </div>
+        {lawOpen && (
+          <aside className="w-80 shrink-0 border-l border-line-sub bg-page px-4 py-6" aria-label="법령 인용 확인">
+            <div className="flex items-center justify-between">
+              <p className="type-strong text-text-pri">법령 인용 확인</p>
+              <button type="button" onClick={() => setLawOpen(false)} className="type-caption text-text-meta hover:text-text-pri">닫기</button>
+            </div>
+            <p className="mt-1 type-meta text-text-meta">본문의 「법령명」 제N조를 법제처 국가법령정보로 확인합니다.</p>
+            <div className="mt-3">
+              {law?.state === 'loading' && <p className="type-body-sm text-text-meta">확인하는 중입니다.</p>}
+              {law?.state === 'empty' && <p className="type-body-sm text-text-meta">본문에서 조문 인용을 찾지 못했습니다.</p>}
+              {law?.state === 'limited' && <p className="type-body-sm text-warning-text">법령 확인 요청이 한도에 도달했습니다. 잠시 뒤 다시 시도하세요.</p>}
+              {law?.state === 'ok' && (
+                <ul className="space-y-2">
+                  {law.results.map((r, i) => {
+                    const [tone, label] = LAW_TONE[r.status] || LAW_TONE.unknown
+                    return (
+                      <li key={i} className="rounded-md bg-subtle p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="min-w-0 type-body-sm text-text-pri">{r.citation}</p>
+                          <Badge tone={tone}>{label}</Badge>
+                        </div>
+                        {r.title && <p className="mt-1 type-meta text-text-sec">{r.title}</p>}
+                        {r.detail && <p className="mt-1 type-meta text-text-meta">{r.detail}</p>}
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+            <p className="mt-4 type-meta text-text-meta">출처: 법제처 국가법령정보(korean-law-mcp 공개 서버)</p>
+          </aside>
+        )}
         {showHistory && (
           <aside className="w-72 shrink-0 border-l border-line-sub bg-page px-4 py-6" aria-label="버전 기록">
             <p className="type-strong text-text-pri">버전 기록</p>

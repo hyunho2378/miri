@@ -5,7 +5,7 @@ import { ANOMALY_RULES } from '../../lib/anomaly.js'
 
 export default function AnomalyList({ items, limit, onNavigate }) {
   const shown = limit ? items.slice(0, limit) : items
-  if (!items.length) return <p className="type-body-sm text-text-meta">감지된 이상 없음</p>
+  if (!items.length) return <p className="type-body-sm text-text-meta">감지된 이상이 없습니다.</p>
   return (
     <ul className="divide-y divide-line-sub">
       {shown.map((a) => (

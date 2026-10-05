@@ -27,7 +27,7 @@ export default function RecordDetailPage() {
     return (
       <PageShell title="이송 기록 상세">
         <Card as="div" padding="none">
-          <EmptyState title="기록을 찾을 수 없음" action={<Button as={Link} to="/console/records">이송 기록 목록</Button>} />
+          <EmptyState title="기록을 찾을 수 없습니다" action={<Button as={Link} to="/console/records">이송 기록 목록</Button>} />
         </Card>
       </PageShell>
     )
@@ -70,7 +70,7 @@ export default function RecordDetailPage() {
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <StatusPill status={rec.kind === 'drill' ? 'closed' : 'standby'} label={rec.kind === 'drill' ? '훈련 발령' : '실제 발령'} />
-        <span className="type-body-sm text-text-sec tabular-nums">{fmtDateTime(rec.startedAt)} 개시 {fmtHM(rec.closedAt)} 종료 소요 {minutesText((rec.closedAt - rec.startedAt) / MIN)}</span>
+        <span className="type-body-sm text-text-sec tabular-nums">{fmtDateTime(rec.startedAt)} 개시, {fmtHM(rec.closedAt)} 종료, 소요 {minutesText((rec.closedAt - rec.startedAt) / MIN)}</span>
       </div>
 
       <div className="space-y-4">
@@ -78,7 +78,7 @@ export default function RecordDetailPage() {
           <MetricCard label="대상자" value={t.total} unit="명" />
           <MetricCard label="인계 완료" value={t.done} unit="명" />
           <MetricCard label="소방 인계" value={t.fire} unit="명" tone={t.fire ? 'danger' : 'neutral'} />
-          <MetricCard label="미완료" value={t.open} unit="명" tone={t.open ? 'danger' : 'neutral'} sub="이송 중 또는 실패" />
+          <MetricCard label="미완료" value={t.open} unit="명" tone={t.open ? 'danger' : 'neutral'} sub="이송 중이거나 실패로 종료된 인원" />
         </div>
 
         <Card title="종료 시점 단계별 인원">
@@ -93,11 +93,11 @@ export default function RecordDetailPage() {
         </Card>
 
         {m && b && (
-          <Card title="규칙 순서 대비 배정 지표" meta="발령 당시 계산">
+          <Card title="기본 순서 대비 추천 배정 지표" desc="발령 당시 계산값">
             <dl className="grid gap-2 sm:grid-cols-3 tabular-nums">
               <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">미이송 예상</dt><dd className="mt-1 type-strong text-text-pri">기본 순서 {b.unserved}명, 추천 배정 {m.unserved}명</dd></div>
-              <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">등급 가중 미이송</dt><dd className="mt-1 type-strong text-text-pri">{b.weightedUnserved}점 → {m.weightedUnserved}점</dd></div>
-              <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">마지막 이송 완료</dt><dd className="mt-1 type-strong text-text-pri">{fmtHM(b.lastFinishAt)} → {fmtHM(m.lastFinishAt)}</dd></div>
+              <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">등급 가중 미이송</dt><dd className="mt-1 type-strong text-text-pri">기본 순서 {b.weightedUnserved}점, 추천 배정 {m.weightedUnserved}점</dd></div>
+              <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">마지막 이송 완료</dt><dd className="mt-1 type-strong text-text-pri">기본 순서 {fmtHM(b.lastFinishAt)}, 추천 배정 {fmtHM(m.lastFinishAt)}</dd></div>
             </dl>
           </Card>
         )}
@@ -117,7 +117,7 @@ export default function RecordDetailPage() {
                 </li>
               ))}
             </ul>
-          ) : <p className="type-body-sm text-text-meta">전 마을 기한 내 인계 완료</p>}
+          ) : <p className="type-body-sm text-text-meta">전 마을에서 기한 내 인계를 완료했습니다.</p>}
           <Link to="/console/shortage" className="mt-3 inline-flex min-h-11 md:min-h-0 items-center type-body-sm text-primary-text underline underline-offset-2">부족분 계산</Link>
         </Card>
       </div>

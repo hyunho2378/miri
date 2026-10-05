@@ -106,8 +106,8 @@ export default function HandoverPage() {
       {!live ? (
         <Card as="div" padding="none">
           <EmptyState
-            title="진행 중인 발령 없음"
-            desc={d.status === 'standby' ? 'AI 배정 실행 후 목록 생성' : '발령 개시 후 목록 생성'}
+            title="진행 중인 발령이 없습니다"
+            desc={d.status === 'standby' ? '추천 배정을 계산하면 목록이 생성됩니다.' : '발령을 개시하면 목록이 생성됩니다.'}
             action={<Button as={Link} to="/console/dispatch">발령 운영</Button>}
           />
         </Card>
@@ -116,11 +116,11 @@ export default function HandoverPage() {
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
             <MetricCard label="인계 대기" value={waiting.length} unit="명" tone={waiting.length ? 'danger' : 'neutral'} />
             <MetricCard label="인계 완료" value={handed} unit="명" />
-            <MetricCard label="전달 횟수" value={d.handovers.length} unit="회" sub={d.status === 'assigned' ? '배정 확정 전. 미배정 예상 목록' : undefined} />
+            <MetricCard label="전달 횟수" value={d.handovers.length} unit="회" sub={d.status === 'assigned' ? '배정 확정 전이므로 미배정 예상 목록입니다.' : undefined} />
           </div>
 
           <TableCard
-            title="미이송자" count={`${rows.length}명`} desc="실패 건 우선"
+            title="미이송자" count={`${rows.length}명`} desc="정렬 순서: 이송 실패, 미배정, 소방 인계"
             actions={(
               <>
                 <Button variant="ghost" size="sm" disabled={!waiting.length} onClick={() => setSelected(allOn ? new Set() : new Set(waiting.map((r) => r.code)))}>
@@ -130,14 +130,14 @@ export default function HandoverPage() {
                 <Button variant="secondary" size="sm" leftIcon={<Printer size={16} aria-hidden="true" />} onClick={() => window.print()}>인쇄</Button>
                 <Button
                   variant="danger" size="sm" disabled={!picked.length} leftIcon={<Ambulance size={16} aria-hidden="true" />}
-                  onClick={() => { d.handover(picked); setSelected(new Set()); toast(`${picked.length}명 동해소방서 인계`, 'primary') }}
+                  onClick={() => { d.handover(picked); setSelected(new Set()); toast(`동해소방서 인계: ${picked.length}명`, 'primary') }}
                 >
                   {picked.length ? `선택 ${picked.length}명 소방 인계` : '소방 인계'}
                 </Button>
               </>
             )}
             columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={20} caption="미이송자 목록"
-            emptyTitle="미이송자 없음" emptyDesc="전원 기한 내 이송 진행"
+            emptyTitle="미이송자가 없습니다" emptyDesc="전원 기한 내 이송이 진행 중입니다."
           />
 
           <Card title="전달 기록" meta={`${d.handovers.length}회`}>
@@ -152,7 +152,7 @@ export default function HandoverPage() {
                   </li>
                 ))}
               </ul>
-            ) : <p className="type-body-sm text-text-meta">전달 기록 없음</p>}
+            ) : <p className="type-body-sm text-text-meta">전달 기록이 없습니다.</p>}
           </Card>
         </div>
       )}

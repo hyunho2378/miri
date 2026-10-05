@@ -27,6 +27,8 @@ const loaders = {
   FormEditor: () => import('./pages/workspace/FormEditor.jsx'),
   FormFill: () => import('./pages/workspace/FormFillPage.jsx')
 }
+// 상황판(지도와 3D)은 무거워서 미리 받지 않는다. 메뉴를 열 때 받는다
+const MapLoader = () => import('./pages/console/MapPage.jsx')
 const PRELOAD = Object.values(loaders)
 
 const PrivacyPage = lazy(() => import('./pages/public/PrivacyPage.jsx'))
@@ -43,6 +45,7 @@ const RecordsPage = lazy(loaders.Records)
 const RecordDetailPage = lazy(loaders.RecordDetail)
 const SettingsPage = lazy(loaders.Settings)
 const HelperPage = lazy(loaders.Helper)
+const MapPage = lazy(MapLoader)
 const WorkspaceHome = lazy(loaders.Workspace)
 const DocEditor = lazy(loaders.DocEditor)
 const SheetEditor = lazy(loaders.SheetEditor)
@@ -82,6 +85,7 @@ export default function App() {
             <Route path="/console" element={<RequireAuth />}>
               <Route element={<AdminLayout />}>
                 <Route index element={<OverviewPage />} />
+                <Route path="map" element={<MapPage />} />
                 <Route path="roster" element={<RosterPage />} />
                 <Route path="intake" element={<IntakePage />} />
                 <Route path="resources" element={<ResourcesPage />} />

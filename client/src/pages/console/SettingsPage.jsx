@@ -30,11 +30,11 @@ export default function SettingsPage() {
       key: 'roundTripMin', label: '왕복 시간', sortable: true,
       render: (v) => (
         <span className="inline-flex items-center gap-1">
-          <IconButton size="sm" radius="md" aria-label={`${v.label} 왕복 시간 5분 줄이기`} disabled={v.roundTripMin <= 10} onClick={() => updateVillage(v.code, { roundTripMin: v.roundTripMin - 5 })}>
+          <IconButton size="sm" radius="md" aria-label={`${v.label} 왕복 시간 5분 감소`} disabled={v.roundTripMin <= 10} onClick={() => updateVillage(v.code, { roundTripMin: v.roundTripMin - 5 })}>
             <Minus size={16} aria-hidden="true" />
           </IconButton>
           <span className="min-w-12 text-center type-strong text-text-pri tabular-nums">{v.roundTripMin}분</span>
-          <IconButton size="sm" radius="md" aria-label={`${v.label} 왕복 시간 5분 늘리기`} disabled={v.roundTripMin >= 240} onClick={() => updateVillage(v.code, { roundTripMin: v.roundTripMin + 5 })}>
+          <IconButton size="sm" radius="md" aria-label={`${v.label} 왕복 시간 5분 증가`} disabled={v.roundTripMin >= 240} onClick={() => updateVillage(v.code, { roundTripMin: v.roundTripMin + 5 })}>
             <Plus size={16} aria-hidden="true" />
           </IconButton>
         </span>
@@ -61,9 +61,9 @@ export default function SettingsPage() {
 
         <Card title="계산 기본값">
           <div className="divide-y divide-line-sub">
-            <NumberStepper className="pb-3" label="준비 시간" unit="분" step={15} min={0} max={180} value={settings.prepMinutes} onChange={(v) => updateSettings({ prepMinutes: v })} hint="발령 후 첫 차량 출발까지" />
+            <NumberStepper className="pb-3" label="준비 시간" unit="분" step={15} min={0} max={180} value={settings.prepMinutes} onChange={(v) => updateSettings({ prepMinutes: v })} hint="발령 후 첫 차량이 출발하기까지 걸리는 시간" />
             <div className="py-3">
-              <p className="type-caption text-text-sec">발령 기준 시간</p>
+              <p className="type-caption text-text-sec">발령 기준 시간(산불 도달 전)</p>
               <p className="mt-1 type-strong text-text-pri tabular-nums">{settings.windowHours}시간</p>
             </div>
             <div className="pt-3">
@@ -78,22 +78,22 @@ export default function SettingsPage() {
           </div>
         </Card>
 
-        <Card title="이상 탐지 임계값">
+        <Card title="이상 탐지 기준값">
           <div className="divide-y divide-line-sub">
-            <NumberStepper className="pb-3" label="판독 장기 미확인" unit="일" min={1} max={60} value={settings.pendingDays} onChange={(v) => updateSettings({ pendingDays: v })} />
-            <NumberStepper className="py-3" label="협약 만료 임박" unit="일" step={5} min={5} max={120} value={settings.contractWarnDays} onChange={(v) => updateSettings({ contractWarnDays: v })} />
-            <NumberStepper className="py-3" label="도우미 담당 상한" unit="명" step={5} min={5} max={100} value={settings.helperLoadMax} onChange={(v) => updateSettings({ helperLoadMax: v })} />
-            <NumberStepper className="pt-3" label="도우미 무응답" unit="분" step={5} min={5} max={60} value={settings.noAckMinutes} onChange={(v) => updateSettings({ noAckMinutes: v })} />
+            <NumberStepper className="pb-3" label="확인 대기 서류 장기 보류 기준" unit="일" min={1} max={60} value={settings.pendingDays} onChange={(v) => updateSettings({ pendingDays: v })} />
+            <NumberStepper className="py-3" label="협약 만료 임박 기준" unit="일" step={5} min={5} max={120} value={settings.contractWarnDays} onChange={(v) => updateSettings({ contractWarnDays: v })} />
+            <NumberStepper className="py-3" label="도우미 담당 대상자 상한" unit="명" step={5} min={5} max={100} value={settings.helperLoadMax} onChange={(v) => updateSettings({ helperLoadMax: v })} />
+            <NumberStepper className="pt-3" label="도우미 무응답 판정 시간" unit="분" step={5} min={5} max={60} value={settings.noAckMinutes} onChange={(v) => updateSettings({ noAckMinutes: v })} />
           </div>
         </Card>
 
-        <Card title="사용자와 역할">
+        <Card title="사용자와 역할" desc="시연용 계정이며 모두 가상 데이터입니다.">
           <ul className="divide-y divide-line-sub">
             {Object.values(DEMO_USERS).map((u) => (
               <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                 <div className="min-w-0">
                   <p className="type-strong text-text-pri">{u.name}</p>
-                  <p className="type-meta text-text-meta">{u.dong ? `${dongName({ dongs }, u.dong)} 담당` : '동해시 전체'}</p>
+                  <p className="type-meta text-text-meta">{u.dong ? `${dongName({ dongs }, u.dong)} 담당` : '동해시 전체 담당'}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {me?.id === u.id && <Badge tone="primary">현재 사용자</Badge>}
@@ -106,12 +106,12 @@ export default function SettingsPage() {
       </div>
 
       <TableCard
-        className="mt-4" title="차종별 회차당 탑승 정원" count={`${VEHICLE_TYPES.length}종`}
+        className="mt-4" title="차종별 회차당 탑승 정원" count={`${VEHICLE_TYPES.length}종`} desc="협의 전 가정값입니다."
         columns={capacityCols} rows={VEHICLE_TYPES} rowKey={(t) => t.key} pageSize={20} caption="차종과 등급별 정원"
       />
 
       <TableCard
-        className="mt-4" title="마을과 대피소 왕복 시간" count={`${villages.length}곳`} desc="승차와 하차 포함. 5분 단위 조정"
+        className="mt-4" title="마을과 대피소 왕복 시간" count={`${villages.length}곳`} desc="승차와 하차 시간을 포함한 값입니다. 5분 단위로 조정합니다."
         columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 대피소와 왕복 시간" pageSize={30}
       />
     </PageShell>

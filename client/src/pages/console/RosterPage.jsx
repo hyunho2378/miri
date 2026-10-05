@@ -21,18 +21,19 @@ import useToast from '../../hooks/useToast.js'
 import { TAGS, verifyResult } from '../../lib/intake.js'
 import { GRADE_RANK } from '../../lib/shortage.js'
 import { fmtDate } from '../../lib/time.js'
+import { fmtKDate } from '../../components/miri/BasisLine.jsx'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
 
 const REVIEW_OPTIONS = [
   { value: 'all', label: '전체 확인 상태' }, { value: 'pending', label: '확인 대기' },
-  { value: 'confirmed', label: '확인 완료' }, { value: 'edited', label: '담당자 수정' }, { value: 'rejected', label: '반려' }
+  { value: 'confirmed', label: '확인 완료' }, { value: 'edited', label: '담당자 수정' }, { value: 'rejected', label: '제외' }
 ]
-const SOURCE_OPTIONS = [{ value: 'all', label: '전체 입력 방법' }, { value: 'ai', label: '서류에서 읽음' }, { value: 'manual', label: '담당자 입력' }]
+const SOURCE_OPTIONS = [{ value: 'all', label: '전체 입력 방법' }, { value: 'ai', label: '서류 자동 판독' }, { value: 'manual', label: '담당자 입력' }]
 
 function SourceLabel({ source }) {
   return source === 'ai'
-    ? <span className="inline-flex items-center gap-1 type-caption text-primary-text"><ScanText size={14} aria-hidden="true" />서류에서 읽음</span>
+    ? <span className="inline-flex items-center gap-1 type-caption text-primary-text"><ScanText size={14} aria-hidden="true" />서류 자동 판독</span>
     : <span className="inline-flex items-center gap-1 type-caption text-text-sec"><UserRound size={14} aria-hidden="true" />담당자 입력</span>
 }
 
@@ -41,6 +42,7 @@ export default function RosterPage() {
   const villages = useMiriStore((s) => s.villages)
   const dongs = useMiriStore((s) => s.dongs)
   const docs = useMiriStore((s) => s.intakeDocs)
+  const today = useMiriStore((s) => s.today)
   const updatePerson = useMiriStore((s) => s.updatePerson)
   const addPerson = useMiriStore((s) => s.addPerson)
   const removePerson = useMiriStore((s) => s.removePerson)
@@ -54,6 +56,7 @@ export default function RosterPage() {
   const [grades, setGrades] = useState([])
   const [source, setSource] = useState('all')
   const [review, setReview] = useState(params.get('review') || 'all')
+  const [moreFilters, setMoreFilters] = useState(false)
   const [editing, setEditing] = useState(null)   // { mode: 'edit'|'add', value }
   const [errors, setErrors] = useState({})
 
@@ -116,6 +119,7 @@ export default function RosterPage() {
     { key: 'edit', label: '편집', render: (p) => <EditPencil resource="persons" label={`${p.code} 수정`} onClick={() => { openPerson(p.code); setEditing({ mode: 'edit', value: { villageCode: p.villageCode, grade: p.grade, tags: p.tags } }) }} /> }
   ].filter((c) => c.key !== 'edit' || canEdit)
 
+  const hiddenActive = (grades.length ? 1 : 0) + (source !== 'all' ? 1 : 0)
   const dongOptions = [{ value: 'all', label: '전체 동' }, ...dongs.filter((d) => villages.some((v) => v.dongCode === d.code)).map((d) => ({ value: d.code, label: d.name }))]
   const villageOptions = [{ value: 'all', label: '전체 마을' }, ...villages.filter((v) => dong === 'all' || v.dongCode === dong).map((v) => ({ value: v.code, label: v.label }))]
 
@@ -124,18 +128,25 @@ export default function RosterPage() {
       title="대상자 명부"
     >
       <TableCard
-        title="대상자" count={`${rows.length}명`}
+        title="대상자" count={`${rows.length}명`} desc={`명부 ${fmtKDate(today)} 기준. 이름 없이 대상자 코드로 표시합니다.`}
         actions={<InlineEditBar resource="persons" addLabel="대상자 추가" onAdd={() => { setErrors({}); setEditing({ mode: 'add', value: { villageCode: village !== 'all' ? village : villageOptions[1]?.value, grade: 'assist', tags: [] } }) }} />}
         filters={(
           <FilterBar>
             <Select compact label="동" value={dong} onChange={setDong} options={dongOptions} disabled={user?.role === 'dong'} />
             <Select compact label="마을" value={village} onChange={setVillage} options={villageOptions} />
-            <MultiSelect compact label="등급" values={grades} onChange={setGrades} options={GRADE_OPTIONS} placeholder="전체" />
-            <Select compact label="입력 방법" value={source} onChange={setSource} options={SOURCE_OPTIONS} />
             <Select compact label="확인 상태" value={review} onChange={setReview} options={REVIEW_OPTIONS} />
+            {moreFilters && (
+              <>
+                <MultiSelect compact label="등급" values={grades} onChange={setGrades} options={GRADE_OPTIONS} placeholder="전체" />
+                <Select compact label="입력 방법" value={source} onChange={setSource} options={SOURCE_OPTIONS} />
+              </>
+            )}
+            <Button variant="ghost" size="sm" aria-expanded={moreFilters} onClick={() => setMoreFilters((v) => !v)}>
+              {moreFilters ? '필터 접기' : `필터 더보기${hiddenActive ? ` (적용 ${hiddenActive})` : ''}`}
+            </Button>
           </FilterBar>
         )}
-        columns={columns} rows={rows} rowKey={(p) => p.code} onRowClick={(p) => { setEditing(null); openPerson(p.code) }} emptyTitle="조건에 맞는 대상자 없음" emptyDesc="필터 조정 필요" caption="대상자 명부"
+        columns={columns} rows={rows} rowKey={(p) => p.code} onRowClick={(p) => { setEditing(null); openPerson(p.code) }} emptyTitle="조건에 맞는 대상자가 없습니다" emptyDesc="필터 조건을 바꿔 다시 확인해 주십시오." caption="대상자 명부"
       />
 
       <Drawer
@@ -175,7 +186,7 @@ export default function RosterPage() {
               </div>
             ) : (
               <p className="rounded-md bg-subtle p-4 type-meta text-text-meta">
-                {open.gradeSource === 'ai' ? '판독 근거는 서류 판독 화면에서 올린 서류만 표시' : '담당자 직접 입력 건. 판독 근거 없음'}
+                {open.gradeSource === 'ai' ? '판독 근거는 서류 읽기 화면에서 올린 서류에 대해서만 표시합니다.' : '담당자가 직접 입력한 건이므로 판독 근거가 없습니다.'}
               </p>
             )}
           </div>

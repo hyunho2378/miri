@@ -20,7 +20,7 @@ export default function DeadlineClock({ title, dispatchDeadline, completeDeadlin
         </div>
       )}
       <p className={clsx(compact ? 'type-strong' : 'mt-2 type-kpi', 'tabular-nums', remain < 0 ? 'text-danger-text' : late ? 'text-warning-text' : 'text-text-pri')}>
-        {remain < 0 ? remainText(remain) : `${remainText(remain)} 남음`}
+        {remain < 0 ? `기한 ${remainText(remain)}` : `${remainText(remain)} 남음`}
       </p>
       {!compact && (
         <div className="mt-3 h-1.5 rounded-full bg-mute overflow-hidden" aria-hidden="true">

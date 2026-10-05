@@ -8,6 +8,8 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
   const [answers, setAnswers] = useState({})
   const [errors, setErrors] = useState({})
   const [done, setDone] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState('')
   const set = (qid, v) => { setAnswers((a) => ({ ...a, [qid]: v })); setErrors((e) => ({ ...e, [qid]: false })) }
 
   if (!form.open && !preview) {
@@ -29,7 +31,7 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
     )
   }
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
     const miss = Object.fromEntries(form.questions.filter((q) => q.required && (answers[q.id] == null || answers[q.id] === '' || (Array.isArray(answers[q.id]) && !answers[q.id].length))).map((q) => [q.id, true]))
     setErrors(miss)
@@ -37,8 +39,14 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
       document.getElementById(`q-${Object.keys(miss)[0]}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
     }
-    onSubmit?.(answers)
-    setDone(true)
+    setSending(true); setSendError('')
+    try {
+      const r = await onSubmit?.(answers)
+      if (r && r.ok === false) { setSendError(r.message || '응답을 보내지 못했습니다'); return }
+      setDone(true)
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -49,6 +57,7 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
           <h1 className="type-h2 text-text-pri">{form.title}</h1>
           {form.desc && <p className="mt-2 whitespace-pre-line type-body text-text-sec">{form.desc}</p>}
           <p className="mt-3 type-meta text-danger-text">* 표시는 꼭 답해야 하는 질문입니다</p>
+          <p className="mt-2 rounded-md bg-subtle px-3 py-2 type-meta text-text-sec">이 설문에는 주민등록번호, 상세 주소, 병력 같은 주민 정보를 입력하지 마세요. 시연용 설문입니다.</p>
         </div>
       </div>
       {form.questions.map((q) => (
@@ -96,7 +105,10 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
         </fieldset>
       ))}
       <div className="flex items-center justify-between pt-2">
-        <Button type="submit">{preview ? '시험 제출' : '보내기'}</Button>
+        <div className="flex items-center gap-3">
+          <Button type="submit" loading={sending}>{preview ? '시험 제출' : '보내기'}</Button>
+          {sendError && <p className="type-caption text-danger-text" role="alert">{sendError}</p>}
+        </div>
         <button type="button" onClick={() => { setAnswers({}); setErrors({}) }} className="type-body-sm text-primary-text">양식 지우기</button>
       </div>
     </form>

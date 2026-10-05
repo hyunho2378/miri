@@ -11,7 +11,7 @@ import useToast from '../../hooks/useToast.js'
 import { GRADES } from '../../lib/shortage.js'
 import { TAGS as TAG_LABEL } from '../../lib/intake.js'
 import useMiriStore from '../../store/useMiriStore.js'
-import useWorkspaceStore from '../../store/useWorkspaceStore.js'
+import useWorkspaceStore, { useFormResponsePolling, useWorkspaceInit } from '../../store/useWorkspaceStore.js'
 import EditorFrame, { download } from './EditorFrame.jsx'
 
 const letter = (i) => { let s = ''; i += 1; while (i > 0) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26) } return s }
@@ -47,6 +47,9 @@ export default function SheetEditor() {
   const [sel, setSel] = useState({ r: 0, c: 0 })
   const [q, setQ] = useState('')
   const [sort, setSort] = useState(null)
+  const ready = useWorkspaceInit()
+  const mode = useWorkspaceStore((s) => s.mode)
+  useFormResponsePolling(sheet?.formId, ready && sheet?.source === 'form')
 
   // 화면에 그릴 열과 행. 연결 시트는 원본에서 매번 다시 만든다
   const { columns, rows, locked } = useMemo(() => {
@@ -88,6 +91,7 @@ export default function SheetEditor() {
     return list
   }, [rows, q, sort])
 
+  if (!ready) return <div className="flex min-h-dvh items-center justify-center bg-canvas type-body-sm text-text-meta">시트를 불러오는 중입니다.</div>
   if (!sheet) return <Navigate to="/console/workspace?kind=sheet" replace />
 
   const setCell = (ri, ci, value) => {
@@ -276,7 +280,7 @@ export default function SheetEditor() {
       </div>
       <footer className="flex items-center justify-between border-t border-line-sub bg-subtle px-4 py-2 type-meta text-text-meta md:px-6">
         <span className="tabular-nums">{view.length === rows.length ? `${rows.length}행` : `${rows.length}행 중 ${view.length}행 표시`}</span>
-        <span>새로고침하면 처음 상태로 돌아갑니다</span>
+        <span>{mode === 'server' ? '서버에 저장됩니다' : '새로고침하면 처음 상태로 돌아갑니다'}</span>
       </footer>
     </EditorFrame>
   )

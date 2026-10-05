@@ -16,6 +16,7 @@ import Toggle from '../../components/ui/Toggle.jsx'
 import useToast from '../../hooks/useToast.js'
 import { GRADES, OWNERS, VEHICLE_TYPES, gradeOf, typeOf } from '../../lib/shortage.js'
 import { fmtDate } from '../../lib/time.js'
+import { fmtKDate } from '../../components/miri/BasisLine.jsx'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
 
@@ -56,7 +57,7 @@ export default function ResourcesPage() {
     { key: 'type', label: '차종', kind: 'select', required: true, options: VEHICLE_TYPES.map((t) => ({ value: t.key, label: t.label, secondary: capText(t.key) })) },
     { key: 'owner', label: '소속', kind: 'select', required: true, options: Object.entries(OWNERS).map(([value, label]) => ({ value, label })) },
     { key: 'baseDong', label: '대기 동', kind: 'select', required: true, options: dongs.map((d) => ({ value: d.code, label: d.name })) },
-    { key: 'contractUntil', label: '협약 만료일', kind: 'date', hint: '민간 협약 차량만. YYYY-MM-DD' },
+    { key: 'contractUntil', label: '협약 만료일', kind: 'date', hint: '민간 협약 차량에만 입력합니다. 형식은 YYYY-MM-DD입니다.' },
     { key: 'note', label: '비고', kind: 'text' },
     { key: 'available', label: '대피 이송 가용', kind: 'toggle' }
   ]
@@ -71,7 +72,7 @@ export default function ResourcesPage() {
   const save = () => {
     const errs = validate(fields, form.value)
     const list = form.kind === 'helper' ? helpers : vehicles
-    if (form.mode === 'add' && list.some((x) => x.code === form.value.code)) errs.code = '이미 있는 코드'
+    if (form.mode === 'add' && list.some((x) => x.code === form.value.code)) errs.code = '이미 등록된 코드입니다.'
     setErrors(errs)
     if (Object.keys(errs).length) return
     if (form.kind === 'helper') upsertHelper({ channel: 'sms', ...form.value })
@@ -127,7 +128,7 @@ export default function ResourcesPage() {
       />
       {tab === 'vehicles' ? (
         <TableCard
-          key="vehicles" title="차량" count={`가용 ${usable} / 전체 ${vehicles.length}대`}
+          key="vehicles" title="차량" count={`가용 ${usable} / 전체 ${vehicles.length}대`} desc={`협약 만료는 ${fmtKDate(today)} 기준으로 판정합니다. 차종별 회차당 정원은 협의 전 가정값입니다.`}
           actions={<InlineEditBar resource="vehicles" addLabel="차량 추가" onAdd={() => { setErrors({}); setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'contract', baseDong: 'MS', available: true, contractUntil: '', note: '' } }) }} />}
           columns={vehicleColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={vehicles} rowKey={(v) => v.code} caption="차량 목록"
         />

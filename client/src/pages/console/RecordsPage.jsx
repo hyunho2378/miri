@@ -7,6 +7,7 @@ import BarChart from '../../components/dashboard/BarChart.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Button from '../../components/ui/Button.jsx'
+import Disclosure from '../../components/ui/Disclosure.jsx'
 import EmptyState from '../../components/ui/EmptyState.jsx'
 import { MIN, fmtDateTime, minutesText } from '../../lib/time.js'
 import useMiriStore from '../../store/useMiriStore.js'
@@ -64,23 +65,25 @@ export default function RecordsPage() {
       {!records.length ? (
         <Card as="div" padding="none">
           <EmptyState
-            title="이송 기록 없음"
-            desc="발령 종료 시 자동 저장"
+            title="이송 기록이 없습니다"
+            desc="발령을 종료하면 이송 기록이 자동으로 저장됩니다."
             action={<Button as={Link} to="/console/dispatch">발령 운영</Button>}
           />
         </Card>
       ) : (
         <div className="space-y-4">
           <TableCard
-            title="발령 기록" count={`${records.length}건`}
+            title="발령 기록" count={`${records.length}건`} desc="훈련 발령과 실제 발령을 모두 포함합니다. 시연 데이터는 가상 데이터입니다."
             columns={columns} rows={rows} rowKey={(r) => r.id} pageSize={20} caption="이송 기록"
             onRowClick={(r) => navigate(`/console/records/${r.id}`)}
           />
-          <Card title="마을별 미이송 추이" meta="최근 3건, 미완료와 소방 인계 합계">
-            {chart === null && <p className="type-body-sm text-text-meta">기록 2건 이상부터 표시</p>}
-            {Array.isArray(chart) && !chart.length && <p className="type-body-sm text-text-meta">최근 발령 모두 전원 인계 완료</p>}
+          <Disclosure summary="마을별 미이송 추이">
+          <Card title="마을별 미이송 추이" desc="최근 3건 기준, 미완료와 소방 인계 합계">
+            {chart === null && <p className="type-body-sm text-text-meta">이송 기록이 2건 이상일 때 표시합니다.</p>}
+            {Array.isArray(chart) && !chart.length && <p className="type-body-sm text-text-meta">최근 발령에서 미이송 인원이 없습니다.</p>}
             {Array.isArray(chart) && chart.length > 0 && <BarChart groups={chart} height={260} ariaLabel="마을별 미이송 추이 막대 차트" />}
           </Card>
+          </Disclosure>
         </div>
       )}
     </PageShell>

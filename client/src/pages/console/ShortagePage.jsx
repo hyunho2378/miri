@@ -1,14 +1,17 @@
-// 부족분 계산(IA 4.5). 마을별 값은 배정 규칙으로 시뮬레이션한 미이송 수.
-import { useEffect, useMemo, useState } from 'react'
-import { Save, Star } from 'lucide-react'
+// 부족분 계산(IA 4.5). 결과를 먼저 보이고, 계산 조건은 오른쪽 접이식 패널에 둔다(PRD v2 F2).
+// 마을별 값은 배정 규칙으로 시뮬레이션한 미이송 수. 조건을 바꾸면 결과가 바로 다시 계산된다.
+import { useEffect, useId, useMemo, useState } from 'react'
+import { Save, SlidersHorizontal, Star } from 'lucide-react'
 import Card from '../../components/ui/Card.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
+import BasisLine, { basisText } from '../../components/miri/BasisLine.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import ShortageTable from '../../components/miri/ShortageTable.jsx'
 import ShortageValue from '../../components/miri/ShortageValue.jsx'
 import GradeChip from '../../components/miri/GradeChip.jsx'
 import Badge from '../../components/ui/Badge.jsx'
 import Button from '../../components/ui/Button.jsx'
+import Disclosure from '../../components/ui/Disclosure.jsx'
 import Input from '../../components/ui/Input.jsx'
 import NumberStepper from '../../components/ui/NumberStepper.jsx'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
@@ -23,6 +26,8 @@ const MAX_SCENARIOS = 5
 const EXTRA_TYPES = [...new Set(Object.values(EXTRA_TYPE))]
 
 const offsetText = (h) => (h === 0 ? '기준' : `${h > 0 ? '+' : ''}${h}시간`)
+const completeText = (h) => (h ? `도달 ${h}시간 전` : '도달 시각')
+const prepText = (m) => (m === 60 ? '1시간' : m === 90 ? '1시간 30분' : `${m}분`)
 
 export default function ShortagePage() {
   const persons = useMiriStore((s) => s.persons)
@@ -39,7 +44,9 @@ export default function ShortagePage() {
   const setActiveScenario = useMiriStore((s) => s.setActiveScenario)
   const canEdit = useAuthStore((s) => s.canEdit('scenarios'))
   const toast = useToast()
+  const panelId = useId()
 
+  const [panelOpen, setPanelOpen] = useState(false)
   const [selectedId, setSelectedId] = useState(activeId)
   const base = scenarios.find((s) => s.id === selectedId) || scenarios[0]
   const [draft, setDraft] = useState(() => structuredClone(base))
@@ -57,13 +64,13 @@ export default function ShortagePage() {
   const setExtra = (type, n) => setDraft((d) => ({ ...d, extraVehicles: { ...d.extraVehicles, [type]: n } }))
 
   const saveAsNew = () => {
-    if (scenarios.length >= MAX_SCENARIOS) { toast(`시나리오는 최대 ${MAX_SCENARIOS}개. 기존 시나리오 삭제 필요`, 'danger'); return }
+    if (scenarios.length >= MAX_SCENARIOS) { toast(`시나리오는 최대 ${MAX_SCENARIOS}개까지 저장합니다. 기존 시나리오를 삭제한 뒤 저장해 주십시오.`, 'danger'); return }
     const id = `S-${Math.max(0, ...scenarios.map((s) => Number(s.id.split('-')[1]) || 0)) + 1}`
     saveScenario({ ...draft, id, name: name.trim() || `${base.name} 변형` })
     setSelectedId(id)
-    toast('시나리오 저장 완료', 'primary')
+    toast('시나리오를 저장했습니다.', 'primary')
   }
-  const overwrite = () => { saveScenario({ ...draft, id: base.id }); toast(`${base.name} 갱신 완료`, 'primary') }
+  const overwrite = () => { saveScenario({ ...draft, id: base.id }); toast(`${base.name} 시나리오를 갱신했습니다.`, 'primary') }
 
   const compareCols = [
     {
@@ -75,111 +82,131 @@ export default function ShortagePage() {
         </span>
       )
     },
-    { key: 'prep', label: '준비', render: ({ sc }) => <span className="whitespace-nowrap">{sc.prepMinutes}분</span> },
-    { key: 'complete', label: '완료 기한', hideBelow: 'lg', render: ({ sc }) => <span className="whitespace-nowrap">{sc.completeBeforeHours ? `도달 ${sc.completeBeforeHours}시간 전` : '도달 시각'}</span> },
-    { key: 'extra', label: '추가 차량', hideBelow: 'lg', render: ({ sc }) => <span className="type-meta text-text-sec">{Object.entries(sc.extraVehicles || {}).filter(([, n]) => n).map(([t, n]) => `${typeOf(t).label} ${n}`).join(', ') || '없음'}</span> },
+    { key: 'prep', label: '준비 시간', render: ({ sc }) => <span className="whitespace-nowrap">{sc.prepMinutes}분</span> },
+    { key: 'complete', label: '완료 기한', hideBelow: 'lg', render: ({ sc }) => <span className="whitespace-nowrap">{completeText(sc.completeBeforeHours)}</span> },
+    { key: 'extra', label: '추가 차량', hideBelow: 'lg', render: ({ sc }) => <span className="type-meta text-text-sec">{Object.entries(sc.extraVehicles || {}).filter(([, n]) => n).map(([t, n]) => `${typeOf(t).label} ${n}대`).join(', ') || '없음'}</span> },
     ...GRADES.map((g) => ({ key: g.key, label: g.label, align: 'right', hideBelow: 'md', render: ({ r }) => r.byGrade[g.key] || '-' })),
     {
-      key: 'total', label: '총 부족분', align: 'right',
-      render: ({ r }) => <span className={`type-strong whitespace-nowrap ${r.total ? 'text-danger-text' : 'text-text-sec'}`}>{r.total ? `부족 ${r.total}명` : '부족 없음'}</span>
+      key: 'total', label: '미이송 예상', align: 'right',
+      render: ({ r }) => <span className={`type-strong whitespace-nowrap ${r.total ? 'text-danger-text' : 'text-text-sec'}`}>{r.total}명</span>
     },
     ...(canEdit ? [{
       key: 'actions', label: '관리', align: 'right',
       render: ({ sc }) => (sc.id !== activeId ? (
         <span className="inline-flex gap-1">
-          <Button size="sm" variant="ghost" leftIcon={<Star size={14} aria-hidden="true" />} onClick={() => { setActiveScenario(sc.id); toast(`${sc.name} 현황판 기준 지정`, 'primary') }}>기준 지정</Button>
-          {scenarios.length > 1 && <Button size="sm" variant="ghost" onClick={() => { removeScenario(sc.id); if (selectedId === sc.id) setSelectedId(activeId); toast('시나리오 삭제 완료') }}>삭제</Button>}
+          <Button size="sm" variant="ghost" leftIcon={<Star size={14} aria-hidden="true" />} onClick={() => { setActiveScenario(sc.id); toast(`현황판 기준 지정: ${sc.name}`, 'primary') }}>기준 지정</Button>
+          {scenarios.length > 1 && <Button size="sm" variant="ghost" onClick={() => { removeScenario(sc.id); if (selectedId === sc.id) setSelectedId(activeId); toast('시나리오를 삭제했습니다.') }}>삭제</Button>}
         </span>
       ) : null)
     }] : [])
   ]
 
-  const extraLine = extra.length
-    ? extra.map((e) => `${e.typeLabel} ${e.count}대`).join(', ')
-    : null
+  const extraLine = extra.length ? extra.map((e) => `${e.typeLabel} ${e.count}대`).join(', ') : null
+  const extraSummary = Object.entries(draft.extraVehicles || {}).filter(([, n]) => n).map(([t, n]) => `${typeOf(t).label} ${n}대`).join(', ') || '없음'
+  const changedVillages = Object.values(draft.offsetHours || {}).filter((h) => h).length
+  const summary = `준비 ${prepText(draft.prepMinutes)}, 이송 완료 기한 ${completeText(draft.completeBeforeHours ?? 0)}, 추가 협약 차량 ${extraSummary}${changedVillages ? `, 도달 가정 변경 ${changedVillages}곳` : ''}`
+
+  const conditions = (
+    <Card
+      as="aside" id={panelId} title="계산 조건" aria-label="계산 조건"
+      actions={<Button size="sm" variant="ghost" onClick={() => setPanelOpen(false)}>닫기</Button>}
+      className="xl:sticky xl:top-20"
+    >
+      <div className="space-y-5">
+        <div>
+          <Select label="시나리오" value={selectedId} onChange={setSelectedId}
+            options={scenarios.map((s) => ({ value: s.id, label: s.name, secondary: s.id === activeId ? '현황판 기준' : s.id }))} />
+          {dirty && <p className="mt-2 type-meta text-primary-text">저장하지 않은 변경이 있습니다.</p>}
+        </div>
+        <div>
+          <p className="mb-1.5 type-caption text-text-sec">준비 시간</p>
+          <SegmentControl label="준비 시간" value={draft.prepMinutes} onChange={(v) => set({ prepMinutes: v })}
+            items={[{ value: 30, label: '30분' }, { value: 60, label: '1시간' }, { value: 90, label: '1시간 30분' }]} />
+        </div>
+        <div>
+          <p className="mb-1.5 type-caption text-text-sec">이송 완료 기한</p>
+          <SegmentControl label="이송 완료 기한" value={draft.completeBeforeHours ?? 0} onChange={(v) => set({ completeBeforeHours: v })}
+            items={[{ value: 0, label: '도달 시각' }, { value: 5, label: '도달 5시간 전' }]} />
+          <p className="mt-1.5 type-meta text-text-meta tabular-nums">가용 시간 {(draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes}분</p>
+        </div>
+        <div>
+          <p className="mb-1.5 type-caption text-text-sec">추가 협약 차량</p>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+            {EXTRA_TYPES.map((t) => (
+              <NumberStepper key={t} label={typeOf(t).label} value={draft.extraVehicles?.[t] || 0} min={0} max={20} unit="대" onChange={(n) => setExtra(t, n)} />
+            ))}
+          </div>
+        </div>
+        <Disclosure summary={`마을별 산불 도달 가정${changedVillages ? ` (변경 ${changedVillages}곳)` : ''}`}>
+          <ul className="grid gap-y-2 max-h-[420px] overflow-y-auto pr-1">
+            {villages.map((v) => (
+              <li key={v.code} className="min-w-0">
+                <NumberStepper layout="inline" label={v.label} value={draft.offsetHours?.[v.code] || 0} min={-2} max={8} step={0.5} unit="시간" format={offsetText} onChange={(h) => setOffset(v.code, h)} />
+              </li>
+            ))}
+          </ul>
+        </Disclosure>
+      </div>
+    </Card>
+  )
 
   return (
     <PageShell title="부족분 계산">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,400px)_minmax(0,1fr)]">
-        <div className="grid gap-4 content-start">
-          <Card title="시나리오">
-            <Select label="저장 시나리오" value={selectedId} onChange={setSelectedId}
-              options={scenarios.map((s) => ({ value: s.id, label: s.name, secondary: s.id === activeId ? '현황판 기준' : s.id }))} />
-            {dirty && <p className="mt-2 type-meta text-primary-text">저장하지 않은 변경 있음</p>}
-          </Card>
-
-          <Card title="계산 조건">
-            <div className="space-y-4">
-              <div>
-                <p className="mb-1.5 type-caption text-text-sec">준비 시간</p>
-                <SegmentControl label="준비 시간" value={draft.prepMinutes} onChange={(v) => set({ prepMinutes: v })}
-                  items={[{ value: 30, label: '30분' }, { value: 60, label: '1시간' }, { value: 90, label: '1시간 30분' }]} />
-              </div>
-              <div>
-                <p className="mb-1.5 type-caption text-text-sec">이송 완료 기한</p>
-                <SegmentControl label="이송 완료 기한" value={draft.completeBeforeHours ?? 0} onChange={(v) => set({ completeBeforeHours: v })}
-                  items={[{ value: 0, label: '도달 시각' }, { value: 5, label: '도달 5시간 전' }]} />
-                <p className="mt-1.5 type-meta text-text-meta tabular-nums">가용 시간 {(draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes}분</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card title="추가 협약 차량">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {EXTRA_TYPES.map((t) => (
-                <NumberStepper key={t} label={typeOf(t).label} value={draft.extraVehicles?.[t] || 0} min={0} max={20} unit="대" onChange={(n) => setExtra(t, n)} />
-              ))}
-            </div>
-          </Card>
-
-          <Card title="마을별 산불 도달 가정">
-            <ul className="grid gap-y-2 max-h-[420px] overflow-y-auto pr-1">
-              {villages.map((v) => (
-                <li key={v.code} className="min-w-0">
-                  <NumberStepper layout="inline" label={v.label} value={draft.offsetHours?.[v.code] || 0} min={-2} max={8} step={0.5} unit="시간" format={offsetText} onChange={(h) => setOffset(v.code, h)} />
-                </li>
-              ))}
-            </ul>
-          </Card>
+      <Card as="div" padding="sm" className="mb-4" bodyClassName="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="type-caption text-text-sec">계산 조건</p>
+          <p className="mt-0.5 type-body-sm text-text-pri tabular-nums">{summary}</p>
         </div>
+        <Button
+          variant={panelOpen ? 'primary' : 'secondary'} aria-expanded={panelOpen} aria-controls={panelId}
+          leftIcon={<SlidersHorizontal size={16} aria-hidden="true" />} onClick={() => setPanelOpen((v) => !v)}
+        >
+          계산 조건
+        </Button>
+      </Card>
 
-        <div className="grid gap-4 content-start min-w-0">
-          <Card>
-            <div className="grid gap-5 md:grid-cols-[minmax(0,240px)_minmax(0,1fr)]">
-              <ShortageValue value={result.total} byGrade={result.byGrade} provisional={result.provisional} label="총 부족분" />
+      <div className={panelOpen ? 'grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,380px)] xl:items-start' : ''}>
+        {panelOpen && <div className="xl:order-2">{conditions}</div>}
+
+        <div className="grid gap-4 content-start min-w-0 xl:order-1">
+          <Card aria-live="polite">
+            <div className="grid gap-5 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
+              <ShortageValue value={result.total} byGrade={result.byGrade} provisional={result.provisional} label="미이송 예상">
+                <BasisLine scenario={draft.name} today={today} />
+              </ShortageValue>
               <div className="min-w-0">
                 <p className="type-caption text-text-sec">필요 추가 차량</p>
-                {extraLine ? (
-                  <p className="mt-2 type-h3 text-text-pri">{extraLine} 추가 시 부족분 0</p>
-                ) : (
-                  <p className="mt-2 type-h3 text-text-pri">추가 차량 불필요</p>
+                <p className="mt-2 type-h3 text-text-pri">{extraLine || '없음'}</p>
+                <p className="mt-1 type-meta text-text-meta">{extraLine ? '위 차량을 추가하면 미이송 예상이 0명이 됩니다.' : '현재 보유 차량으로 미이송 예상이 0명입니다.'}</p>
+                {extra.length > 0 && (
+                  <ul className="mt-3 flex flex-wrap gap-2">
+                    {extra.map((e) => (
+                      <li key={e.grade} className="inline-flex items-center gap-2 rounded-md bg-subtle px-3 py-2">
+                        <GradeChip grade={e.grade} size="sm" />
+                        <span className="type-meta text-text-sec tabular-nums">미이송 {result.byGrade[e.grade]}명, 추가 {e.typeLabel} {e.count}대{e.resolved ? '' : ' 이상'}</span>
+                      </li>
+                    ))}
+                  </ul>
                 )}
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {extra.map((e) => (
-                    <li key={e.grade} className="inline-flex items-center gap-2 rounded-md bg-subtle px-3 py-2">
-                      <GradeChip grade={e.grade} size="sm" />
-                      <span className="type-meta text-text-sec tabular-nums">부족 {result.byGrade[e.grade]}명 → {e.typeLabel} {e.count}대{e.resolved ? '' : ' 이상'}</span>
-                    </li>
-                  ))}
-                </ul>
               </div>
             </div>
           </Card>
 
-          <ShortageTable villages={villages} dongs={dongs} byVillage={result.byVillage} />
+          <ShortageTable basis={basisText({ scenario: draft.name, today })} villages={villages} dongs={dongs} byVillage={result.byVillage} />
 
-          <TableCard
-            title="시나리오 저장과 비교"
-            count={`${scenarios.length} / ${MAX_SCENARIOS}개`}
-            actions={canEdit && (
-              <>
-                {dirty && <Button variant="secondary" onClick={overwrite}>현재 시나리오 갱신</Button>}
-                <Button variant="primary" onClick={saveAsNew} leftIcon={<Save size={16} aria-hidden="true" />}>시나리오 저장</Button>
-              </>
-            )}
-            filters={canEdit && <Input compact label="새 시나리오 이름" value={name} onChange={(e) => setName(e.target.value)} placeholder={`${base.name} 변형`} className="w-full max-w-md" />}
-            columns={compareCols} rows={compare} rowKey={({ sc }) => sc.id} pageSize={MAX_SCENARIOS} caption="시나리오 비교"
-          />
+          <Disclosure summary={`시나리오 저장과 비교 (${scenarios.length} / ${MAX_SCENARIOS}개)`}>
+            <TableCard
+              title="시나리오 비교" count={`${scenarios.length} / ${MAX_SCENARIOS}개`}
+              actions={canEdit && (
+                <>
+                  {dirty && <Button variant="secondary" onClick={overwrite}>현재 시나리오 갱신</Button>}
+                  <Button variant="primary" onClick={saveAsNew} leftIcon={<Save size={16} aria-hidden="true" />}>시나리오 저장</Button>
+                </>
+              )}
+              filters={canEdit && <Input compact label="새 시나리오 이름" value={name} onChange={(e) => setName(e.target.value)} placeholder={`${base.name} 변형`} className="w-full max-w-md" />}
+              columns={compareCols} rows={compare} rowKey={({ sc }) => sc.id} pageSize={MAX_SCENARIOS} caption="시나리오 비교"
+            />
+          </Disclosure>
         </div>
       </div>
     </PageShell>

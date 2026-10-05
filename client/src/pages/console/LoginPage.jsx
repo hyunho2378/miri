@@ -10,8 +10,8 @@ import { USE_MOCK } from '../../lib/api.js'
 import useAuthStore, { DEMO_USERS, ROLE_LABEL } from '../../store/useAuthStore.js'
 
 const DEMO = [
-  { role: 'city', desc: '전 화면. 발령 개시와 종료, 소방 인계, 설정' },
-  { role: 'dong', desc: '망상동 명부, 서류 판독, 부족분 계산, 배정 확인' }
+  { role: 'city', desc: '전체 화면을 이용합니다. 발령 개시와 종료, 소방 인계, 설정을 처리합니다.' },
+  { role: 'dong', desc: '망상동 명부 관리, 서류 읽기, 부족분 계산, 배정 확인을 처리합니다.' }
 ]
 
 export default function LoginPage() {
@@ -24,6 +24,7 @@ export default function LoginPage() {
         <Logo to="/console" />
         <Card as="div" padding="lg" className="mt-6">
           <h1 className="type-h1 text-text-pri">담당자 로그인</h1>
+          {USE_MOCK && <p className="mt-2 type-body-sm text-text-sec">시연용 계정을 선택합니다. 모든 데이터는 가상 데이터입니다.</p>}
           {USE_MOCK ? (
             <>
               <ul className="mt-6 space-y-2">

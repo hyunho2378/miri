@@ -1,8 +1,9 @@
 // 담당자 메뉴 구조. 사이드바는 5개 큰 메뉴만 보이고, 같은 일을 하는 화면은 상단 탭으로 묶는다.
-import { FolderOpen, LayoutDashboard, Siren, Truck, UsersRound } from 'lucide-react'
+import { FolderOpen, LayoutDashboard, MapPinned, Siren, Truck, UsersRound } from 'lucide-react'
 
 export const MAIN_NAV = [
   { key: 'home', to: '/console', end: true, label: '현황판', Icon: LayoutDashboard, match: ['/console'] , exact: true },
+  { key: 'map', to: '/console/map', label: '상황판', Icon: MapPinned, match: ['/console/map'] },
   { key: 'people', to: '/console/roster', label: '대상자', Icon: UsersRound, match: ['/console/roster', '/console/intake'], queue: true },
   { key: 'resources', to: '/console/resources', label: '차량과 도우미', Icon: Truck, match: ['/console/resources'] },
   { key: 'dispatch', to: '/console/shortage', label: '발령 준비', Icon: Siren, match: ['/console/shortage', '/console/dispatch', '/console/handover'] },

@@ -6,13 +6,13 @@ const DAY = 24 * 60 * MIN
 const NEEDS_HELPER = new Set(GRADES.filter((g) => g.helpers > 0).map((g) => g.key))
 
 export const ANOMALY_RULES = {
-  pendingLong: '오래 확인 안 한 서류',
-  gradeConflict: '등급과 특이사항이 안 맞음',
-  duplicate: '같은 사람 두 번 등록 의심',
-  contract: '차량 협약 곧 끝남',
-  helperLoad: '도우미 한 명에게 몰림',
-  deadline: '마감 안에 못 옮김',
-  noAck: '도우미 응답 없음'
+  pendingLong: '장기 확인 대기 서류',
+  gradeConflict: '등급과 특이사항 불일치',
+  duplicate: '중복 등록 의심',
+  contract: '차량 협약 만료 임박',
+  helperLoad: '도우미 담당 건수 초과',
+  deadline: '기한 내 이송 불가',
+  noAck: '도우미 무응답'
 }
 
 export function detectAnomalies({ persons, vehicles, helpers, settings, now, dispatch, villages = [] }) {
@@ -21,10 +21,10 @@ export function detectAnomalies({ persons, vehicles, helpers, settings, now, dis
 
   for (const p of persons) {
     if (p.review === 'pending' && now - p.updatedAt > settings.pendingDays * DAY) {
-      out.push({ id: `pending-${p.code}`, rule: 'pendingLong', target: p.code, value: `${Math.floor((now - p.updatedAt) / DAY)}일 경과`, to: '/console/intake' })
+      out.push({ id: `pending-${p.code}`, rule: 'pendingLong', target: p.code, value: `확인 대기 ${Math.floor((now - p.updatedAt) / DAY)}일 경과`, to: '/console/intake' })
     }
     if ((p.grade === 'walk' || p.grade === 'assist') && p.tags?.includes('bedridden')) {
-      out.push({ id: `conflict-${p.code}`, rule: 'gradeConflict', target: p.code, value: `${p.grade === 'walk' ? '도보' : '부축'} 등급에 와상 표기`, to: `/console/roster?person=${p.code}` })
+      out.push({ id: `conflict-${p.code}`, rule: 'gradeConflict', target: p.code, value: `${p.grade === 'walk' ? '도보' : '부축'} 등급과 와상 표기 불일치`, to: `/console/roster?person=${p.code}` })
     }
   }
 
@@ -35,14 +35,14 @@ export function detectAnomalies({ persons, vehicles, helpers, settings, now, dis
     ;(dup[k] = dup[k] || []).push(p.code)
   }
   for (const codes of Object.values(dup)) {
-    if (codes.length > 1) out.push({ id: `dup-${codes.join('-')}`, rule: 'duplicate', target: codes.join(', '), value: '같은 서류 같은 위치', to: `/console/roster?person=${codes[0]}` })
+    if (codes.length > 1) out.push({ id: `dup-${codes.join('-')}`, rule: 'duplicate', target: codes.join(', '), value: '동일 서류 동일 위치', to: `/console/roster?person=${codes[0]}` })
   }
 
   for (const v of vehicles) {
     if (!v.contractUntil) continue
     const left = (v.contractUntil - now) / DAY
     if (left < 0) out.push({ id: `contract-${v.code}`, rule: 'contract', target: v.code, value: '협약 만료', to: '/console/resources' })
-    else if (left <= settings.contractWarnDays) out.push({ id: `contract-${v.code}`, rule: 'contract', target: v.code, value: `${Math.ceil(left)}일 남음`, to: '/console/resources' })
+    else if (left <= settings.contractWarnDays) out.push({ id: `contract-${v.code}`, rule: 'contract', target: v.code, value: `만료까지 ${Math.ceil(left)}일`, to: '/console/resources' })
   }
 
   for (const h of helpers) {
@@ -54,12 +54,12 @@ export function detectAnomalies({ persons, vehicles, helpers, settings, now, dis
     const byVillage = {}
     for (const u of dispatch.result.unassigned) byVillage[u.village] = (byVillage[u.village] || 0) + 1
     for (const [code, n] of Object.entries(byVillage)) {
-      out.push({ id: `deadline-${code}`, rule: 'deadline', target: vlabel[code] || code, value: `${n}명`, to: '/console/dispatch' })
+      out.push({ id: `deadline-${code}`, rule: 'deadline', target: vlabel[code] || code, value: `미이송 예상 ${n}명`, to: '/console/dispatch' })
     }
     if (dispatch.sentAt) {
       for (const [code, ack] of Object.entries(dispatch.acks || {})) {
         if (ack.answer === 'none' && dispatch.now - dispatch.sentAt > settings.noAckMinutes * MIN) {
-          out.push({ id: `noack-${code}`, rule: 'noAck', target: code, value: `${Math.floor((dispatch.now - dispatch.sentAt) / MIN)}분 무응답`, to: '/console/dispatch' })
+          out.push({ id: `noack-${code}`, rule: 'noAck', target: code, value: `전송 후 ${Math.floor((dispatch.now - dispatch.sentAt) / MIN)}분 무응답`, to: '/console/dispatch' })
         }
       }
     }

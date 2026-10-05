@@ -1,12 +1,14 @@
 // 문서함 첫 화면. 문서, 시트, 설문지 전환 → 새로 만들기 양식 → 최근 항목.
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
-import { FileText, ListChecks, MoreVertical, Plus, Search, Sheet } from 'lucide-react'
+import { FileText, FileUp, ListChecks, MoreVertical, Plus, Search, Sheet } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import PageShell from '../../components/miri/PageShell.jsx'
 import useToast from '../../hooks/useToast.js'
 import { DOC_TEMPLATES, FORM_TEMPLATES, SHEET_TEMPLATES } from '../../lib/workspaceTemplates.js'
-import useWorkspaceStore from '../../store/useWorkspaceStore.js'
+import useWorkspaceStore, { useWorkspaceInit } from '../../store/useWorkspaceStore.js'
+import * as api from '../../lib/workspaceApi.js'
+import { markdownToHtml } from './docConvert.js'
 
 export const KINDS = [
   { key: 'doc', label: '문서', Icon: FileText, templates: DOC_TEMPLATES, newLabel: '새 문서' },
@@ -69,6 +71,29 @@ export default function WorkspaceHome() {
   const toast = useToast()
   const [q, setQ] = useState('')
   const [menu, setMenu] = useState(null)
+  const ready = useWorkspaceInit()
+  const mode = useWorkspaceStore((s) => s.mode)
+  const createFromHtml = useWorkspaceStore((s) => s.createFromHtml)
+  const fileRef = useRef(null)
+  const [importing, setImporting] = useState(false)
+
+  const importFile = async (e) => {
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (!f) return
+    setImporting(true)
+    try {
+      const r = await api.parseFile(f)
+      const title = (r.title || f.name.replace(/\.[^.]+$/, '')).slice(0, 80)
+      const id = createFromHtml(title, markdownToHtml(r.markdown))
+      toast(`${f.name} 파일을 문서로 가져왔습니다`, 'primary')
+      navigate(`/console/workspace/doc/${id}`)
+    } catch (err) {
+      toast(err.message || '파일을 읽지 못했습니다', 'danger')
+    } finally {
+      setImporting(false)
+    }
+  }
 
   const list = useMemo(() => items
     .filter((x) => x.kind === kind.key)
@@ -100,7 +125,17 @@ export default function WorkspaceHome() {
       </div>
 
       <section className="mt-6 rounded-lg bg-subtle p-4 lg:p-6" aria-labelledby="tpl-title">
-        <h2 id="tpl-title" className="type-h3 text-text-pri">{kind.newLabel} 시작</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="tpl-title" className="type-h3 text-text-pri">{kind.newLabel} 시작</h2>
+          {kind.key === 'doc' && (
+            <>
+              <input ref={fileRef} type="file" accept=".hwp,.hwpx,.pdf,.docx" className="sr-only" onChange={importFile} />
+              <button type="button" disabled={importing} onClick={() => fileRef.current?.click()} className="inline-flex h-10 items-center gap-2 rounded-md bg-page px-4 type-strong text-primary ring-1 ring-inset ring-line-def hover:bg-mute disabled:opacity-40">
+                <FileUp size={16} aria-hidden="true" />{importing ? '파일 읽는 중' : '한글 파일 가져오기'}
+              </button>
+            </>
+          )}
+        </div>
         <ul className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {kind.templates.map((t) => (
             <li key={t.key}>
@@ -118,7 +153,9 @@ export default function WorkspaceHome() {
 
       <section className="mt-8" aria-labelledby="recent-title">
         <h2 id="recent-title" className="type-h3 text-text-pri">최근 {kind.label} <span className="ml-1 type-body-sm text-text-meta tabular-nums">{list.length}개</span></h2>
-        {list.length === 0 ? (
+        {!ready ? (
+          <p className="mt-3 type-body-sm text-text-meta">문서함을 불러오는 중입니다.</p>
+        ) : list.length === 0 ? (
           <p className="mt-3 type-body-sm text-text-meta">아직 만든 {kind.label}가 없습니다. 위 양식에서 시작하세요.</p>
         ) : (
           <ul className="mt-3 divide-y divide-line-sub rounded-lg bg-page shadow-card">
@@ -147,7 +184,7 @@ export default function WorkspaceHome() {
             ))}
           </ul>
         )}
-        <p className="mt-3 type-meta text-text-meta">문서함은 시연용으로 이 창에만 저장됩니다. 새로고침하면 처음 상태로 돌아가니 필요한 문서는 내보내기로 받아 두세요. 실제 주민 정보는 넣지 마세요.</p>
+        <p className="mt-3 type-meta text-text-meta">{mode === 'server' ? '문서함은 서버에 저장됩니다. 실제 주민 정보는 넣지 마세요.' : '문서함은 시연용으로 이 창에만 저장됩니다. 새로고침하면 처음 상태로 돌아가니 필요한 문서는 내보내기로 받아 두세요. 실제 주민 정보는 넣지 마세요.'}</p>
       </section>
     </PageShell>
   )

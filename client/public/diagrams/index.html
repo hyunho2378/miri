@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>미리 서비스 도식</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+:root{--pri:#2563EB;--pri-hover:#1D4ED8;--pri-line:#BFDBFE;--pri-text:#1E40AF;--pri-wash:#F3F7FE;
+  --ink:#101010;--sec:#3D3F45;--meta:#6B6F76;--line:#DDE1E6;--line-sub:#ECEEF1;--canvas:#F5F7FA;
+  --warn-soft:#FFF1E6;--warn-text:#B54708;--warn-line:#F7C9A6;
+  --font:'Pretendard','Pretendard Variable','Apple SD Gothic Neo','Malgun Gothic',-apple-system,system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--canvas);color:var(--ink);-webkit-font-smoothing:antialiased;padding:48px 20px}
+main{max-width:960px;margin:0 auto}
+.kick{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--pri)}
+h1{font-size:32px;font-weight:800;letter-spacing:-.03em;margin-top:6px}
+.lede{font-size:15px;line-height:1.6;color:var(--sec);margin-top:10px;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:28px}
+a.card{display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;
+  text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s}
+a.card:hover,a.card:focus-visible{border-color:var(--pri);box-shadow:0 6px 20px rgba(37,99,235,.12);outline:none}
+.n{font-size:12px;font-weight:700;color:var(--pri-text);background:var(--pri-wash);border:1px solid var(--pri-line);border-radius:999px;padding:2px 9px;align-self:flex-start}
+.t{font-size:19px;font-weight:700;letter-spacing:-.02em}
+.d{font-size:14px;line-height:1.55;color:var(--sec)}
+.go{margin-top:auto;padding-top:6px;font-size:14px;font-weight:600;color:var(--pri)}
+.tag{display:inline-block;margin-top:2px;font-size:12px;font-weight:700;color:var(--warn-text);background:var(--warn-soft);border:1px solid var(--warn-line);border-radius:6px;padding:2px 7px;align-self:flex-start}
+.foot{margin-top:28px;padding-top:14px;border-top:1px solid var(--line-sub);font-size:13px;line-height:1.6;color:var(--meta)}
+.foot a{color:var(--pri)}
+</style>
+</head>
+<body>
+<main>
+  <div class="kick">TEAM 오아시스 / 미리</div>
+  <h1>미리 서비스 도식</h1>
+  <p class="lede">재난취약자 사전 이송 배정 서비스 미리의 서비스 블루프린트, 시스템 구성도, 데이터 흐름도입니다. 시제품은 가상 데이터를 사용합니다.</p>
+  <div class="grid">
+    <a class="card" href="./service-blueprint.html">
+      <span class="n">도식 1</span>
+      <span class="t">서비스 블루프린트</span>
+      <span class="d">평시 준비부터 인계와 종료까지 6단계. 취약자와 가족, 담당자와 도우미, 미리 화면, 후면 처리, 지원 기관</span>
+      <span class="tag">가정 기반, 리서치 후 재작성</span>
+      <span class="go">열기</span>
+    </a>
+    <a class="card" href="./system-architecture.html">
+      <span class="n">도식 2</span>
+      <span class="t">시스템 구성도</span>
+      <span class="d">브라우저 화면, Vercel 서버리스 함수, 공공데이터포털과 Gemini 등 외부 서비스 사이의 요청</span>
+      <span class="go">열기</span>
+    </a>
+    <a class="card" href="./data-flow.html">
+      <span class="n">도식 3</span>
+      <span class="t">데이터 흐름도</span>
+      <span class="d">종이 대피계획서에서 기록까지 정보 경로와 개인정보가 머무는 위치</span>
+      <span class="go">열기</span>
+    </a>
+  </div>
+  <p class="foot">배포용 정적본입니다. 편집 가능한 원본은 저장소 docs/diagrams 에 있습니다. 작성 2026. 10. 6. <a href="/console">미리 콘솔로 돌아가기</a></p>
+</main>
+</body>
+</html>

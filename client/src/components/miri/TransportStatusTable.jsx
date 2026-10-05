@@ -19,7 +19,7 @@ export default function TransportStatusTable({
     <TableCard
       title={title} count={count ?? `${rows.length}명`} actions={actions} filters={filters} headingLevel={headingLevel} className={className}
       columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={pageSize} caption={caption}
-      emptyTitle="표시할 대상자 없음" emptyDesc="필터 변경 필요"
+      emptyTitle="표시할 대상자가 없습니다" emptyDesc="필터 조건을 바꿔 주십시오."
     />
   )
 }

@@ -22,7 +22,7 @@ export default function AnomalyBell() {
         </span>
       </IconButton>
       <Drawer open={open} onClose={() => setOpen(false)} title="이상 탐지">
-        <p className="mb-3 type-meta text-text-meta">정해 둔 점검 규칙에 걸린 항목입니다. 기준은 설정에서 바꿉니다</p>
+        <p className="mb-3 type-meta text-text-meta">정해 둔 점검 규칙에 해당하는 항목입니다. 기준값은 설정에서 변경합니다.</p>
         <AnomalyList items={items} onNavigate={() => setOpen(false)} />
       </Drawer>
     </>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>미리 데이터 흐름도</title>
+<style>
+/* ================= 미리 도식 공통 스타일 (client/src/tokens.js 값) ================= */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+:root{
+  --pri:#2563EB; --pri-hover:#1D4ED8; --pri-soft:#D6E4FD; --pri-line:#BFDBFE; --pri-text:#1E40AF; --pri-wash:#F3F7FE;
+  --ink:#101010; --sec:#3D3F45; --meta:#6B6F76; --ter:#9A9EA5;
+  --canvas:#F5F7FA; --mute:#F0F2F5; --subtle:#F8F9FB;
+  --line:#DDE1E6; --line-sub:#ECEEF1; --line-strong:#C5CAD1;
+  --warn:#EA580C; --warn-soft:#FFF1E6; --warn-text:#B54708; --warn-line:#F7C9A6;
+  --crit:#E0001B; --crit-soft:#FFE8EA; --crit-text:#D10019;
+  --font:'Pretendard','Pretendard Variable','Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',-apple-system,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E9ECF1;font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased;padding:28px 18px;word-break:keep-all;overflow-wrap:anywhere;}
+.fig-stage{max-width:1352px;margin:0 auto;background:#fff;border-radius:16px;
+  box-shadow:0 14px 44px rgba(16,16,16,.10);padding:36px 36px 26px;}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;max-width:1280px;margin:0 auto 22px;}
+.kick{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--pri);}
+h1{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-top:6px;}
+.lede{font-size:14px;line-height:1.55;color:var(--sec);margin-top:8px;max-width:640px;}
+.assume{display:inline-flex;align-items:center;gap:6px;margin-top:12px;height:28px;padding:0 12px;border-radius:999px;
+  background:var(--warn-soft);border:1px solid var(--warn-line);color:var(--warn-text);font-size:13px;font-weight:700;}
+.assume svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.legend{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;font-size:13px;color:var(--sec);
+  background:var(--subtle);border:1px solid var(--line-sub);border-radius:12px;padding:12px 14px;min-width:330px;}
+.legend .lt{grid-column:1/-1;font-size:12px;font-weight:700;color:var(--meta);letter-spacing:.04em}
+.tag{display:inline-flex;align-items:center;justify-content:center;height:20px;padding:0 7px;border-radius:6px;
+  font-size:12px;font-weight:700;line-height:1;white-space:nowrap;flex:0 0 auto;}
+.tag.ai{background:var(--pri);color:#fff;}
+.tag.rule{background:#fff;color:var(--sec);border:1px solid var(--line-strong);}
+.tag.human{background:var(--warn-soft);color:var(--warn-text);border:1px solid var(--warn-line);}
+.tag.hyp{background:#fff;color:var(--meta);border:1px dashed var(--line-strong);font-weight:600}
+.tag.off{background:var(--crit-soft);color:var(--crit-text);}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;letter-spacing:-.02em}
+.foot{display:flex;justify-content:space-between;gap:20px;max-width:1280px;margin:18px auto 0;padding-top:12px;
+  border-top:1px solid var(--line-sub);font-size:12px;line-height:1.5;color:var(--meta);}
+.ico{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+
+/* ---- 데이터 흐름도 ---- */
+.virt{display:inline-flex;align-items:center;gap:6px;margin-top:12px;height:28px;padding:0 12px;border-radius:999px;
+  background:var(--mute);border:1px solid var(--line);color:var(--sec);font-size:13px;font-weight:700;}
+.lane{border-radius:16px;border:1px solid var(--line-sub);padding:12px 14px}
+.lane .lt{font-size:15px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px}
+.lane .lr{font-size:12.5px;color:var(--sec);line-height:1.45;margin-top:4px}
+.lane.a{background:#FFF7F8;border-color:#FFD9DE}
+.lane.b{background:var(--pri-wash);border-color:var(--pri-line)}
+.lane.c{background:var(--subtle);border-color:var(--line)}
+.lane.d{background:var(--canvas);border-color:var(--line)}
+.pd{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.pd.id{background:var(--crit-soft);color:var(--crit-text)}
+.pd.anon{background:#fff;color:var(--pri-text);border:1px solid var(--pri-line)}
+.pd.tmp{background:#fff;color:var(--sec);border:1px solid var(--line-strong)}
+.pd.none{background:#fff;color:var(--meta);border:1px dashed var(--line-strong)}
+.rail{background:transparent;border:none;display:flex;align-items:center;justify-content:center}
+.rail span{writing-mode:vertical-rl;font-size:14px;font-weight:800;letter-spacing:.3em;color:var(--meta)}
+.rail::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--line);transform:translateX(-50%);z-index:-1}
+.rail span{background:#fff;padding:8px 0}
+.rail.on span{color:var(--pri-hover)} .rail.on::before{background:var(--pri-line)}
+.st{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;color:var(--sec);
+  box-shadow:0 2px 8px rgba(16,16,16,.05)}
+.st .sh{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--ink);line-height:1.25;margin-bottom:4px}
+.st .no{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--pri);color:#fff;font-size:12px;font-weight:800;flex:0 0 auto}
+.st .no.g{background:var(--sec)}
+.st .r{display:flex;align-items:flex-start;gap:6px;margin-top:5px}
+.st .r .tag{margin-top:0}
+.st .ft{margin-top:6px;font-size:12px;color:var(--meta)}
+.st.side{background:#fff;border-style:dashed}
+.st.crit{border-color:#FFB3BC}
+.st.crit .no{background:var(--crit)}
+.div{background:transparent;border:none;display:flex;align-items:center;gap:10px}
+.div .dl{flex:1;border-top:2px dashed var(--pri)}
+.div .dt{display:inline-flex;align-items:center;gap:8px;background:var(--pri);color:#fff;border-radius:999px;height:30px;padding:0 14px;font-size:13px;font-weight:700;white-space:nowrap}
+.div .dd{font-size:12.5px;color:var(--pri-text);font-weight:600;white-space:nowrap;background:#fff;padding:0 6px}
+
+</style>
+
+<style id="fig-static-css">/* fig-static: 배포본 최소 스타일. fig-editor.css의 규약 부분과 같게 유지한다 */
+.fig-scale{position:relative;overflow:visible}
+.fig-canvas{position:relative;transform-origin:0 0}
+.fig-node{position:absolute;box-sizing:border-box}
+.fig-node *{box-sizing:border-box}
+.fig-edge{display:none}
+.fig-edges{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:5}
+.fig-elabel{position:absolute;z-index:6;font-size:12px;font-weight:700;padding:2px 8px;border-radius:12px;background:rgba(255,255,255,.94);box-shadow:0 1px 4px rgba(15,23,42,.14);white-space:nowrap;transform:translate(-50%,-50%);pointer-events:none}
+@keyframes figFlow{to{stroke-dashoffset:-28}}
+.fig-edges g.fig-flow .fe-main{stroke-dasharray:7 7 !important;animation:figFlow 1.05s linear infinite}
+</style></head>
+<body>
+<div class="fig-stage">
+
+  <!-- ======== FIG:CONTENT START: 이 안을 작성한다 ======== -->
+  <div class="head">
+    <div>
+      <div class="kick">TEAM 오아시스 / 미리 서비스 도식 3</div>
+      <h1>데이터 흐름도</h1>
+      <p class="lede">종이 대피계획서에서 시작한 정보가 명부, 부족분 계산, 배정, 도우미 보고, 소방 인계, 기록으로 이어지는 경로와 각 단계에서 개인정보가 머무는 위치를 정리한 도식입니다.</p>
+      <span class="virt">시제품은 전 구간 가상 데이터. 실제 주민 정보는 저장하지 않음</span>
+    </div>
+    <div class="legend">
+      <span class="lt">처리 주체</span>
+      <span class="tag ai">AI</span><span>멀티모달 LLM 판독</span>
+      <span class="tag rule">규칙</span><span>고정 공식과 탐색 규칙</span>
+      <span class="tag human">사람 확인</span><span>담당자 또는 시 관리자 확정</span>
+      <span class="lt" style="margin-top:4px">개인정보 위치</span>
+      <span class="pd id">실명 포함</span><span>원본. 지자체와 시설에만 보관</span>
+      <span class="pd anon">비식별</span><span>대상자 코드, 마을, 등급, 태그만</span>
+      <span class="pd tmp">기간 한정</span><span>발령 기간에만 표시, 종료 시 삭제</span>
+    </div>
+  </div>
+
+  <div class="fig-canvas" data-size="1280x1160" style="margin: 0px auto; width: 1280px; height: 1160px;"><svg class="fig-edges" viewBox="0 0 1280 1160" width="1280" height="1160"><g opacity="1"><path class="fe-main" fill="none" d="M268,156 Q292,158.76 309.5624286218646,160.7796792915144" stroke="#2563EB" stroke-width="2.2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M316,161.51999999999998 L306.4934058780522,165.40936604095677 L307.6244514049052,155.57418754658332 Z"></path><path class="fe-a2" fill="#2563EB" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M268,303.2 Q292,324.6 311.1634645131568,341.68742252423147" stroke="#9A9EA5" stroke-width="1.8" stroke-linecap="butt" stroke-dasharray="5.4 4.32" stroke-opacity="1"></path><path class="fe-a1" fill="#9A9EA5" d="M316,346 L305.98825958539453,343.7048847805489 L312.5769196178187,336.3157333423162 Z"></path><path class="fe-a2" fill="#9A9EA5" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M466,252 Q466,274 466,289.52" stroke="#2563EB" stroke-width="2.2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M466,296 L461.05,287 L470.95,287 Z"></path><path class="fe-a2" fill="#2563EB" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M466,396 Q466,418 466,433.52" stroke="#2563EB" stroke-width="2.2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M466,440 L461.05,431 L470.95,431 Z"></path><path class="fe-a2" fill="#2563EB" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M702.8,396 Q659.4,431.2 621.0327639081247,462.3181269685256" stroke="#72767E" stroke-width="1.8" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#72767E" d="M616,466.4 L619.8718524177968,456.88625947091253 L626.1080473269938,464.5752043305475 Z"></path><path class="fe-a2" fill="#72767E" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M644,521.84 Q630,521.84 622.48,521.84" stroke="#72767E" stroke-width="1.8" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#72767E" d="M616,521.84 L625,516.89 L625,526.7900000000001 Z"></path><path class="fe-a2" fill="#72767E" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M466,572 Q466,594 466,609.52" stroke="#2563EB" stroke-width="2.2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M466,616 L461.05,607 L470.95,607 Z"></path><path class="fe-a2" fill="#2563EB" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M1096,658 Q856,658 622.48,658" stroke="#72767E" stroke-width="1.8" stroke-linecap="butt" stroke-dasharray="5.4 4.32" stroke-opacity="1"></path><path class="fe-a1" fill="#72767E" d="M616,658 L625,653.05 L625,662.95 Z"></path><path class="fe-a2" fill="#72767E" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M466,700 Q466,732 466,757.52" stroke="#2563EB" stroke-width="2.2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M466,764 L461.05,755 L470.95,755 Z"></path><path class="fe-a2" fill="#2563EB" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M616,818 Q750,818 877.52,818" stroke="#2563EB" stroke-width="2.2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M884,818 L875,822.95 L875,813.05 Z"></path><path class="fe-a2" fill="#2563EB" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M968,872 Q968,894 968,909.52" stroke="#2563EB" stroke-width="2.2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M968,916 L963.05,907 L972.95,907 Z"></path><path class="fe-a2" fill="#2563EB" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M884,962 Q750,962 622.48,962" stroke="#2563EB" stroke-width="2.2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M616,962 L625,957.05 L625,966.95 Z"></path><path class="fe-a2" fill="#2563EB" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M376,916 Q376,894 376,878.48" stroke="#EA580C" stroke-width="1.8" stroke-linecap="butt" stroke-dasharray="5.4 4.32" stroke-opacity="1"></path><path class="fe-a1" fill="#EA580C" d="M376,872 L380.95,881 L371.05,881 Z"></path><path class="fe-a2" fill="#EA580C" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M616,994.2 Q856,1046.1 1089.6664004094312,1096.6303590885395" stroke="#E0001B" stroke-width="2.2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#E0001B" d="M1096,1098 L1086.1570804279554,1100.9358873102115 L1088.24958737602,1091.259554602398 Z"></path><path class="fe-a2" fill="#E0001B" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M466,1008 Q466,1030 466,1045.52" stroke="#2563EB" stroke-width="2.2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M466,1052 L461.05,1043 L470.95,1043 Z"></path><path class="fe-a2" fill="#2563EB" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M316,1098 Q70.01000000000002,808.6 311.8032382377809,524.1373667790814" stroke="#72767E" stroke-width="1.8" stroke-linecap="butt" stroke-dasharray="5.4 4.32" stroke-opacity="1"></path><path class="fe-a1" fill="#72767E" d="M316,519.2 L313.94276384204943,529.2633135393081 L306.3995645962308,522.8515941803622 Z"></path><path class="fe-a2" fill="#72767E" d=""></path></g></svg>
+
+    <!-- 영역 (개인정보가 머무는 곳) -->
+    <div class="fig-node lane a" id="lane-a" style="left:52px;top:0px;width:232px;height:1160px"><div class="lt">지자체와 시설 <span class="pd id">실명 포함</span></div><div class="lr">원본 서류와 명부 보관. 미리로 원본을 옮기지 않음</div></div>
+    <div class="fig-node lane b" id="lane-b" style="left:296px;top:0px;width:560px;height:1160px"><div class="lt">미리 (담당자 콘솔과 서버) <span class="pd anon">비식별</span></div><div class="lr">대상자 코드, 동, 마을, 이송 등급, 특이사항 태그만 저장. 이름 열 없음</div></div>
+    <div class="fig-node lane c" id="lane-c" style="left:868px;top:0px;width:200px;height:1160px"><div class="lt">도우미 휴대폰</div><div class="lr"><span class="pd tmp">기간 한정</span> 본인 담당 대상자만 표시</div></div>
+    <div class="fig-node lane d" id="lane-d" style="left:1080px;top:0px;width:200px;height:1160px"><div class="lt">외부 기관</div><div class="lr">공공데이터는 개인정보 없음. 소방은 인계 목록만 받음</div></div>
+
+    <!-- 단계 레일 -->
+    <div class="fig-node rail" id="rail-peace" style="left:0px;top:96px;width:40px;height:604px"><span>평시</span></div>
+    <div class="fig-node rail on" id="rail-alert" style="left:0px;top:764px;width:40px;height:380px"><span>발령</span></div>
+
+    <!-- 평시 -->
+    <div class="fig-node st" id="s1-paper" style="left:68px;top:96px;width:200px;height:120px">
+      <div class="sh"><span class="no">1</span>종이 대피계획서</div>대피카드 포함. 시설과 재가기관이 작성. 사진, 스캔, PDF
+      <div class="r"><span class="pd id">실명 포함</span></div>
+    </div>
+    <div class="fig-node st side" id="a-roster" style="left:68px;top:236px;width:200px;height:112px">
+      <div class="sh">지자체 명부 원본</div>지자체 서버 보관. 이름을 뺀 코드만 미리 명부와 연결
+    </div>
+    <div class="fig-node st" id="s2-read" style="left:316px;top:96px;width:300px;height:156px">
+      <div class="sh"><span class="no">2</span>서류 읽기</div>
+      <div class="r"><span class="tag ai">AI</span><span>전사, 이송 등급 판정, 근거 문구</span></div>
+      <div class="r"><span class="tag rule">규칙</span><span>원문 대조, 불일치 시 신뢰도 하향</span></div>
+      <div class="r"><span class="tag human">사람 확인</span><span>담당자 확인, 수정, 제외</span></div>
+      <div class="ft">판독 결과에 이름, 주소, 전화번호를 출력하지 않음</div>
+    </div>
+    <div class="fig-node st" id="s3-roster" style="left:316px;top:296px;width:300px;height:100px">
+      <div class="sh"><span class="no">3</span>대상자 명부</div>대상자 코드, 동, 마을, 이송 등급, 특이사항 태그, 판정 출처, 확인 상태
+    </div>
+    <div class="fig-node st side" id="i-res" style="left:644px;top:296px;width:196px;height:100px">
+      <div class="sh">차량과 도우미</div>협약 차량(차종, 정원), 도우미 명단. 모집은 설문 /f/:id
+    </div>
+    <div class="fig-node st" id="s4-short" style="left:316px;top:440px;width:300px;height:132px">
+      <div class="sh"><span class="no">4</span>부족분 계산 <span class="tag rule">규칙</span></div>
+      이송 가능 인원 = 차량 수 × 왕복 가능 횟수 × 정원<br>
+      왕복 가능 횟수 = (기한 8시간 − 준비 1시간) ÷ 왕복 시간
+      <div class="ft">출력: 마을별 부족분, 필요 추가 차량</div>
+    </div>
+    <div class="fig-node st side" id="i-cond" style="left:644px;top:440px;width:196px;height:132px">
+      <div class="sh">계산 조건</div>준비 시간, 이송 기한, 마을별 왕복 시간, 도달 가정 시나리오
+      <div class="ft">차종별 정원과 등급 호환은 가정값</div>
+    </div>
+    <div class="fig-node st" id="s5-board" style="left:316px;top:616px;width:300px;height:84px">
+      <div class="sh"><span class="no">5</span>상황판과 현황판</div>미이송 예상, 부족 마을, 필요 추가 차량. 지도의 마을 좌표는 가상
+    </div>
+    <div class="fig-node st side" id="d-open" style="left:1096px;top:616px;width:168px;height:84px">
+      <div class="sh">공공데이터포털</div>산불 위험, 대피소, 장기요양기관
+    </div>
+
+    <!-- 발령 구분 -->
+    <div class="fig-node div" id="dv-alert" style="left:52px;top:716px;width:1228px;height:32px">
+      <span class="dt">발령 개시 (시 관리자 확인)</span><span class="dl"></span><span class="dd">산림청 도달 예측 시각에서 8시간 역산, 마을별 발령 기한</span>
+    </div>
+
+    <!-- 발령 -->
+    <div class="fig-node st" id="s6-assign" style="left:316px;top:764px;width:300px;height:108px">
+      <div class="sh"><span class="no">6</span>추천 배정</div>
+      <div class="r"><span class="tag rule">규칙</span><span>침상 우선 기본 순서에서 지역 탐색</span></div>
+      <div class="r"><span class="tag human">사람 확인</span><span>담당자 배정 확정</span></div>
+    </div>
+    <div class="fig-node st" id="s7-phone" style="left:884px;top:764px;width:168px;height:108px">
+      <div class="sh"><span class="no">7</span>도우미 화면</div>/h/:token. 배정 요약, 수락 또는 불가. 종료 시 삭제
+    </div>
+    <div class="fig-node st" id="s8-report" style="left:884px;top:916px;width:168px;height:92px">
+      <div class="sh"><span class="no">8</span>완료 보고</div>출발, 도착, 탑승, 인계 단계. 실패 보고
+    </div>
+    <div class="fig-node st" id="s9-ops" style="left:316px;top:916px;width:300px;height:92px">
+      <div class="sh"><span class="no">9</span>발령 운영 현황</div>
+      <div class="r"><span class="tag rule">규칙</span><span>진행 집계, 점검: 기한 초과 예상, 무응답</span></div>
+    </div>
+    <div class="fig-node st crit" id="s10-fire" style="left:1096px;top:1052px;width:168px;height:92px">
+      <div class="sh"><span class="no">10</span>소방 인계</div>동해소방서. 미이송자 목록 수신 <span class="tag human">사람 확인</span>
+    </div>
+    <div class="fig-node st" id="s11-record" style="left:316px;top:1052px;width:300px;height:92px">
+      <div class="sh"><span class="no g">11</span>기록</div>이송 기록 저장, 도우미 화면 정보 삭제. 다음 협약 규모 산정 근거
+    </div>
+
+    <!-- 흐름 -->
+    <div class="fig-edge" id="f-1-2" data-from="s1-paper" data-to="s2-read" data-anchor-from="1,0.5" data-anchor-to="0,0.42" data-color="#2563EB" data-width="2.2" data-arrow="end"></div>
+    <div class="fig-edge" id="f-a-3" data-from="a-roster" data-to="s3-roster" data-anchor-from="1,0.6" data-anchor-to="0,0.5" data-style="dashed" data-color="#9A9EA5" data-width="1.8" data-arrow="end"></div>
+    <div class="fig-edge" id="f-2-3" data-from="s2-read" data-to="s3-roster" data-color="#2563EB" data-width="2.2" data-arrow="end" data-label="확인 완료 항목"></div>
+    <div class="fig-edge" id="f-3-4" data-from="s3-roster" data-to="s4-short" data-color="#2563EB" data-width="2.2" data-arrow="end" data-label="등급별 인원"></div>
+    <div class="fig-edge" id="f-r-4" data-from="i-res" data-to="s4-short" data-anchor-from="0.3,1" data-anchor-to="1,0.2" data-color="#72767E" data-width="1.8" data-arrow="end"></div>
+    <div class="fig-edge" id="f-c-4" data-from="i-cond" data-to="s4-short" data-anchor-from="0,0.62" data-anchor-to="1,0.62" data-color="#72767E" data-width="1.8" data-arrow="end"></div>
+    <div class="fig-edge" id="f-4-5" data-from="s4-short" data-to="s5-board" data-color="#2563EB" data-width="2.2" data-arrow="end" data-label="마을별 부족분"></div>
+    <div class="fig-edge" id="f-o-5" data-from="d-open" data-to="s5-board" data-anchor-from="0,0.5" data-anchor-to="1,0.5" data-style="dashed" data-color="#72767E" data-width="1.8" data-arrow="end" data-label="위험 지수, 시설 위치"></div>
+    <div class="fig-edge" id="f-5-6" data-from="s5-board" data-to="s6-assign" data-color="#2563EB" data-width="2.2" data-arrow="end"></div>
+    <div class="fig-edge" id="f-6-7" data-from="s6-assign" data-to="s7-phone" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-color="#2563EB" data-width="2.2" data-arrow="end" data-label="배정 링크 (본인 건만)"></div>
+    <div class="fig-edge" id="f-7-8" data-from="s7-phone" data-to="s8-report" data-color="#2563EB" data-width="2.2" data-arrow="end"></div>
+    <div class="fig-edge" id="f-8-9" data-from="s8-report" data-to="s9-ops" data-anchor-from="0,0.5" data-anchor-to="1,0.5" data-color="#2563EB" data-width="2.2" data-arrow="end" data-label="단계 보고, 실패 보고"></div>
+    <div class="fig-edge" id="f-9-6" data-from="s9-ops" data-to="s6-assign" data-anchor-from="0.2,0" data-anchor-to="0.2,1" data-style="dashed" data-color="#EA580C" data-width="1.8" data-arrow="end" data-label="실패 건 재배정"></div>
+    <div class="fig-edge" id="f-9-10" data-from="s9-ops" data-to="s10-fire" data-anchor-from="1,0.85" data-anchor-to="0,0.5" data-color="#E0001B" data-width="2.2" data-arrow="end" data-label="미이송자 목록"></div>
+    <div class="fig-edge" id="f-9-11" data-from="s9-ops" data-to="s11-record" data-anchor-from="0.5,1" data-anchor-to="0.5,0" data-color="#2563EB" data-width="2.2" data-arrow="end" data-label="이송 결과"></div>
+    <div class="fig-edge" id="f-11-4" data-from="s11-record" data-to="s4-short" data-anchor-from="0,0.5" data-anchor-to="0,0.6" data-style="dashed" data-color="#72767E" data-width="1.8" data-curve="-0.85" data-arrow="end" data-label="협약 규모 재산정"></div>
+  <div class="fig-elabel" style="left: 466px; top: 274px; color: rgb(37, 99, 235); opacity: 1;">확인 완료 항목</div><div class="fig-elabel" style="left: 466px; top: 418px; color: rgb(37, 99, 235); opacity: 1;">등급별 인원</div><div class="fig-elabel" style="left: 466px; top: 594px; color: rgb(37, 99, 235); opacity: 1;">마을별 부족분</div><div class="fig-elabel" style="left: 856px; top: 658px; color: rgb(114, 118, 126); opacity: 1;">위험 지수, 시설 위치</div><div class="fig-elabel" style="left: 750px; top: 818px; color: rgb(37, 99, 235); opacity: 1;">배정 링크 (본인 건만)</div><div class="fig-elabel" style="left: 750px; top: 962px; color: rgb(37, 99, 235); opacity: 1;">단계 보고, 실패 보고</div><div class="fig-elabel" style="left: 376px; top: 894px; color: rgb(234, 88, 12); opacity: 1;">실패 건 재배정</div><div class="fig-elabel" style="left: 856px; top: 1046.1px; color: rgb(224, 0, 27); opacity: 1;">미이송자 목록</div><div class="fig-elabel" style="left: 466px; top: 1030px; color: rgb(37, 99, 235); opacity: 1;">이송 결과</div><div class="fig-elabel" style="left: 193.005px; top: 808.6px; color: rgb(114, 118, 126); opacity: 1;">협약 규모 재산정</div></div>
+
+  <div class="foot">
+    <span>근거: docs/PLAN.md 3.2절 부족분 계산, 3.4절 배정, 3.8절 개인정보와 데이터 / client/api/intake.js 판독 지시문 6항 / docs/PRD-v2.md F4</span>
+    <span>작성 2026. 10. 6.</span>
+  </div>
+
+  <!-- ======== FIG:CONTENT END ======== -->
+
+</div>
+
+
+
+<script id="fig-static-js">/* fig-static: 창 폭에 맞춰 캔버스를 축소하는 뷰어. 편집 기능은 없다 */
+(function(){
+function fit(){Array.prototype.forEach.call(document.querySelectorAll(".fig-canvas"),function(cv){var m=(cv.getAttribute("data-size")||"").match(/^\s*(\d+)\s*[x\u00d7]\s*(\d+)/i);var w=m?+m[1]:cv.offsetWidth,h=m?+m[2]:cv.offsetHeight;cv.style.width=w+"px";cv.style.height=h+"px";var wrap=cv.parentElement;if(!wrap.classList.contains("fig-scale")){var d=document.createElement("div");d.className="fig-scale";cv.parentNode.insertBefore(d,cv);d.appendChild(cv);wrap=d;}var sc=Math.min(1,(wrap.clientWidth||w)/w);cv.style.transform=sc<1?"scale("+sc+")":"";wrap.style.height=(h*sc)+"px";});}
+window.addEventListener("resize",fit);if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fit);else fit();
+var noop=function(){};
+/* html-deck 런타임 등이 부르는 편집 API는 빈 함수로 둔다 */
+window.FigEditor=window.FigEditor||{static:true,fitAll:fit,renderAll:noop,setEdit:noop,onClean:noop,isEditing:function(){return false},selection:function(){return []},select:noop,clearSelection:noop,commit:noop,toast:noop,save:noop,serialize:function(){return "<!DOCTYPE html>\n"+document.documentElement.outerHTML},clean:function(){return document.body.innerHTML}};
+})();
+</script></body></html>

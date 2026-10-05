@@ -54,8 +54,8 @@ export default function HelperAssignmentCard({
           <div className="flex items-start gap-2">
             <MapPin size={20} aria-hidden="true" className="mt-1 shrink-0 text-text-meta" />
             <div className="min-w-0">
-              <p className="type-body text-text-pri">{info?.address || '주소 정보 없음'}</p>
-              <p className="type-body-sm text-text-sec">{villageLabel} → {shelterName}</p>
+              <p className="type-body text-text-pri">{info?.address || '주소 정보가 없습니다.'}</p>
+              <p className="type-body-sm text-text-sec">출발 {villageLabel}, 도착 {shelterName}</p>
             </div>
           </div>
           {info?.guardianPhone && (
@@ -64,7 +64,7 @@ export default function HelperAssignmentCard({
               className="pressable flex items-center gap-2 min-h-11 rounded-md bg-mute px-3 type-body text-text-pri hover:bg-line-sub"
             >
               <Phone size={20} aria-hidden="true" className="text-primary" />
-              보호자 연락 <span className="tabular-nums">{info.guardianPhone}</span>
+              보호자에게 전화 <span className="tabular-nums">{info.guardianPhone}</span>
             </a>
           )}
           <div>
@@ -75,7 +75,7 @@ export default function HelperAssignmentCard({
             <p className="type-caption text-text-sec">주의사항</p>
             {tags.length
               ? <ul className="mt-1 flex flex-wrap gap-2">{tags.map((t) => <li key={t} className="inline-flex items-center h-8 px-3 rounded-full bg-mute type-body-sm text-text-pri">{t}</li>)}</ul>
-              : <p className="mt-0.5 type-body text-text-meta">특이사항 없음</p>}
+              : <p className="mt-0.5 type-body text-text-meta">특이사항이 없습니다.</p>}
           </div>
         </div>
       )}

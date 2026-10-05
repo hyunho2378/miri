@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>미리 시스템 구성도</title>
+<style>
+/* ================= 미리 도식 공통 스타일 (client/src/tokens.js 값) ================= */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+:root{
+  --pri:#2563EB; --pri-hover:#1D4ED8; --pri-soft:#D6E4FD; --pri-line:#BFDBFE; --pri-text:#1E40AF; --pri-wash:#F3F7FE;
+  --ink:#101010; --sec:#3D3F45; --meta:#6B6F76; --ter:#9A9EA5;
+  --canvas:#F5F7FA; --mute:#F0F2F5; --subtle:#F8F9FB;
+  --line:#DDE1E6; --line-sub:#ECEEF1; --line-strong:#C5CAD1;
+  --warn:#EA580C; --warn-soft:#FFF1E6; --warn-text:#B54708; --warn-line:#F7C9A6;
+  --crit:#E0001B; --crit-soft:#FFE8EA; --crit-text:#D10019;
+  --font:'Pretendard','Pretendard Variable','Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',-apple-system,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E9ECF1;font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased;padding:28px 18px;word-break:keep-all;overflow-wrap:anywhere;}
+.fig-stage{max-width:1352px;margin:0 auto;background:#fff;border-radius:16px;
+  box-shadow:0 14px 44px rgba(16,16,16,.10);padding:36px 36px 26px;}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;max-width:1280px;margin:0 auto 22px;}
+.kick{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--pri);}
+h1{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-top:6px;}
+.lede{font-size:14px;line-height:1.55;color:var(--sec);margin-top:8px;max-width:640px;}
+.assume{display:inline-flex;align-items:center;gap:6px;margin-top:12px;height:28px;padding:0 12px;border-radius:999px;
+  background:var(--warn-soft);border:1px solid var(--warn-line);color:var(--warn-text);font-size:13px;font-weight:700;}
+.assume svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.legend{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;font-size:13px;color:var(--sec);
+  background:var(--subtle);border:1px solid var(--line-sub);border-radius:12px;padding:12px 14px;min-width:330px;}
+.legend .lt{grid-column:1/-1;font-size:12px;font-weight:700;color:var(--meta);letter-spacing:.04em}
+.tag{display:inline-flex;align-items:center;justify-content:center;height:20px;padding:0 7px;border-radius:6px;
+  font-size:12px;font-weight:700;line-height:1;white-space:nowrap;flex:0 0 auto;}
+.tag.ai{background:var(--pri);color:#fff;}
+.tag.rule{background:#fff;color:var(--sec);border:1px solid var(--line-strong);}
+.tag.human{background:var(--warn-soft);color:var(--warn-text);border:1px solid var(--warn-line);}
+.tag.hyp{background:#fff;color:var(--meta);border:1px dashed var(--line-strong);font-weight:600}
+.tag.off{background:var(--crit-soft);color:var(--crit-text);}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;letter-spacing:-.02em}
+.foot{display:flex;justify-content:space-between;gap:20px;max-width:1280px;margin:18px auto 0;padding-top:12px;
+  border-top:1px solid var(--line-sub);font-size:12px;line-height:1.5;color:var(--meta);}
+.ico{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+
+/* ---- 시스템 구성도 ---- */
+.pnl{border-radius:16px;border:1px solid var(--line);background:var(--subtle);padding:14px 16px}
+.pnl .pt{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
+.pnl .pt .ico{width:18px;height:18px;color:var(--pri)}
+.pnl .ps{font-size:12px;color:var(--meta);margin-top:2px}
+.pnl.fn{background:var(--pri-wash);border-color:var(--pri-line)}
+.pnl.ext{background:var(--canvas);border-color:var(--line-sub)}
+.box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;color:var(--sec);
+  box-shadow:0 2px 8px rgba(16,16,16,.04)}
+.box .nh{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:800;color:var(--ink);line-height:1.25}
+.box .nh .ico{color:var(--pri)}
+.box .rt{font-size:12px;color:var(--pri-text);font-weight:600;margin-top:2px}
+.box .ds{margin-top:4px}
+.box .row{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap}
+.scr{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px}
+.scr span{background:var(--pri-wash);border:1px solid var(--pri-line);border-radius:7px;padding:4px 7px;font-size:12.5px;font-weight:700;color:var(--pri-text);line-height:1.2}
+.sub{margin-top:10px;border-radius:10px;background:var(--subtle);border:1px dashed var(--line-strong);padding:9px 10px}
+.sub .st{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink)}
+.sub .sd{font-size:12.5px;color:var(--sec);margin-top:3px;line-height:1.45}
+.fnb{border-color:var(--pri-line)}
+.fnb .path{font-size:15px;font-weight:800;color:var(--pri-text)}
+.fnb .mth{font-size:12px;font-weight:700;color:#fff;background:var(--pri);border-radius:5px;padding:2px 6px;line-height:1.2}
+.fnb .top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.api{display:grid;grid-template-columns:1fr auto;gap:4px 10px;margin-top:8px;font-size:13px}
+.api b{font-weight:700;color:var(--ink)}
+.api i{font-style:normal;color:var(--meta);font-size:12px;text-align:right}
+.api .plan{color:var(--meta);font-weight:600}
+.api .plan + i{color:var(--warn-text)}
+.ext-b .nh .ico{color:var(--sec)}
+.note{background:transparent;border:none;font-size:12.5px;color:var(--meta);line-height:1.5;display:flex;gap:8px;align-items:flex-start}
+.note .ico{color:var(--meta);margin-top:2px}
+
+</style>
+
+<style id="fig-static-css">/* fig-static: 배포본 최소 스타일. fig-editor.css의 규약 부분과 같게 유지한다 */
+.fig-scale{position:relative;overflow:visible}
+.fig-canvas{position:relative;transform-origin:0 0}
+.fig-node{position:absolute;box-sizing:border-box}
+.fig-node *{box-sizing:border-box}
+.fig-edge{display:none}
+.fig-edges{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:5}
+.fig-elabel{position:absolute;z-index:6;font-size:12px;font-weight:700;padding:2px 8px;border-radius:12px;background:rgba(255,255,255,.94);box-shadow:0 1px 4px rgba(15,23,42,.14);white-space:nowrap;transform:translate(-50%,-50%);pointer-events:none}
+@keyframes figFlow{to{stroke-dashoffset:-28}}
+.fig-edges g.fig-flow .fe-main{stroke-dasharray:7 7 !important;animation:figFlow 1.05s linear infinite}
+</style></head>
+<body>
+<div class="fig-stage">
+
+  <!-- ======== FIG:CONTENT START: 이 안을 작성한다 ======== -->
+  <div class="head">
+    <div>
+      <div class="kick">TEAM 오아시스 / 미리 서비스 도식 2</div>
+      <h1>시스템 구성도</h1>
+      <p class="lede">브라우저 화면, Vercel 서버리스 함수, 외부 서비스 사이에 오가는 요청과 데이터를 정리한 도식입니다. 인증키는 서버 함수에만 두고 브라우저에 노출하지 않습니다.</p>
+    </div>
+    <div class="legend">
+      <span class="lt">선 종류</span>
+      <svg width="44" height="10" viewBox="0 0 44 10"><path d="M2 5h34" stroke="#2563EB" stroke-width="2"></path><path d="M34 1l8 4-8 4z" fill="#2563EB"></path></svg><span>브라우저에서 서버 함수로 가는 요청과 응답</span>
+      <svg width="44" height="10" viewBox="0 0 44 10"><path d="M2 5h34" stroke="#505358" stroke-width="2"></path><path d="M34 1l8 4-8 4z" fill="#505358"></path></svg><span>서버 함수에서 외부 서비스 호출</span>
+      <svg width="44" height="10" viewBox="0 0 44 10"><path d="M2 5h34" stroke="#2563EB" stroke-width="2" stroke-dasharray="5 4"></path><path d="M34 1l8 4-8 4z" fill="#2563EB"></path></svg><span>브라우저 직접 요청 (지도 타일)</span>
+      <span class="tag hyp">v2 추가</span><span>PRD v2(2026. 10. 6.)에서 추가하는 구성</span>
+    </div>
+  </div>
+
+  <div class="fig-canvas" data-size="1280x908" style="margin: 0px auto; width: 1280px; height: 908px;"><svg class="fig-edges" viewBox="0 0 1280 908" width="1280" height="908"><g opacity="1"><path class="fe-main" fill="none" d="M294.47999910249325,142.07658947415658 Q364,142.04 433.52000089750675,142.0034105258434" stroke="#2563EB" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M440,142 L431.00260650933416,146.95473615585377 L430.9973959837401,137.0547375270446 Z"></path><path class="fe-a2" fill="#2563EB" d="M288,142.07999999999998 L296.99739349066584,137.12526384414622 L297.0026040162599,147.02526247295538 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M294.4799964099753,278.1531789511474 Q364,278.08000000000004 433.5200035900247,278.0068210488526" stroke="#2563EB" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M440,278 L431.0052155095745,282.95947093658197 L430.99479446271636,273.05947642134197 Z"></path><path class="fe-a2" fill="#2563EB" d="M288,278.16 L296.9947844904255,273.20052906341806 L297.00520553728364,283.10052357865806 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M294.4799997756233,369.96170526309885 Q364,369.98 433.5200002243767,369.99829473690113" stroke="#2563EB" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M440,370 L430.99869768010046,374.94763140763047 L431.0013029431682,365.04763175042825 Z"></path><path class="fe-a2" fill="#2563EB" d="M288,369.96 L297.00130231989954,365.0123685923695 L296.9986970568318,374.9123682495717 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M294.47999192245277,461.77023156619333 Q364,461.88 433.52000807754723,461.98976843380666" stroke="#2563EB" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M440,462 L430.9921954390846,466.93578332104954 L431.0078269985466,457.0357956617467 Z"></path><path class="fe-a2" fill="#2563EB" d="M288,461.76 L297.0078045609154,456.82421667895045 L296.9921730014534,466.7242043382533 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M294.4799985976459,554.0957368430279 Q364,554.05 433.5200014023541,554.0042631569721" stroke="#2563EB" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M440,554 L431.00325852595665,558.9559199801074 L430.99674536947145,549.0559221225928 Z"></path><path class="fe-a2" fill="#2563EB" d="M288,554.1 L296.99674147404335,549.1440800198925 L297.00325463052855,559.0440778774071 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M294.33402971898363,593.2676503643227 Q364,608.31 433.66597028101637,623.3523496356773" stroke="#2563EB" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M440,624.72 L430.1580035842207,627.6589805293311 L432.2474694186025,617.9819906808839 Z"></path><path class="fe-a2" fill="#2563EB" d="M288,591.9 L297.8419964157793,588.9610194706689 L295.7525305813975,598.6380093191161 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M288,658 Q364,658.0799999999999 433.5200035900247,658.1531789511473" stroke="#2563EB" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M440,658.16 L430.99479446271636,663.100523578658 L431.0052155095745,653.200529063418 Z"></path><path class="fe-a2" fill="#2563EB" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M294.48,762 Q600,762 905.52,762" stroke="#2563EB" stroke-width="2" stroke-linecap="butt" stroke-dasharray="6 4.8" stroke-opacity="1"></path><path class="fe-a1" fill="#2563EB" d="M912,762 L903,766.95 L903,757.05 Z"></path><path class="fe-a2" fill="#2563EB" d="M288,762 L297,757.05 L297,766.95 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M440,854 Q372,853.76 310.47995964051546,853.5428704457901" stroke="#72767E" stroke-width="1.8" stroke-linecap="butt" stroke-dasharray="5.4 4.32" stroke-opacity="1"></path><path class="fe-a1" fill="#72767E" d="M304,853.52 L313.01741442458336,848.6017953382035 L312.9824734657374,858.50173367788 Z"></path><path class="fe-a2" fill="#72767E" d=""></path></g><g opacity="1"><path class="fe-main" fill="none" d="M766.48,142 Q836,142 905.52,142" stroke="#505358" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#505358" d="M912,142 L903,146.95 L903,137.05 Z"></path><path class="fe-a2" fill="#505358" d="M760,142 L769,137.05 L769,146.95 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M766.48,278 Q836,278 905.52,278" stroke="#505358" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#505358" d="M912,278 L903,282.95 L903,273.05 Z"></path><path class="fe-a2" fill="#505358" d="M760,278 L769,273.05 L769,282.95 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M766.48,370 Q836,370 905.52,370" stroke="#505358" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#505358" d="M912,370 L903,374.95 L903,365.05 Z"></path><path class="fe-a2" fill="#505358" d="M760,370 L769,365.05 L769,374.95 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M766.4799998563989,461.9986357895039 Q836,461.98400000000004 905.5200001436011,461.9693642104961" stroke="#505358" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#505358" d="M912,461.968 L903.001042304686,466.91989462710484 L902.9989580942058,457.01989484649545 Z"></path><path class="fe-a2" fill="#505358" d="M760,462 L768.998957695314,457.0481053728952 L769.0010419057942,466.94810515350457 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M766.4799998563989,554.001364210496 Q836,554.0160000000001 905.5200001436011,554.030635789504" stroke="#505358" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#505358" d="M912,554.032 L902.9989580942058,558.9801051535047 L903.001042304686,549.0801053728952 Z"></path><path class="fe-a2" fill="#505358" d="M760,554 L769.0010419057942,549.0518948464954 L768.998957695314,558.9518946271049 Z"></path></g><g opacity="1"><path class="fe-main" fill="none" d="M766.48,646 Q836,646 905.52,646" stroke="#505358" stroke-width="2" stroke-linecap="butt" stroke-opacity="1"></path><path class="fe-a1" fill="#505358" d="M912,646 L903,650.95 L903,641.05 Z"></path><path class="fe-a2" fill="#505358" d="M760,646 L769,641.05 L769,650.95 Z"></path></g></svg>
+
+    <!-- 영역 판 -->
+    <div class="fig-node pnl" id="p-browser" style="left:0px;top:0px;width:304px;height:908px"><div class="pt"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 9h18M7 6.5h.01M10 6.5h.01"></path></svg>브라우저</div><div class="ps">React 18 단일 앱 (Vite 빌드)</div></div>
+    <div class="fig-node pnl fn" id="p-vercel" style="left:424px;top:0px;width:352px;height:704px"><div class="pt"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l9 16H3z"></path></svg>Vercel 서버리스 함수</div><div class="ps">인증키는 서버 환경변수에만 보관</div></div>
+    <div class="fig-node pnl ext" id="p-ext" style="left:896px;top:0px;width:384px;height:908px"><div class="pt"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"></path></svg>외부 서비스</div><div class="ps">공공데이터, AI, 저장소, 문서, 법령, 지도</div></div>
+
+    <!-- 브라우저 -->
+    <div class="fig-node box" id="b-console" style="left:16px;top:60px;width:272px;height:540px">
+      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>담당자 콘솔</div><div class="rt mono">/console/*</div>
+      <div class="scr"><span>현황판</span><span>상황판</span><span>대상자 명부</span><span>서류 읽기</span><span>차량과 도우미</span><span>부족분 계산</span><span>발령 운영</span><span>소방 인계</span><span>이송 기록</span><span>문서함</span></div>
+      <div class="sub"><div class="st"><span class="tag rule">규칙</span>브라우저 안 계산</div><div class="sd">부족분 계산, 추천 배정 탐색, 점검 규칙, 판독 결과 원문 대조<br><span class="mono" style="font-size:12px;color:var(--meta)">client/src/lib</span></div></div>
+      <div class="sub"><div class="st">시제품 데이터</div><div class="sd">가상 대상자, 가상 마을 좌표. 실제 주민 정보는 저장하지 않음</div></div>
+    </div>
+    <div class="fig-node box" id="b-form" style="left:16px;top:616px;width:272px;height:84px">
+      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6M9 12h6M9 16h3"></path></svg>설문 응답</div><div class="rt mono">/f/:id</div><div class="ds">다른 기기에서 제출. 주민 정보는 받지 않음</div>
+    </div>
+    <div class="fig-node box" id="b-map" style="left:16px;top:724px;width:272px;height:76px">
+      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"></path><path d="M9 4v14M15 6v14"></path></svg>상황판 지도 엔진</div><div class="ds">MapLibre GL, three.js. 상황판 진입 시 불러옴</div>
+    </div>
+    <div class="fig-node box" id="b-helper" style="left:16px;top:816px;width:272px;height:76px">
+      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"></rect><path d="M11 18h2"></path></svg>도우미 화면 <span class="rt mono" style="margin:0">/h/:token</span></div><div class="ds">콘솔과 같은 앱. 시제품은 발령 상태를 브라우저 안에서 공유</div>
+    </div>
+
+    <!-- 함수 -->
+    <div class="fig-node box fnb" id="f-opendata" style="left:440px;top:60px;width:320px;height:164px">
+      <div class="top"><span class="path mono">/api/opendata</span><span class="mth">GET</span></div>
+      <div class="ds">kind 별 동해시 항목 조회</div>
+      <div class="row"><span class="tag rule mono">fire</span><span class="tag rule mono">shelters</span><span class="tag rule mono">ltc</span><span class="tag rule mono">ambulance</span></div>
+      <div class="ds" style="margin-top:8px">응답 캐시 10분. 인증키 없으면 503 NO_KEY</div>
+    </div>
+    <div class="fig-node box fnb" id="f-intake" style="left:440px;top:240px;width:320px;height:76px">
+      <div class="top"><span class="path mono">/api/intake</span><span class="mth">POST</span></div>
+      <div class="ds">서류 이미지(6MB 이하)를 읽어 전사, 등급, 근거 문구 반환</div>
+    </div>
+    <div class="fig-node box fnb" id="f-law" style="left:440px;top:332px;width:320px;height:76px">
+      <div class="top"><span class="path mono">/api/law</span><span class="tag hyp">v2 추가</span></div>
+      <div class="ds">본문의 「법령명」 제N조 실존 확인</div>
+    </div>
+    <div class="fig-node box fnb" id="f-hwpx" style="left:440px;top:424px;width:320px;height:76px">
+      <div class="top"><span class="path mono">/api/hwpx</span><span class="tag hyp">v2 추가</span></div>
+      <div class="ds">문서함 문서를 HWPX로 변환 (공문서 프리셋 4종)</div>
+    </div>
+    <div class="fig-node box fnb" id="f-parse" style="left:440px;top:516px;width:320px;height:76px">
+      <div class="top"><span class="path mono">/api/parse</span><span class="tag hyp">v2 추가</span></div>
+      <div class="ds">HWP, HWPX, PDF, DOCX 본문 읽기</div>
+    </div>
+    <div class="fig-node box fnb" id="f-workspace" style="left:440px;top:608px;width:320px;height:76px">
+      <div class="top"><span class="path mono">/api/workspace</span><span class="tag hyp">v2 추가</span></div>
+      <div class="ds">문서, 시트, 설문, 설문 응답 저장과 조회</div>
+    </div>
+
+    <!-- 정적 배포 -->
+    <div class="fig-node box" id="v-static" style="left:440px;top:816px;width:320px;height:76px;background:var(--pri-wash);border-color:var(--pri-line)">
+      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 20h16"></path></svg>Vercel 정적 배포</div><div class="ds">Vite 빌드 결과(dist), 도식 정적본 /diagrams/</div>
+    </div>
+
+    <!-- 외부 -->
+    <div class="fig-node box ext-b" id="x-portal" style="left:912px;top:60px;width:352px;height:164px">
+      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M4 21V8l8-4 8 4v13"></path><path d="M4 21h16M9 21v-6h6v6"></path></svg>공공데이터포털 <span class="mono" style="font-size:12px;font-weight:600;color:var(--meta)">apis.data.go.kr</span></div>
+      <div class="api"><b>산불위험예보정보</b><i>산림청 국립산림과학원</i><b>민방위대피시설</b><i>행정안전부</i><b>장기요양기관 검색</b><i>국민건강보험공단</i><b>응급환자이송업</b><i>행정안전부</i><b class="plan">기상청 단기예보</b><i>활용 신청 필요</i></div>
+    </div>
+    <div class="fig-node box ext-b" id="x-gemini" style="left:912px;top:240px;width:352px;height:76px">
+      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"></path><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"></path></svg>Gemini 2.5 Flash <span class="tag off">키 미설정</span></div><div class="ds">멀티모달 서류 읽기. 키가 없으면 함수가 503 반환</div>
+    </div>
+    <div class="fig-node box ext-b" id="x-law" style="left:912px;top:332px;width:352px;height:76px">
+      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v18M6 21h12M4.5 7.5h15"></path><path d="M4.5 7.5L2.5 13a2.6 2.6 0 0 0 4 0zM19.5 7.5L17.5 13a2.6 2.6 0 0 0 4 0z"></path></svg>korean-law-mcp 공개 서버</div><div class="ds"><span class="mono">mcp.gomdori.app/law</span>, 법제처 데이터</div>
+    </div>
+    <div class="fig-node box ext-b" id="x-kordoc" style="left:912px;top:424px;width:352px;height:168px">
+      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v4h4M9 12h6M9 16h6"></path></svg>kordoc</div>
+      <div class="ds">npm 라이브러리. 서버 함수 안에서 실행</div>
+      <div class="sub" style="margin-top:8px"><div class="sd"><b class="mono" style="color:var(--ink)">markdownToHwpx</b>: HWPX 생성<br><b class="mono" style="color:var(--ink)">parse</b>: HWP, HWPX, PDF, DOCX 읽기</div></div>
+    </div>
+    <div class="fig-node box ext-b" id="x-redis" style="left:912px;top:608px;width:352px;height:76px">
+      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"></ellipse><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"></path></svg>Upstash Redis</div><div class="ds">문서함 저장소 (Vercel 연동). 미설정 시 메모리 방식</div>
+    </div>
+    <div class="fig-node box ext-b" id="x-ofm" style="left:912px;top:724px;width:352px;height:76px">
+      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"></path><path d="M9 4v14M15 6v14"></path></svg>OpenFreeMap</div><div class="ds">지도 바탕 타일. 키 불필요</div>
+    </div>
+    <div class="fig-node note" id="x-note" style="left:912px;top:820px;width:352px;height:72px"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg><span>외부 호출은 모두 서버 함수를 거칩니다. 지도 타일만 브라우저가 직접 요청합니다.</span></div>
+
+    <!-- 연결: 브라우저 → 함수 -->
+    <div class="fig-edge" id="e-c-open" data-from="b-console" data-to="f-opendata" data-anchor-from="1,0.152" data-anchor-to="0,0.5" data-color="#2563EB" data-width="2" data-arrow="both" data-label="kind 요청"></div>
+    <div class="fig-edge" id="e-c-intake" data-from="b-console" data-to="f-intake" data-anchor-from="1,0.404" data-anchor-to="0,0.5" data-color="#2563EB" data-width="2" data-arrow="both" data-label="서류 이미지"></div>
+    <div class="fig-edge" id="e-c-law" data-from="b-console" data-to="f-law" data-anchor-from="1,0.574" data-anchor-to="0,0.5" data-color="#2563EB" data-width="2" data-arrow="both" data-label="법령 인용"></div>
+    <div class="fig-edge" id="e-c-hwpx" data-from="b-console" data-to="f-hwpx" data-anchor-from="1,0.744" data-anchor-to="0,0.5" data-color="#2563EB" data-width="2" data-arrow="both" data-label="문서 본문"></div>
+    <div class="fig-edge" id="e-c-parse" data-from="b-console" data-to="f-parse" data-anchor-from="1,0.915" data-anchor-to="0,0.5" data-color="#2563EB" data-width="2" data-arrow="both" data-label="업로드 파일"></div>
+    <div class="fig-edge" id="e-c-ws" data-from="b-console" data-to="f-workspace" data-anchor-from="1,0.985" data-anchor-to="0,0.22" data-color="#2563EB" data-width="2" data-arrow="both"></div>
+    <div class="fig-edge" id="e-form-ws" data-from="b-form" data-to="f-workspace" data-anchor-from="1,0.5" data-anchor-to="0,0.66" data-color="#2563EB" data-width="2" data-arrow="end" data-label="설문 응답"></div>
+    <div class="fig-edge" id="e-map" data-from="b-map" data-to="x-ofm" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-style="dashed" data-color="#2563EB" data-width="2" data-arrow="both" data-label="지도 타일 직접 요청"></div>
+    <div class="fig-edge" id="e-static" data-from="v-static" data-to="p-browser" data-anchor-from="0,0.5" data-anchor-to="1,0.94" data-style="dashed" data-color="#72767E" data-width="1.8" data-arrow="end" data-label="앱 번들"></div>
+
+    <!-- 연결: 함수 → 외부 -->
+    <div class="fig-edge" id="e-open-portal" data-from="f-opendata" data-to="x-portal" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-color="#505358" data-width="2" data-arrow="both" data-label="동해시 조회"></div>
+    <div class="fig-edge" id="e-intake-gem" data-from="f-intake" data-to="x-gemini" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-color="#505358" data-width="2" data-arrow="both" data-label="이미지, 지시문"></div>
+    <div class="fig-edge" id="e-law-mcp" data-from="f-law" data-to="x-law" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-color="#505358" data-width="2" data-arrow="both" data-label="조문 확인"></div>
+    <div class="fig-edge" id="e-hwpx-kd" data-from="f-hwpx" data-to="x-kordoc" data-anchor-from="1,0.5" data-anchor-to="0,0.226" data-color="#505358" data-width="2" data-arrow="both" data-label="HWPX 생성"></div>
+    <div class="fig-edge" id="e-parse-kd" data-from="f-parse" data-to="x-kordoc" data-anchor-from="1,0.5" data-anchor-to="0,0.774" data-color="#505358" data-width="2" data-arrow="both" data-label="본문 읽기"></div>
+    <div class="fig-edge" id="e-ws-redis" data-from="f-workspace" data-to="x-redis" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-color="#505358" data-width="2" data-arrow="both" data-label="키값 저장"></div>
+  <div class="fig-elabel" style="left: 364px; top: 142.04px; color: rgb(37, 99, 235); opacity: 1;">kind 요청</div><div class="fig-elabel" style="left: 364px; top: 278.08px; color: rgb(37, 99, 235); opacity: 1;">서류 이미지</div><div class="fig-elabel" style="left: 364px; top: 369.98px; color: rgb(37, 99, 235); opacity: 1;">법령 인용</div><div class="fig-elabel" style="left: 364px; top: 461.88px; color: rgb(37, 99, 235); opacity: 1;">문서 본문</div><div class="fig-elabel" style="left: 364px; top: 554.05px; color: rgb(37, 99, 235); opacity: 1;">업로드 파일</div><div class="fig-elabel" style="left: 364px; top: 658.08px; color: rgb(37, 99, 235); opacity: 1;">설문 응답</div><div class="fig-elabel" style="left: 600px; top: 762px; color: rgb(37, 99, 235); opacity: 1;">지도 타일 직접 요청</div><div class="fig-elabel" style="left: 372px; top: 853.76px; color: rgb(114, 118, 126); opacity: 1;">앱 번들</div><div class="fig-elabel" style="left: 836px; top: 142px; color: rgb(80, 83, 88); opacity: 1;">동해시 조회</div><div class="fig-elabel" style="left: 836px; top: 278px; color: rgb(80, 83, 88); opacity: 1;">이미지, 지시문</div><div class="fig-elabel" style="left: 836px; top: 370px; color: rgb(80, 83, 88); opacity: 1;">조문 확인</div><div class="fig-elabel" style="left: 836px; top: 461.984px; color: rgb(80, 83, 88); opacity: 1;">HWPX 생성</div><div class="fig-elabel" style="left: 836px; top: 554.016px; color: rgb(80, 83, 88); opacity: 1;">본문 읽기</div><div class="fig-elabel" style="left: 836px; top: 646px; color: rgb(80, 83, 88); opacity: 1;">키값 저장</div></div>
+
+  <div class="foot">
+    <span>근거: client/api/opendata.js, client/api/intake.js, client/package.json, docs/PRD-v2.md 1.3절과 F4~F6. v2 추가 함수는 PRD v2 작업 범위</span>
+    <span>작성 2026. 10. 6.</span>
+  </div>
+
+  <!-- ======== FIG:CONTENT END ======== -->
+
+</div>
+
+
+
+<script id="fig-static-js">/* fig-static: 창 폭에 맞춰 캔버스를 축소하는 뷰어. 편집 기능은 없다 */
+(function(){
+function fit(){Array.prototype.forEach.call(document.querySelectorAll(".fig-canvas"),function(cv){var m=(cv.getAttribute("data-size")||"").match(/^\s*(\d+)\s*[x\u00d7]\s*(\d+)/i);var w=m?+m[1]:cv.offsetWidth,h=m?+m[2]:cv.offsetHeight;cv.style.width=w+"px";cv.style.height=h+"px";var wrap=cv.parentElement;if(!wrap.classList.contains("fig-scale")){var d=document.createElement("div");d.className="fig-scale";cv.parentNode.insertBefore(d,cv);d.appendChild(cv);wrap=d;}var sc=Math.min(1,(wrap.clientWidth||w)/w);cv.style.transform=sc<1?"scale("+sc+")":"";wrap.style.height=(h*sc)+"px";});}
+window.addEventListener("resize",fit);if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fit);else fit();
+var noop=function(){};
+/* html-deck 런타임 등이 부르는 편집 API는 빈 함수로 둔다 */
+window.FigEditor=window.FigEditor||{static:true,fitAll:fit,renderAll:noop,setEdit:noop,onClean:noop,isEditing:function(){return false},selection:function(){return []},select:noop,clearSelection:noop,commit:noop,toast:noop,save:noop,serialize:function(){return "<!DOCTYPE html>\n"+document.documentElement.outerHTML},clean:function(){return document.body.innerHTML}};
+})();
+</script></body></html>

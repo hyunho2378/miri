@@ -1,7 +1,7 @@
 // 설문지 편집기. 질문, 응답, 설정 탭. 응답은 연결 시트에 자동으로 쌓인다.
 import { useState } from 'react'
 import clsx from 'clsx'
-import { ArrowDown, ArrowUp, Copy, Eye, Link2, ListChecks, Plus, Sheet, Trash2, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Copy, Eye, Link2, ListChecks, Plus, RefreshCw, Sheet, Trash2, X } from 'lucide-react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import Button from '../../components/ui/Button.jsx'
 import Modal from '../../components/ui/Modal.jsx'
@@ -9,7 +9,7 @@ import Select from '../../components/ui/Select.jsx'
 import Toggle from '../../components/ui/Toggle.jsx'
 import useToast from '../../hooks/useToast.js'
 import { QUESTION_TYPES } from '../../lib/workspaceTemplates.js'
-import useWorkspaceStore from '../../store/useWorkspaceStore.js'
+import useWorkspaceStore, { useFormResponsePolling, useWorkspaceInit } from '../../store/useWorkspaceStore.js'
 import EditorFrame from './EditorFrame.jsx'
 import FormRenderer from './FormRenderer.jsx'
 
@@ -68,7 +68,12 @@ export default function FormEditor() {
   const [tab, setTab] = useState('q')
   const [preview, setPreview] = useState(false)
   const [active, setActive] = useState(null)
+  const ready = useWorkspaceInit()
+  const mode = useWorkspaceStore((s) => s.mode)
+  const flush = useWorkspaceStore((s) => s.flush)
+  const { refresh, loading } = useFormResponsePolling(id, ready && tab === 'r')
 
+  if (!ready) return <div className="flex min-h-dvh items-center justify-center bg-canvas type-body-sm text-text-meta">설문지를 불러오는 중입니다.</div>
   if (!form) return <Navigate to="/console/workspace?kind=form" replace />
 
   const setQ = (qid, patch) => update(id, { questions: form.questions.map((q) => (q.id === qid ? { ...q, ...patch } : q)) })
@@ -85,6 +90,7 @@ export default function FormEditor() {
   }
   const link = `${window.location.origin}/f/${form.id}`
   const copyLink = async () => {
+    await flush()
     try { await navigator.clipboard.writeText(link); toast('응답 링크를 복사했습니다', 'primary') } catch { toast('복사하지 못했습니다', 'danger') }
   }
   const openSheet = () => { const sid = linkSheet(id); if (sid) navigate(`/console/workspace/sheet/${sid}`) }
@@ -165,7 +171,10 @@ export default function FormEditor() {
                 <p className="type-h3 text-text-pri tabular-nums">응답 {form.responses.length}개</p>
                 <p className="type-meta text-text-meta">{form.open ? '응답을 받는 중' : '응답 마감'}</p>
               </div>
-              <Button leftIcon={<Sheet size={16} aria-hidden="true" />} onClick={openSheet}>시트에서 보기</Button>
+              <div className="flex gap-2">
+                {mode === 'server' && <Button variant="secondary" loading={loading} leftIcon={<RefreshCw size={16} aria-hidden="true" />} onClick={refresh}>새로고침</Button>}
+                <Button leftIcon={<Sheet size={16} aria-hidden="true" />} onClick={openSheet}>시트에서 보기</Button>
+              </div>
             </div>
             <Summary form={form} />
           </div>
@@ -181,7 +190,7 @@ export default function FormEditor() {
             <section className="rounded-lg bg-page p-5 shadow-card">
               <p className="type-strong text-text-pri">응답 링크</p>
               <p className="mt-1 break-all type-body-sm text-text-sec">{link}</p>
-              <p className="mt-2 type-meta text-text-meta">시연 버전은 같은 브라우저 창 안에서만 응답이 모입니다. 다른 기기 응답을 모으려면 서버 저장소 연결이 필요합니다.</p>
+              <p className="mt-2 type-meta text-text-meta">{mode === 'server' ? '다른 기기에서 제출한 응답도 이 화면에 모입니다.' : '서버 저장소에 연결되지 않아 같은 브라우저 창 안에서만 응답이 모입니다.'}</p>
               <div className="mt-3 flex gap-2">
                 <Button size="sm" variant="secondary" onClick={copyLink}>복사</Button>
                 <Button size="sm" variant="ghost" as={Link} to={`/f/${form.id}`} target="_blank">새 탭에서 열기</Button>
@@ -192,7 +201,7 @@ export default function FormEditor() {
       </div>
       <Modal open={preview} onClose={() => setPreview(false)} title="미리 보기" className="max-w-[720px] bg-canvas">
         <div>
-          <FormRenderer form={form} preview onSubmit={(a) => { submit(id, a); linkSheet(id); toast('시험 응답을 저장했습니다', 'primary') }} />
+          <FormRenderer form={form} preview onSubmit={async (a) => { const r = await submit(id, a); if (!r.ok) { toast(r.message, 'danger'); return r } linkSheet(id); toast('시험 응답을 저장했습니다', 'primary'); return r }} />
         </div>
       </Modal>
     </EditorFrame>

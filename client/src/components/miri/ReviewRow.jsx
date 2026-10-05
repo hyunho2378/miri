@@ -1,4 +1,4 @@
-// 판독 확인 행(PATTERNS 35). [문서 이미지 + 판독 영역 | 판정 편집 | 근거]. 근거 열은 항상 예약.
+// 서류 1건 확인 화면(PATTERNS 35 개정, PRD v2 F2). 왼쪽 원본 이미지, 오른쪽 읽은 값과 근거. 조작은 확인, 수정, 제외 세 가지.
 import { useState } from 'react'
 import { GRADES } from '../../lib/shortage.js'
 import { TAGS } from '../../lib/intake.js'
@@ -27,33 +27,41 @@ export function DocImage({ src, alt, box }) {
   )
 }
 
-export default function ReviewRow({ doc, result, villageLabel, canEdit, onConfirm, onEdit, onReject }) {
+export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdit, onConfirm, onEdit, onReject }) {
   const [grade, setGrade] = useState(result.grade)
   const [tags, setTags] = useState(result.tags || [])
   const changed = grade !== result.grade || [...tags].sort().join() !== [...(result.tags || [])].sort().join()
   return (
-    <Card as="li">
-      <div className="flex flex-wrap items-center gap-2 mb-3">
-        <p className="type-h3 text-text-pri tabular-nums">{result.personCode}</p>
-        <span className="type-meta text-text-meta">{villageLabel}</span>
-        <span className="ml-auto"><GradeChip grade={result.grade} /></span>
-      </div>
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,320px)]">
-        <DocImage src={doc.image} alt={`${doc.name} 판독 영역`} box={result.box} />
-        <div className="space-y-3 min-w-0">
+    <Card as="div" padding="lg" aria-label={`서류 ${doc.name}, 대상자 ${result.personCode}`}>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)]">
+        <div className="min-w-0">
+          <p className="mb-2 type-caption text-text-sec">원본 서류</p>
+          <DocImage src={doc.image} alt={`${doc.name} 판독 영역`} box={result.box} />
+          <p className="mt-2 type-meta text-text-meta tabular-nums">{doc.name}, {kindLabel}, {doc.id}</p>
+        </div>
+
+        <div className="min-w-0 space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="type-h3 text-text-pri tabular-nums">{result.personCode}</p>
+            <span className="type-body-sm text-text-meta">{villageLabel}</span>
+            <span className="ml-auto inline-flex items-center gap-2">
+              <span className="type-meta text-text-meta">읽은 등급</span>
+              <GradeChip grade={result.grade} />
+            </span>
+          </div>
           <Select label="이송 등급" value={grade} options={GRADE_OPTIONS} onChange={setGrade} disabled={!canEdit} />
           <MultiSelect label="특이사항" values={tags} options={TAG_OPTIONS} onChange={setTags} disabled={!canEdit} />
-          {changed && <p className="type-meta text-primary-text">읽은 값에서 바꿨습니다. 저장하면 확정됩니다</p>}
+          {changed && <p className="type-meta text-primary-text">읽은 값에서 변경했습니다. 수정을 누르면 변경한 값으로 확정합니다.</p>}
+          <EvidencePanel quote={result.quote} matched={result.quoteMatched} confidence={result.confidence} conflict={result.conflict} transcript={doc.transcript} docName={doc.name} />
+          {canEdit && (
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+              <Button variant="ghost" size="lg" onClick={onReject}>제외</Button>
+              <Button variant="secondary" size="lg" disabled={!changed} onClick={() => onEdit({ grade, tags })}>수정</Button>
+              <Button variant="primary" size="lg" disabled={changed} onClick={onConfirm}>확인</Button>
+            </div>
+          )}
         </div>
-        <EvidencePanel quote={result.quote} matched={result.quoteMatched} confidence={result.confidence} conflict={result.conflict} transcript={doc.transcript} docName={doc.name} />
       </div>
-      {canEdit && (
-        <div className="mt-4 flex flex-wrap justify-end gap-2">
-          <Button variant="ghost" onClick={onReject}>반려</Button>
-          <Button variant="secondary" disabled={!changed} onClick={() => onEdit({ grade, tags })}>수정 후 확인</Button>
-          <Button variant="primary" disabled={changed} onClick={onConfirm}>판독 확인</Button>
-        </div>
-      )}
     </Card>
   )
 }

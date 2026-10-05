@@ -47,7 +47,7 @@ export const DOC_TEMPLATES = [
       <h1>대피 훈련 결과 보고</h1>
       <p><b>훈련 일시</b> ○○○ <b>대상 동</b> ○○○ <b>시나리오</b> ○○○</p>
       <h2>1. 결과 요약</h2><ul><li>이송 완료: ○명</li><li>미이송: ○명</li><li>마감까지 걸린 시간: ○분</li></ul>
-      <h2>2. 막힌 지점</h2><p></p>
+      <h2>2. 지연 구간</h2><p></p>
       <h2>3. 다음 훈련 전 고칠 것</h2><ul><li></li></ul>
     `)
   },
@@ -92,7 +92,7 @@ export const SHEET_TEMPLATES = [
   },
   {
     key: 'drill', title: '훈련 기록', desc: '마을별 실제 소요 시간',
-    columns: [{ key: 'date', label: '훈련일' }, { key: 'village', label: '마을' }, { key: 'plan', label: '예상 왕복(분)', type: 'number' }, { key: 'real', label: '실제 왕복(분)', type: 'number' }, { key: 'memo', label: '막힌 지점' }],
+    columns: [{ key: 'date', label: '훈련일' }, { key: 'village', label: '마을' }, { key: 'plan', label: '예상 왕복(분)', type: 'number' }, { key: 'real', label: '실제 왕복(분)', type: 'number' }, { key: 'memo', label: '지연 구간' }],
     rows: [['', '', '', '', '']]
   },
   {
