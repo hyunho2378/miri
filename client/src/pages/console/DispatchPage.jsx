@@ -1,4 +1,4 @@
-// 발령 운영(IA 4.6). 핵심 기능 2(8시간 시계)와 3(배정표), 추천 배정 계산.
+// 발령 운영(IA 4.6). 핵심 기능 2(마을별 도달 시계)와 3(배정표), 추천 배정 계산.
 // 평시 → 실행대기 발령 → 배정 검토 → 이송 진행 → 종료. 단계 표시줄 아래에는 현재 단계의 할 일 하나만 크게 둔다(PRD v2 F2).
 import { useMemo, useState } from 'react'
 import { ExternalLink, MessageSquareText, Minus, Plus, Route, Siren, UserRoundCheck } from 'lucide-react'
@@ -47,9 +47,10 @@ function useVillageMeta() {
   }, [villages, dongs])
 }
 
-function deadlinesOf(arrival, settings) {
+// 발령 기한 = 도달 시각 - 시나리오 첫 도달 시간. 시나리오가 없으면 설정 기본값
+function deadlinesOf(arrival, settings, scenario) {
   return {
-    dispatchDeadline: arrival - settings.windowHours * 60 * MIN,
+    dispatchDeadline: arrival - (scenario?.windowHours ?? settings.windowHours) * 60 * MIN,
     completeDeadline: arrival - settings.completeBeforeHours * 60 * MIN
   }
 }
@@ -60,7 +61,7 @@ function SpeedControl({ value, onChange }) {
     <div>
       <p className="mb-1.5 type-caption text-text-sec">훈련 시뮬레이션 속도</p>
       <SegmentControl label="훈련 시뮬레이션 속도" items={SPEEDS} value={value} onChange={onChange} />
-      <p className="mt-1.5 type-meta text-text-meta">60배 속도에서는 8시간 구간이 8분에 진행됩니다.</p>
+      <p className="mt-1.5 type-meta text-text-meta">60배 속도에서는 1시간이 1분에 진행됩니다.</p>
     </div>
   )
 }
@@ -136,6 +137,7 @@ function StartPanel() {
 
 // 실행대기 발령: 추천 배정 계산 + 마을별 도달 예측 조정
 function StandbyPanel({ now, meta }) {
+  const scenario = useMiriStore(activeScenario)
   const arrivals = useDispatchStore((s) => s.arrivals)
   const kind = useDispatchStore((s) => s.kind)
   const speed = useDispatchStore((s) => s.speed)
@@ -160,11 +162,11 @@ function StandbyPanel({ now, meta }) {
       >
         {kind === 'drill' && <SpeedControl value={speed} onChange={setSpeed} />}
       </TaskCard>
-      <Disclosure summary={`마을별 8시간 시계 (${list.length}곳, 발령 기한 이른 순)`}>
+      <Disclosure summary={`마을별 도달 시계 (${list.length}곳, 발령 기한 이른 순)`}>
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {list.map(([code, arrival]) => (
             <li key={code} className="min-w-0 flex flex-col gap-2">
-              <DeadlineClock title={meta.label(code)} {...deadlinesOf(arrival, settings)} now={now} dispatched={false} sub={`${meta.dong(code)}, 산불 도달 예측 ${fmtHM(arrival)}`} />
+              <DeadlineClock title={meta.label(code)} {...deadlinesOf(arrival, settings, scenario)} now={now} dispatched={false} sub={`${meta.dong(code)}, 산불 도달 예측 ${fmtHM(arrival)}`} />
               <div className="flex flex-wrap items-center gap-2 px-1">
                 <span className="type-caption text-text-sec">도달 예측 조정</span>
                 <Button size="sm" variant="secondary" aria-label={`${meta.label(code)} 도달 예측 30분 앞당김`} leftIcon={<Minus size={14} aria-hidden="true" />} onClick={() => setArrival(code, arrival - 30 * MIN)}>30분</Button>
@@ -249,6 +251,7 @@ function AssignedPanel({ meta }) {
 
 // 이송 진행: 실시간 현황, 도우미 응답, 실패 대응, 마을별 시계
 function SentPanel({ now, meta }) {
+  const scenario = useMiriStore(activeScenario)
   const d = useDispatchStore()
   const persons = useMiriStore((s) => s.persons)
   const settings = useMiriStore((s) => s.settings)
@@ -388,7 +391,7 @@ function SentPanel({ now, meta }) {
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {villageClocks.map((v) => (
             <li key={v.code} className="rounded-md bg-subtle p-3 min-w-0">
-              <DeadlineClock compact title={meta.label(v.code)} {...deadlinesOf(v.arrival, settings)} now={now} dispatched finishEta={v.eta} />
+              <DeadlineClock compact title={meta.label(v.code)} {...deadlinesOf(v.arrival, settings, scenario)} now={now} dispatched finishEta={v.eta} />
             </li>
           ))}
         </ul>

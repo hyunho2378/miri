@@ -19,13 +19,15 @@ import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
 import { EXTRA_TYPE, GRADES, typeOf } from '../../lib/shortage.js'
 import { computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
+import { fireScenario } from '../../lib/scenario.js'
+import { fmtElapsed } from '../../lib/geo.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
 
 const MAX_SCENARIOS = 5
 const EXTRA_TYPES = [...new Set(Object.values(EXTRA_TYPE))]
 
-const offsetText = (h) => (h === 0 ? '기준' : `${h > 0 ? '+' : ''}${h}시간`)
+const offsetText = (h) => `+${fmtElapsed(h)}`
 const completeText = (h) => (h ? `도달 ${h}시간 전` : '도달 시각')
 const prepText = (m) => (m === 60 ? '1시간' : m === 90 ? '1시간 30분' : `${m}분`)
 
@@ -60,7 +62,12 @@ export default function ShortagePage() {
   const dirty = JSON.stringify(draft) !== JSON.stringify(base)
 
   const set = (patch) => setDraft((d) => ({ ...d, ...patch }))
-  const setOffset = (code, h) => setDraft((d) => ({ ...d, offsetHours: { ...d.offsetHours, [code]: h } }))
+  // 확산 조건(속도, 사전 발령, 범위)을 바꾸면 도달 시각과 대피 대상 구역을 다시 만든다. 마을별 수동 조정은 초기화된다
+  const setFire = (patch) => setDraft((d) => {
+    const next = fireScenario({ ...d, ...patch, villages })
+    return { ...d, ...patch, windowHours: next.windowHours, offsetHours: next.offsetHours, affected: next.affected, alongKm: next.alongKm, manual: {} }
+  })
+  const setOffset = (code, h) => setDraft((d) => ({ ...d, offsetHours: { ...d.offsetHours, [code]: h }, manual: { ...d.manual, [code]: true } }))
   const setExtra = (type, n) => setDraft((d) => ({ ...d, extraVehicles: { ...d.extraVehicles, [type]: n } }))
 
   const saveAsNew = () => {
@@ -82,7 +89,9 @@ export default function ShortagePage() {
         </span>
       )
     },
-    { key: 'prep', label: '준비 시간', render: ({ sc }) => <span className="whitespace-nowrap">{sc.prepMinutes}분</span> },
+    { key: 'scope', label: '대피 대상', render: ({ r }) => <span className="whitespace-nowrap tabular-nums">{r.scopeVillages}곳 {r.scopeTargets}명</span> },
+    { key: 'first', label: '첫 도달', hideBelow: 'md', render: ({ sc }) => <span className="whitespace-nowrap">발령 후 {fmtElapsed(sc.windowHours)}</span> },
+    { key: 'prep', label: '준비 시간', hideBelow: 'lg', render: ({ sc }) => <span className="whitespace-nowrap">{sc.prepMinutes}분</span> },
     { key: 'complete', label: '완료 기한', hideBelow: 'lg', render: ({ sc }) => <span className="whitespace-nowrap">{completeText(sc.completeBeforeHours)}</span> },
     { key: 'extra', label: '추가 차량', hideBelow: 'lg', render: ({ sc }) => <span className="type-meta text-text-sec">{Object.entries(sc.extraVehicles || {}).filter(([, n]) => n).map(([t, n]) => `${typeOf(t).label} ${n}대`).join(', ') || '없음'}</span> },
     ...GRADES.map((g) => ({ key: g.key, label: g.label, align: 'right', hideBelow: 'md', render: ({ r }) => r.byGrade[g.key] || '-' })),
@@ -103,8 +112,10 @@ export default function ShortagePage() {
 
   const extraLine = extra.length ? extra.map((e) => `${e.typeLabel} ${e.count}대`).join(', ') : null
   const extraSummary = Object.entries(draft.extraVehicles || {}).filter(([, n]) => n).map(([t, n]) => `${typeOf(t).label} ${n}대`).join(', ') || '없음'
-  const changedVillages = Object.values(draft.offsetHours || {}).filter((h) => h).length
-  const summary = `준비 ${prepText(draft.prepMinutes)}, 이송 완료 기한 ${completeText(draft.completeBeforeHours ?? 0)}, 추가 협약 차량 ${extraSummary}${changedVillages ? `, 도달 가정 변경 ${changedVillages}곳` : ''}`
+  const changedVillages = Object.keys(draft.manual || {}).length
+  const scopeSet = new Set(draft.affected || villages.map((v) => v.code))
+  const fireLine = draft.kind === 'fire' ? `발화 ${draft.originLabel}, 확산 시속 ${draft.speedKmh}km, 첫 도달 발령 후 ${fmtElapsed(draft.windowHours)}, 대피 대상 ${result.scopeVillages}곳 ${result.scopeTargets}명, ` : `대피 대상 ${result.scopeVillages}곳 ${result.scopeTargets}명, `
+  const summary = `${fireLine}준비 ${prepText(draft.prepMinutes)}, 이송 완료 기한 ${completeText(draft.completeBeforeHours ?? 0)}, 추가 협약 차량 ${extraSummary}${changedVillages ? `, 도달 가정 변경 ${changedVillages}곳` : ''}`
 
   const conditions = (
     <Card
@@ -118,6 +129,15 @@ export default function ShortagePage() {
             options={scenarios.map((s) => ({ value: s.id, label: s.name, secondary: s.id === activeId ? '현황판 기준' : s.id }))} />
           {dirty && <p className="mt-2 type-meta text-primary-text">저장하지 않은 변경이 있습니다.</p>}
         </div>
+        {draft.kind === 'fire' && (
+          <div className="space-y-4">
+            <p className="type-caption text-text-sec">확산 가정</p>
+            <NumberStepper label="확산 속도" value={draft.speedKmh} min={0.5} max={10} step={0.5} unit="km/h" format={(v) => `시속 ${v}km`} onChange={(v) => setFire({ speedKmh: v })} />
+            <NumberStepper label="발화 전 사전 발령" value={draft.leadHours ?? 0} min={0} max={6} step={0.5} unit="시간" onChange={(v) => setFire({ leadHours: v })} />
+            <NumberStepper label="대피 대상 범위(첫 도달 뒤)" value={draft.scopeHours} min={0.5} max={8} step={0.5} unit="시간" onChange={(v) => setFire({ scopeHours: v })} />
+            <p className="type-meta leading-5 text-text-meta">발화 가정 지점 {draft.originLabel}. 확산 방향 띠 안 마을에 앞쪽 거리 ÷ 속도만큼 늦게 도달한다고 계산합니다.</p>
+          </div>
+        )}
         <div>
           <p className="mb-1.5 type-caption text-text-sec">준비 시간</p>
           <SegmentControl label="준비 시간" value={draft.prepMinutes} onChange={(v) => set({ prepMinutes: v })}
@@ -127,7 +147,7 @@ export default function ShortagePage() {
           <p className="mb-1.5 type-caption text-text-sec">이송 완료 기한</p>
           <SegmentControl label="이송 완료 기한" value={draft.completeBeforeHours ?? 0} onChange={(v) => set({ completeBeforeHours: v })}
             items={[{ value: 0, label: '도달 시각' }, { value: 5, label: '도달 5시간 전' }]} />
-          <p className="mt-1.5 type-meta text-text-meta tabular-nums">가용 시간 {(draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes}분</p>
+          <p className="mt-1.5 type-meta text-text-meta tabular-nums">첫 도달 마을 가용 시간 {Math.max(0, Math.round((draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes))}분</p>
         </div>
         <div>
           <p className="mb-1.5 type-caption text-text-sec">추가 협약 차량</p>
@@ -137,11 +157,11 @@ export default function ShortagePage() {
             ))}
           </div>
         </div>
-        <Disclosure summary={`마을별 산불 도달 가정${changedVillages ? ` (변경 ${changedVillages}곳)` : ''}`}>
+        <Disclosure summary={`마을별 첫 도달 뒤 도달 시간${changedVillages ? ` (변경 ${changedVillages}곳)` : ''}`}>
           <ul className="grid gap-y-2 max-h-[420px] overflow-y-auto pr-1">
-            {villages.map((v) => (
+            {villages.filter((v) => scopeSet.has(v.code)).map((v) => (
               <li key={v.code} className="min-w-0">
-                <NumberStepper layout="inline" label={v.label} value={draft.offsetHours?.[v.code] || 0} min={-2} max={8} step={0.5} unit="시간" format={offsetText} onChange={(h) => setOffset(v.code, h)} />
+                <NumberStepper layout="inline" label={v.label} value={draft.offsetHours?.[v.code] || 0} min={0} max={12} step={0.25} unit="시간" format={offsetText} onChange={(h) => setOffset(v.code, h)} />
               </li>
             ))}
           </ul>
@@ -192,7 +212,7 @@ export default function ShortagePage() {
             </div>
           </Card>
 
-          <ShortageTable basis={basisText({ scenario: draft.name, today })} villages={villages} dongs={dongs} byVillage={result.byVillage} />
+          <ShortageTable basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} />
 
           <Disclosure summary={`시나리오 저장과 비교 (${scenarios.length} / ${MAX_SCENARIOS}개)`}>
             <TableCard

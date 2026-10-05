@@ -25,7 +25,7 @@ export default function PrivacyPage() {
   return (
     <div className="mx-auto w-full max-w-text px-4 md:px-6 py-8 lg:py-12 page-enter">
       <h1 className="type-h1 text-text-pri">개인정보 처리 방침</h1>
-      <p className="mt-2 type-body-sm text-text-sec">이 시연 화면의 명부와 문서는 모두 가상 데이터입니다.</p>
+      <p className="mt-2 type-body-sm text-text-sec">이 시연 화면의 대상자 명부와 서류는 가상입니다. 마을, 대피소, 시설 위치와 통계는 실제 공개 자료입니다.</p>
 
       <section className="mt-8">
         <SectionTitle title="처리 원칙" />

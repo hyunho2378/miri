@@ -2,7 +2,8 @@
 import assert from 'node:assert/strict'
 import { formulaShortage } from '../src/lib/shortage.js'
 import { buildContext, runBaseline, runOptimize, planDispatch } from '../src/lib/assign.js'
-import { computeShortage, requiredExtraVehicles } from '../src/lib/shortageCalc.js'
+import { computeShortage, requiredExtraVehicles, scopeInput } from '../src/lib/shortageCalc.js'
+import { LTC, TEMP_SHELTERS, VILLAGES } from '../src/mock/donghaeData.js'
 import { verifyResult } from '../src/lib/intake.js'
 import { detectAnomalies } from '../src/lib/anomaly.js'
 import { buildSeed } from '../src/mock/seed.js'
@@ -27,8 +28,12 @@ ok('배정 기준선과 최적화가 원문 예시에서 같은 미이송 6', ()
 const seed = buildSeed()
 const scenario = seed.scenarios[0]
 const t0 = seed.today
-ok('가상 데이터 규모', () => {
-  assert.equal(seed.villages.length, 18)
+ok('실제 자료 기반 규모', () => {
+  assert.equal(seed.villages.length, 37)
+  assert.equal(TEMP_SHELTERS.length, 27)
+  assert.equal(TEMP_SHELTERS.reduce((s, x) => s + x.capacity, 0), 5601)
+  assert.equal(VILLAGES.reduce((s, v) => s + v.targets, 0), LTC.homeTotal)
+  for (const v of seed.villages) assert.ok(Array.isArray(v.lngLat) && v.drive.length === 27, v.code)
   assert.equal(seed.vehicles.filter((v) => v.type === 'ambulance').length, 6)
   console.log('   대상자', seed.persons.length, '등급', JSON.stringify(seed.persons.reduce((m, p) => (m[p.grade] = (m[p.grade] || 0) + 1, m), {})))
 })
@@ -46,15 +51,28 @@ ok('필요 추가 차량으로 부족분 해소', () => {
   ex.forEach((e) => assert.equal(e.resolved, true))
 })
 
-ok('최적화는 기준선보다 나쁘지 않음 (두 시나리오)', () => {
+ok('확산 시나리오는 구역 안 대피소를 피한다', () => {
+  for (const sc of seed.scenarios.filter((x) => x.kind === 'fire')) {
+    const sp = scopeInput({ persons: seed.persons, villages: seed.villages, scenario: sc, settings: seed.settings })
+    const scope = new Set(sc.affected)
+    for (const v of sp.villages) {
+      const s = TEMP_SHELTERS.find((x) => x.code === v.shelterCode)
+      if (v.shelterNote !== 'overflow') assert.ok(!scope.has(s.villageCode), `${sc.id} ${v.code} -> ${s.name}`)
+    }
+    console.log('   ', sc.id, '구역', sc.affected.length, '곳, 대상자', sp.persons.length, '명, 첫 도달', sc.windowHours, '시간')
+  }
+})
+
+ok('최적화는 기준선보다 나쁘지 않음 (시나리오별 대피 대상 구역)', () => {
   for (const sc of seed.scenarios) {
-    const arrivals = Object.fromEntries(seed.villages.map((v) => [v.code, t0 + (8 + sc.offsetHours[v.code]) * 3600000]))
-    const p = planDispatch({ ...seed, persons: seed.persons, t0, arrivals, prepMinutes: 60, windowHours: 8, completeBeforeHours: 0 })
+    const sp = scopeInput({ persons: seed.persons, villages: seed.villages, scenario: sc, settings: seed.settings })
+    const arrivals = Object.fromEntries(sp.villages.map((v) => [v.code, t0 + (sc.windowHours + sc.offsetHours[v.code]) * 3600000]))
+    const p = planDispatch({ ...seed, persons: sp.persons, villages: sp.villages, t0, arrivals, prepMinutes: 60, windowHours: sc.windowHours, completeBeforeHours: 0 })
     console.log('   ', sc.id, '기준선 미이송', p.baseline.metrics.unserved, '가중', p.baseline.metrics.weightedUnserved, '| 최적화', p.metrics.unserved, '가중', p.metrics.weightedUnserved, 'rule', p.rule, p.elapsedMs + 'ms', '차량묶음', p.assignments.length, '도우미경고', p.warnings.length)
     assert.ok(p.metrics.weightedUnserved <= p.baseline.metrics.weightedUnserved)
     for (const a of p.assignments) for (const tr of a.trips) assert.ok(tr.finishAt <= p.ctx.deadlines[tr.village].completeBy)
     const all = new Set(); for (const a of p.assignments) for (const tr of a.trips) for (const c of tr.personCodes) { assert.ok(!all.has(c)); all.add(c) }
-    assert.equal(all.size + p.unassigned.length, seed.persons.length)
+    assert.equal(all.size + p.unassigned.length, sp.persons.length)
   }
 })
 

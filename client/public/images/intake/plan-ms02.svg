@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000" role="img" aria-label="망상동 가상마을 2">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000" role="img" aria-label="망상동 심곡동">
 <rect width="800" height="1000" fill="#FFFFFF"/>
 <g>
-<text x="400" y="90" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="30" font-weight="700" fill="#101010">망상동 가상마을 2</text>
+<text x="400" y="90" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="30" font-weight="700" fill="#101010">망상동 심곡동</text>
 <text x="400" y="130" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="18" fill="#3D3F45">재난취약자 대피계획서 (가상 서식)</text>
 <line x1="48" y1="160" x2="752" y2="160" stroke="#3D3F45" stroke-width="2"/>
 <rect x="48" y="200" width="704" height="60" fill="#F8F9FB" stroke="#9A9EA5"/>

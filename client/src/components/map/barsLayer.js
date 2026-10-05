@@ -40,7 +40,7 @@ export function createBarsLayer({ id, MercatorCoordinate, origin, highlightColor
     if (!ring) return
     const bar = selected && bars.get(selected)
     ring.visible = !!bar
-    if (bar) ring.position.set(bar.x, bar.y, 2)
+    if (bar) ring.position.set(bar.x, bar.y, (bar.z || 0) + 2)
   }
 
   function applyBars(list) {
@@ -62,7 +62,9 @@ export function createBarsLayer({ id, MercatorCoordinate, origin, highlightColor
       }
       bar.x = x
       bar.y = y
-      bar.mesh.position.set(x, y, 0)
+      bar.z = b.base || 0
+      // 지형을 켠 3D 에서는 막대 바닥을 그 지점 지표 높이에 맞춘다
+      bar.mesh.position.set(x, y, bar.z)
       bar.target = Math.max(DISC_M, b.height)
       bar.mesh.material.color.set(b.color)
       if (snap) { bar.h = bar.target; bar.mesh.scale.z = bar.h }

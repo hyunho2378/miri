@@ -4,5 +4,5 @@ import Badge from '../ui/Badge.jsx'
 
 export default function MockDataBadge() {
   if (!USE_MOCK) return null
-  return <Badge tone="neutral">가상 데이터</Badge>
+  return <Badge tone="neutral">시연 데이터</Badge>
 }

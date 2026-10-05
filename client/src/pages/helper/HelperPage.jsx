@@ -100,7 +100,8 @@ export default function HelperPage() {
   const vehicle = data.vehicles.find((v) => v.code === mine.vehicleCode)
   const trips = [...mine.trips].sort((a, b) => a.index - b.index)
   const list = trips.flatMap((tr) => tr.personCodes.map((code) => ({ code, trip: tr })))
-  const villageOf = (code) => data.villages.find((v) => v.code === code)
+  // 배정 계산에 쓴 마을 정보(시나리오별 대피소)를 먼저 본다
+  const villageOf = (code) => d.result?.ctx?.vmap?.[code] || data.villages.find((v) => v.code === code)
   const shelterOf = (vcode) => data.shelters.find((s) => s.code === villageOf(vcode)?.shelterCode)?.name || '대피소'
   const shelters = [...new Set(trips.map((tr) => shelterOf(tr.village)))]
 

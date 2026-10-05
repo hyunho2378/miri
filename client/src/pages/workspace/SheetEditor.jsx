@@ -46,6 +46,8 @@ export default function SheetEditor() {
   const fileRef = useRef(null)
   const [sel, setSel] = useState({ r: 0, c: 0 })
   const [q, setQ] = useState('')
+  // 큰 시트는 200행씩 나눠 그린다(명부 2천 행). 검색과 정렬은 전체 행 기준
+  const [limit, setLimit] = useState(200)
   const [sort, setSort] = useState(null)
   const ready = useWorkspaceInit()
   const mode = useWorkspaceStore((s) => s.mode)
@@ -156,7 +158,7 @@ export default function SheetEditor() {
     const move = { ArrowDown: [1, 0], Enter: [1, 0], ArrowUp: [-1, 0] }[e.key]
     if (!move) return
     e.preventDefault()
-    const ni = Math.min(view.length - 1, Math.max(0, vi + move[0]))
+    const ni = Math.min(Math.min(view.length, limit) - 1, Math.max(0, vi + move[0]))
     const target = document.querySelector(`[data-cell="${ni}-${ci}"]`)
     target?.focus()
   }
@@ -247,7 +249,7 @@ export default function SheetEditor() {
             </tr>
           </thead>
           <tbody>
-            {view.map(({ r, i }, vi) => (
+            {view.slice(0, limit).map(({ r, i }, vi) => (
               <tr key={i}>
                 <th className={clsx('sticky left-0 z-[5] h-8 border-b border-r border-line-sub bg-subtle type-caption font-normal tabular-nums', sel.r === i ? 'text-primary-text' : 'text-text-meta')}>{i + 2}</th>
                 {columns.map((c, ci) => {
@@ -277,6 +279,12 @@ export default function SheetEditor() {
           <datalist key={c.key} id={`opt-${c.key}`}>{c.options.map((o) => <option key={o} value={o} />)}</datalist>
         ))}
         {view.length === 0 && <p className="px-6 py-8 type-body-sm text-text-meta">{q ? '찾는 내용이 없습니다.' : '아직 행이 없습니다.'}</p>}
+        {view.length > limit && (
+          <div className="px-4 py-3 md:px-6">
+            <Button variant="secondary" size="sm" onClick={() => setLimit((n) => n + 200)}>다음 200행 보기</Button>
+            <span className="ml-3 type-meta text-text-meta tabular-nums">{view.length}행 중 {limit}행 표시</span>
+          </div>
+        )}
       </div>
       <footer className="flex items-center justify-between border-t border-line-sub bg-subtle px-4 py-2 type-meta text-text-meta md:px-6">
         <span className="tabular-nums">{view.length === rows.length ? `${rows.length}행` : `${rows.length}행 중 ${view.length}행 표시`}</span>

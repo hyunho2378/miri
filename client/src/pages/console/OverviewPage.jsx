@@ -18,6 +18,7 @@ import useAnomalies from '../../hooks/useAnomalies.js'
 import useNow from '../../hooks/useNow.js'
 import { GRADES, emptyByGrade } from '../../lib/shortage.js'
 import { computeShortage, optimizedUnserved } from '../../lib/shortageCalc.js'
+import { fmtElapsed } from '../../lib/geo.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 
@@ -89,7 +90,7 @@ export default function OverviewPage() {
             { label: '부족 마을', value: `${shortVillages}곳` },
             { label: '대상자', value: `${active.filter((p) => myVillages.some((v) => v.code === p.villageCode)).length}명` },
             { label: '준비 시간', value: `${scenario.prepMinutes}분` },
-            { label: '발령 기준', value: `도달 ${scenario.windowHours}시간 전` },
+            { label: '첫 도달', value: `발령 후 ${fmtElapsed(scenario.windowHours)}` },
             { label: '이송 완료 기한', value: completeText }
           ]} />
         </div>

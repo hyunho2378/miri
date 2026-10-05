@@ -16,6 +16,17 @@ export const SEVERITY_COLOR = [
   colors.chart.heatDanger[3],
   colors.chart.heatDanger[4]
 ]
+// 대피 대상 구역 밖 마을 점
+SEVERITY_COLOR.out = colors.line.def
+
+// 행정동 고령화율 단계(65세 이상 비율, %). step 식 인자 순서 그대로
+export const AGING_STEPS = [
+  { min: 0, label: '25% 미만', color: colors.chart.heat[1], swatch: 'bg-chart-heat-1' },
+  { min: 25, label: '25~35%', color: colors.chart.heat[2], swatch: 'bg-chart-heat-2' },
+  { min: 35, label: '35~45%', color: colors.chart.heat[3], swatch: 'bg-chart-heat-3' },
+  { min: 45, label: '45% 이상', color: colors.chart.heat[4], swatch: 'bg-chart-heat-4' }
+]
+export const agingStops = () => AGING_STEPS.flatMap((s, i) => (i === 0 ? [s.color] : [s.min, s.color]))
 // 범례 견본 Tailwind 클래스(같은 순서). 색만으로 구분하지 않도록 범례에 수치 구간 글자를 같이 쓴다
 export const SEVERITY_SWATCH = ['bg-chart-4', 'bg-chart-heatDanger-1', 'bg-chart-heatDanger-2', 'bg-chart-heatDanger-3', 'bg-chart-heatDanger-4']
 
@@ -30,7 +41,16 @@ export const OVERLAY = {
     vehicleOff: colors.text.meta,
     shelter: colors.success.DEFAULT,
     stroke: colors.page,
-    highlight: colors.primary.DEFAULT
+    highlight: colors.primary.DEFAULT,
+    hillShadow: colors.text.sec,
+    hillLight: colors.page,
+    forest: colors.success.DEFAULT,
+    building: colors.line.def,
+    danger: colors.danger.DEFAULT,
+    warn: colors.warning.DEFAULT,
+    shelterOff: colors.text.meta,
+    ltc: colors.chart[2],
+    agingLow: colors.chart.heat[1]
   },
   dark: {
     dongLine: colors.text.meta,
@@ -42,6 +62,15 @@ export const OVERLAY = {
     vehicleOff: colors.text.ter,
     shelter: colors.success.DEFAULT,
     stroke: colors.text.pri,
-    highlight: colors.primary.line
+    highlight: colors.primary.line,
+    hillShadow: colors.text.pri,
+    hillLight: colors.text.ter,
+    forest: colors.success.DEFAULT,
+    building: colors.text.sec,
+    danger: colors.danger.DEFAULT,
+    warn: colors.warning.DEFAULT,
+    shelterOff: colors.text.ter,
+    ltc: colors.line.def,
+    agingLow: colors.chart.heat[1]
   }
 }

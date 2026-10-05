@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { planDispatch } from '../lib/assign.js'
 import { capOf } from '../lib/shortage.js'
-import { scenarioArrivals } from '../lib/shortageCalc.js'
+import { scenarioArrivals, scopeInput } from '../lib/shortageCalc.js'
 import { indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
 import { MIN } from '../lib/time.js'
 import { activeScenario, useMiriStore } from './useMiriStore.js'
@@ -21,9 +21,11 @@ export const useDispatchStore = create((set, get) => ({
     const data = useMiriStore.getState()
     const sc = activeScenario(data)
     const now = Date.now()
+    // 대피 대상 구역 마을만 도달 시각을 둔다
+    const sp = scopeInput({ persons: data.persons, villages: data.villages, scenario: sc, settings: data.settings })
     set({
       ...EMPTY, status: 'standby', kind, speed, realStart: now, vStart: now,
-      arrivals: scenarioArrivals(sc, data.villages, now)
+      arrivals: scenarioArrivals(sc, sp.villages, now)
     })
   },
   setSpeed: (speed) => {
@@ -36,10 +38,14 @@ export const useDispatchStore = create((set, get) => ({
   runAssign: () => {
     const d = get()
     const data = useMiriStore.getState()
+    const sc = activeScenario(data)
+    // 시나리오 범위와 시나리오별 대피소(왕복 시간)를 적용한 마을과 대상자만 배정한다
+    const sp = scopeInput({ persons: data.persons, villages: data.villages, scenario: sc, settings: data.settings })
+    const codes = new Set(Object.keys(d.arrivals))
     const result = planDispatch({
-      persons: data.persons.filter((p) => p.review !== 'rejected'), villages: data.villages,
+      persons: sp.persons.filter((p) => codes.has(p.villageCode)), villages: sp.villages.filter((v) => codes.has(v.code)),
       vehicles: data.vehicles, helpers: data.helpers, t0: vnowOf(d), arrivals: d.arrivals,
-      prepMinutes: data.settings.prepMinutes, windowHours: data.settings.windowHours,
+      prepMinutes: sc?.prepMinutes ?? data.settings.prepMinutes, windowHours: sc?.windowHours ?? data.settings.windowHours,
       completeBeforeHours: data.settings.completeBeforeHours
     })
     set({ result, status: 'assigned' })

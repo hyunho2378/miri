@@ -1,7 +1,7 @@
 // 상황판(PRD F1). 지도를 업무의 출발점으로 둔다. 가운데 지도, 왼쪽 사실 요약, 오른쪽 레이어와 범례, 아래 시간 축.
 // 데이터 흐름: 저장소(명부, 마을, 차량, 시나리오) → computeShortage(현황판과 같은 계산) → 마을별 부족분
 //   → buildTimeline/progressAt(단순 비례 가정) → 시점 t 의 마을별 대기 인원 → MapCanvas(2D 원, 3D 막대, 숫자 표식).
-// 마을과 차량 위치는 가상이다(lib/geo.js 가 동 경계 안에 결정적으로 배치). 지도 위에 고정 표기한다.
+// 마을 위치는 실제 마을 집결지(경로당), 대피소는 실제 임시주거시설이다. 대상자 개인과 차량 위치는 가상이며 지도 위에 고정 표기한다.
 // lg 이상은 패널이 지도 위에 뜨고, 그보다 좁으면 지도 아래로 쌓인다.
 import { useCallback, useMemo, useState } from 'react'
 import clsx from 'clsx'
@@ -14,10 +14,12 @@ import SummaryPanel from '../../components/map/SummaryPanel.jsx'
 import VillageDetail from '../../components/map/VillageDetail.jsx'
 import LayerPanel from '../../components/map/LayerPanel.jsx'
 import TimeAxis from '../../components/map/TimeAxis.jsx'
-import OpenDataLoader from '../../components/map/OpenDataLoader.jsx'
 import useMediaQuery from '../../hooks/useMediaQuery.js'
 import { buildTimeline, fireArrow, fmtDotDate, placeVehicles, placeVillages, progressAt, severityOf } from '../../lib/geo.js'
 import { typeOf } from '../../lib/shortage.js'
+import { SHELTER_NOTE } from '../../lib/scenario.js'
+import { agingStops } from '../../components/map/mapTheme.js'
+import { DATA_SOURCES, LTC_DAYCARE, LTC_RESIDENTIAL, TEMP_SHELTERS } from '../../mock/donghaeData.js'
 import { computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import { HOUR } from '../../lib/time.js'
 import { useTopbar } from '../../store/useAdminUi.js'
@@ -25,7 +27,8 @@ import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { spacing } from '../../tokens.js'
 
 const px = (v) => Number.parseInt(v, 10)
-const NOTE = '마을 위치와 대상자는 가상 데이터입니다'
+const AGING = agingStops()
+const NOTE = '마을과 대피소는 실제 위치, 대상자 개인과 차량은 가상입니다'
 
 export default function MapPage() {
   useTopbar({ title: '상황판' })
@@ -46,11 +49,10 @@ export default function MapPage() {
 
   const [mode, setMode] = useState('2d')
   const [theme, setTheme] = useState('light')
-  const [layers, setLayers] = useState({ shortage: true, dongs: true, fire: true, vehicles: false, shelters: false, ltc: false })
+  const [layers, setLayers] = useState({ shortage: true, dongs: true, fire: true, shelters: true, vehicles: false, ltc: false, aging: false })
   const [selected, setSelected] = useState(null)
   const [focus, setFocus] = useState(null)
   const [fitSeq, setFitSeq] = useState(0)
-  const [openData, setOpenData] = useState({})
   const [layerOpen, setLayerOpen] = useState(null)   // null 이면 화면 폭 기본값(xl 이상 펼침)
   const [playing, setPlaying] = useState(false)
   const [tState, setT] = useState(null)              // null 이면 마지막 도달 시점
@@ -67,45 +69,86 @@ export default function MapPage() {
 
   const dongName = useCallback((code) => dongs.find((d) => d.code === code)?.name || code, [dongs])
   const shelterName = useCallback((code) => shelters.find((s) => s.code === code)?.name, [shelters])
+  const effVillage = useMemo(() => Object.fromEntries((result.villages || villages).map((v) => [v.code, v])), [result, villages])
 
   const villageVm = useMemo(() => villages.filter((v) => positions[v.code]).map((v) => {
     const row = result.byVillage[v.code]
+    const ev = effVillage[v.code] || v
     const tl = timeline.rows.find((r) => r.code === v.code)
-    const p = progress.byCode[v.code] || { waiting: 0, moved: 0 }
-    const level = severityOf(row.total)
+    const inScope = row.inScope !== false
+    const p = inScope ? (progress.byCode[v.code] || { waiting: 0, moved: 0 }) : { waiting: 0, moved: 0 }
+    const level = inScope ? severityOf(row.total) : 0
+    const rt = inScope ? ev.roundTripMin : v.roundTripMin
     return {
-      code: v.code, label: v.label, dongName: dongName(v.dongCode), lngLat: positions[v.code],
-      roundTripMin: v.roundTripMin, shelterName: shelterName(v.shelterCode),
-      target: row.targetTotal, targets: row.targets, shortage: row.total, shortageByGrade: row.shortage, provisional: row.provisional,
+      code: v.code, label: v.label, dongName: dongName(v.dongCode), lngLat: positions[v.code], inScope,
+      pickup: v.pickup, estTargets: v.estTargets, weightBasis: v.weightBasis,
+      roundTripMin: rt, driveMin: inScope ? ev.driveMin : v.driveMin,
+      shelterName: shelterName(inScope ? ev.shelterCode : v.shelterCode), plannedShelterName: shelterName(v.shelterCode),
+      shelterNote: inScope && ev.shelterNote ? SHELTER_NOTE[ev.shelterNote] : null,
+      shelterParts: inScope ? (ev.shelterParts || []).map(([c, n]) => `${shelterName(c)} ${n}명`) : [],
+      target: row.targetTotal, targets: row.targets, shortage: inScope ? row.total : 0, shortageByGrade: row.shortage, provisional: row.provisional,
+      timeOnly: row.timeOnly || 0,
       waiting: p.waiting, moved: p.moved, level,
       arrivalH: tl?.arrivalH ?? scenario.windowHours, arrivalAt: today + (tl?.arrivalH ?? scenario.windowHours) * HOUR,
-      tipLine: `대기 ${p.waiting}명, 도달 시점 부족 ${row.total ? `${row.total}명` : '없음'}, 왕복 ${v.roundTripMin}분`,
-      ariaLabel: `${v.label}, 가상 위치. 선택 시점 대기 ${p.waiting}명, 도달 시점 부족 ${row.total ? `${row.total}명` : '없음'}. 상세 보기`
+      tipLine: inScope
+        ? `대기 ${p.waiting}명, 도달 시점 부족 ${row.total ? `${row.total}명` : '없음'}, 왕복 ${rt}분`
+        : `대피 대상 구역 밖, 대상자 ${row.targetTotal}명`,
+      ariaLabel: `${v.label}. 선택 시점 대기 ${p.waiting}명, 도달 시점 부족 ${row.total ? `${row.total}명` : '없음'}. 상세 보기`
     }
-  }), [villages, positions, result, timeline, progress, dongName, shelterName, scenario, today])
+  }), [villages, positions, result, effVillage, timeline, progress, dongName, shelterName, scenario, today])
 
   const shortList = useMemo(() => villageVm.filter((v) => v.shortage > 0).sort((a, b) => b.shortage - a.shortage || a.code.localeCompare(b.code)), [villageVm])
-  const forestCount = villages.filter((v) => v.forestAdjacent).length
+  const scopeCount = villageVm.filter((v) => v.inScope).length
 
   const vehiclePos = useMemo(() => placeVehicles(vehicles), [vehicles])
   const vehicleVm = useMemo(() => vehicles.filter((v) => vehiclePos[v.code]).map((v) => ({
     code: v.code, lngLat: vehiclePos[v.code], available: v.available !== false,
-    tip: `${v.code} ${typeOf(v.type)?.label || v.type}, ${dongName(v.baseDong)} 소속, 가상 위치${v.available === false ? `, ${v.note || '이송 불가'}` : ''}`
+    tip: `${v.code} ${typeOf(v.type)?.label || v.type}, ${dongName(v.baseDong)} 행정복지센터 대기(가정)${v.available === false ? `, ${v.note || '이송 불가'}` : ''}`
   })), [vehicles, vehiclePos, dongName])
 
+  // 임시주거시설: 이번 시나리오 배정 인원과 수용 가능 인원 비교. 대피 대상 구역 안 시설은 쓰지 않는다
   const shelterVm = useMemo(() => {
-    const list = openData.shelters?.data?.list || []
-    return list.filter((x) => Number.isFinite(x.lat) && Number.isFinite(x.lon) && x.lat && x.lon)
-      .map((x) => ({ lngLat: [x.lon, x.lat], tip: `${x.name}, 최대 수용 ${x.capacity}명` }))
-  }, [openData.shelters])
+    const load = result.shelterLoad || {}
+    const scope = new Set(scenario.affected || [])
+    return TEMP_SHELTERS.map((x) => {
+      const n = load[x.code] || 0
+      const blocked = scenario.avoidAffectedShelters && x.villageCode && scope.has(x.villageCode)
+      const state = blocked ? 'blocked' : n > x.capacity ? 'over' : n > x.capacity * 0.8 ? 'near' : 'ok'
+      const tail = blocked ? '대피 대상 구역 안이라 이번 시나리오에서는 쓰지 않음' : `배정 ${n}명 / 수용 ${x.capacity}명`
+      return { code: x.code, lngLat: x.lngLat, name: x.name, state, load: n, capacity: x.capacity, tip: `${x.name}(${x.kind}), ${tail}${x.coordApprox ? ', 좌표 근사' : ''}` }
+    })
+  }, [result.shelterLoad, scenario])
+  const routes = useMemo(() => villageVm.filter((v) => v.inScope && v.target > 0).map((v) => {
+    const ev = effVillage[v.code]
+    const s = TEMP_SHELTERS.find((x) => x.code === ev?.shelterCode)
+    return s ? { from: v.lngLat, to: s.lngLat } : null
+  }).filter(Boolean), [villageVm, effVillage])
+  const ltcVm = useMemo(() => [
+    ...LTC_RESIDENTIAL.map((x) => ({ lngLat: x.lngLat, kind: 'residential', tip: `${x.name}(노인요양시설), 정원 ${x.capacity}명, 현원 ${x.current}명` })),
+    ...LTC_DAYCARE.map((x) => ({ lngLat: x.lngLat, kind: 'daycare', tip: `${x.name}(주야간보호), 정원 ${x.capacity}명, 현원 ${x.current}명` }))
+  ], [])
+  const shelterStats = useMemo(() => ({
+    used: shelterVm.filter((x) => x.load > 0).length,
+    over: shelterVm.filter((x) => x.state === 'over').length,
+    blocked: shelterVm.filter((x) => x.state === 'blocked').length
+  }), [shelterVm])
 
-  const fire = useMemo(() => fireArrow(scenario, villages, positions), [scenario, villages, positions])
-  const fireInfo = fire ? { fromH: scenario.windowHours + fire.firstHours, toH: scenario.windowHours + fire.lastHours } : null
+  const fire = useMemo(() => fireArrow(scenario, villages), [scenario, villages])
+  // 대피 대상 구역(마을과 발화 가정 지점)을 감싸는 범위. 시 전체 시나리오는 지정하지 않는다
+  const scopeBounds = useMemo(() => {
+    if (scenario.kind !== 'fire') return null
+    const pts = villageVm.filter((v) => v.inScope).map((v) => v.lngLat)
+    if (scenario.origin) pts.push(scenario.origin)
+    if (pts.length < 2) return null
+    const xs = pts.map((p) => p[0])
+    const ys = pts.map((p) => p[1])
+    return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]
+  }, [scenario.id, scenario.kind, scenario.origin, villageVm.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  const fireInfo = fire ? { label: fire.label, speed: scenario.speedKmh, fromH: fire.firstHours, toH: fire.lastHours } : null
 
   const selectedVm = selected ? villageVm.find((v) => v.code === selected) : null
 
   const onLayer = (key, v) => setLayers((l) => ({ ...l, [key]: v }))
-  const onOpenData = useCallback((kind, state) => setOpenData((o) => (o[kind] === state ? o : { ...o, [kind]: state })), [])
   const pick = useCallback((code) => {
     setSelected(code)
     const lngLat = positions[code]
@@ -127,16 +170,14 @@ export default function MapPage() {
 
   return (
     <div className="relative lg:h-[calc(100dvh-theme(spacing.topbar))] lg:overflow-hidden">
-      {layers.shelters && <OpenDataLoader kind="shelters" onChange={onOpenData} />}
-      {layers.ltc && <OpenDataLoader kind="ltc" onChange={onOpenData} />}
 
       {/* 지도 */}
       <div className={clsx('relative h-[60vh] min-h-80 lg:absolute lg:inset-0 lg:h-auto', theme === 'dark' ? 'bg-text-pri' : 'bg-mute')}>
         <MapCanvas
           theme={theme} mode={mode} layers={layers} villages={villageVm} vehicles={vehicleVm} shelters={shelterVm}
-          fire={fire} selected={selected} onSelect={pick} focus={focus} fitSeq={fitSeq} padding={padding}
+          routes={routes} ltc={ltcVm} agingStops={AGING} fire={fire} scopeBounds={scopeBounds} selected={selected} onSelect={pick} focus={focus} fitSeq={fitSeq} padding={padding}
         />
-        {/* 가상 데이터 고정 표기. 지도 왼쪽 아래 */}
+        {/* 실제 자료와 가정 구분 고정 표기 */}
         <p className={clsx(
           'pointer-events-none absolute left-3 bottom-3 z-raised rounded-xs bg-page px-2 py-1 type-caption text-text-sec shadow-sm',
           'lg:left-[calc(theme(spacing.source-col-md)+theme(spacing.8))] lg:bottom-auto lg:top-4'
@@ -157,7 +198,7 @@ export default function MapPage() {
               <SummaryPanel
                 scenario={scenario} scenarios={scenarios} onScenario={(id) => { setActiveScenario(id); setSelected(null) }}
                 dateLabel={fmtDotDate(today)} result={result} extra={extra}
-                villageCount={villages.length} forestCount={forestCount} shortList={shortList} onPick={pick}
+                villageCount={villages.length} scopeCount={scopeCount} shortList={shortList} onPick={pick}
               />
             )}
         </Card>
@@ -196,8 +237,9 @@ export default function MapPage() {
           >
             <LayerPanel
               mode={mode} onMode={setMode} theme={theme} onTheme={setTheme} onFit={() => setFitSeq((n) => n + 1)}
-              layers={layers} onLayer={onLayer} shelterState={openData.shelters} ltcState={openData.ltc}
-              fireInfo={fireInfo} vehicleCount={vehicles.length}
+              layers={layers} onLayer={onLayer} shelterStats={shelterStats} shelterTotal={TEMP_SHELTERS.length}
+              ltcCounts={{ residential: LTC_RESIDENTIAL.length, daycare: LTC_DAYCARE.length }}
+              fireInfo={fireInfo} vehicleCount={vehicles.length} sources={DATA_SOURCES}
             />
           </Card>
         )}

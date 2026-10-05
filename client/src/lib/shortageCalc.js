@@ -4,6 +4,17 @@
 import { buildContext, runBaseline, runOptimize } from './assign.js'
 import { EXTRA_TYPE, GRADES, capOf, emptyByGrade, formulaShortage, typeOf } from './shortage.js'
 import { HOUR } from './time.js'
+import { resolveVillages } from './scenario.js'
+import { TEMP_SHELTERS } from '../mock/donghaeData.js'
+
+// 시나리오 범위 적용. 대피 대상 구역 마을과 그 대상자만 계산에 넣고, 마을별 대피소와 왕복 시간을 시나리오에 맞춘다
+export function scopeInput({ persons, villages, scenario, settings = {}, shelters = TEMP_SHELTERS }) {
+  const active = persons.filter((p) => p.review !== 'rejected')
+  const r = resolveVillages({ villages, persons: active, scenario, shelters, settings })
+  const scoped = r.villages.filter((v) => v.inScope)
+  const codes = new Set(scoped.map((v) => v.code))
+  return { all: r.villages, villages: scoped, persons: active.filter((p) => codes.has(p.villageCode)), shelterLoad: r.shelterLoad }
+}
 
 export function scenarioArrivals(scenario, villages, t0) {
   const out = {}
@@ -23,10 +34,12 @@ function withExtra(vehicles, extra = {}, baseDong = 'MS') {
   return [...vehicles, ...add]
 }
 
-export function computeShortage({ persons, villages, vehicles, helpers, settings, scenario, t0 }) {
+export function computeShortage({ persons, villages: allVillages, vehicles, helpers, settings, scenario, t0, shelters }) {
+  const scope = scopeInput({ persons, villages: allVillages, scenario, settings, shelters })
+  const villages = scope.villages
   const arrivals = scenarioArrivals(scenario, villages, t0)
   const params = {
-    persons: persons.filter((p) => p.review !== 'rejected'),
+    persons: scope.persons,
     villages, helpers, t0, arrivals,
     prepMinutes: scenario?.prepMinutes ?? settings.prepMinutes,
     windowHours: scenario?.windowHours ?? settings.windowHours,
@@ -36,8 +49,8 @@ export function computeShortage({ persons, villages, vehicles, helpers, settings
   const base = runBaseline(ctx)
 
   const byVillage = {}
-  for (const v of villages) byVillage[v.code] = { targets: emptyByGrade(), shortage: emptyByGrade(), total: 0, targetTotal: 0, provisional: 0 }
-  for (const p of params.persons) {
+  for (const v of scope.all) byVillage[v.code] = { targets: emptyByGrade(), shortage: emptyByGrade(), total: 0, targetTotal: 0, provisional: 0, inScope: v.inScope }
+  for (const p of persons.filter((x) => x.review !== 'rejected')) {
     const row = byVillage[p.villageCode]
     if (!row) continue
     row.targets[p.grade] += 1
@@ -45,11 +58,19 @@ export function computeShortage({ persons, villages, vehicles, helpers, settings
     if (p.review === 'pending') row.provisional += 1
   }
   const byGrade = emptyByGrade()
+  // 시간 부족: 준비가 끝난 뒤 첫 회차 왕복조차 도달 전에 끝나지 않는 마을. 차량을 늘려도 해소되지 않는다
+  const timeByGrade = emptyByGrade()
+  const timeShort = (code) => {
+    const v = ctx.vmap[code]
+    return ctx.deadlines[code].completeBy - ctx.start < (v?.roundTripMin || 0) * 60000
+  }
   for (const u of base.unserved) {
     byVillage[u.village].shortage[u.grade] += 1
     byVillage[u.village].total += 1
     byGrade[u.grade] += 1
+    if (timeShort(u.village)) { timeByGrade[u.grade] += 1; byVillage[u.village].timeOnly = (byVillage[u.village].timeOnly || 0) + 1 }
   }
+  const timeTotal = Object.values(timeByGrade).reduce((s, x) => s + x, 0)
   const total = base.unserved.length
   const provisional = params.persons.filter((p) => p.review === 'pending').length
 
@@ -68,25 +89,38 @@ export function computeShortage({ persons, villages, vehicles, helpers, settings
     return { grade: g.key, persons: targets.length, vehicles: compat.length, capacity: cap, roundTrip: avgRt, ...f }
   })
 
-  return { byVillage, byGrade, total, provisional, formula, arrivals, ctx, baselineUnserved: base.unserved }
+  return {
+    byVillage, byGrade, timeByGrade, timeTotal, total, provisional, formula, arrivals, ctx, baselineUnserved: base.unserved,
+    villages: scope.all, shelterLoad: scope.shelterLoad, scopeVillages: villages.length, scopeTargets: params.persons.length
+  }
 }
 
-// 등급별 부족분 0이 될 때까지 추가 협약 차량을 한 대씩 더해 재계산
-export function requiredExtraVehicles(input, current) {
+// 등급별로 차량으로 풀 수 있는 부족분이 0이 되는 최소 추가 협약 차량 수. 시간 부족 인원은 차량으로 풀리지 않으므로 뺀다
+export function requiredExtraVehicles(input, current, { max = 300 } = {}) {
   const out = []
   for (const g of GRADES) {
-    if (!current.byGrade[g.key]) continue
+    const floor = current.timeByGrade?.[g.key] || 0
+    if (current.byGrade[g.key] <= floor) continue
     const type = EXTRA_TYPE[g.key]
-    let n = 0
-    let left = current.byGrade[g.key]
-    while (left > 0 && n < 40) {
-      n += 1
+    const leftWith = (n) => {
       const extra = { ...(input.scenario?.extraVehicles || {}) }
       extra[type] = (extra[type] || 0) + n
-      const r = computeShortage({ ...input, scenario: { ...input.scenario, extraVehicles: extra } })
-      left = r.byGrade[g.key]
+      return computeShortage({ ...input, scenario: { ...input.scenario, extraVehicles: extra } }).byGrade[g.key]
     }
-    out.push({ grade: g.key, type, typeLabel: typeOf(type).label, count: n, resolved: left === 0 })
+    // 두 배씩 늘려 상한을 찾고 이분 탐색으로 최소 대수를 구한다
+    let lo = 0
+    let hi = 1
+    while (hi <= max && leftWith(hi) > floor) { lo = hi; hi *= 2 }
+    const resolved = hi <= max || leftWith(max) <= floor
+    if (hi > max) hi = max
+    if (resolved) {
+      while (hi - lo > 1) {
+        const mid = Math.floor((lo + hi) / 2)
+        if (leftWith(mid) > floor) lo = mid
+        else hi = mid
+      }
+    }
+    out.push({ grade: g.key, type, typeLabel: typeOf(type).label, count: hi, resolved, timeOnly: floor })
   }
   return out
 }

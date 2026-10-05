@@ -24,7 +24,7 @@ export default function LoginPage() {
         <Logo to="/console" />
         <Card as="div" padding="lg" className="mt-6">
           <h1 className="type-h1 text-text-pri">담당자 로그인</h1>
-          {USE_MOCK && <p className="mt-2 type-body-sm text-text-sec">시연용 계정을 선택합니다. 모든 데이터는 가상 데이터입니다.</p>}
+          {USE_MOCK && <p className="mt-2 type-body-sm text-text-sec">시연용 계정을 선택합니다. 마을과 시설은 실제 공개 자료, 대상자 개인은 가상입니다.</p>}
           {USE_MOCK ? (
             <>
               <ul className="mt-6 space-y-2">

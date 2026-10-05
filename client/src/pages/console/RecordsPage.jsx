@@ -73,7 +73,7 @@ export default function RecordsPage() {
       ) : (
         <div className="space-y-4">
           <TableCard
-            title="발령 기록" count={`${records.length}건`} desc="훈련 발령과 실제 발령을 모두 포함합니다. 시연 데이터는 가상 데이터입니다."
+            title="발령 기록" count={`${records.length}건`} desc="훈련 발령과 실제 발령을 모두 포함합니다."
             columns={columns} rows={rows} rowKey={(r) => r.id} pageSize={20} caption="이송 기록"
             onRowClick={(r) => navigate(`/console/records/${r.id}`)}
           />

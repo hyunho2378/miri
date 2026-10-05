@@ -45,8 +45,13 @@ export function detectAnomalies({ persons, vehicles, helpers, settings, now, dis
     else if (left <= settings.contractWarnDays) out.push({ id: `contract-${v.code}`, rule: 'contract', target: v.code, value: `만료까지 ${Math.ceil(left)}일`, to: '/console/resources' })
   }
 
+  // 담당 대상자는 마을 대상자를 그 마을을 맡은 도우미 수로 나눠 더한다(한 마을을 여럿이 나눠 맡는 경우)
+  const needByVillage = {}
+  for (const p of persons) if (NEEDS_HELPER.has(p.grade)) needByVillage[p.villageCode] = (needByVillage[p.villageCode] || 0) + 1
+  const helpersByVillage = {}
+  for (const h of helpers) for (const vc of h.villages) helpersByVillage[vc] = (helpersByVillage[vc] || 0) + 1
   for (const h of helpers) {
-    const load = persons.filter((p) => h.villages.includes(p.villageCode) && NEEDS_HELPER.has(p.grade)).length
+    const load = Math.round(h.villages.reduce((s, vc) => s + (needByVillage[vc] || 0) / (helpersByVillage[vc] || 1), 0))
     if (load > settings.helperLoadMax) out.push({ id: `load-${h.code}`, rule: 'helperLoad', target: h.code, value: `담당 대상자 ${load}명`, to: '/console/resources?tab=helpers' })
   }
 
