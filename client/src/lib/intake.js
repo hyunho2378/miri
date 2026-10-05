@@ -50,4 +50,4 @@ export const TAGS = {
   medication: '상시 복약'
 }
 
-export const CONF_LABEL = { high: '상', mid: '중', low: '하' }
+export const CONF_LABEL = { high: '확실', mid: '보통', low: '확인 필요' }

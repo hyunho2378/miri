@@ -43,7 +43,7 @@ export default function ReviewRow({ doc, result, villageLabel, canEdit, onConfir
         <div className="space-y-3 min-w-0">
           <Select label="이송 등급" value={grade} options={GRADE_OPTIONS} onChange={setGrade} disabled={!canEdit} />
           <MultiSelect label="특이사항" values={tags} options={TAG_OPTIONS} onChange={setTags} disabled={!canEdit} />
-          {changed && <p className="type-meta text-primary-text">AI 판정에서 변경됨. 수정 후 확인 필요</p>}
+          {changed && <p className="type-meta text-primary-text">읽은 값에서 바꿨습니다. 저장하면 확정됩니다</p>}
         </div>
         <EvidencePanel quote={result.quote} matched={result.quoteMatched} confidence={result.confidence} conflict={result.conflict} transcript={doc.transcript} docName={doc.name} />
       </div>

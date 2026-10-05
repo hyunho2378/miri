@@ -6,13 +6,13 @@ const DAY = 24 * 60 * MIN
 const NEEDS_HELPER = new Set(GRADES.filter((g) => g.helpers > 0).map((g) => g.key))
 
 export const ANOMALY_RULES = {
-  pendingLong: '판독 장기 미확인',
-  gradeConflict: '등급과 특이사항 모순',
-  duplicate: '중복 의심',
-  contract: '협약 만료 임박',
-  helperLoad: '도우미 과다 담당',
-  deadline: '기한 내 이송 불가',
-  noAck: '도우미 무응답'
+  pendingLong: '오래 확인 안 한 서류',
+  gradeConflict: '등급과 특이사항이 안 맞음',
+  duplicate: '같은 사람 두 번 등록 의심',
+  contract: '차량 협약 곧 끝남',
+  helperLoad: '도우미 한 명에게 몰림',
+  deadline: '마감 안에 못 옮김',
+  noAck: '도우미 응답 없음'
 }
 
 export function detectAnomalies({ persons, vehicles, helpers, settings, now, dispatch, villages = [] }) {

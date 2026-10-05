@@ -11,6 +11,7 @@ import Drawer from '../ui/Drawer.jsx'
 import IconButton from '../ui/IconButton.jsx'
 import DispatchBanner from '../miri/DispatchBanner.jsx'
 import Sidebar from './Sidebar.jsx'
+import SectionTabs from './SectionTabs.jsx'
 import Topbar from './Topbar.jsx'
 
 export default function AdminLayout() {
@@ -43,6 +44,7 @@ export default function AdminLayout() {
         )}
         <div className="flex min-w-0 flex-col">
           <Topbar />
+          <SectionTabs />
           <DispatchBanner />
           <main className="min-w-0 flex-1">
             {/* 본문만 경로별로 다시 만든다. 사이드바와 상단바는 유지 */}

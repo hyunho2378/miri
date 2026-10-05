@@ -20,7 +20,12 @@ const loaders = {
   Records: () => import('./pages/console/RecordsPage.jsx'),
   RecordDetail: () => import('./pages/console/RecordDetailPage.jsx'),
   Settings: () => import('./pages/console/SettingsPage.jsx'),
-  Helper: () => import('./pages/helper/HelperPage.jsx')
+  Helper: () => import('./pages/helper/HelperPage.jsx'),
+  Workspace: () => import('./pages/workspace/WorkspaceHome.jsx'),
+  DocEditor: () => import('./pages/workspace/DocEditor.jsx'),
+  SheetEditor: () => import('./pages/workspace/SheetEditor.jsx'),
+  FormEditor: () => import('./pages/workspace/FormEditor.jsx'),
+  FormFill: () => import('./pages/workspace/FormFillPage.jsx')
 }
 const PRELOAD = Object.values(loaders)
 
@@ -38,6 +43,11 @@ const RecordsPage = lazy(loaders.Records)
 const RecordDetailPage = lazy(loaders.RecordDetail)
 const SettingsPage = lazy(loaders.Settings)
 const HelperPage = lazy(loaders.Helper)
+const WorkspaceHome = lazy(loaders.Workspace)
+const DocEditor = lazy(loaders.DocEditor)
+const SheetEditor = lazy(loaders.SheetEditor)
+const FormEditor = lazy(loaders.FormEditor)
+const FormFillPage = lazy(loaders.FormFill)
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -79,12 +89,17 @@ export default function App() {
                 <Route path="dispatch" element={<DispatchPage />} />
                 <Route path="records" element={<RecordsPage />} />
                 <Route path="records/:id" element={<RecordDetailPage />} />
+                <Route path="workspace" element={<WorkspaceHome />} />
                 <Route element={<RequireAuth roles={['city']} />}>
                   <Route path="handover" element={<HandoverPage />} />
                   <Route path="settings" element={<SettingsPage />} />
                 </Route>
               </Route>
             </Route>
+            <Route path="/console/workspace/doc/:id" element={<RequireAuth />}><Route index element={<DocEditor />} /></Route>
+            <Route path="/console/workspace/sheet/:id" element={<RequireAuth />}><Route index element={<SheetEditor />} /></Route>
+            <Route path="/console/workspace/form/:id" element={<RequireAuth />}><Route index element={<FormEditor />} /></Route>
+            <Route path="/f/:id" element={<FormFillPage />} />
             <Route element={<HelperLayout />}>
               <Route path="/h/:token" element={<HelperPage />} />
             </Route>

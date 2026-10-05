@@ -29,7 +29,7 @@ export const STATUS = {
   reading: ['primary', '판독 중'], pending: ['primary', '확인 대기'], confirmed: ['success', '확인 완료'],
   edited: ['neutral', '담당자 수정'], rejected: ['danger', '반려'],
   // 판독 신뢰도
-  high: ['neutral', '신뢰도 상'], mid: ['neutral', '신뢰도 중'], low: ['warning', '신뢰도 하'],
+  high: ['neutral', '확실'], mid: ['neutral', '보통'], low: ['warning', '확인 필요'],
   // 발령
   idle: ['neutral', '평시'], standby: ['primary', '실행대기 발령'], assigned: ['primary', '배정 검토'],
   sent: ['primary', '이송 진행'], closed: ['neutral', '종료'],

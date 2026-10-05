@@ -124,7 +124,7 @@ export default function IntakePage() {
   const confirmAllHigh = () => {
     const targets = queue.filter((q) => q.result.confidence === 'high')
     targets.forEach((q) => reviewResult(q.doc.id, q.result.personCode, 'confirm'))
-    toast(`신뢰도 상 ${targets.length}건 판독 확인`, 'primary')
+    toast(`확실한 ${targets.length}건 확인했습니다`, 'primary')
   }
 
   return (
@@ -150,9 +150,9 @@ export default function IntakePage() {
       <section ref={queueRef} className="mt-8 scroll-mt-24" aria-label="확인 대기열">
         <SectionTitle
           title={<>확인 대기열 <span className="text-text-meta tabular-nums">{queue.length}건</span></>}
-          desc="신뢰도 낮은 순"
+          desc="확인이 필요한 순"
           actions={canEdit && highCount > 0 && (
-            <Button variant="secondary" onClick={confirmAllHigh} leftIcon={<ScanText size={16} aria-hidden="true" />}>신뢰도 상 {highCount}건 일괄 확인</Button>
+            <Button variant="secondary" onClick={confirmAllHigh} leftIcon={<ScanText size={16} aria-hidden="true" />}>확실한 {highCount}건 한꺼번에 확인</Button>
           )}
         />
         {queue.length ? (

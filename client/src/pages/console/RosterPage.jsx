@@ -28,11 +28,11 @@ const REVIEW_OPTIONS = [
   { value: 'all', label: '전체 확인 상태' }, { value: 'pending', label: '확인 대기' },
   { value: 'confirmed', label: '확인 완료' }, { value: 'edited', label: '담당자 수정' }, { value: 'rejected', label: '반려' }
 ]
-const SOURCE_OPTIONS = [{ value: 'all', label: '전체 판정 출처' }, { value: 'ai', label: 'AI 판정' }, { value: 'manual', label: '담당자 입력' }]
+const SOURCE_OPTIONS = [{ value: 'all', label: '전체 입력 방법' }, { value: 'ai', label: '서류에서 읽음' }, { value: 'manual', label: '담당자 입력' }]
 
 function SourceLabel({ source }) {
   return source === 'ai'
-    ? <span className="inline-flex items-center gap-1 type-caption text-primary-text"><ScanText size={14} aria-hidden="true" />AI 판정</span>
+    ? <span className="inline-flex items-center gap-1 type-caption text-primary-text"><ScanText size={14} aria-hidden="true" />서류에서 읽음</span>
     : <span className="inline-flex items-center gap-1 type-caption text-text-sec"><UserRound size={14} aria-hidden="true" />담당자 입력</span>
 }
 
@@ -110,7 +110,7 @@ export default function RosterPage() {
     { key: 'village', label: '마을', sortable: true, sortValue: (p) => p.villageCode, render: (p) => vlabel(p.villageCode) },
     { key: 'grade', label: '등급', sortable: true, sortValue: (p) => GRADE_RANK[p.grade], render: (p) => <GradeChip grade={p.grade} /> },
     { key: 'tags', label: '특이사항', hideBelow: 'lg', render: (p) => <span className="type-meta text-text-sec">{p.tags.map((t) => TAGS[t]).join(', ') || '없음'}</span> },
-    { key: 'source', label: '판정 출처', hideBelow: 'md', render: (p) => <SourceLabel source={p.gradeSource} /> },
+    { key: 'source', label: '입력 방법', hideBelow: 'md', render: (p) => <SourceLabel source={p.gradeSource} /> },
     { key: 'review', label: '확인 상태', sortable: true, render: (p) => <StatusPill status={p.review} /> },
     { key: 'updatedAt', label: '갱신일', sortable: true, hideBelow: 'lg', render: (p) => fmtDate(p.updatedAt) },
     { key: 'edit', label: '편집', render: (p) => <EditPencil resource="persons" label={`${p.code} 수정`} onClick={() => { openPerson(p.code); setEditing({ mode: 'edit', value: { villageCode: p.villageCode, grade: p.grade, tags: p.tags } }) }} /> }
@@ -131,7 +131,7 @@ export default function RosterPage() {
             <Select compact label="동" value={dong} onChange={setDong} options={dongOptions} disabled={user?.role === 'dong'} />
             <Select compact label="마을" value={village} onChange={setVillage} options={villageOptions} />
             <MultiSelect compact label="등급" values={grades} onChange={setGrades} options={GRADE_OPTIONS} placeholder="전체" />
-            <Select compact label="판정 출처" value={source} onChange={setSource} options={SOURCE_OPTIONS} />
+            <Select compact label="입력 방법" value={source} onChange={setSource} options={SOURCE_OPTIONS} />
             <Select compact label="확인 상태" value={review} onChange={setReview} options={REVIEW_OPTIONS} />
           </FilterBar>
         )}
@@ -162,7 +162,7 @@ export default function RosterPage() {
               { label: '마을', value: vlabel(open.villageCode), strong: true },
               { label: '이송 등급', value: <GradeChip grade={open.grade} /> },
               { label: '특이사항', value: open.tags.map((t) => TAGS[t]).join(', ') || '없음' },
-              { label: '판정 출처', value: <SourceLabel source={open.gradeSource} /> },
+              { label: '입력 방법', value: <SourceLabel source={open.gradeSource} /> },
               { label: '확인 상태', value: <StatusPill status={open.review} /> },
               { label: '근거 서류', value: open.docId || '없음' },
               { label: '갱신일', value: fmtDate(open.updatedAt) }

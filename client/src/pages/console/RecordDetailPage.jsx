@@ -95,7 +95,7 @@ export default function RecordDetailPage() {
         {m && b && (
           <Card title="규칙 순서 대비 배정 지표" meta="발령 당시 계산">
             <dl className="grid gap-2 sm:grid-cols-3 tabular-nums">
-              <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">미이송 예상</dt><dd className="mt-1 type-strong text-text-pri">규칙 순서 {b.unserved}명 → 최적화 {m.unserved}명</dd></div>
+              <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">미이송 예상</dt><dd className="mt-1 type-strong text-text-pri">기본 순서 {b.unserved}명, 추천 배정 {m.unserved}명</dd></div>
               <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">등급 가중 미이송</dt><dd className="mt-1 type-strong text-text-pri">{b.weightedUnserved}점 → {m.weightedUnserved}점</dd></div>
               <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">마지막 이송 완료</dt><dd className="mt-1 type-strong text-text-pri">{fmtHM(b.lastFinishAt)} → {fmtHM(m.lastFinishAt)}</dd></div>
             </dl>
