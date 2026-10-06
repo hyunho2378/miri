@@ -17,7 +17,7 @@ import LayerPanel from '../../components/map/LayerPanel.jsx'
 import TimeAxis from '../../components/map/TimeAxis.jsx'
 import useMediaQuery from '../../hooks/useMediaQuery.js'
 import { buildTimeline, fireArrow, fmtDotDate, placeVehicles, placeVillages, progressAt, severityOf } from '../../lib/geo.js'
-import { typeOf } from '../../lib/shortage.js'
+import { GRADES, typeOf } from '../../lib/shortage.js'
 import { SHELTER_NOTE } from '../../lib/scenario.js'
 import { agingStops } from '../../components/map/mapTheme.js'
 import { DATA_SOURCES, DONG_STATS, LTC_DAYCARE, LTC_RESIDENTIAL, TEMP_SHELTERS } from '../../mock/donghaeData.js'
@@ -27,11 +27,14 @@ import { useTopbar } from '../../store/useAdminUi.js'
 import FireRiskStrip, { WeatherLine, dirName, useWind } from '../../components/miri/FireRiskStrip.jsx'
 import { fireScenario } from '../../lib/scenario.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
+import { useDispatchStore } from '../../store/useDispatchStore.js'
+import { Link } from 'react-router-dom'
 import { spacing } from '../../tokens.js'
 
 const px = (v) => Number.parseInt(v, 10)
 const AGING = agingStops()
-const NOTE = '마을과 대피소는 실제 위치, 대상자 개인과 차량은 가상입니다'
+const NOTE = '마을과 대피소와 건물은 실제 위치, 대상자 개인과 차량은 가상입니다'
+const GRADE_LABEL = Object.fromEntries(GRADES.map((g) => [g.key, g.label]))
 
 export default function MapPage() {
   useTopbar({ title: '상황판' })
@@ -69,6 +72,13 @@ export default function MapPage() {
   const [theme, setTheme] = useState('light')
   const [layers, setLayers] = useState({ shortage: true, dongs: true, fire: true, shelters: true, vehicles: false, ltc: false, aging: false, spread: false })
   const [selected, setSelected] = useState(null)
+  // 보기 상황. 평시(기본)는 지금 있는 사람과 자원과 오늘 위험만, 가정 시나리오는 버튼으로 켠다. 발령 중이면 그 발령의 시나리오로 고정한다
+  const [view, setView] = useState('normal')
+  const dispatchStatus = useDispatchStore((s) => s.status)
+  const dispatchKind = useDispatchStore((s) => s.kind)
+  const live = dispatchStatus !== 'idle'
+  const situation = live ? 'dispatch' : view
+  const isNormal = situation === 'normal'
   const [opened3d, setOpened3d] = useState(true)    // 3D 를 한 번 열면 장면을 유지한다(지형을 다시 만들지 않는다)
   const [focus, setFocus] = useState(null)
   const [fitSeq, setFitSeq] = useState(0)
@@ -95,10 +105,11 @@ export default function MapPage() {
     const row = result.byVillage[v.code]
     const ev = effVillage[v.code] || v
     const tl = timeline.rows.find((r) => r.code === v.code)
-    const inScope = row.inScope !== false
-    const p = inScope ? (progress.byCode[v.code] || { waiting: 0, moved: 0 }) : { waiting: 0, moved: 0 }
-    const level = inScope ? severityOf(row.total) : 0
-    const rt = inScope ? ev.roundTripMin : v.roundTripMin
+    const inScope = isNormal ? true : row.inScope !== false
+    const p = isNormal ? { waiting: row.targetTotal, moved: 0 } : inScope ? (progress.byCode[v.code] || { waiting: 0, moved: 0 }) : { waiting: 0, moved: 0 }
+    const level = isNormal ? 0 : inScope ? severityOf(row.total) : 0
+    const rt = isNormal ? v.roundTripMin : inScope ? ev.roundTripMin : v.roundTripMin
+    const gradeLine = Object.entries(row.targets || {}).filter(([, n]) => n).map(([k, n]) => `${GRADE_LABEL[k] || k} ${n}`).join(', ')
     return {
       code: v.code, label: v.label, dongCode: v.dongCode, dongName: dongName(v.dongCode), lngLat: positions[v.code], inScope,
       pickup: v.pickup, estTargets: v.estTargets, weightBasis: v.weightBasis,
@@ -110,12 +121,17 @@ export default function MapPage() {
       timeOnly: row.timeOnly || 0,
       waiting: p.waiting, moved: p.moved, level,
       arrivalH: tl?.arrivalH ?? scenario.windowHours, arrivalAt: today + (tl?.arrivalH ?? scenario.windowHours) * HOUR,
-      tipLine: inScope
-        ? `대기 ${p.waiting}명, 도달 시점 부족 ${row.total ? `${row.total}명` : '없음'}, 왕복 ${rt}분`
-        : `대피 대상 구역 밖, 대상자 ${row.targetTotal}명`,
-      ariaLabel: `${v.label}. 선택 시점 대기 ${p.waiting}명, 도달 시점 부족 ${row.total ? `${row.total}명` : '없음'}. 상세 보기`
+      radiusKm: isNormal ? 0.12 + 0.028 * Math.sqrt(row.targetTotal) : undefined,
+      tipLine: isNormal
+        ? `대상자 ${row.targetTotal}명(${gradeLine || '등급 자료 없음'}), 계획 대피소 ${shelterName(v.shelterCode)}, 왕복 ${rt}분`
+        : inScope
+          ? `대기 ${p.waiting}명, 도달 시점 부족 ${row.total ? `${row.total}명` : '없음'}, 왕복 ${rt}분`
+          : `대피 대상 구역 밖, 대상자 ${row.targetTotal}명`,
+      ariaLabel: isNormal
+        ? `${v.label}. 대상자 ${row.targetTotal}명. 상세 보기`
+        : `${v.label}. 선택 시점 대기 ${p.waiting}명, 도달 시점 부족 ${row.total ? `${row.total}명` : '없음'}. 상세 보기`
     }
-  }), [villages, positions, result, effVillage, timeline, progress, dongName, shelterName, scenario, today])
+  }), [villages, positions, result, effVillage, timeline, progress, dongName, shelterName, scenario, today, isNormal])
 
   // 3D 행정동 조각 색과 높이에 쓰는 행정동별 수치
   const dongStats = useMemo(() => {
@@ -142,6 +158,9 @@ export default function MapPage() {
 
   // 임시주거시설: 이번 시나리오 배정 인원과 수용 가능 인원 비교. 대피 대상 구역 안 시설은 쓰지 않는다
   const shelterVm = useMemo(() => {
+    if (isNormal) {
+      return TEMP_SHELTERS.map((x) => ({ code: x.code, lngLat: x.lngLat, name: x.name, state: 'ok', load: 0, capacity: x.capacity, tip: `${x.name}(${x.kind}), 수용 ${x.capacity}명${x.coordApprox ? ', 좌표 근사' : ''}` }))
+    }
     const load = result.shelterLoad || {}
     const scope = new Set(scenario.affected || [])
     return TEMP_SHELTERS.map((x) => {
@@ -151,12 +170,12 @@ export default function MapPage() {
       const tail = blocked ? '대피 대상 구역 안이라 이번 시나리오에서는 쓰지 않음' : `배정 ${n}명 / 수용 ${x.capacity}명`
       return { code: x.code, lngLat: x.lngLat, name: x.name, state, load: n, capacity: x.capacity, tip: `${x.name}(${x.kind}), ${tail}${x.coordApprox ? ', 좌표 근사' : ''}` }
     })
-  }, [result.shelterLoad, scenario])
-  const routes = useMemo(() => villageVm.filter((v) => v.inScope && v.target > 0).map((v) => {
+  }, [result.shelterLoad, scenario, isNormal])
+  const routes = useMemo(() => (isNormal ? [] : villageVm).filter((v) => v.inScope && v.target > 0).map((v) => {
     const ev = effVillage[v.code]
     const s = TEMP_SHELTERS.find((x) => x.code === ev?.shelterCode)
     return s ? { from: v.lngLat, to: s.lngLat } : null
-  }).filter(Boolean), [villageVm, effVillage])
+  }).filter(Boolean), [villageVm, effVillage, isNormal])
   const ltcVm = useMemo(() => [
     ...LTC_RESIDENTIAL.map((x) => ({ lngLat: x.lngLat, kind: 'residential', tip: `${x.name}(노인요양시설), 정원 ${x.capacity}명, 현원 ${x.current}명` })),
     ...LTC_DAYCARE.map((x) => ({ lngLat: x.lngLat, kind: 'daycare', tip: `${x.name}(주야간보호), 정원 ${x.capacity}명, 현원 ${x.current}명` }))
@@ -167,20 +186,31 @@ export default function MapPage() {
     blocked: shelterVm.filter((x) => x.state === 'blocked').length
   }), [shelterVm])
 
-  const fire = useMemo(() => fireArrow(scenario, villages), [scenario, villages])
+  const fire = useMemo(() => (isNormal ? null : fireArrow(scenario, villages)), [scenario, villages, isNormal])
   // 대피 대상 구역(마을과 발화 가정 지점)을 감싸는 범위. 시 전체 시나리오는 지정하지 않는다
   const scopeBounds = useMemo(() => {
-    if (scenario.kind !== 'fire') return null
+    if (isNormal || scenario.kind !== 'fire') return null
     const pts = villageVm.filter((v) => v.inScope).map((v) => v.lngLat)
     if (scenario.origin) pts.push(scenario.origin)
     if (pts.length < 2) return null
     const xs = pts.map((p) => p[0])
     const ys = pts.map((p) => p[1])
     return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]
-  }, [scenario.id, scenario.kind, scenario.origin, villageVm.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [scenario.id, scenario.kind, scenario.origin, villageVm.length, isNormal]) // eslint-disable-line react-hooks/exhaustive-deps
   const fireInfo = fire ? { label: fire.label, speed: scenario.speedKmh, fromH: fire.firstHours, toH: fire.lastHours } : null
 
   const selectedVm = selected ? villageVm.find((v) => v.code === selected) : null
+  const normalStats = useMemo(() => {
+    const byGrade = {}
+    for (const v of villageVm) for (const [k, n] of Object.entries(v.targets || {})) byGrade[k] = (byGrade[k] || 0) + n
+    return {
+      targets: villageVm.reduce((a, v) => a + v.target, 0),
+      capacity: TEMP_SHELTERS.reduce((a, x) => a + x.capacity, 0),
+      avail: vehicles.filter((v) => v.available !== false).length,
+      gradeLine: GRADES.filter((g) => byGrade[g.key]).map((g) => `${g.label} ${byGrade[g.key]}`).join(', '),
+      top: [...villageVm].sort((a, b) => b.target - a.target).slice(0, 5)
+    }
+  }, [villageVm, vehicles])
 
   const changeMode = (m) => { setMode(m); if (m === '3d') setOpened3d(true) }
   const onLayer = (key, v) => setLayers((l) => ({ ...l, [key]: v }))
@@ -198,11 +228,11 @@ export default function MapPage() {
     const gap = px(spacing[4])
     return {
       top: gap * 4,
-      left: (showSummary || selected ? px(spacing['source-col-md']) : 300) + gap * 2,
+      left: (showSummary || selected || isNormal ? px(spacing['source-col-md']) : 300) + gap * 2,
       right: showLayers ? px(spacing['source-col-md']) - px(spacing[8]) + gap * 3 : gap * 2,
-      bottom: px(spacing[24]) + gap * 2
+      bottom: isNormal ? gap * 2 : px(spacing[24]) + gap * 2
     }
-  }, [isLg, showLayers, showSummary, selected])
+  }, [isLg, showLayers, showSummary, selected, isNormal])
 
   return (
     <div className="relative lg:h-full lg:overflow-hidden">
@@ -231,10 +261,39 @@ export default function MapPage() {
       </div>
 
       <div className="flex flex-col gap-4 px-4 py-4 md:px-6 lg:contents">
-        {/* 왼쪽: 사실 요약 또는 마을 상세. 큰 화면에서는 접어 둘 수 있다 */}
-        {isLg && !selectedVm && !showSummary ? (
+        {/* 왼쪽 위: 상황 전환. 평시가 기본이고 가정 시나리오는 켜서 본다. 발령 중이면 고정 */}
+        {isNormal && !selectedVm ? (
+          <section aria-label="평시 현황" className="lg:absolute lg:left-4 lg:top-4 lg:z-raised lg:w-[320px] rounded-lg bg-page p-4 shadow-md">
+            <SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} />
+            <p className="mt-3 type-meta text-text-meta">평시. 지금 등록된 대상자와 자원, 오늘의 위험</p>
+            <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2.5">
+              <div><dt className="type-meta text-text-meta">대상자</dt><dd className="type-h3 text-text-pri tabular-nums">{fmtN(normalStats.targets)}<span className="ml-0.5 type-body-sm">명</span></dd></div>
+              <div><dt className="type-meta text-text-meta">마을</dt><dd className="type-h3 text-text-pri tabular-nums">{villages.length}<span className="ml-0.5 type-body-sm">곳</span></dd></div>
+              <div><dt className="type-meta text-text-meta">임시주거시설 수용</dt><dd className="type-h3 text-text-pri tabular-nums">{fmtN(normalStats.capacity)}<span className="ml-0.5 type-body-sm">명</span></dd></div>
+              <div><dt className="type-meta text-text-meta">가용 차량</dt><dd className="type-h3 text-text-pri tabular-nums">{normalStats.avail}<span className="ml-0.5 type-body-sm">/ {vehicles.length}대</span></dd></div>
+            </dl>
+            <p className="mt-1 type-meta text-text-meta">{normalStats.gradeLine}</p>
+            <div className="mt-3 rounded-md bg-subtle px-3 py-2">
+              <FireRiskStrip compact />
+              <WeatherLine className="mt-0.5" />
+            </div>
+            <p className="mt-3 type-caption text-text-sec">대상자가 많은 마을</p>
+            <ul className="mt-1 -mx-1 flex flex-col">
+              {normalStats.top.map((v) => (
+                <li key={v.code}>
+                  <button type="button" onClick={() => pick(v.code)} className="flex min-h-9 w-full items-center gap-2 rounded-md px-1 text-left hover:bg-subtle">
+                    <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">{v.label}<span className="ml-1.5 type-meta text-text-meta">{v.dongName}</span></span>
+                    <span className="type-strong text-text-pri tabular-nums">{v.target}명</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 type-caption text-text-meta">{NOTE}</p>
+          </section>
+        ) : isLg && !selectedVm && !showSummary ? (
           <section aria-label="상황 요약" className="absolute left-4 top-4 z-raised w-[300px] rounded-lg bg-page p-4 shadow-md">
-            <div className="flex items-start justify-between gap-2">
+            <SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} />
+            <div className="mt-3 flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="truncate type-meta text-text-meta">{scenario.name}</p>
                 <p className="mt-0.5 flex items-baseline gap-1.5">
@@ -270,6 +329,7 @@ export default function MapPage() {
             as="aside" aria-label={selectedVm ? '마을 상세' : '상황 요약'} padding="md"
             className="lg:absolute lg:left-4 lg:top-4 lg:bottom-4 lg:z-raised lg:w-source-col-md lg:overflow-y-auto lg:shadow-md"
           >
+            {!selectedVm && <div className="mb-3"><SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} /></div>}
             {isLg && !selectedVm && (
               <div className="-mt-1 mb-2 flex justify-end">
                 <IconButton size="sm" aria-label="상황 요약 접기" onClick={() => setSummaryOpen(false)}>
@@ -289,8 +349,8 @@ export default function MapPage() {
           </Card>
         )}
 
-        {/* 아래: 시간 축 */}
-        <Card
+        {/* 아래: 시간 축(가정 시나리오와 발령 중에만) */}
+        {!isNormal && <Card
           as="section" aria-label="시간 축" padding="sm"
           className={clsx(
             'lg:absolute lg:bottom-4 lg:z-raised lg:shadow-md',
@@ -302,7 +362,7 @@ export default function MapPage() {
             t={t} onT={setT} timeline={timeline} t0={today} progress={progress}
             total={progress.moved + progress.waiting} playing={playing} onPlaying={setPlaying}
           />
-        </Card>
+        </Card>}
 
         {/* 오른쪽 위: 보기 도구줄. 레이어와 범례는 눌렀을 때만 펼친다 */}
         {isLg && (
@@ -349,6 +409,28 @@ export default function MapPage() {
           </Card>
         )}
       </div>
+    </div>
+  )
+}
+
+const fmtN = (n) => Number(n || 0).toLocaleString('ko-KR')
+
+// 상황 전환. 평시와 가정 시나리오를 고른다. 발령 중이면 발령 운영으로 가는 표시만 둔다
+function SituationSwitch({ situation, onView, live, kind }) {
+  if (live) {
+    return (
+      <div className="flex items-center justify-between gap-2 rounded-md bg-text-pri px-3 py-2 text-text-inverse">
+        <span className="type-strong">{kind === 'real' ? '실제 발령 중' : '훈련 발령 중'}</span>
+        <Link to="/console/dispatch" className="type-meta underline underline-offset-2">발령 운영</Link>
+      </div>
+    )
+  }
+  return (
+    <div role="radiogroup" aria-label="보기 상황" className="grid grid-cols-2 gap-1 rounded-md bg-mute p-1">
+      {[['normal', '평시'], ['scenario', '가정 시나리오']].map(([v, l]) => (
+        <button key={v} type="button" role="radio" aria-checked={situation === v} onClick={() => onView(v)}
+          className={clsx('h-8 rounded-sm px-2 type-strong transition-colors duration-fast', situation === v ? 'bg-page text-text-pri shadow-sm' : 'text-text-meta hover:text-text-pri')}>{l}</button>
+      ))}
     </div>
   )
 }

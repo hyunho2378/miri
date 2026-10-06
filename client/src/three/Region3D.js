@@ -13,6 +13,7 @@ import { SEVERITY_COLOR } from '../components/map/mapTheme.js'
 import { BASE_Y, makeDem, topOf } from './terrainBuild.js'
 import { EXAG, ORIGIN, toLonLat, toXZ } from './proj.js'
 import TerrainWorker from './terrain.worker.js?worker'
+import { renderLocal } from './localBasemap.js'
 
 const DONGHAE = '51170'
 // 조각 안쪽 점 간격(km). 가까운 동해시는 촘촘하게, 먼 곳은 성기게
@@ -93,7 +94,8 @@ export default class Region3D {
     this.texUniforms = {
       uRegionTex: { value: white }, uDetailTex: { value: white },
       uRegionBox: { value: bbXZ(BASEMAP.region.bbox) }, uDetailBox: { value: bbXZ(BASEMAP.detail.bbox) },
-      uTexAmount: { value: 0 }
+      uTexAmount: { value: 0 },
+      uLocalTex: { value: white }, uLocalBox: { value: new THREE.Vector4(0, 0, 1, 1) }, uLocalAmt: { value: 0 }
     }
     this.layers = { shortage: true, dongs: true, fire: true, shelters: true, vehicles: false, ltc: false, aging: false }
     this.data = { villages: [], vehicles: [], shelters: [], ltc: [], fire: null, selected: null, dongStats: {}, colorMode: 'shortage' }
@@ -103,7 +105,7 @@ export default class Region3D {
 
     const w = box.clientWidth || 800
     const h = box.clientHeight || 600
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', logarithmicDepthBuffer: true })
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
     this.renderer.setSize(w, h)
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
@@ -116,16 +118,16 @@ export default class Region3D {
     box.appendChild(this.labels.domElement)
 
     this.scene = new THREE.Scene()
-    this.camera = new THREE.PerspectiveCamera(32, w / h, 0.5, 900)
+    this.camera = new THREE.PerspectiveCamera(32, w / h, 0.01, 900)
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     this.controls.enableDamping = true
     this.controls.dampingFactor = 0.09
     this.controls.maxPolarAngle = Math.PI * 0.47
-    this.controls.minDistance = 4
+    this.controls.minDistance = 0.3
     this.controls.maxDistance = 220
     this.controls.zoomToCursor = true
     this.controls.screenSpacePanning = false
-    this.controls.addEventListener('change', () => { this.dirty = true; this.labelsDirty = true })
+    this.controls.addEventListener('change', () => { this.dirty = true; this.labelsDirty = true; this.scheduleLocal() })
 
     this.root = new THREE.Group()
     this.scene.add(this.root)
@@ -252,7 +254,7 @@ export default class Region3D {
         .replace('#include <common>', '#include <common>\nvarying vec2 vTexXZ;')
         .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTexXZ = position.xz;')
       sh.fragmentShader = sh.fragmentShader
-        .replace('#include <common>', '#include <common>\nvarying vec2 vTexXZ;\nuniform sampler2D uRegionTex;\nuniform sampler2D uDetailTex;\nuniform vec4 uRegionBox;\nuniform vec4 uDetailBox;\nuniform float uTexAmount;')
+        .replace('#include <common>', '#include <common>\nvarying vec2 vTexXZ;\nuniform sampler2D uRegionTex;\nuniform sampler2D uDetailTex;\nuniform vec4 uRegionBox;\nuniform vec4 uDetailBox;\nuniform float uTexAmount;\nuniform sampler2D uLocalTex;\nuniform vec4 uLocalBox;\nuniform float uLocalAmt;')
         .replace('#include <map_fragment>', `#include <map_fragment>
         vec2 uvR = (vTexXZ - uRegionBox.xy) / uRegionBox.zw;
         vec3 baseTex = texture2D(uRegionTex, clamp(uvR, 0.0, 1.0)).rgb;
@@ -261,6 +263,10 @@ export default class Region3D {
         float wD = smoothstep(0.0, 0.03, eD);
         vec3 detTex = texture2D(uDetailTex, clamp(uvD, 0.0, 1.0)).rgb;
         vec3 tex = mix(baseTex, detTex, wD);
+        vec2 uvL = (vTexXZ - uLocalBox.xy) / uLocalBox.zw;
+        float eL = min(min(uvL.x, uvL.y), min(1.0 - uvL.x, 1.0 - uvL.y));
+        float wL = smoothstep(0.0, 0.06, eL) * uLocalAmt;
+        tex = mix(tex, texture2D(uLocalTex, clamp(uvL, 0.0, 1.0)).rgb, wL);
         diffuseColor.rgb *= mix(vec3(1.0), tex, uTexAmount);`)
     }
     return mat
@@ -277,6 +283,74 @@ export default class Region3D {
       this.texUniforms.uTexAmount.value = r || d ? 1 : 0
       this.dirty = true
     })
+  }
+
+  // ---------- 가까이 볼 때 바탕 ----------
+  // 카메라 거리 10km 안이면 카메라가 보는 곳 둘레를 골목 단위로 다시 그린다(0.35초 멈춘 뒤)
+  scheduleLocal() {
+    clearTimeout(this.localTimer)
+    this.localTimer = setTimeout(() => this.updateLocal(), 350)
+  }
+
+  async updateLocal() {
+    if (!this.ready) return
+    const dist = this.camera.position.distanceTo(this.controls.target)
+    if (dist > 10) {
+      if (this.texUniforms.uLocalAmt.value) { this.texUniforms.uLocalAmt.value = 0; this.dirty = true }
+      this.setRoadLabels([])
+      this.localKey = null
+      return
+    }
+    const size = Math.min(7, Math.max(1.6, dist * 1.3))
+    const [lon, lat] = toLonLat(this.controls.target.x, this.controls.target.z)
+    const L = this.localState
+    if (L && Math.hypot(L.x - this.controls.target.x, L.z - this.controls.target.z) < L.size * 0.22 && Math.abs(L.size - size) / L.size < 0.45) {
+      this.texUniforms.uLocalAmt.value = 1; this.dirty = true
+      return
+    }
+    const half = size / 2
+    const [w, n] = toLonLat(this.controls.target.x - half, this.controls.target.z - half)
+    const [e, s] = toLonLat(this.controls.target.x + half, this.controls.target.z + half)
+    this.localAbort?.abort()
+    const ctl = new AbortController()
+    this.localAbort = ctl
+    const out = await renderLocal([w, s, e, n], 2048, ctl.signal)
+    if (!out || ctl.signal.aborted || !this.texUniforms) return
+    const tex = new THREE.CanvasTexture(out.canvas)
+    tex.flipY = false
+    tex.colorSpace = THREE.SRGBColorSpace
+    tex.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy())
+    const old = this.texUniforms.uLocalTex.value
+    this.texUniforms.uLocalTex.value = tex
+    const [x0, zN] = toXZ(w, n); const [x1, zS] = toXZ(e, s)
+    this.texUniforms.uLocalBox.value.set(x0, zN, x1 - x0, zS - zN)
+    this.texUniforms.uLocalAmt.value = 1
+    if (old && old !== tex && old.isCanvasTexture) old.dispose()
+    this.localState = { x: this.controls.target.x, z: this.controls.target.z, size, lon, lat }
+    this.setRoadLabels(out.roads)
+    this.dirty = true
+  }
+
+  // 길 이름표. 지명과 같은 겹침 규칙을 쓴다
+  setRoadLabels(roads) {
+    for (const L of this.roadLabels || []) L.obj.parent?.remove(L.obj)
+    this.roadLabels = []
+    const t = THEME[this.theme]
+    for (const r of roads) {
+      const piece = this.pieceAt(r.lon, r.lat)
+      if (!piece) continue
+      const el = document.createElement('span')
+      el.className = 'type-caption'
+      Object.assign(el.style, { whiteSpace: 'nowrap', color: t.labelFar, fontSize: '11px', textShadow: this.theme === 'dark' ? '0 0 3px rgba(0,0,0,0.9)' : '0 0 3px rgba(255,255,255,1), 0 0 6px rgba(255,255,255,0.9)' })
+      el.textContent = r.name
+      const obj = new CSS2DObject(el)
+      const [x, z] = toXZ(r.lon, r.lat)
+      obj.position.set(x, this.heightAt(r.lon, r.lat) + 0.03, z)
+      obj.visible = false
+      piece.group.add(obj)
+      this.roadLabels.push({ obj, prio: 35 + Math.min(20, r.len / 400), near: 9, w: r.name.length * 11 + 14, h: 18 })
+    }
+    this.labelsDirty = true
   }
 
   // ---------- 조각 ----------
@@ -402,7 +476,7 @@ export default class Region3D {
     const villages = (this.data.villages || []).filter((v) => v.inScope)
     const R = 0.55 // km
     const c8 = (c) => { const k = new THREE.Color(c); return [Math.round(k.r * 255), Math.round(k.g * 255), Math.round(k.b * 255)] }
-    const base = c8(t.building), far = c8(t.buildingFar), okCol = c8(t.buildingScope), care = c8(colors.chart[2])
+    const base = c8(t.building), far = c8(t.buildingFar), care = c8(colors.chart[2])
     const levelCol = [1, 2, 3, 4].map((l) => c8(new THREE.Color(SEVERITY_COLOR[l]).lerp(new THREE.Color(colors.page), 0.25)))
     const vxz = villages.map((v) => ({ v, xz: toXZ(v.lngLat[0], v.lngLat[1]) }))
     const showData = this.layers.shortage !== false
@@ -418,7 +492,7 @@ export default class Region3D {
           let bd = R
           for (const q of vxz) { const d = Math.hypot(q.xz[0] - x, q.xz[1] - z); if (d < bd) { bd = d; best = q.v } }
         }
-        per[i] = best ? (best.level > 0 ? levelCol[best.level - 1] : okCol) : B.piece.isDong ? base : far
+        per[i] = best && best.level > 0 ? levelCol[best.level - 1] : B.piece.isDong ? base : far
       }
       const c = B.col
       for (let k = 0; k < B.bid.length; k++) { const col = per[B.bid[k]]; c[k * 3] = col[0]; c[k * 3 + 1] = col[1]; c[k * 3 + 2] = col[2] }
@@ -501,7 +575,7 @@ export default class Region3D {
       s.dot.position.set(x, ground + 0.03, z)
       s.ground = ground
       const isSel = selected === v.code
-      s.hTarget = v.inScope ? 0.16 + 0.045 * Math.sqrt(Math.max(0, v.waiting)) : 0.06
+      s.hTarget = v.radiusKm ?? (v.inScope ? 0.16 + 0.045 * Math.sqrt(Math.max(0, v.waiting)) : 0.06)
       const col = new THREE.Color(isSel ? t.highlight : v.inScope ? (v.level > 0 ? SEVERITY_COLOR[v.level] : t.highlight) : colors.text.ter)
       s.fillMat.color.copy(col); s.lineMat.color.copy(col)
       s.fillMat.opacity = v.inScope ? (isSel ? 0.16 : 0.07) : 0.05
@@ -935,7 +1009,7 @@ export default class Region3D {
       taken.push({ x: ((v.x + 1) / 2) * W - 30, y: ((1 - v.y) / 2) * H - 8, w: 60, h: 16 })
     }
     const cand = []
-    for (const L of this.placeLabels) {
+    for (const L of [...this.placeLabels, ...(this.roadLabels || [])]) {
       if (dist > L.near || this.layers.dongs === false) { L.obj.visible = false; continue }
       L.obj.getWorldPosition(v); v.project(this.camera)
       if (v.z > 1 || Math.abs(v.x) > 1.05 || Math.abs(v.y) > 1.05) { L.obj.visible = false; continue }
