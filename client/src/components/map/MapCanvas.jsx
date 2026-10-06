@@ -231,7 +231,15 @@ export default function MapCanvas({
       layout: { 'text-field': ['get', 'name'], 'text-font': FONT, 'text-size': 11.5, 'text-offset': [0, 1.6], 'text-anchor': 'top', 'text-optional': true },
       paint: { 'text-color': c.label, 'text-halo-color': c.halo, 'text-halo-width': 1.4 }
     })
-    const bars = createBarsLayer({ id: 'village-bars', MercatorCoordinate, origin: CENTER, highlightColor: c.highlight })
+    // 3D 에서는 숫자 표식을 막대 윗면 바로 위로 올린다(매 프레임 화면 좌표 차이만큼 옮김)
+    const onFrame = (tops) => {
+      if (propsRef.current.mode !== '3d') return
+      for (const [code, m] of markersRef.current) {
+        const o = tops[code]
+        if (o) m.marker.setOffset([o[0], o[1] - 18])
+      }
+    }
+    const bars = createBarsLayer({ id: 'village-bars', MercatorCoordinate, origin: CENTER, highlightColor: c.highlight, onFrame })
     barsRef.current = bars
     map.addLayer(bars.layer)
     syncBars()
@@ -376,11 +384,10 @@ export default function MapCanvas({
     }
   }, [villages, selected]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 표식 위치: 2D 는 원 가운데, 3D 는 막대 아래
+  // 표식 위치: 2D 는 원 가운데, 3D 는 막대 윗면(barsLayer onFrame 이 맞춘다)
   useEffect(() => {
-    for (const { marker } of markersRef.current.values()) {
-      marker.setOffset(mode === '3d' ? [0, 16] : [0, 0])
-    }
+    if (mode === '3d') { mapRef.current?.triggerRepaint(); return }
+    for (const { marker } of markersRef.current.values()) marker.setOffset([0, 0])
   }, [mode, villages])
 
   useEffect(() => { mapRef.current?.getSource('vehicles')?.setData(vehicleFc(vehicles)) }, [vehicles])

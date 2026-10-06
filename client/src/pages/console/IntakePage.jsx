@@ -1,7 +1,8 @@
-// 서류 읽기(IA 4.3). 자동 판독 후 담당자가 한 건씩 확인하고 명부에 확정한다(PRD v2 F2).
-// 화면은 서류 1건 단위: 왼쪽 원본, 오른쪽 읽은 값과 근거, 조작은 확인, 수정, 제외.
+// 서류 읽기(IA 4.3). 미리의 핵심 화면. 종이 대피계획서를 AI 가 읽고 담당자가 한 건씩 확인해 명부에 확정한다(PRD v2 F2).
+// 위: 3단계 안내(올리기, AI 읽기, 담당자 확인)와 단계별 건수. 아래: 왼쪽 확인 대기 목록, 오른쪽 선택한 건(원본, 읽은 값, 근거).
 import { useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight, CircleAlert, FileUp, ScanText } from 'lucide-react'
+import { CircleAlert, FileUp, ScanText, UserCheck } from 'lucide-react'
+import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Card from '../../components/ui/Card.jsx'
@@ -11,16 +12,41 @@ import ReviewRow from '../../components/miri/ReviewRow.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Disclosure from '../../components/ui/Disclosure.jsx'
 import EmptyState from '../../components/ui/EmptyState.jsx'
-import IconButton from '../../components/ui/IconButton.jsx'
 import useToast from '../../hooks/useToast.js'
 import { readDocument, verifyPage, verifyResult } from '../../lib/intake.js'
 import { fmtDate } from '../../lib/time.js'
 import { SAMPLE_UPLOAD } from '../../mock/seed.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
+import { gradeOf } from '../../lib/shortage.js'
 
 const CONF_ORDER = { low: 0, mid: 1, high: 2 }
 const KIND_LABEL = { plan: '대피계획서', card: '대피카드', etc: '기타' }
+const CONF = {
+  high: { label: '원문 일치', tone: 'bg-success-soft text-success-text' },
+  mid: { label: '확인 권장', tone: 'bg-warning-soft text-warning-text' },
+  low: { label: '원문 불일치', tone: 'bg-danger-soft text-danger-text' }
+}
+
+// 단계 안내 한 칸
+function Step({ n, title, desc, count, active, onClick, Icon }) {
+  const Tag = onClick ? 'button' : 'div'
+  return (
+    <Tag type={onClick ? 'button' : undefined} onClick={onClick}
+      className={clsx('flex min-w-0 flex-1 items-start gap-3 rounded-lg p-4 text-left transition-colors duration-fast',
+        active ? 'bg-primary-soft' : 'bg-subtle', onClick && 'hover:bg-mute')}>
+      <span className={clsx('inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full type-strong', active ? 'bg-primary text-text-inverse' : 'bg-page text-text-sec')}>
+        {Icon ? <Icon size={16} aria-hidden="true" /> : n}
+      </span>
+      <span className="min-w-0">
+        <span className="block type-caption text-text-meta">{n}단계</span>
+        <span className="block type-strong text-text-pri">{title}</span>
+        <span className="mt-0.5 block type-meta leading-5 text-text-sec">{desc}</span>
+        <span className="mt-2 block type-h3 text-text-pri tabular-nums">{count}</span>
+      </span>
+    </Tag>
+  )
+}
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 
 export default function IntakePage() {
@@ -57,6 +83,8 @@ export default function IntakePage() {
   const highCount = queue.filter((q) => q.result.confidence === 'high').length
   const doneDocs = docs.filter((d) => d.results.every((r) => personMap[r.personCode] && personMap[r.personCode].review !== 'pending'))
   const uploadOpen = showUpload || !!reading || !!error
+  const readPeople = docs.reduce((t, d) => t + d.results.length, 0)
+  const mismatch = queue.filter((q) => q.result.confidence === 'low').length
 
   // 같은 서류를 다시 올려도 코드가 겹치지 않게 번호를 이어 붙인다
   const uniqueCodes = (villageCode, n) => {
@@ -136,27 +164,12 @@ export default function IntakePage() {
 
   return (
     <PageShell title="서류 읽기">
-      <Card as="div" padding="sm" className="mb-4" bodyClassName="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1" role="group" aria-label="확인 대기 이동">
-          <IconButton aria-label="이전 서류" size="md" disabled={!queue.length || pos <= 0} onClick={() => setIdx(pos - 1)}>
-            <ChevronLeft size={20} aria-hidden="true" />
-          </IconButton>
-          <p className="min-w-40 text-center type-strong text-text-pri tabular-nums" role="status">
-            {queue.length ? `확인 대기 ${queue.length}건 중 ${pos + 1}번째` : '확인 대기 0건'}
-          </p>
-          <IconButton aria-label="다음 서류" size="md" disabled={!queue.length || pos >= queue.length - 1} onClick={() => setIdx(pos + 1)}>
-            <ChevronRight size={20} aria-hidden="true" />
-          </IconButton>
-        </div>
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          {canEdit && highCount > 0 && (
-            <Button variant="ghost" onClick={confirmAllHigh} leftIcon={<ScanText size={16} aria-hidden="true" />}>일치도 높음 {highCount}건 일괄 확인</Button>
-          )}
-          {canEdit && (
-            <Button variant={uploadOpen ? 'primary' : 'secondary'} aria-expanded={uploadOpen} onClick={() => setShowUpload((v) => !v)} leftIcon={<FileUp size={16} aria-hidden="true" />}>서류 올리기</Button>
-          )}
-        </div>
-      </Card>
+      <section aria-label="서류 읽기 단계" className="mb-4 flex flex-col gap-3 lg:flex-row">
+        <Step n={1} Icon={FileUp} title="서류 올리기" desc="동 담당자가 받은 대피계획서나 대피카드를 찍거나 스캔해 올립니다." count={`${docs.length}건`}
+          active={uploadOpen} onClick={canEdit ? () => setShowUpload((v) => !v) : undefined} />
+        <Step n={2} Icon={ScanText} title="AI 가 읽기" desc="AI 가 거동 상태 문구를 찾아 이송 등급 초안과 근거 문구를 만듭니다. 이름과 연락처는 읽지 않습니다." count={`${readPeople}명`} />
+        <Step n={3} Icon={UserCheck} title="담당자 확인" desc="원본과 근거 문구를 대조해 확인, 수정, 제외합니다. 확인해야 명부와 부족분 계산에 들어갑니다." count={`대기 ${queue.length}건`} active={!uploadOpen && queue.length > 0} />
+      </section>
 
       {uploadOpen && (
         <Card title="서류 올리기" className="mb-4">
@@ -177,16 +190,47 @@ export default function IntakePage() {
       )}
 
       {current ? (
-        <ReviewRow
-          key={current.result.personCode}
-          doc={current.doc} result={current.result} kindLabel={KIND_LABEL[current.doc.kind]}
-          villageLabel={vlabel(current.doc.villageCode)} canEdit={canEdit}
-          onConfirm={() => { reviewResult(current.doc.id, current.result.personCode, 'confirm'); toast(`${current.result.personCode} 판독을 확인했습니다.`, 'primary') }}
-          onEdit={(patch) => { reviewResult(current.doc.id, current.result.personCode, 'edit', patch); toast(`${current.result.personCode} 수정한 값으로 확인했습니다.`, 'primary') }}
-          onReject={() => { reviewResult(current.doc.id, current.result.personCode, 'reject'); toast(`${current.result.personCode} 제외. 재촬영 요청 대상입니다.`) }}
-        />
+        <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)] xl:items-start">
+          <Card as="aside" padding="none" aria-label="확인 대기 목록" className="xl:sticky xl:top-20">
+            <div className="flex items-center justify-between gap-2 border-b border-line-sub px-4 py-3">
+              <p className="type-strong text-text-pri">확인 대기 <span className="tabular-nums">{queue.length}</span>건</p>
+              {mismatch > 0 && <span className="type-meta text-danger-text">원문 불일치 {mismatch}건 먼저</span>}
+            </div>
+            <ul className="max-h-[60vh] overflow-y-auto py-1">
+              {queue.map((q, i) => {
+                const g = gradeOf(q.result.grade)
+                const c = CONF[q.result.confidence] || CONF.mid
+                return (
+                  <li key={q.result.personCode}>
+                    <button type="button" onClick={() => setIdx(i)} aria-current={i === pos ? 'true' : undefined}
+                      className={clsx('flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-fast', i === pos ? 'bg-primary-soft' : 'hover:bg-mute')}>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate type-strong text-text-pri">{vlabel(q.doc.villageCode)} <span className="type-meta text-text-meta tabular-nums">{q.result.personCode.split('-').pop()}</span></span>
+                        <span className="block truncate type-meta text-text-meta">{KIND_LABEL[q.doc.kind]}, AI 판정 {g?.label || '판독 불가'}</span>
+                      </span>
+                      <span className={clsx('shrink-0 rounded-xs px-1.5 py-0.5 type-caption', c.tone)}>{c.label}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+            {canEdit && highCount > 0 && (
+              <div className="border-t border-line-sub p-3">
+                <Button variant="ghost" size="sm" className="w-full" onClick={confirmAllHigh} leftIcon={<ScanText size={16} aria-hidden="true" />}>원문 일치 {highCount}건 한 번에 확인</Button>
+              </div>
+            )}
+          </Card>
+          <ReviewRow
+            key={current.result.personCode}
+            doc={current.doc} result={current.result} kindLabel={KIND_LABEL[current.doc.kind]}
+            villageLabel={vlabel(current.doc.villageCode)} canEdit={canEdit}
+            onConfirm={() => { reviewResult(current.doc.id, current.result.personCode, 'confirm'); toast(`${current.result.personCode} 판독을 확인했습니다.`, 'primary') }}
+            onEdit={(patch) => { reviewResult(current.doc.id, current.result.personCode, 'edit', patch); toast(`${current.result.personCode} 수정한 값으로 확인했습니다.`, 'primary') }}
+            onReject={() => { reviewResult(current.doc.id, current.result.personCode, 'reject'); toast(`${current.result.personCode} 제외. 재촬영 요청 대상입니다.`) }}
+          />
+        </div>
       ) : (
-        <Card as="div" padding="none"><EmptyState title="확인 대기 서류가 없습니다" desc="새 서류는 서류 올리기에서 등록합니다." /></Card>
+        <Card as="div" padding="none"><EmptyState title="확인 대기 서류가 없습니다" desc="새 서류는 1단계 서류 올리기에서 등록합니다." /></Card>
       )}
 
       <section className="mt-6" aria-label="처리 완료 문서">

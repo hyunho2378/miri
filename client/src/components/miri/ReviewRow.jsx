@@ -33,7 +33,7 @@ export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdi
   const changed = grade !== result.grade || [...tags].sort().join() !== [...(result.tags || [])].sort().join()
   return (
     <Card as="div" padding="lg" aria-label={`서류 ${doc.name}, 대상자 ${result.personCode}`}>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] 2xl:grid-cols-[minmax(0,560px)_minmax(0,1fr)]">
         <div className="min-w-0">
           <p className="mb-2 type-caption text-text-sec">원본 서류</p>
           <DocImage src={doc.image} alt={`${doc.name} 판독 영역`} box={result.box} />

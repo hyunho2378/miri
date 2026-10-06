@@ -21,7 +21,7 @@ function Metric({ label, children, basis }) {
 }
 
 export default function SummaryPanel({
-  scenario, scenarios, onScenario, dateLabel, result, extra, villageCount, scopeCount, shortList, onPick
+  scenario, scenarios, onScenario, dateLabel, result, extra, villageCount, scopeCount, shortList, onPick, onWindScenario
 }) {
   const shortCount = shortList.length
   const extraTotal = extra.reduce((s, x) => s + x.count, 0)
@@ -46,6 +46,11 @@ export default function SummaryPanel({
           label="기준 시나리오" compact value={scenario.id} onChange={onScenario}
           options={scenarios.map((s) => ({ value: s.id, label: s.name }))}
         />
+        {onWindScenario && scenario.id !== 'S-W' && (
+          <button type="button" onClick={onWindScenario} className="mt-2 inline-flex min-h-9 items-center rounded-md px-1 type-strong text-primary-text hover:underline">
+            오늘 예보 바람으로 다시 계산
+          </button>
+        )}
         {scenario.basis && <p className="mt-2 type-meta leading-5 text-text-sec">{scenario.basis}</p>}
         <p className="mt-1.5 type-meta text-text-meta">
           {scenario.kind === 'fire' ? `발령 후 첫 도달 ${fmtElapsed(scenario.windowHours)}, 확산 시속 ${scenario.speedKmh}km, ` : ''}명부 기준일 {dateLabel}

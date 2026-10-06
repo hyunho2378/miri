@@ -1,4 +1,4 @@
-// ROUTES.md 그대로. 모든 화면 lazy. 루트는 담당자 콘솔로 이동.
+// ROUTES.md 그대로. 모든 화면 lazy. 루트는 담당자 콘솔로 이동. /open 은 개방 API 안내.
 import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import AdminLayout from './components/layout/AdminLayout.jsx'
@@ -32,6 +32,7 @@ const MapLoader = () => import('./pages/console/MapPage.jsx')
 const PRELOAD = Object.values(loaders)
 
 const PrivacyPage = lazy(() => import('./pages/public/PrivacyPage.jsx'))
+const OpenApiPage = lazy(() => import('./pages/public/OpenApiPage.jsx'))
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage.jsx'))
 const LoginPage = lazy(() => import('./pages/console/LoginPage.jsx'))
 const OverviewPage = lazy(loaders.Overview)
@@ -79,6 +80,7 @@ export default function App() {
           <Routes>
             <Route element={<PublicLayout />}>
               <Route index element={<Navigate to="/console" replace />} />
+              <Route path="open" element={<OpenApiPage />} />
               <Route path="privacy" element={<PrivacyPage />} />
             </Route>
             <Route path="/console/login" element={<LoginPage />} />

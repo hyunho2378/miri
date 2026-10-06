@@ -23,6 +23,8 @@ import { DATA_SOURCES, LTC_DAYCARE, LTC_RESIDENTIAL, TEMP_SHELTERS } from '../..
 import { computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import { HOUR } from '../../lib/time.js'
 import { useTopbar } from '../../store/useAdminUi.js'
+import FireRiskStrip, { WeatherLine, dirName, useWind } from '../../components/miri/FireRiskStrip.jsx'
+import { fireScenario } from '../../lib/scenario.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { spacing } from '../../tokens.js'
 
@@ -42,6 +44,21 @@ export default function MapPage() {
   const today = useMiriStore((s) => s.today)
   const scenarios = useMiriStore((s) => s.scenarios)
   const setActiveScenario = useMiriStore((s) => s.setActiveScenario)
+  const saveScenario = useMiriStore((s) => s.saveScenario)
+  const wind = useWind()
+  // 기상청 단기예보 첫 시간 풍향을 확산 방향으로 둔 시나리오. 발화 지점과 속도는 기본 시나리오(S-1) 값
+  const windHour = wind.data?.hours?.find((h) => h.toDeg != null)
+  const makeWindScenario = windHour ? () => {
+    const base = scenarios.find((x) => x.id === 'S-1') || scenarios[0]
+    const sc = fireScenario({
+      ...base, id: 'S-W', villages, heading: windHour.toDeg,
+      name: `오늘 예보 바람 기준(${dirName(windHour.fromDeg)}풍 ${windHour.speed}m/s)`,
+      basis: `기상청 단기예보(${wind.data.base} 발표) 동해시 격자의 ${windHour.at.slice(8, 10)}시 풍향 ${windHour.fromDeg}도를 확산 방향으로 둡니다. 발화 지점과 확산 속도는 기본 시나리오 가정값입니다.`
+    })
+    saveScenario(sc)
+    setActiveScenario('S-W')
+    setSelected(null)
+  } : null
   const scenario = useMiriStore(activeScenario)
 
   const isLg = useMediaQuery('(min-width: 1024px)')
@@ -184,6 +201,10 @@ export default function MapPage() {
         )}>
           {NOTE}
         </p>
+        <div className="pointer-events-none absolute z-raised hidden rounded-xs bg-page px-2.5 py-1 shadow-sm lg:block lg:top-14 lg:left-[calc(theme(spacing.source-col-md)+theme(spacing.8))]">
+          <FireRiskStrip compact />
+          <WeatherLine className="mt-0.5" />
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 px-4 py-4 md:px-6 lg:contents">
@@ -198,7 +219,7 @@ export default function MapPage() {
               <SummaryPanel
                 scenario={scenario} scenarios={scenarios} onScenario={(id) => { setActiveScenario(id); setSelected(null) }}
                 dateLabel={fmtDotDate(today)} result={result} extra={extra}
-                villageCount={villages.length} scopeCount={scopeCount} shortList={shortList} onPick={pick}
+                villageCount={villages.length} scopeCount={scopeCount} shortList={shortList} onPick={pick} onWindScenario={makeWindScenario}
               />
             )}
         </Card>
