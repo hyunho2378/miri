@@ -49,7 +49,7 @@ function resample(ring, spacing) {
 }
 
 // 한 폴리곤(바깥 고리 + 구멍들)의 윗면
-function topOf(poly, spacing) {
+export function topOf(poly, spacing) {
   const rings = poly.map((r) => resample(r, spacing))
   const pts = []
   const edges = []

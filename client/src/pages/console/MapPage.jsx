@@ -5,7 +5,7 @@
 // lg 이상은 패널이 지도 위에 뜨고, 그보다 좁으면 지도 아래로 쌓인다.
 import { useCallback, useMemo, useState } from 'react'
 import clsx from 'clsx'
-import { Layers, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, Layers, Maximize, X } from 'lucide-react'
 import Card from '../../components/ui/Card.jsx'
 import Button from '../../components/ui/Button.jsx'
 import IconButton from '../../components/ui/IconButton.jsx'
@@ -65,14 +65,15 @@ export default function MapPage() {
   const isLg = useMediaQuery('(min-width: 1024px)')
   const isXl = useMediaQuery('(min-width: 1280px)')
 
-  const [mode, setMode] = useState('2d')
+  const [mode, setMode] = useState('3d')
   const [theme, setTheme] = useState('light')
   const [layers, setLayers] = useState({ shortage: true, dongs: true, fire: true, shelters: true, vehicles: false, ltc: false, aging: false, spread: false })
   const [selected, setSelected] = useState(null)
-  const [opened3d, setOpened3d] = useState(false)    // 3D 를 한 번 열면 장면을 유지한다(지형을 다시 만들지 않는다)
+  const [opened3d, setOpened3d] = useState(true)    // 3D 를 한 번 열면 장면을 유지한다(지형을 다시 만들지 않는다)
   const [focus, setFocus] = useState(null)
   const [fitSeq, setFitSeq] = useState(0)
-  const [layerOpen, setLayerOpen] = useState(null)   // null 이면 화면 폭 기본값(xl 이상 펼침)
+  const [layerOpen, setLayerOpen] = useState(false)  // 레이어와 범례는 도구줄 버튼으로 연다
+  const [summaryOpen, setSummaryOpen] = useState(null) // null 이면 2D 펼침, 3D 접음
   const [playing, setPlaying] = useState(false)
   const [tState, setT] = useState(null)              // null 이면 마지막 도달 시점
 
@@ -190,17 +191,18 @@ export default function MapPage() {
   }, [positions])
 
   // 지도 맞춤 여백. 떠 있는 패널 폭만큼 비운다(tokens spacing 기준)
-  const showLayers = layerOpen ?? isXl
+  const showLayers = layerOpen
+  const showSummary = summaryOpen ?? mode !== '3d'
   const padding = useMemo(() => {
     if (!isLg) return { top: 24, bottom: 24, left: 24, right: 24 }
     const gap = px(spacing[4])
     return {
-      top: gap * 2,
-      left: px(spacing['source-col-md']) + gap * 3,
-      right: showLayers ? px(spacing['source-col-md']) - px(spacing[8]) + gap * 3 : gap * 4,
-      bottom: px(spacing[24]) + px(spacing[16])
+      top: gap * 4,
+      left: (showSummary || selected ? px(spacing['source-col-md']) : 300) + gap * 2,
+      right: showLayers ? px(spacing['source-col-md']) - px(spacing[8]) + gap * 3 : gap * 2,
+      bottom: px(spacing[24]) + gap * 2
     }
-  }, [isLg, showLayers])
+  }, [isLg, showLayers, showSummary, selected])
 
   return (
     <div className="relative lg:h-full lg:overflow-hidden">
@@ -223,40 +225,76 @@ export default function MapPage() {
           </div>
         )}
         {/* 실제 자료와 가정 구분 고정 표기 */}
-        <p className={clsx(
-          'pointer-events-none absolute left-3 bottom-3 z-raised rounded-xs bg-page px-2 py-1 type-caption text-text-sec shadow-sm',
-          'lg:left-[calc(theme(spacing.source-col-md)+theme(spacing.8))] lg:bottom-auto lg:top-4'
-        )}>
+        <p className="pointer-events-none absolute left-3 bottom-3 z-raised rounded-xs bg-page/90 px-2 py-1 type-caption text-text-sec shadow-sm lg:hidden">
           {NOTE}
         </p>
-        <div className="pointer-events-none absolute z-raised hidden rounded-xs bg-page px-2.5 py-1 shadow-sm lg:block lg:top-14 lg:left-[calc(theme(spacing.source-col-md)+theme(spacing.8))]">
-          <FireRiskStrip compact />
-          <WeatherLine className="mt-0.5" />
-        </div>
       </div>
 
       <div className="flex flex-col gap-4 px-4 py-4 md:px-6 lg:contents">
-        {/* 왼쪽: 사실 요약 또는 마을 상세 */}
-        <Card
-          as="aside" aria-label={selectedVm ? '마을 상세' : '상황 요약'} padding="md"
-          className="lg:absolute lg:left-4 lg:top-4 lg:bottom-4 lg:z-raised lg:w-source-col-md lg:overflow-y-auto lg:shadow-md"
-        >
-          {selectedVm
-            ? <VillageDetail village={selectedVm} onBack={() => setSelected(null)} />
-            : (
-              <SummaryPanel
-                scenario={scenario} scenarios={scenarios} onScenario={(id) => { setActiveScenario(id); setSelected(null) }}
-                dateLabel={fmtDotDate(today)} result={result} extra={extra}
-                villageCount={villages.length} scopeCount={scopeCount} shortList={shortList} onPick={pick} onWindScenario={makeWindScenario}
-              />
+        {/* 왼쪽: 사실 요약 또는 마을 상세. 큰 화면에서는 접어 둘 수 있다 */}
+        {isLg && !selectedVm && !showSummary ? (
+          <section aria-label="상황 요약" className="absolute left-4 top-4 z-raised w-[300px] rounded-lg bg-page p-4 shadow-md">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate type-meta text-text-meta">{scenario.name}</p>
+                <p className="mt-0.5 flex items-baseline gap-1.5">
+                  <span className="type-h2 text-danger-text tabular-nums">{result.total}</span>
+                  <span className="type-body-sm text-text-sec">명 미이송 예상</span>
+                </p>
+                <p className="type-meta text-text-meta">부족 마을 {shortList.length}곳, 대피 대상 {scopeCount}곳, 필요 추가 차량 {extra.reduce((a, x) => a + x.count, 0)}대</p>
+              </div>
+              <IconButton size="sm" aria-label="상황 요약 펼치기" onClick={() => setSummaryOpen(true)}>
+                <ChevronDown size={16} aria-hidden="true" />
+              </IconButton>
+            </div>
+            <div className="mt-3 rounded-md bg-subtle px-3 py-2">
+              <FireRiskStrip compact />
+              <WeatherLine className="mt-0.5" />
+            </div>
+            {shortList.length > 0 && (
+              <ul className="mt-2 -mx-1 flex flex-col">
+                {shortList.slice(0, 4).map((v) => (
+                  <li key={v.code}>
+                    <button type="button" onClick={() => pick(v.code)} className="flex min-h-9 w-full items-center gap-2 rounded-md px-1 text-left hover:bg-subtle">
+                      <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">{v.label}</span>
+                      <span className="type-strong text-danger-text tabular-nums">{v.shortage}명</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
-        </Card>
+            <p className="mt-2 type-caption text-text-meta">{NOTE}</p>
+          </section>
+        ) : (
+          <Card
+            as="aside" aria-label={selectedVm ? '마을 상세' : '상황 요약'} padding="md"
+            className="lg:absolute lg:left-4 lg:top-4 lg:bottom-4 lg:z-raised lg:w-source-col-md lg:overflow-y-auto lg:shadow-md"
+          >
+            {isLg && !selectedVm && (
+              <div className="-mt-1 mb-2 flex justify-end">
+                <IconButton size="sm" aria-label="상황 요약 접기" onClick={() => setSummaryOpen(false)}>
+                  <ChevronUp size={16} aria-hidden="true" />
+                </IconButton>
+              </div>
+            )}
+            {selectedVm
+              ? <VillageDetail village={selectedVm} onBack={() => setSelected(null)} />
+              : (
+                <SummaryPanel
+                  scenario={scenario} scenarios={scenarios} onScenario={(id) => { setActiveScenario(id); setSelected(null) }}
+                  dateLabel={fmtDotDate(today)} result={result} extra={extra}
+                  villageCount={villages.length} scopeCount={scopeCount} shortList={shortList} onPick={pick} onWindScenario={makeWindScenario}
+                />
+              )}
+          </Card>
+        )}
 
         {/* 아래: 시간 축 */}
         <Card
           as="section" aria-label="시간 축" padding="sm"
           className={clsx(
-            'lg:absolute lg:bottom-4 lg:z-raised lg:left-[calc(theme(spacing.source-col-md)+theme(spacing.8))] lg:shadow-md',
+            'lg:absolute lg:bottom-4 lg:z-raised lg:shadow-md',
+            showSummary || selectedVm ? 'lg:left-[calc(theme(spacing.source-col-md)+theme(spacing.8))]' : 'lg:left-[calc(300px+theme(spacing.8))]',
             showLayers ? 'lg:right-[calc(theme(spacing.72)+theme(spacing.8))]' : 'lg:right-4'
           )}
         >
@@ -266,14 +304,32 @@ export default function MapPage() {
           />
         </Card>
 
-        {/* 오른쪽: 보기, 레이어, 범례 */}
-        {isLg && !showLayers ? (
-          <div className="absolute right-4 top-4 z-raised">
-            <Button variant="secondary" className="shadow-md" onClick={() => setLayerOpen(true)} leftIcon={<Layers size={16} aria-hidden="true" />}>
-              레이어와 범례
-            </Button>
+        {/* 오른쪽 위: 보기 도구줄. 레이어와 범례는 눌렀을 때만 펼친다 */}
+        {isLg && (
+          <div className="absolute right-4 top-4 z-raised flex items-center gap-1.5 rounded-lg bg-page p-1.5 shadow-md">
+            <div role="radiogroup" aria-label="지도" className="flex rounded-md bg-mute p-0.5">
+              {[['2d', '2D'], ['3d', '3D']].map(([v, l]) => (
+                <button key={v} type="button" role="radio" aria-checked={mode === v} onClick={() => changeMode(v)}
+                  className={clsx('h-8 min-w-11 rounded-sm px-3 type-strong transition-colors duration-fast', mode === v ? 'bg-page text-text-pri shadow-sm' : 'text-text-meta hover:text-text-pri')}>{l}</button>
+              ))}
+            </div>
+            <div role="radiogroup" aria-label="바탕" className="flex rounded-md bg-mute p-0.5">
+              {[['light', '밝게'], ['dark', '어둡게']].map(([v, l]) => (
+                <button key={v} type="button" role="radio" aria-checked={theme === v} onClick={() => setTheme(v)}
+                  className={clsx('h-8 rounded-sm px-3 type-body-sm transition-colors duration-fast', theme === v ? 'bg-page text-text-pri shadow-sm' : 'text-text-meta hover:text-text-pri')}>{l}</button>
+              ))}
+            </div>
+            <button type="button" onClick={() => setFitSeq((n) => n + 1)} aria-label={mode === '3d' ? '대피 대상 구역 보기' : '동해시 전체 보기'} title={mode === '3d' ? '대피 대상 구역 보기' : '동해시 전체 보기'}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-text-sec hover:bg-mute hover:text-text-pri">
+              <Maximize size={16} aria-hidden="true" />
+            </button>
+            <button type="button" onClick={() => setLayerOpen((o) => !o)} aria-expanded={showLayers}
+              className={clsx('inline-flex h-9 items-center gap-1.5 rounded-md px-3 type-strong transition-colors duration-fast', showLayers ? 'bg-text-pri text-text-inverse' : 'text-text-sec hover:bg-mute hover:text-text-pri')}>
+              <Layers size={16} aria-hidden="true" />레이어
+            </button>
           </div>
-        ) : (
+        )}
+        {(!isLg || showLayers) && (
           <Card
             as="aside" aria-label="레이어와 범례" padding="md"
             title={isLg ? '레이어와 범례' : undefined} headingLevel={2}
@@ -282,10 +338,10 @@ export default function MapPage() {
                 <X size={16} aria-hidden="true" />
               </IconButton>
             ) : undefined}
-            className="lg:absolute lg:right-4 lg:top-4 lg:z-raised lg:w-72 lg:max-h-[calc(100%-theme(spacing.16))] lg:overflow-y-auto lg:shadow-md"
+            className="lg:absolute lg:right-4 lg:top-[72px] lg:z-raised lg:w-72 lg:max-h-[calc(100%-theme(spacing.24))] lg:overflow-y-auto lg:shadow-md"
           >
             <LayerPanel
-              mode={mode} onMode={changeMode} theme={theme} onTheme={setTheme} onFit={() => setFitSeq((n) => n + 1)}
+              mode={mode} onMode={changeMode} theme={theme} onTheme={setTheme} onFit={() => setFitSeq((n) => n + 1)} compact={isLg}
               layers={layers} onLayer={onLayer} shelterStats={shelterStats} shelterTotal={TEMP_SHELTERS.length}
               ltcCounts={{ residential: LTC_RESIDENTIAL.length, daycare: LTC_DAYCARE.length }}
               fireInfo={fireInfo} vehicleCount={vehicles.length} sources={DATA_SOURCES}

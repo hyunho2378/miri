@@ -91,7 +91,7 @@ export default function Map3D({
         </p>
       )}
       <p className="pointer-events-none absolute bottom-1 right-2 z-raised rounded-xs bg-page/80 px-1.5 py-0.5 type-caption text-text-sec">
-        지형 Mapzen, AWS Open Data. 경계 통계청 기반 vuski/admdongkor. 높이 {EXAG}배 과장
+        건물 국토교통부 GIS건물통합정보. 지형 Mapzen, AWS. 바탕 OpenStreetMap 기여자. 경계 vuski/admdongkor. 높이 {EXAG}배 과장
       </p>
       {tip && (
         <div role="presentation" className="pointer-events-none absolute z-raised max-w-source-col-md rounded-sm bg-text-pri px-3 py-2 text-text-inverse shadow-md" style={{ left: tip.x + 14, top: tip.y + 14 }}>

@@ -45,7 +45,7 @@ function LayerRow({ label, desc, tone, checked, onChange, swatch }) {
 }
 
 export default function LayerPanel({
-  mode, onMode, theme, onTheme, onFit, layers, onLayer, shelterStats, shelterTotal, ltcCounts, fireInfo, vehicleCount, sources = {}, extraLayers = []
+  mode, onMode, theme, onTheme, onFit, layers, onLayer, shelterStats, shelterTotal, ltcCounts, fireInfo, vehicleCount, sources = {}, extraLayers = [], compact = false
 }) {
   const src = (k) => (sources[k] ? `${sources[k].org}, ${sources[k].period}` : '')
   const shelterDesc = shelterStats
@@ -53,14 +53,14 @@ export default function LayerPanel({
     : ''
   return (
     <div className="space-y-6">
-      <section aria-labelledby="map-view-title" className="space-y-2.5">
+      {!compact && <section aria-labelledby="map-view-title" className="space-y-2.5">
         <h3 id="map-view-title" className="type-caption text-text-meta">보기</h3>
         <Segment label="지도" value={mode} onChange={onMode} items={[{ value: '2d', label: '2D' }, { value: '3d', label: '3D' }]} />
         <Segment label="바탕" value={theme} onChange={onTheme} items={[{ value: 'light', label: '밝게' }, { value: 'dark', label: '어둡게' }]} />
         <button type="button" onClick={onFit} className="inline-flex h-9 items-center gap-2 rounded-md px-2 type-strong text-primary-text hover:bg-mute">
           <Maximize size={16} aria-hidden="true" />{mode === '3d' ? '대피 대상 구역 보기' : '동해시 전체 보기'}
         </button>
-      </section>
+      </section>}
 
       <section aria-labelledby="map-layer-title">
         <h3 id="map-layer-title" className="type-caption text-text-meta">레이어</h3>
@@ -119,7 +119,13 @@ export default function LayerPanel({
         <ul className="mt-3 space-y-1.5 type-meta leading-5 text-text-meta">
           <li>회색 작은 점은 대피 대상 구역 밖 마을입니다.</li>
           <li>숫자는 선택한 시점의 대기 인원입니다. 도달 시점에는 부족분과 같습니다.</li>
-          <li>{mode === '3d' ? '기둥 높이는 선택한 시점의 대기 인원입니다. 동해시 행정동 조각이 솟은 높이는 그 행정동의 미이송 예상 인원에 비례합니다.' : '원 크기는 선택한 시점의 대기 인원입니다.'}</li>
+          {mode === '3d' ? (
+            <>
+              <li>땅 위 원 크기는 선택한 시점의 대기 인원입니다.</li>
+              <li>원 중심 550m 안 건물은 그 마을의 부족 단계 색으로 칠합니다. 대상자의 실제 거주 위치를 뜻하지 않습니다.</li>
+              <li>건물은 국토교통부 GIS건물통합정보(2026. 9. 9.) 196,111동입니다. 높이는 건축물대장 높이, 없으면 층수 x 3.2m, 둘 다 없으면 1층으로 세웁니다. 지형과 건물 높이는 2배로 과장했습니다.</li>
+            </>
+          ) : <li>원 크기는 선택한 시점의 대기 인원입니다.</li>}
         </ul>
       </section>
     </div>
