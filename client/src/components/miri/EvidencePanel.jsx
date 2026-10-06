@@ -22,7 +22,7 @@ export default function EvidencePanel({ quote, matched, confidence, conflict, tr
   return (
     <aside className={clsx('rounded-md bg-subtle p-4 min-w-0', className)} aria-label="판독 근거">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1 type-caption text-primary-text">
+        <span className="inline-flex items-center gap-1 type-caption text-text-sec">
           <ScanText size={16} aria-hidden="true" />자동 판독 결과
         </span>
         {confidence && <StatusPill status={confidence} label={`${CONF_LABEL[confidence]}`} />}

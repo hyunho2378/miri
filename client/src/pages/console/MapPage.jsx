@@ -186,7 +186,7 @@ export default function MapPage() {
   }, [isLg, showLayers])
 
   return (
-    <div className="relative lg:h-[calc(100dvh-theme(spacing.topbar))] lg:overflow-hidden">
+    <div className="relative lg:h-full lg:overflow-hidden">
 
       {/* 지도 */}
       <div className={clsx('relative h-[60vh] min-h-80 lg:absolute lg:inset-0 lg:h-auto', theme === 'dark' ? 'bg-text-pri' : 'bg-mute')}>

@@ -1,72 +1,108 @@
-// 담당자 사이드바. 큰 메뉴 5개만 둔다. 이송 기록과 설정은 아래 작은 링크. 240 고정 / md 아이콘 레일 64 / md 미만 Drawer.
+// 담당자 메뉴. 레퍼런스(IMG_1531) 구조를 따른다.
+// 1열 아이콘 레일: 로고, 묶음 아이콘(담당 업무, 기록과 설정, 공개 화면), 맨 아래 사용자.
+// 2열 메뉴 칸: 묶음 이름과 알림 종, 그 묶음의 메뉴. 발령 준비 아래에는 하위 화면을 들여 쓴다.
 import clsx from 'clsx'
-import { NavLink, useLocation } from 'react-router-dom'
+import { Timer } from 'lucide-react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
-import Logo from '../nav/Logo.jsx'
+import AnomalyBell from '../miri/AnomalyBell.jsx'
 import UserMenu from '../nav/UserMenu.jsx'
 import Tooltip from '../ui/Tooltip.jsx'
-import { MAIN_NAV, SUB_NAV, sectionOf } from './navConfig.js'
+import { RAIL_GROUPS, SECTION_TABS, sectionOf } from './navConfig.js'
 
-export default function Sidebar({ rail = false, orgName = '', onNavigate }) {
+const firstLink = (g, role) => g.items.find((m) => m.to && (!m.role || m.role === role))
+
+// 1열. 묶음 아이콘만 둔다
+export function Rail({ group, onGroup }) {
   const role = useAuthStore((s) => s.user?.role)
-  const pending = useMiriStore((s) => s.persons.filter((p) => p.review === 'pending').length)
-  const { pathname } = useLocation()
-  const current = sectionOf(pathname)
-
-  const item = (m) => {
-    const active = current?.key === m.key
-    return (
-      <NavLink
-        key={m.key} to={m.to} onClick={onNavigate} aria-current={active ? 'page' : undefined}
-        className={clsx(
-          'relative flex items-center min-h-11 rounded-md transition-colors duration-fast',
-          rail ? 'justify-center w-11 mx-auto' : 'gap-3 px-3',
-          active ? 'bg-primary-soft text-primary-text' : 'text-text-sec hover:bg-mute hover:text-text-pri'
-        )}
-      >
-        <span className="relative inline-flex">
-          <m.Icon size={20} aria-hidden="true" className="shrink-0" />
-          {rail && m.queue && pending > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 ring-2 ring-canvas type-count text-text-inverse">{pending}</span>
-          )}
-        </span>
-        {!rail && <span className={clsx('min-w-0 flex-1 truncate', active ? 'type-strong' : 'type-body-sm')}>{m.label}</span>}
-        {!rail && m.queue && pending > 0 && (
-          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 type-count text-text-inverse" aria-label={`확인 대기 ${pending}건`}>{pending}</span>
-        )}
-      </NavLink>
-    )
-  }
-
-  const subs = SUB_NAV.filter((m) => !m.role || m.role === role)
-
   return (
-    <div className={clsx('flex h-full flex-col bg-canvas', rail ? 'w-rail px-2 py-3' : 'w-full px-3 py-4')}>
-      <div className={clsx('shrink-0', rail ? 'flex justify-center' : 'px-1')}>
-        <Logo to="/console" compact={rail} />
-        {!rail && orgName && <p className="mt-2 type-meta text-text-meta truncate">{orgName} 재난취약자 이송</p>}
-      </div>
-      <nav aria-label="담당자 메뉴" className={clsx('mt-6 flex-1 min-h-0 overflow-y-auto flex flex-col gap-1', rail && 'items-center')}>
-        {MAIN_NAV.map((m) => (rail ? <Tooltip key={m.key} label={m.label} side="right">{item(m)}</Tooltip> : item(m)))}
+    <div className="flex h-full w-14 flex-col items-center pb-3 pt-2.5">
+      <Link to="/console" aria-label="미리 홈" className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-text-inverse">
+        <Timer size={18} aria-hidden="true" />
+      </Link>
+      <nav aria-label="메뉴 묶음" className="mt-6 flex flex-col items-center gap-1">
+        {RAIL_GROUPS.map((g) => {
+          const active = g.key === group
+          return (
+            <Tooltip key={g.key} label={g.label} side="right">
+              <button
+                type="button" aria-pressed={active} aria-label={g.label}
+                onClick={() => onGroup(g.key, firstLink(g, role))}
+                className={clsx('inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors duration-fast',
+                  active ? 'bg-page text-text-pri shadow-[0_1px_2px_rgba(16,24,40,0.08)]' : 'text-text-meta hover:bg-page hover:text-text-pri')}
+              >
+                <g.Icon size={18} aria-hidden="true" />
+              </button>
+            </Tooltip>
+          )
+        })}
       </nav>
-      {!rail && (
-        <div className="shrink-0 mb-2 flex flex-col">
-          {subs.map((m) => (m.href ? (
-            <a key={m.href} href={m.href} target="_blank" rel="noopener" className="flex min-h-9 items-center rounded-md px-3 type-body-sm text-text-meta transition-colors duration-fast hover:text-text-sec">
-              {m.label}<span className="sr-only">(새 창)</span>
-            </a>
-          ) : (
-            <NavLink key={m.to} to={m.to} onClick={onNavigate}
-              className={({ isActive }) => clsx('flex min-h-9 items-center rounded-md px-3 type-body-sm transition-colors duration-fast', isActive ? 'text-text-pri type-strong' : 'text-text-meta hover:text-text-sec')}>
-              {m.label}
-            </NavLink>
-          )))}
-        </div>
-      )}
-      <div className={clsx('shrink-0 border-t border-line-sub pt-3', rail && 'flex justify-center')}>
-        <UserMenu compact={rail} />
+      <div className="mt-auto">
+        <UserMenu compact />
       </div>
     </div>
   )
 }
+
+// 2열. 고른 묶음의 메뉴. 휴대폰 서랍에서는 묶음을 모두 펼친다
+export function NavPanel({ group = 'work', onNavigate, showAll = false }) {
+  const role = useAuthStore((s) => s.user?.role)
+  const pending = useMiriStore((s) => s.persons.filter((p) => p.review === 'pending').length)
+  const { pathname } = useLocation()
+  const current = sectionOf(pathname)
+  const groups = showAll ? RAIL_GROUPS : RAIL_GROUPS.filter((g) => g.key === group)
+
+  const row = (m) => {
+    if (m.role && m.role !== role) return null
+    const active = current?.key === m.key || (m.to && !m.match && pathname === m.to)
+    const cls = clsx('flex min-h-10 items-center gap-2.5 rounded-md px-2.5 transition-colors duration-fast',
+      active ? 'bg-mute text-text-pri' : 'text-text-sec hover:bg-mute hover:text-text-pri')
+    const inner = (
+      <>
+        <m.Icon size={16} aria-hidden="true" className={clsx('shrink-0', active ? 'text-text-pri' : 'text-text-meta')} />
+        <span className={clsx('min-w-0 flex-1 truncate type-body-sm', active && 'font-bold')}>{m.label}</span>
+        {m.queue && pending > 0 && (
+          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-text-pri px-1.5 type-count text-text-inverse" aria-label={`확인 대기 ${pending}건`}>{pending}</span>
+        )}
+      </>
+    )
+    const subs = SECTION_TABS[m.key]?.filter((t) => !t.role || t.role === role)
+    return (
+      <li key={m.key}>
+        {m.href
+          ? <a href={m.href} target="_blank" rel="noopener" className={cls}>{inner}<span className="sr-only">(새 창)</span></a>
+          : <NavLink to={m.to} end={m.end} onClick={onNavigate} aria-current={active ? 'page' : undefined} className={cls}>{inner}</NavLink>}
+        {subs && active && (
+          <ul className="mb-1 mt-0.5 flex flex-col">
+            {subs.map((t) => (
+              <li key={t.to}>
+                <NavLink to={t.to} onClick={onNavigate}
+                  className={({ isActive }) => clsx('flex min-h-9 items-center rounded-md pl-9 pr-2.5 type-meta transition-colors duration-fast',
+                    isActive ? 'font-bold text-text-pri' : 'text-text-sec hover:text-text-pri')}>
+                  {t.label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        )}
+      </li>
+    )
+  }
+
+  return (
+    <div className="flex flex-col px-3 py-4">
+      {groups.map((g, i) => (
+        <section key={g.key} aria-label={g.label} className={clsx(i > 0 && 'mt-6')}>
+          <div className="mb-2 flex min-h-10 items-center justify-between pl-2.5">
+            <h2 className="type-strong text-text-pri">{g.label}</h2>
+            {i === 0 && <AnomalyBell />}
+          </div>
+          <ul className="flex flex-col gap-0.5">{g.items.map(row)}</ul>
+        </section>
+      ))}
+    </div>
+  )
+}
+
+export default NavPanel

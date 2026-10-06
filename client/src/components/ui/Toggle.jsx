@@ -19,7 +19,7 @@ export default function Toggle({ checked = false, onChange, label, disabled, id,
           aria-hidden="true"
           className={clsx(
             'relative block w-11 h-6 rounded-full transition-colors duration-fast',
-            checked ? 'bg-primary' : 'bg-line-strong'
+            checked ? 'bg-text-pri' : 'bg-line-strong'
           )}
         >
           <span

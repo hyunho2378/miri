@@ -1,29 +1,46 @@
-// 담당자 상단바. 타이틀과 actions 는 useTopbar 슬롯. 우측은 발령 상태, 가상 데이터 배지, 이상 탐지.
-import { Menu } from 'lucide-react'
+// 담당자 상단 띠. 레퍼런스(IMG_1531)처럼 회색 바탕 위 한 줄로 둔다.
+// 왼쪽은 메뉴 칸 폭만큼 뒤로, 앞으로, 메뉴 칸 접기. 그 오른쪽은 현재 위치. 맨 오른쪽은 발령 상태와 시연 데이터 표시.
+import clsx from 'clsx'
+import { ArrowLeft, ArrowRight, ChevronRight, Menu, PanelLeft } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import useAdminUi from '../../store/useAdminUi.js'
-import IconButton from '../ui/IconButton.jsx'
+import { sectionOf } from './navConfig.js'
 import AnomalyBell from '../miri/AnomalyBell.jsx'
 import DispatchStatusPill from '../miri/DispatchStatusPill.jsx'
 import MockDataBadge from '../miri/MockDataBadge.jsx'
 
-export default function Topbar() {
+const ICON_BTN = 'inline-flex h-8 w-8 items-center justify-center rounded-md text-text-meta transition-colors duration-fast hover:bg-page hover:text-text-pri'
+
+export default function Topbar({ isDesktop, panelOpen, onTogglePanel }) {
   const topbar = useAdminUi((s) => s.topbar)
   const setSidebarOpen = useAdminUi((s) => s.setSidebarOpen)
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const section = sectionOf(pathname)
+  const Icon = section?.Icon
+  const sub = section && topbar.title && topbar.title !== section.label ? topbar.title : null
   return (
-    <header className="sticky top-0 z-nav h-topbar shrink-0 bg-page border-b border-line-sub">
-      <div className="mx-auto flex h-full w-full max-w-wide items-center justify-between gap-3 px-4 md:px-6 lg:px-8">
-        <div className="flex min-w-0 items-center gap-2">
-          <IconButton size="lg" className="md:hidden" aria-label="메뉴 열기" onClick={() => setSidebarOpen(true)}>
-            <Menu size={20} aria-hidden="true" />
-          </IconButton>
-          <h1 className="min-w-0 truncate type-h2 text-text-pri">{topbar.title}</h1>
+    <header className="flex h-12 shrink-0 items-center gap-3 pr-3 md:pr-4">
+      {isDesktop ? (
+        <div className={clsx('flex shrink-0 items-center gap-0.5 pl-3', panelOpen ? 'w-56' : 'w-auto')}>
+          <button type="button" aria-label="뒤로" className={ICON_BTN} onClick={() => navigate(-1)}><ArrowLeft size={16} aria-hidden="true" /></button>
+          <button type="button" aria-label="앞으로" className={ICON_BTN} onClick={() => navigate(1)}><ArrowRight size={16} aria-hidden="true" /></button>
+          <button type="button" aria-label={panelOpen ? '메뉴 칸 접기' : '메뉴 칸 펴기'} aria-pressed={panelOpen} className={ICON_BTN} onClick={onTogglePanel}><PanelLeft size={16} aria-hidden="true" /></button>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {topbar.actions}
-          <span className="hidden sm:inline-flex"><DispatchStatusPill /></span>
-          <span className="hidden lg:inline-flex"><MockDataBadge /></span>
-          <AnomalyBell />
-        </div>
+      ) : (
+        <button type="button" aria-label="메뉴 열기" className={clsx(ICON_BTN, 'ml-2 h-11 w-11')} onClick={() => setSidebarOpen(true)}>
+          <Menu size={20} aria-hidden="true" />
+        </button>
+      )}
+      <p className="flex min-w-0 flex-1 items-center gap-1.5 type-meta text-text-sec">
+        {Icon && <Icon size={14} aria-hidden="true" className="shrink-0 text-text-meta" />}
+        <span className="truncate">{section?.label || topbar.title}</span>
+        {sub && <><ChevronRight size={12} aria-hidden="true" className="shrink-0 text-text-meta" /><span className="truncate text-text-pri">{sub}</span></>}
+      </p>
+      <div className="flex shrink-0 items-center gap-2">
+        <span className="hidden sm:inline-flex"><DispatchStatusPill /></span>
+        <span className="hidden lg:inline-flex"><MockDataBadge /></span>
+        {(!isDesktop || !panelOpen) && <AnomalyBell />}
       </div>
     </header>
   )

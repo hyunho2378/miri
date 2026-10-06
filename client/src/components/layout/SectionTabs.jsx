@@ -14,7 +14,7 @@ export default function SectionTabs() {
   if (!tabs) return null
   const items = tabs.filter((t) => !t.role || t.role === role)
   return (
-    <div className="border-b border-line-sub bg-page">
+    <div className="bg-page">
       <nav aria-label="화면 전환" className="mx-auto flex w-full max-w-wide gap-1 px-4 md:px-6 lg:px-8">
         {items.map((t) => (
           <NavLink
@@ -30,7 +30,7 @@ export default function SectionTabs() {
                 {t.queue && pending > 0 && (
                   <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 type-count text-text-inverse" aria-label={`확인 대기 ${pending}건`}>{pending}</span>
                 )}
-                {isActive && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-primary" />}
+                {isActive && <span className="absolute left-3 right-3 bottom-1 h-0.5 rounded-full bg-text-pri" />}
               </>
             )}
           </NavLink>

@@ -14,7 +14,7 @@ const SIZE = {
 }
 const VARIANT = {
   primary: 'bg-primary text-text-inverse hover:bg-primary-hover',
-  secondary: 'bg-page text-primary ring-1 ring-inset ring-line-def hover:bg-mute',
+  secondary: 'bg-page text-text-pri shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-mute',
   ghost: 'bg-transparent text-text-sec hover:bg-mute hover:text-text-pri',
   danger: 'bg-danger text-text-inverse hover:bg-danger-strong'
 }

@@ -23,7 +23,7 @@ export default function ShortageValue({ value, byGrade, provisional = 0, size = 
       </p>
       {byGrade && value > 0 && <p className="mt-1 type-body-sm text-text-sec tabular-nums">{byGradeText(byGrade)}</p>}
       {children && <div className="mt-1">{children}</div>}
-      {provisional > 0 && <p className="mt-1 type-meta text-primary-text">확인 대기 서류 {provisional}건이 포함된 잠정값입니다.</p>}
+      {provisional > 0 && <p className="mt-1 type-meta text-text-meta">확인 대기 서류 {provisional}건이 포함된 잠정값입니다.</p>}
     </div>
   )
 }

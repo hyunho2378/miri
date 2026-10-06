@@ -11,14 +11,14 @@ export const READ_STEPS = ['글자 인식', '등급 판정', '근거 추출', '�
 export function ReadTimeline({ name, step, failed }) {
   return (
     <div role="status" aria-live="polite" className="rounded-md bg-subtle p-4">
-      <p className="inline-flex items-center gap-1 type-caption text-primary-text"><ScanText size={16} aria-hidden="true" />서류 읽기 진행 중</p>
+      <p className="inline-flex items-center gap-1 type-caption text-text-sec"><ScanText size={16} aria-hidden="true" />서류 읽기 진행 중</p>
       <p className="mt-1 type-body-sm text-text-pri truncate">{name}</p>
       <ol className="mt-3 grid gap-2 sm:grid-cols-4">
         {READ_STEPS.map((s, i) => {
           const done = step > i
           const active = step === i && !failed
           return (
-            <li key={s} className={clsx('flex items-center gap-2 rounded-md px-3 py-2 type-caption animate-fade-in', done ? 'bg-page text-text-sec' : active ? 'bg-primary-soft text-primary-text' : 'bg-mute text-text-meta')}>
+            <li key={s} className={clsx('flex items-center gap-2 rounded-md px-3 py-2 type-caption animate-fade-in', done ? 'bg-page text-text-sec' : active ? 'bg-text-pri text-text-inverse' : 'bg-mute text-text-meta')}>
               {done ? <Check size={16} aria-hidden="true" /> : active ? <Loader2 size={16} aria-hidden="true" className="animate-spin motion-reduce:animate-none" /> : <span className="h-4 w-4 tabular-nums">{i + 1}</span>}
               {s}
             </li>
@@ -52,7 +52,7 @@ export default function IntakeUploader({ villages, onFile, onSample, busy }) {
         <p className={clsx('mt-2', drag ? 'type-strong text-primary-text' : 'type-body-sm text-text-sec')}>{drag ? '놓으면 서류 읽기를 시작합니다.' : '사진이나 스캔 이미지를 끌어다 놓습니다.'}</p>
         <p className="mt-1 type-meta text-text-meta">6MB 이하의 이미지 파일을 올려 주십시오.</p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <label htmlFor={inputId} className={clsx('pressable inline-flex items-center gap-2 h-10 min-h-11 md:min-h-0 px-4 rounded-md bg-page text-primary ring-1 ring-inset ring-line-def hover:bg-mute type-strong cursor-pointer', busy && 'pointer-events-none opacity-40')}>
+          <label htmlFor={inputId} className={clsx('pressable inline-flex items-center gap-2 h-10 min-h-11 md:min-h-0 px-4 rounded-md bg-page text-text-pri shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-mute type-strong cursor-pointer', busy && 'pointer-events-none opacity-40')}>
             <FileUp size={16} aria-hidden="true" />파일 선택
           </label>
           <input id={inputId} ref={fileRef} type="file" accept="image/*" className="sr-only" disabled={busy}

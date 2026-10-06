@@ -24,10 +24,10 @@ export default function Card({
             {media && <div className="mb-3">{media}</div>}
             {eyebrow && <p className="mb-1 type-caption text-text-meta">{eyebrow}</p>}
             <div className="flex flex-wrap items-baseline gap-x-2">
-              {title && <H className="type-h3 text-text-pri">{title}</H>}
+              {title && <H className="flex items-center gap-2 type-strong text-text-pri"><span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-[2px] bg-primary" />{title}</H>}
               {meta != null && meta !== false && <span className="type-body-sm text-text-meta tabular-nums">{meta}</span>}
             </div>
-            {desc && <p className="mt-1 type-meta text-text-meta">{desc}</p>}
+            {desc && <p className="mt-1 pl-4 type-meta text-text-meta">{desc}</p>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </header>

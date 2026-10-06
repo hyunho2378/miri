@@ -30,7 +30,7 @@ export default function EditorFrame({ fill = false, kind, Icon, title, onTitle, 
           <Link to={`/console/workspace?kind=${kind}`} aria-label="문서함으로" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-sec hover:bg-mute">
             <ArrowLeft size={20} aria-hidden="true" />
           </Link>
-          <Icon size={26} aria-hidden="true" className="shrink-0 text-primary" />
+          <Icon size={26} aria-hidden="true" className="shrink-0 text-text-sec" />
           <input
             value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={commit}
             onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}

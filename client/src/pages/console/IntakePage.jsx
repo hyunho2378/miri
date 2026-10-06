@@ -23,9 +23,9 @@ import { gradeOf } from '../../lib/shortage.js'
 const CONF_ORDER = { low: 0, mid: 1, high: 2 }
 const KIND_LABEL = { plan: '대피계획서', card: '대피카드', etc: '기타' }
 const CONF = {
-  high: { label: '원문 일치', tone: 'bg-success-soft text-success-text' },
-  mid: { label: '확인 권장', tone: 'bg-primary-soft text-primary-text' },
-  low: { label: '원문 불일치', tone: 'bg-danger-soft text-danger-text' }
+  high: { label: '원문 일치', tone: 'text-text-meta' },
+  mid: { label: '확인 권장', tone: 'text-text-pri' },
+  low: { label: '원문 불일치', tone: 'text-danger-text' }
 }
 
 // 단계 안내 한 칸
@@ -34,8 +34,8 @@ function Step({ n, title, desc, count, active, onClick, Icon }) {
   return (
     <Tag type={onClick ? 'button' : undefined} onClick={onClick}
       className={clsx('flex min-w-0 flex-1 items-start gap-3 rounded-lg p-4 text-left transition-colors duration-fast',
-        active ? 'bg-primary-soft' : 'bg-subtle', onClick && 'hover:bg-mute')}>
-      <span className={clsx('inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full type-strong', active ? 'bg-primary text-text-inverse' : 'bg-page text-text-sec')}>
+        active ? 'bg-mute' : 'bg-subtle', onClick && 'hover:bg-mute')}>
+      <span className={clsx('inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full type-strong', active ? 'bg-text-pri text-text-inverse' : 'bg-page text-text-sec')}>
         {Icon ? <Icon size={16} aria-hidden="true" /> : n}
       </span>
       <span className="min-w-0">
@@ -203,7 +203,7 @@ export default function IntakePage() {
                 return (
                   <li key={q.result.personCode}>
                     <button type="button" onClick={() => setIdx(i)} aria-current={i === pos ? 'true' : undefined}
-                      className={clsx('flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-fast', i === pos ? 'bg-primary-soft' : 'hover:bg-mute')}>
+                      className={clsx('flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-fast', i === pos ? 'bg-page' : 'hover:bg-mute')}>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate type-strong text-text-pri">{vlabel(q.doc.villageCode)} <span className="type-meta text-text-meta tabular-nums">{q.result.personCode.split('-').pop()}</span></span>
                         <span className="block truncate type-meta text-text-meta">{KIND_LABEL[q.doc.kind]}, AI 판정 {g?.label || '판독 불가'}</span>

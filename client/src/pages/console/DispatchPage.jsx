@@ -229,7 +229,7 @@ function AssignedPanel({ meta }) {
       <SectionTitle
         className="mt-2"
         title="배정표"
-        desc={<span className="inline-flex items-center gap-1"><Route size={14} aria-hidden="true" className="text-primary-text" />추천 배정 기준. 차량별 회차와 대상자 순서입니다.</span>}
+        desc={<span className="inline-flex items-center gap-1"><Route size={14} aria-hidden="true" className="text-text-sec" />추천 배정 기준. 차량별 회차와 대상자 순서입니다.</span>}
       />
       <div className="grid gap-4 lg:grid-cols-2">
         {result.assignments.map((a) => (
@@ -364,7 +364,7 @@ function SentPanel({ now, meta }) {
 
       {d.manualHelper && helpers.includes(d.manualHelper) && (
         <Card as="div" tone="primary" padding="sm" bodyClassName="flex flex-wrap items-center gap-3">
-          <UserRoundCheck size={20} aria-hidden="true" className="text-primary-text" />
+          <UserRoundCheck size={20} aria-hidden="true" className="text-text-sec" />
           <p className="min-w-0 flex-1 type-body-sm text-primary-text">도우미 {d.manualHelper}의 배정은 도우미 화면에서 보고한 내용으로만 진행됩니다.</p>
           <a href="/h/demo" target="_blank" rel="noreferrer" className="inline-flex min-h-11 md:min-h-0 items-center gap-1 type-strong text-primary-text underline underline-offset-2">
             도우미 화면 열기<ExternalLink size={14} aria-hidden="true" />

@@ -26,7 +26,7 @@ const fmt = (iso) => {
 }
 
 function TemplateThumb({ kind, t }) {
-  if (t.key === 'blank') return <Plus size={40} aria-hidden="true" className="text-primary" />
+  if (t.key === 'blank') return <Plus size={40} aria-hidden="true" className="text-text-sec" />
   if (kind === 'sheet') {
     return (
       <div className="w-full self-start">
@@ -161,7 +161,7 @@ export default function WorkspaceHome() {
           <ul className="mt-3 divide-y divide-line-sub rounded-lg bg-page shadow-card">
             {list.map((x) => (
               <li key={x.id} className="relative flex items-center gap-3 px-4 py-3">
-                <kind.Icon size={20} aria-hidden="true" className="shrink-0 text-primary" />
+                <kind.Icon size={20} aria-hidden="true" className="shrink-0 text-text-sec" />
                 <Link to={editorPath(x)} className="min-w-0 flex-1">
                   <span className="block truncate type-strong text-text-pri hover:underline">{x.title}</span>
                   <span className="block type-meta text-text-meta">

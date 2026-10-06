@@ -19,7 +19,7 @@ export default function Tabs({ items = [], value, onChange, variant = 'underline
   return (
     <div
       role="tablist" onKeyDown={onKeyDown}
-      className={clsx('flex gap-1', variant === 'underline' && 'border-b border-line-sub', className)}
+      className={clsx('flex gap-1', className)}
     >
       {items.map((t, i) => {
         const active = t.value === value
@@ -32,12 +32,12 @@ export default function Tabs({ items = [], value, onChange, variant = 'underline
             className={clsx(
               'relative h-10 min-h-11 min-w-11 md:min-h-0 md:min-w-0 px-3 type-strong transition-colors duration-fast',
               variant === 'pill' && 'rounded-full',
-              variant === 'pill' && active && 'bg-primary-soft text-primary-text',
-              active ? 'text-text-pri' : 'text-text-meta hover:text-text-sec'
+              variant === 'pill' && active && 'bg-text-pri text-text-inverse',
+              active ? (variant === 'pill' ? null : 'text-text-pri') : 'text-text-meta hover:text-text-sec'
             )}
           >
             {t.label}
-            {variant === 'underline' && active && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-primary" />}
+            {variant === 'underline' && active && <span className="absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-text-pri" />}
           </button>
         )
       })}

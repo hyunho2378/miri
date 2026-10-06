@@ -127,3 +127,8 @@ html[lang='ja'] .break-keep, html[lang='zh'] .break-keep { word-break: normal; l
   .print-area { position: absolute; left: 0; top: 0; width: 100%; }
   .print-page { break-after: page; border: 0; }
 }
+
+/* 담당자 화면 면 규칙(2026-10-06, 사용자 지향 레퍼런스 IMG_1531).
+   흰 본문 위에 회색 면 카드를 놓고 그림자와 보더를 쓰지 않는다. 카드 안의 입력과 표만 흰 면으로 떠 보인다 */
+.admin-surface .bg-page.shadow-card { background-color: #f4f5f6; box-shadow: none; }
+.admin-surface .bg-page.shadow-card:hover { box-shadow: none; background-color: #eef0f2; }

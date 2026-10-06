@@ -40,7 +40,7 @@ const SOURCE_OPTIONS = [{ value: 'all', label: '전체 입력 방법' }, { value
 
 function SourceLabel({ source }) {
   return source === 'ai'
-    ? <span className="inline-flex items-center gap-1 type-caption text-primary-text"><ScanText size={14} aria-hidden="true" />서류 자동 판독</span>
+    ? <span className="inline-flex items-center gap-1 type-caption text-text-sec"><ScanText size={14} aria-hidden="true" />서류 자동 판독</span>
     : <span className="inline-flex items-center gap-1 type-caption text-text-sec"><UserRound size={14} aria-hidden="true" />담당자 입력</span>
 }
 
@@ -121,7 +121,7 @@ export default function RosterPage() {
     { key: 'village', label: '마을', sortable: true, sortValue: (p) => p.villageCode, render: (p) => vlabel(p.villageCode) },
     { key: 'grade', label: '이송 등급', sortable: true, sortValue: (p) => GRADE_RANK[p.grade], render: (p) => <GradeChip grade={p.grade} /> },
     { key: 'ltcGrade', label: '장기요양 등급', hideBelow: 'lg', sortable: true, render: (p) => <span className="type-meta text-text-sec">{p.ltcGrade || '미기재'}</span> },
-    { key: 'tags', label: '특이사항', hideBelow: 'lg', render: (p) => <span className="type-meta text-text-sec">{p.tags.map((t) => TAGS[t]).join(', ') || '없음'}</span> },
+    { key: 'tags', label: '특이사항', wrap: true, hideBelow: 'lg', render: (p) => <span className="type-meta text-text-sec">{p.tags.map((t) => TAGS[t]).join(', ') || '없음'}</span> },
     { key: 'source', label: '입력 방법', hideBelow: 'md', render: (p) => <SourceLabel source={p.gradeSource} /> },
     { key: 'review', label: '확인 상태', sortable: true, render: (p) => <StatusPill status={p.review} /> },
     { key: 'updatedAt', label: '갱신일', sortable: true, hideBelow: 'lg', render: (p) => fmtDate(p.updatedAt) },

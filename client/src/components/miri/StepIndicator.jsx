@@ -22,7 +22,7 @@ export default function StepIndicator({ status, className }) {
             <span
               className={clsx(
                 'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full type-caption tabular-nums',
-                active ? 'bg-primary text-text-inverse' : done ? 'bg-primary-soft text-primary-text' : 'bg-line-def text-text-sec'
+                active ? 'bg-primary text-text-inverse' : done ? 'bg-text-pri text-text-inverse' : 'bg-line-def text-text-sec'
               )}
             >
               {done && !active ? <Check size={14} aria-hidden="true" /> : i + 1}

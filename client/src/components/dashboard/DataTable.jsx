@@ -62,7 +62,7 @@ export default function DataTable({
                   <th
                     key={c.key} scope="col" style={c.width ? { width: c.width } : undefined}
                     aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
-                    className={clsx('px-4 py-3 lg:px-5 type-caption text-text-meta', c.align === 'right' && 'text-right', HIDE[c.hideBelow])}
+                    className={clsx('px-4 py-3 lg:px-5 type-caption text-text-meta whitespace-nowrap', c.align === 'right' && 'text-right', HIDE[c.hideBelow])}
                   >
                     {c.sortable ? (
                       <button
@@ -89,7 +89,7 @@ export default function DataTable({
                 className={clsx('border-t border-line-sub', onRowClick && 'cursor-pointer hover:bg-mute transition-colors duration-fast')}
               >
                 {columns.map((c) => (
-                  <td key={c.key} className={clsx('px-4 py-3 lg:px-5 type-body-sm text-text-pri', c.align === 'right' && 'text-right', HIDE[c.hideBelow])}>
+                  <td key={c.key} className={clsx('px-4 py-3 lg:px-5 type-body-sm text-text-pri', c.wrap ? 'break-keep' : 'whitespace-nowrap', c.align === 'right' && 'text-right', HIDE[c.hideBelow])}>
                     {cell(c, row)}
                   </td>
                 ))}
