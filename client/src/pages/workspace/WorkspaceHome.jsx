@@ -190,7 +190,7 @@ export default function WorkspaceHome() {
         ) : list.length === 0 ? (
           <p className="mt-3 type-body-sm text-text-meta">아직 만든 {kind.label}가 없습니다. 위 양식에서 시작하세요.</p>
         ) : (
-          <ul className="mt-3 divide-y divide-line-sub rounded-lg bg-page shadow-card">
+          <ul className="mt-3 divide-y divide-line-sub overflow-hidden rounded-lg bg-page shadow-md">
             {list.map((x) => (
               <li key={x.id} className="relative flex items-center gap-3 px-4 py-3">
                 <span className={clsx('inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-text-inverse', kind.bg)}><kind.Icon size={18} aria-hidden="true" /></span>
