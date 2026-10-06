@@ -3,7 +3,7 @@
 // 보더와 버튼처럼 보이는 알약을 쓰지 않는다.
 
 import { c, t, space, shadow, ease } from '../tokens.js';
-import { Slide, Header, StatChips, Pending, panel, useMode } from '../components/ui.jsx';
+import { Slide, Header, Pending, panel, useMode } from '../components/ui.jsx';
 import BarChart from '../components/BarChart.jsx';
 import Coachmark from '../components/Coachmark.jsx';
 import {
@@ -152,7 +152,7 @@ export function Incident({ active, s }) {
   const { narrow, mobile } = useMode();
   const size = mobile ? '92px' : 'clamp(120px, 10.5vw, 220px)';
   return (
-    <Slide active={active} header={<Header eyebrow={s.eyebrow} headline={INCIDENT.headline} lead={INCIDENT.lead} right={!mobile ? <StatChips items={[{ value: INCIDENT.gap, label: INCIDENT.gapLabel }]} /> : null} />}>
+    <Slide active={active} header={<Header eyebrow={s.eyebrow} headline={INCIDENT.headline} lead={INCIDENT.lead} />}>
       <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : 'minmax(0, 1.25fr) minmax(0, 1fr)', gap: 'clamp(24px, 3.4vw, 72px)', alignItems: 'center', height: narrow ? 'auto' : '100%' }}>
         <CircleRow
           items={INCIDENT.events}
@@ -186,12 +186,10 @@ export function Yeongnam({ active, s }) {
     <Slide active={active} header={<Header eyebrow={s.eyebrow} headline={YEONGNAM.headline} lead={YEONGNAM.lead} />} center>
       <div style={grid(narrow ? 2 : 4)}>
         {YEONGNAM.facts.map((f) => (
-          <div key={f.label} data-rv style={{ ...panel('white'), textAlign: 'center', boxShadow: shadow.md }}>
-            <div style={{ ...t.num, color: f.alert ? c.alert : c.primary }}>
-              {f.value}<span style={{ fontSize: '0.34em', marginLeft: 4 }}>{f.unit}</span>
-            </div>
-            <div style={{ ...t.bodyBold, marginTop: 'clamp(10px, 1.6vh, 18px)' }}>{f.label}</div>
-            <div style={{ ...t.note, marginTop: 6 }}>{f.src}</div>
+          <div key={f.label} data-rv style={{ ...panel('white'), boxShadow: shadow.md }}>
+            <div style={{ ...t.label }}>{f.label}</div>
+            <div style={{ ...t.title, marginTop: 10 }}>{f.text}</div>
+            <div style={{ ...t.note, marginTop: 10 }}>{f.src}</div>
           </div>
         ))}
       </div>
@@ -210,7 +208,7 @@ export function Region({ active, s }) {
   return (
     <Slide
       active={active}
-      header={<Header eyebrow={s.eyebrow} headline={REGION.headline} lead={REGION.lead} right={!mobile ? <StatChips items={[{ value: `${REGION.big.value}명`, label: REGION.big.label }, { value: '27.6%', label: '주민등록인구 대비', ink: true }]} /> : null} />}
+      header={<Header eyebrow={s.eyebrow} headline={REGION.headline} lead={REGION.lead} />}
     >
       <div data-rv style={{ ...panel('white'), height: slide ? '100%' : 'auto', display: 'flex', flexDirection: 'column', padding: 'clamp(18px, 2vw, 40px)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
@@ -347,6 +345,10 @@ export function Stakeholders({ active, s }) {
       <div data-rv style={{ position: 'absolute', inset: 0 }}>
         <span aria-hidden="true" style={{ position: 'absolute', left: '50%', top: '50%', height: '100%', aspectRatio: '1', transform: 'translate(-50%, -50%)', borderRadius: 999, background: c.white, boxShadow: shadow.sm }} />
         <span aria-hidden="true" style={{ position: 'absolute', left: '50%', top: '50%', height: '68%', aspectRatio: '1', transform: 'translate(-50%, -50%)', borderRadius: 999, background: c.primaryTint }} />
+        <svg aria-hidden="true" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
+          {innerPos.map((p, i) => <line key={`i${i}`} x1="50" y1="50" x2={p[0]} y2={p[1]} stroke={c.primary} strokeWidth="2" vectorEffect="non-scaling-stroke" />)}
+          {outerPos.map((p, i) => <line key={`o${i}`} x1="50" y1="50" x2={p[0]} y2={p[1]} stroke={c.barIdle} strokeWidth="2" vectorEffect="non-scaling-stroke" />)}
+        </svg>
         <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', height: '32%', aspectRatio: '1', borderRadius: 999, background: c.primary, display: 'grid', placeItems: 'center', textAlign: 'center', padding: '2%' }}>
           <div>
             <div style={{ ...t.title, color: c.white }}>{STAKEHOLDERS.center.title}</div>
@@ -360,8 +362,8 @@ export function Stakeholders({ active, s }) {
           <div key={n.title} style={{ position: 'absolute', left: `${outerPos[i][0]}%`, top: `${outerPos[i][1]}%`, transform: 'translate(-50%, -50%)' }}>{node(n, 'white')}</div>
         ))}
         <div style={{ position: 'absolute', right: 0, bottom: 0, display: 'grid', gap: 8 }}>
-          <span style={{ ...t.note, display: 'flex', gap: 8, alignItems: 'center', color: c.body }}><i style={{ width: 14, height: 14, borderRadius: 999, background: c.primaryTint }} />{STAKEHOLDERS.innerLabel}</span>
-          <span style={{ ...t.note, display: 'flex', gap: 8, alignItems: 'center', color: c.body }}><i style={{ width: 14, height: 14, borderRadius: 999, background: c.white, boxShadow: shadow.md }} />{STAKEHOLDERS.outerLabel}</span>
+          <span style={{ ...t.note, display: 'flex', gap: 8, alignItems: 'center', color: c.body }}><i style={{ width: 28, height: 2, background: c.primary }} />{STAKEHOLDERS.innerLabel}</span>
+          <span style={{ ...t.note, display: 'flex', gap: 8, alignItems: 'center', color: c.body }}><i style={{ width: 28, height: 2, background: c.barIdle }} />{STAKEHOLDERS.outerLabel}</span>
         </div>
       </div>
     </Slide>
@@ -376,7 +378,7 @@ export function Empathize({ active, s }) {
       <div style={grid(narrow ? 1 : 2)}>
         {EMPATHIZE.plan.map((p, i) => (
           <div key={p.who} data-rv style={{ ...panel(i % 3 === 0 ? 'tint' : 'white'), display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 'clamp(12px, 1.4vw, 24px)', alignItems: 'start', minHeight: narrow ? 0 : 'clamp(150px, 23vh, 280px)', padding: 'clamp(22px, 2.2vw, 44px)' }}>
-            <span style={{ ...t.numSm, fontSize: 'clamp(24px, 1.6vw + 6px, 44px)' }}>{String(i + 1).padStart(2, '0')}</span>
+            <span style={{ ...t.title, color: c.primary }}>{String(i + 1).padStart(2, '0')}</span>
             <div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
                 <span style={t.title}>{p.who}</span>
@@ -405,14 +407,6 @@ export function Define({ active, s }) {
         <div style={{ ...t.eyebrow, fontSize: 'clamp(13px, 0.5vw + 8px, 18px)' }}>{DEFINE.hmwLabel}</div>
         <p style={{ ...t.title, margin: '8px 0 0' }}>{DEFINE.hmw}</p>
       </div>
-      <div data-rv style={{ position: 'relative', ...grid(narrow ? 1 : 3), marginTop: 'clamp(20px, 4vh, 48px)', maxWidth: 1100 }}>
-        {DEFINE.evidence.map((e) => (
-          <div key={e.label}>
-            <div style={{ ...t.numSm, color: c.white }}>{e.value}</div>
-            <div style={{ ...t.note, color: 'rgba(255,255,255,0.9)', marginTop: 6 }}>{e.label}</div>
-          </div>
-        ))}
-      </div>
     </Slide>
   );
 }
@@ -428,7 +422,7 @@ export function Gaps({ active, s }) {
           const fg = blue ? c.white : c.ink;
           return (
             <div key={g.no} data-rv style={{ ...panel(blue ? 'blue' : 'white'), boxShadow: blue ? 'none' : shadow.md, padding: 'clamp(20px, 2vw, 40px)' }}>
-              <div style={{ ...t.numSm, color: blue ? c.white : c.primary }}>{g.no}</div>
+              <div style={{ ...t.label, color: blue ? c.white : c.primary }}>{g.no}</div>
               <div style={{ ...t.title, color: fg, marginTop: 12, fontSize: 'clamp(19px, 0.9vw + 9px, 30px)' }}>{g.title}</div>
               {!mobile ? <p style={{ ...t.body, color: blue ? 'rgba(255,255,255,0.92)' : c.body, margin: '10px 0 0' }}>{g.desc}</p> : null}
               <div style={{ marginTop: 14 }}>
@@ -475,9 +469,9 @@ export function Journey({ active, s }) {
           />
         </div>
         {[['현재', JOURNEY.now, false], ['미리 도입 후', JOURNEY.after, true]].map(([label, cells, on]) => [
-          <div key={`${label}-l`} data-rv style={{ ...t.bodyBold, color: on ? c.primary : c.sub, alignSelf: 'center', marginTop: 12 }}>{label}</div>,
+          <div key={`${label}-l`} data-rv style={{ ...t.bodyBold, color: on ? c.primary : c.sub, alignSelf: 'center', textAlign: 'center', marginTop: 12 }}>{label}</div>,
           ...cells.map((cell, i) => (
-            <div key={`${label}-${i}`} data-rv style={{ ...panel(on ? 'blue' : 'white'), padding: 'clamp(12px, 1.2vw, 22px)', marginTop: 12, ...(on ? t.bodyBold : t.body), color: on ? c.white : c.body, minHeight: narrow ? 0 : 'clamp(72px, 10vh, 120px)' }}>{cell}</div>
+            <div key={`${label}-${i}`} data-rv style={{ ...panel(on ? 'blue' : 'white'), padding: 'clamp(12px, 1.2vw, 22px)', marginTop: 12, ...(on ? t.bodyBold : t.body), color: on ? c.white : c.body, minHeight: narrow ? 0 : 'clamp(72px, 10vh, 120px)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>{cell}</div>
           )),
         ])}
       </div>
@@ -533,9 +527,9 @@ export function Blueprint({ active, s }) {
               <div style={{ display: 'grid', gridTemplateColumns: `clamp(110px, 9vw, 170px) repeat(5, minmax(0, 1fr))`, gap: 10, background: bands[li], borderRadius: space.radius, padding: 'clamp(10px, 1vw, 16px)', boxShadow: li === 0 ? shadow.sm : 'none' }}>
                 <div style={{ ...t.bodyBold, color: li === 1 ? c.primaryDeep : c.ink, alignSelf: 'center' }}>{ln.name}</div>
                 {ln.cells.map((cell, ci) => (
-                  <div key={ci} style={{ ...t.body, minHeight: 'clamp(48px, 7vh, 86px)', display: 'flex', alignItems: 'center', padding: cell ? 'clamp(8px, 0.8vw, 14px)' : 0, borderRadius: space.radiusSm, background: cell ? (li === 0 ? c.primary : c.card) : 'transparent', color: li === 0 && cell ? c.white : c.body, fontWeight: li === 0 && cell ? 700 : 400 }}>
+                  <div key={ci} style={{ ...t.body, minHeight: 'clamp(48px, 7vh, 86px)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 8, padding: cell ? 'clamp(8px, 0.8vw, 14px)' : 0, borderRadius: space.radiusSm, background: cell ? (li === 0 ? c.primary : c.card) : 'transparent', color: li === 0 && cell ? c.white : c.body, fontWeight: li === 0 && cell ? 700 : 400 }}>
                     {cell}
-                    {li === 1 && ci === 0 ? <span style={{ marginLeft: 'auto', paddingLeft: 8, ...t.label }}>AI</span> : null}
+                    {li === 1 && ci === 0 ? <span style={{ ...t.label }}>AI</span> : null}
                   </div>
                 ))}
               </div>
@@ -619,7 +613,7 @@ export function Proto({ active, s }) {
 export function Data({ active, s }) {
   const { narrow, slide, mobile } = useMode();
   return (
-    <Slide active={active} header={<Header eyebrow={s.eyebrow} headline={DATA.headline} lead={DATA.lead} right={!narrow ? <StatChips items={[{ value: '11종', label: '공개 자료' }, { value: '3종', label: '실시간 API', ink: true }]} /> : null} />}>
+    <Slide active={active} header={<Header eyebrow={s.eyebrow} headline={DATA.headline} lead={DATA.lead} />}>
       <div data-rv style={{ background: c.muted, borderRadius: space.radius, padding: 'clamp(16px, 2vw, 40px)', height: slide ? '100%' : 'auto', display: 'flex', flexDirection: 'column' }}>
         <div style={{ ...t.title, color: c.primaryDeep, textAlign: 'center' }}>미리의 부족분 계산에 들어가는 자료</div>
         <div style={{ ...grid(narrow ? 1 : 3), marginTop: 'clamp(16px, 3vh, 36px)', flex: '1 1 auto', alignItems: 'start' }}>
@@ -648,7 +642,7 @@ export function Data({ active, s }) {
 export function Scenarios({ active, s }) {
   const { narrow, slide } = useMode();
   return (
-    <Slide active={active} header={<Header eyebrow={s.eyebrow} headline={SCENARIOS.headline} lead={SCENARIOS.lead} right={!narrow ? <StatChips items={[{ value: '744명', label: 'S-3 초고속 확산', alert: true }]} /> : null} />}>
+    <Slide active={active} header={<Header eyebrow={s.eyebrow} headline={SCENARIOS.headline} lead={SCENARIOS.lead} />}>
       <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : 'minmax(0, 1.3fr) minmax(0, 1fr)', gap, height: slide ? '100%' : 'auto' }}>
         <div data-rv style={{ ...panel('white'), display: 'flex', flexDirection: 'column' }}>
           <span style={t.bodyBold}>시나리오별 미이송 예상(명)</span>
