@@ -1,4 +1,4 @@
-// 서류 읽기(IA 4.3). 미리의 핵심 화면. 종이 대피계획서를 AI 가 읽고 담당자가 한 건씩 확인해 명부에 확정한다(PRD v2 F2).
+// 서류 읽기(IA 4.3). 미리의 핵심 화면. 종이 대피계획서를 AI가 읽고 담당자가 한 건씩 확인해 명부에 확정한다(PRD v2 F2).
 // 위: 3단계 안내(올리기, AI 읽기, 담당자 확인)와 단계별 건수. 아래: 왼쪽 확인 대기 목록, 오른쪽 선택한 건(원본, 읽은 값, 근거).
 import { useMemo, useState } from 'react'
 import { CircleAlert, FileUp, ScanText, UserCheck } from 'lucide-react'
@@ -24,7 +24,7 @@ const CONF_ORDER = { low: 0, mid: 1, high: 2 }
 const KIND_LABEL = { plan: '대피계획서', card: '대피카드', etc: '기타' }
 const CONF = {
   high: { label: '원문 일치', tone: 'bg-success-soft text-success-text' },
-  mid: { label: '확인 권장', tone: 'bg-warning-soft text-warning-text' },
+  mid: { label: '확인 권장', tone: 'bg-primary-soft text-primary-text' },
   low: { label: '원문 불일치', tone: 'bg-danger-soft text-danger-text' }
 }
 
@@ -167,7 +167,7 @@ export default function IntakePage() {
       <section aria-label="서류 읽기 단계" className="mb-4 flex flex-col gap-3 lg:flex-row">
         <Step n={1} Icon={FileUp} title="서류 올리기" desc="동 담당자가 받은 대피계획서나 대피카드를 찍거나 스캔해 올립니다." count={`${docs.length}건`}
           active={uploadOpen} onClick={canEdit ? () => setShowUpload((v) => !v) : undefined} />
-        <Step n={2} Icon={ScanText} title="AI 가 읽기" desc="AI 가 거동 상태 문구를 찾아 이송 등급 초안과 근거 문구를 만듭니다. 이름과 연락처는 읽지 않습니다." count={`${readPeople}명`} />
+        <Step n={2} Icon={ScanText} title="AI가 읽기" desc="AI가 거동 상태 문구를 찾아 이송 등급 초안과 근거 문구를 만듭니다. 이름과 연락처는 읽지 않습니다." count={`${readPeople}명`} />
         <Step n={3} Icon={UserCheck} title="담당자 확인" desc="원본과 근거 문구를 대조해 확인, 수정, 제외합니다. 확인해야 명부와 부족분 계산에 들어갑니다." count={`대기 ${queue.length}건`} active={!uploadOpen && queue.length > 0} />
       </section>
 

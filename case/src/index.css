@@ -1,0 +1,25 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: #F6F6F6; /* tokens.colors.bg와 같은 값(첫 페인트 예외). 생화이트 금지 */
+  color: #101010; /* tokens.colors.ink과 같은 값. 생블랙 금지 */
+  /* Lenis가 스크롤을 소유한다. CSS smooth와 겹치면 두 번 보간되어 튄다. */
+  scroll-behavior: auto;
+  overflow-x: hidden;
+  /* 한 장씩 넘기는 화면이라 스크롤바를 숨긴다 */
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar { display: none; }
+
+body {
+  /* 본문 기본은 SUIT. 아이브로우(Pretendard)는 컴포넌트가 따로 지정한다. 끝은 시스템 한글 fallback. */
+  font-family: 'SUIT Variable', SUIT, 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+  /* **가짜 볼드/이탤릭 금지.** 가변폰트라 굵기는 wght 축이 낸다. 합성 볼드가 끼면 글자가 찌그러진다. */
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* 조작 셸은 방향키/휠 한 번에 한 섹션씩 이동한다. 자유 스크롤을 막는다. */
+  overscroll-behavior: none;
+}
+
+:focus-visible { outline: 2px solid #101010; outline-offset: 2px; }

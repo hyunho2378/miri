@@ -6,7 +6,7 @@ export default {
   theme: {
     screens,
     extend: {
-      fontFamily: { pretendard: ['"Pretendard Variable"', '"Pretendard"'] },
+      fontFamily: { pretendard: ['"Pretendard GOV Variable"', '"Pretendard GOV"', '"Pretendard Variable"', 'sans-serif'] },
       colors,
       spacing,
       borderRadius: radius,

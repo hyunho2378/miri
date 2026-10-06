@@ -80,6 +80,7 @@ export function buildSeed() {
       if (r() < 0.3) tags.push('guardian')
       if (r() < 0.1) tags.push('hearing')
       if (r() < 0.2) tags.push('medication')
+      if (r() < 0.12) tags.push('pet')
       const code = `${v.code}-${String(k).padStart(3, '0')}`
       persons.push({
         code, villageCode: v.code, grade, ltcGrade, tags,

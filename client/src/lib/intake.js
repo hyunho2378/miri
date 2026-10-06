@@ -47,7 +47,8 @@ export const TAGS = {
   dementia: '인지 저하',
   hearing: '청력 저하',
   bedridden: '와상',
-  medication: '상시 복약'
+  medication: '상시 복약',
+  pet: '반려동물 동반'
 }
 
 export const CONF_LABEL = { high: '일치도 높음', mid: '일치도 보통', low: '확인 필요' }

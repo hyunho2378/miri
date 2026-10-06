@@ -45,7 +45,7 @@ const GROUP_LAYERS = {
   shortage: [['village-circle', 'circle-opacity', 0.92], ['village-circle', 'circle-stroke-opacity', 1]],
   shelters: [['shelter-circle', 'circle-opacity', 1], ['shelter-circle', 'circle-stroke-opacity', 1], ['shelter-name', 'text-opacity', 1], ['route-line', 'line-opacity', 0.7]],
   vehicles: [['vehicle-circle', 'circle-opacity', 1], ['vehicle-circle', 'circle-stroke-opacity', 1]],
-  fire: [['fire-zone', 'fill-opacity', 0.12], ['fire-zone-line', 'line-opacity', 0.7], ['fire-line', 'line-opacity', 0.95], ['fire-head', 'fill-opacity', 0.95], ['fire-origin', 'circle-opacity', 1], ['fire-origin', 'circle-stroke-opacity', 1]],
+  fire: [['fire-zone', 'fill-opacity', 0.06], ['fire-zone-line', 'line-opacity', 0.7], ['fire-line', 'line-opacity', 0.95], ['fire-head', 'fill-opacity', 0.95], ['fire-origin', 'circle-opacity', 1], ['fire-origin', 'circle-stroke-opacity', 1]],
   ltc: [['ltc-circle', 'circle-opacity', 1], ['ltc-circle', 'circle-stroke-opacity', 1]],
   aging: [['dong-fill', 'fill-opacity', 0.38]]
 }
@@ -158,7 +158,7 @@ export default function MapCanvas({
     const firstSymbol = map.getStyle().layers.find((l) => l.type === 'symbol')?.id
     map.addLayer({ id: 'hillshade', type: 'hillshade', source: 'dem', paint: { 'hillshade-exaggeration': p.theme === 'dark' ? 0.35 : 0.5, 'hillshade-shadow-color': c.hillShadow, 'hillshade-highlight-color': c.hillLight } }, firstSymbol)
     if (map.getSource('openmaptiles')) {
-      map.addLayer({ id: 'forest-fill', type: 'fill', source: 'openmaptiles', 'source-layer': 'landcover', filter: ['==', ['get', 'class'], 'wood'], paint: { 'fill-color': c.forest, 'fill-opacity': 0.35 } }, firstSymbol)
+      map.addLayer({ id: 'forest-fill', type: 'fill', source: 'openmaptiles', 'source-layer': 'landcover', filter: ['==', ['get', 'class'], 'wood'], paint: { 'fill-color': c.forest, 'fill-opacity': 0.12 } }, firstSymbol)
       map.addLayer({
         id: 'building-3d', type: 'fill-extrusion', source: 'openmaptiles', 'source-layer': 'building', minzoom: 12.5,
         paint: {
@@ -409,7 +409,7 @@ export default function MapCanvas({
     if (fire) {
       const wrap = document.createElement('div')
       const el = document.createElement('span')
-      el.className = 'pointer-events-none inline-flex h-6 items-center rounded-full bg-warning-soft px-2 type-caption text-warning-text shadow-sm'
+      el.className = 'pointer-events-none inline-flex h-6 items-center rounded-full bg-text-pri px-2 type-caption text-text-inverse shadow-sm'
       el.textContent = '산불 확산 가정 구역'
       wrap.appendChild(el)
       fireMarkerRef.current = new Marker({ element: wrap, anchor: 'center' }).setLngLat(fire.mid).addTo(map)

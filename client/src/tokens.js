@@ -2,71 +2,60 @@
 // tailwind.config.js가 이 파일을 import한다. 컴포넌트는 Tailwind 클래스로만 쓴다.
 // 이 파일 밖에서 hex와 px를 직접 쓰지 않는다. DESIGN.md와 값이 다르면 여기가 맞다.
 
+// 2026-10-06 KRDS(디지털 정부 디자인 시스템) 전사. 원본: github.com/KRDS-uiux/krds-uiux tokens/transformed_tokens.json
+// primitive.color.light 의 값을 그대로 옮기고, 미리의 의미 이름(text.pri 등)에 KRDS semantic 대응을 적는다.
+// 유채색은 파랑(KRDS primary)과 빨강 두 가지만 쓴다(사용자 지시). 빨강은 KRDS danger(#DE3412, 주황 기운)가 아니라
+// KRDS point 계열(#D63D4A)을 쓴다. 주황, 초록, 갈색 계열(warning, success)은 쓰지 않는다.
+export const krds = {
+  gray: { 0: '#ffffff', 5: '#f4f5f6', 10: '#e6e8ea', 20: '#cdd1d5', 30: '#b1b8be', 40: '#8a949e', 50: '#6d7882', 60: '#58616a', 70: '#464c53', 80: '#33363d', 90: '#1e2124', 95: '#131416' },
+  primary: { 5: '#ecf2fe', 10: '#d8e5fd', 20: '#b1cefb', 30: '#86aff9', 40: '#4c87f6', 50: '#256ef4', 60: '#0b50d0', 70: '#083891', 80: '#052561' },
+  point: { 5: '#fbeff0', 10: '#f5d6d9', 20: '#ebadb2', 30: '#e0858c', 40: '#d65c66', 50: '#d63d4a', 60: '#ab2b36', 70: '#7a1f26' }
+}
+const g = krds.gray
+const p = krds.primary
+const r = krds.point
+
 export const colors = {
-  page: '#FFFFFF',
-  canvas: '#F5F7FA',
-  mute: '#F0F2F5',
-  subtle: '#F8F9FB',
+  page: g[0],          // background.white
+  canvas: g[5],        // background.gray-subtler
+  mute: g[10],         // surface.gray-subtle
+  subtle: g[5],        // surface.gray-subtler
 
   text: {
-    pri: '#101010',
-    sec: '#3D3F45',
-    meta: '#6B6F76',
-    ter: '#9A9EA5',
-    inverse: '#FFFFFF'
+    pri: g[90],        // text.basic
+    sec: g[70],        // text.subtle
+    meta: g[60],       // 보조 설명(7.0:1)
+    ter: g[50],        // 최소 대비 글자(4.6:1). 비활성 대신 쓰지 않는다
+    inverse: g[0]
   },
 
   primary: {
-    DEFAULT: '#2563EB',
-    hover: '#1D4ED8',
-    // 9-1. #EFF6FF 는 흰 배경 위에서 대비 1.09, canvas 위에서 1.01 이라 칩 형태가 보이지 않았다.
-    // 한 단계 올려 두 바탕 모두에서 경계가 읽히게 했다(page 1.28 / canvas 1.20)
-    soft: '#D6E4FD',
-    line: '#BFDBFE',
-    text: '#1E40AF'
+    DEFAULT: p[50],    // border.primary, 주요 행동
+    hover: p[60],
+    soft: p[10],       // 선택 면. primary-subtler(5) 는 흰 바탕 위 경계가 안 읽혀 한 단계 올린다
+    line: p[20],
+    text: p[60]        // text.primary
   },
 
   line: {
-    sub: '#ECEEF1',
-    def: '#DDE1E6',
-    strong: '#C5CAD1'
+    sub: g[10],        // 카드 안 구분선
+    def: g[20],        // border.gray-light, divider.gray-light
+    strong: g[30]      // border.gray
   },
 
-  // 10단계(2026-10-02). 운영 대시보드 심각도 체계. G-Chat 3색 체계에서 확장.
-  // 근거: IBM Carbon 상태 표시(빨강 위험, 주황 경고, 초록 정상, 파랑 진행, 회색 미시작. 색 모양 기호 텍스트 중 3개 이상 병행),
-  //       KRDS 시스템 색상(danger warning success information, 색 외에 아이콘과 텍스트 병행).
-  // 9단계의 문제: 진행 상태 9종이 전부 파랑, 위험은 연분홍 배경 + 벽돌색 글자라 실패와 단순 부정이 구분되지 않았다.
-  //   또 #E11414 와 primary #2563EB 는 명도 대비 1.06 으로 밝기가 거의 같아 색상만으로 갈렸다.
-  //   critical  실패 미배정 소방 인계 부족 발생. 쨍한 빨강 면 + 흰 글자(5.02:1). 화면에서 가장 먼저 보여야 하는 것
-  //   danger    불가 무응답 반려 협약 만료. 연한 빨강 면 + 빨강 글자(4.83:1)
-  //   warning   기한 초과 예상 협약 만료 임박 신뢰도 하. 주황
-  //   primary   진행 중(판독 중 발령 이송 단계)
-  //   success   완료(확인 완료 수락 인계 완료 기한 내 부족 없음). 초록은 점과 글자만, 큰 면 금지
-  //   neutral   대기 평시 종료
-  danger:  { DEFAULT: '#E0001B', strong: '#B80016', soft: '#FFE8EA', text: '#D10019' },
-  warning: { DEFAULT: '#EA580C', soft: '#FFF1E6', text: '#B54708' },
-  success: { DEFAULT: '#16A34A', soft: '#E6F6EC', text: '#047857' },
+  // 위험과 부족. KRDS point 계열
+  danger:  { DEFAULT: r[50], strong: r[60], soft: r[5], text: r[60] },
+  // 이름만 남긴다. 값은 위험 빨강(warning) 과 무채색(success) 이다
+  warning: { DEFAULT: r[50], soft: r[5], text: r[60] },
+  success: { DEFAULT: g[70], soft: g[10], text: g[80] },
 
-  // 9단계. 유채색은 주 계열 하나뿐이다. 나머지 계열은 무채색 명도차로 갈린다.
-  // 파랑 여러 단계를 쓰면 어느 것이 주인지 알 수 없다. 부정 계열(미해결 추이)만 danger 를 빌려 쓴다.
-  // 흰 배경 3:1(WCAG 2.2 1.4.11 비텍스트)은 넷 다 지킨다. 상호 대비 2-3 1.72 / 3-4 1.46 / 2-4 2.52
   chart: {
-    1: '#2563EB',   // 5.17:1  HSL(221,83%,53%)  주 계열. primary 와 같은 값. 유일한 유채색
-    // 회색 셋은 기존 무채색 토큰(text line)과 같은 채도 5% 대다. 채도를 더 주면 파란 회색으로 읽혀
-    // 주 계열과 경쟁한다. 명도만으로 갈린다
-    2: '#505358',   // 7.72:1  HSL(218,5%,33%)  보조 계열. 진회색
-    3: '#72767E',   // 4.56:1  HSL(220,5%,47%)  3계열. 중간 회색
-    4: '#8F9299',   // 3.12:1  HSL(222,5%,58%)  4계열과 기타 조각과 비교 기준선. 연회색
-    // 히트맵 단계. 0 은 데이터 없음이라 색 단계가 아니고 bg-mute 다.
-    // 채도를 92% 로 올려 최저 단계도 회색빛 없이 연한 파랑으로 읽힌다
-    heat: {
-      1: '#9DBEFB',  // 1.88:1  HSL(219,92%,80%)
-      2: '#71A1F9',  // 2.57:1  HSL(219,92%,71%)
-      3: '#4583F7',  // 3.59:1  HSL(219,92%,62%)
-      4: '#2563EB'   // 5.17:1  chart-1 풀 채도
-    },
-    // 부족분처럼 나쁜 양을 칠하는 히트맵. 1~3 은 진한 글자, 4 는 흰 글자(5.02:1)
-    heatDanger: { 1: '#FFC9CE', 2: '#FF8F99', 3: '#F2404F', 4: '#E0001B' }
+    1: p[50],
+    2: g[70],
+    3: g[50],
+    4: g[40],
+    heat: { 1: p[20], 2: p[30], 3: p[40], 4: p[50] },
+    heatDanger: { 1: r[10], 2: r[30], 3: r[50], 4: r[60] }
   }
 }
 
@@ -80,7 +69,7 @@ export const contrastOverrides = {
 // 8단계. "죄다 얇아서 위계가 안 보인다"는 피드백으로 웨이트 사다리를 400 / 600 / 700 / 800 넷으로 벌렸다.
 // 인접해 놓이는 짝은 최소 200 차이가 난다. 라벨(caption 600) 대 값(kpi 800), 카드 타이틀(h3 700) 대 본문(body 400),
 // 델타(caption 600) 대 보조 문구(meta 400) 다. 큰 활자는 크기 하한을 올리고 자간을 좁혀 덩어리감을 줬다.
-// 폰트는 Pretendard 그대로다. 800 은 Pretendard Variable 이 가진 웨이트다
+// 서체는 KRDS 표준 Pretendard GOV. 굵기는 KRDS 대로 400 과 700 두 가지만 쓴다
 // 미리 UI_PLAYBOOK 2.2: 800 display kpi / 700 h1 h2 h3 / 600 caption strong 버튼 탭 표 헤더 / 400 본문. 500 금지
 export const typography = {
   display: { size: 'clamp(30px, 2vw + 21px, 42px)', weight: 800, tracking: '-0.035em', leading: 1.14 },

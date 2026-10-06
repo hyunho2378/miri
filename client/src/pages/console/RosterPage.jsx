@@ -1,5 +1,5 @@
 // 대상자 명부(IA 4.2). 이름 열 없음(원본 명부는 지자체 서버 보관 전제). ?person=코드 로 상세 드로어.
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { ScanText, Trash2, UserRound } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
@@ -24,6 +24,13 @@ import { fmtDate } from '../../lib/time.js'
 import { fmtKDate } from '../../components/miri/BasisLine.jsx'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
+import SegmentControl from '../../components/ui/SegmentControl.jsx'
+import RosterPrint from '../../components/miri/RosterPrint.jsx'
+import { gradeOf } from '../../lib/shortage.js'
+
+// 지도는 무거워서 지도 보기를 고를 때만 받는다
+const RosterMap = lazy(() => import('../../components/miri/RosterMap.jsx'))
+const VIEWS = [{ value: 'list', label: '목록' }, { value: 'map', label: '지도' }, { value: 'print', label: '서식 출력' }]
 
 const REVIEW_OPTIONS = [
   { value: 'all', label: '전체 확인 상태' }, { value: 'pending', label: '확인 대기' },
@@ -57,6 +64,7 @@ export default function RosterPage() {
   const [source, setSource] = useState('all')
   const [review, setReview] = useState(params.get('review') || 'all')
   const [moreFilters, setMoreFilters] = useState(false)
+  const [view, setView] = useState('list')
   const [editing, setEditing] = useState(null)   // { mode: 'edit'|'add', value }
   const [errors, setErrors] = useState({})
 
@@ -120,35 +128,64 @@ export default function RosterPage() {
     { key: 'edit', label: '편집', render: (p) => <EditPencil resource="persons" label={`${p.code} 수정`} onClick={() => { openPerson(p.code); setEditing({ mode: 'edit', value: { villageCode: p.villageCode, grade: p.grade, tags: p.tags } }) }} /> }
   ].filter((c) => c.key !== 'edit' || canEdit)
 
-  const hiddenActive = (grades.length ? 1 : 0) + (source !== 'all' ? 1 : 0)
+  const hiddenActive = source !== 'all' ? 1 : 0
+  // 지도와 서식 출력은 목록과 같은 필터 결과를 마을 단위로 묶어 쓴다
+  const byVillage = useMemo(() => {
+    const m = {}
+    for (const p of rows) (m[p.villageCode] ||= []).push(p)
+    return villages.filter((v) => m[v.code]).map((v) => ({ code: v.code, name: v.label, lngLat: v.lngLat, count: m[v.code].length, village: v, persons: m[v.code] }))
+  }, [rows, villages])
   const dongOptions = [{ value: 'all', label: '전체 동' }, ...dongs.filter((d) => villages.some((v) => v.dongCode === d.code)).map((d) => ({ value: d.code, label: d.name }))]
   const villageOptions = [{ value: 'all', label: '전체 마을' }, ...villages.filter((v) => dong === 'all' || v.dongCode === dong).map((v) => ({ value: v.code, label: v.label }))]
 
-  return (
-    <PageShell
-      title="대상자 명부"
-    >
-      <TableCard
-        title="대상자" count={`${rows.length}명`} desc={`명부 ${fmtKDate(today)} 기준. 이름 없이 대상자 코드로 표시합니다.`}
-        actions={<InlineEditBar resource="persons" addLabel="대상자 추가" onAdd={() => { setErrors({}); setEditing({ mode: 'add', value: { villageCode: village !== 'all' ? village : villageOptions[1]?.value, grade: 'assist', tags: [] } }) }} />}
-        filters={(
+  const filterBar = (
           <FilterBar>
             <Select compact label="동" value={dong} onChange={setDong} options={dongOptions} disabled={user?.role === 'dong'} />
             <Select compact label="마을" value={village} onChange={setVillage} options={villageOptions} />
+            <MultiSelect compact label="이송 등급" values={grades} onChange={setGrades} options={GRADE_OPTIONS} placeholder="전체" />
             <Select compact label="확인 상태" value={review} onChange={setReview} options={REVIEW_OPTIONS} />
             {moreFilters && (
-              <>
-                <MultiSelect compact label="등급" values={grades} onChange={setGrades} options={GRADE_OPTIONS} placeholder="전체" />
-                <Select compact label="입력 방법" value={source} onChange={setSource} options={SOURCE_OPTIONS} />
-              </>
+              <Select compact label="입력 방법" value={source} onChange={setSource} options={SOURCE_OPTIONS} />
             )}
             <Button variant="ghost" size="sm" aria-expanded={moreFilters} onClick={() => setMoreFilters((v) => !v)}>
               {moreFilters ? '필터 접기' : `필터 더보기${hiddenActive ? ` (적용 ${hiddenActive})` : ''}`}
             </Button>
           </FilterBar>
-        )}
+  )
+
+  return (
+    <PageShell
+      title="대상자 명부"
+    >
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <SegmentControl label="보기" value={view} onChange={setView} items={VIEWS} />
+        <p className="type-body-sm text-text-sec">
+          걸러진 대상자 <strong className="type-strong text-text-pri tabular-nums">{rows.length}명</strong>, 마을 {byVillage.length}곳
+          {grades.length > 0 && `, 등급 ${grades.map((g) => gradeOf(g)?.label).join(', ')}`}
+        </p>
+      </div>
+      {view === 'list' ? (
+      <TableCard
+        title="대상자" count={`${rows.length}명`} desc={`명부 ${fmtKDate(today)} 기준. 이름 없이 대상자 코드로 표시합니다.`}
+        actions={<InlineEditBar resource="persons" addLabel="대상자 추가" onAdd={() => { setErrors({}); setEditing({ mode: 'add', value: { villageCode: village !== 'all' ? village : villageOptions[1]?.value, grade: 'assist', tags: [] } }) }} />}
+        filters={filterBar}
         columns={columns} rows={rows} rowKey={(p) => p.code} onRowClick={(p) => { setEditing(null); openPerson(p.code) }} emptyTitle="조건에 맞는 대상자가 없습니다" emptyDesc="필터 조건을 바꿔 다시 확인해 주십시오." caption="대상자 명부"
       />
+      ) : (
+        <TableCard
+          title={view === 'map' ? '마을별 분포' : '서식 출력'} count={`${rows.length}명`}
+          desc={view === 'map' ? '목록과 같은 필터를 씁니다. 원을 누르면 그 마을로 목록이 좁혀집니다.' : '마을별 명부를 인쇄합니다. 이름과 연락처는 지자체 서버 원본에서 채워 씁니다.'}
+        filters={filterBar}
+        >
+          {view === 'map' ? (
+            <Suspense fallback={<div className="h-[60vh] min-h-96 animate-pulse rounded-lg bg-mute" />}>
+              <RosterMap items={byVillage} selected={village} onPick={(c) => { setVillage(c); setView('list') }} />
+            </Suspense>
+          ) : (
+            <RosterPrint groups={byVillage} dongs={dongs} today={today} />
+          )}
+        </TableCard>
+      )}
 
       <Drawer
         open={!!open || editing?.mode === 'add'}

@@ -16,7 +16,7 @@
     --dur-sheet: 360ms;
   }
 
-  html { font-family: 'Pretendard Variable', 'Pretendard'; -webkit-font-smoothing: antialiased; }
+  html { font-family: 'Pretendard GOV Variable', 'Pretendard GOV', 'Pretendard Variable', sans-serif; -webkit-font-smoothing: antialiased; }
   body { @apply bg-page text-text-pri; letter-spacing: -0.01em; }
   h1, h2, h3, h4 { letter-spacing: -0.02em; line-height: 1.2; text-wrap: balance; }
   p, li, dd, figcaption { text-wrap: pretty; }
@@ -28,19 +28,21 @@
 
 @layer components {
   /* tokens.typography 와 1:1. 굵기 사다리 400 / 600 / 700 / 800. 500 은 쓰지 않는다(UI_PLAYBOOK 2.2) */
-  .type-display { font-size: clamp(30px, 2vw + 21px, 42px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.14; }
-  .type-h1      { font-size: clamp(24px, 1vw + 19px, 32px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; }
-  .type-h2      { font-size: clamp(18px, 0.5vw + 16px, 22px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; }
-  .type-h3      { font-size: clamp(17px, 0.3vw + 15.5px, 19px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; }
-  .type-kpi     { font-size: clamp(28px, 1.2vw + 22px, 40px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; font-variant-numeric: tabular-nums; }
-  .type-body    { font-size: clamp(15px, 0.2vw + 14px, 17px); font-weight: 400; letter-spacing: -0.01em; line-height: 1.7; }
-  .type-body-sm { font-size: clamp(13px, 0.15vw + 12.5px, 14px); font-weight: 400; letter-spacing: -0.005em; line-height: 1.55; }
-  .type-caption { font-size: clamp(11px, 0.1vw + 10.5px, 12px); font-weight: 600; line-height: 1.4; }
-  /* 강조 텍스트. 본문 크기 그대로 600. font-medium font-semibold 를 직접 붙이지 않고 이 두 클래스만 쓴다 */
-  .type-strong      { font-size: clamp(13px, 0.15vw + 12.5px, 14px); font-weight: 600; letter-spacing: -0.005em; line-height: 1.55; }
-  .type-body-strong { font-size: clamp(15px, 0.2vw + 14px, 17px); font-weight: 600; letter-spacing: -0.01em; line-height: 1.7; }
-  .type-meta    { font-size: 12px; font-weight: 400; letter-spacing: 0.01em; line-height: 1.4; }
-  .type-count   { font-size: 10px; font-weight: 700; letter-spacing: 0.01em; line-height: 1; font-variant-numeric: tabular-nums; }
+  /* KRDS 글자 스케일 전사(style_03 타이포그래피). 굵기 400, 700 두 가지. 줄 간격 150% 이상.
+     display small 36/28, heading large 32/24, medium 24/22, small 19, xsmall 17, body medium 17, small 15, xsmall 13 */
+  .type-display { font-size: clamp(28px, 1.6vw + 19px, 36px); font-weight: 700; letter-spacing: -0.01em; line-height: 1.4; }
+  .type-h1      { font-size: clamp(24px, 1.1vw + 18px, 32px); font-weight: 700; letter-spacing: -0.01em; line-height: 1.4; }
+  .type-h2      { font-size: clamp(22px, 0.3vw + 20px, 24px); font-weight: 700; letter-spacing: -0.005em; line-height: 1.5; }
+  .type-h3      { font-size: 19px; font-weight: 700; line-height: 1.5; }
+  .type-kpi     { font-size: clamp(32px, 1.1vw + 26px, 40px); font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .type-body    { font-size: 17px; font-weight: 400; line-height: 1.5; }
+  .type-body-sm { font-size: 15px; font-weight: 400; line-height: 1.5; }
+  .type-caption { font-size: 13px; font-weight: 700; line-height: 1.5; }
+  /* 강조 텍스트. body small-bold, medium-bold */
+  .type-strong      { font-size: 15px; font-weight: 700; line-height: 1.5; }
+  .type-body-strong { font-size: 17px; font-weight: 700; line-height: 1.5; }
+  .type-meta    { font-size: 13px; font-weight: 400; line-height: 1.5; }
+  .type-count   { font-size: 11px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
 
   /* DESIGN_DELTA.md 변경 4. press 피드백. 버튼 칩 클릭 카드에 붙인다.
      transition 을 여기서 통째로 선언한다. 컴포넌트가 transition-[...] 유틸을 또 붙이면
@@ -117,3 +119,11 @@ html[lang='ja'] .break-keep, html[lang='zh'] .break-keep { word-break: normal; l
 .doc-page ul { list-style: disc; }
 .doc-page ol { list-style: decimal; }
 .doc-page a { color: theme('colors.primary.DEFAULT'); text-decoration: underline; }
+
+/* 명부 서식 출력(RosterPrint). 인쇄 때 이 영역만 남기고 마을마다 쪽을 나눈다 */
+@media print {
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+  .print-page { break-after: page; border: 0; }
+}

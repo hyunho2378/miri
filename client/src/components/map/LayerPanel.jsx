@@ -67,9 +67,9 @@ export default function LayerPanel({
         <ul className="mt-1.5 -mx-2 divide-y divide-line-sub">
           <LayerRow label="마을별 부족분" checked={layers.shortage} onChange={(v) => onLayer('shortage', v)} swatch="bg-chart-heatDanger-3" />
           <LayerRow label="행정동 경계" checked={layers.dongs} onChange={(v) => onLayer('dongs', v)} />
-          <LayerRow label="산불 확산 가정 구역" checked={layers.fire} onChange={(v) => onLayer('fire', v)} swatch="bg-warning"
+          <LayerRow label="산불 확산 가정 구역" checked={layers.fire} onChange={(v) => onLayer('fire', v)} swatch="bg-text-pri"
             desc={layers.fire ? (fireInfo ? `${fireInfo.label}에서 시속 ${fireInfo.speed}km로 번진다고 둔 가정입니다. 띠 안 마을에 발령 후 ${fmtElapsed(fireInfo.fromH)}부터 ${fmtElapsed(fireInfo.toH)} 사이에 차례로 도달합니다.` : '시 전체 시나리오라 발화 가정 지점이 없습니다.') : undefined} />
-          <LayerRow label="이재민 임시주거시설" checked={layers.shelters} onChange={(v) => onLayer('shelters', v)} swatch="bg-success" desc={layers.shelters ? shelterDesc : undefined} />
+          <LayerRow label="이재민 임시주거시설" checked={layers.shelters} onChange={(v) => onLayer('shelters', v)} swatch="bg-primary" desc={layers.shelters ? shelterDesc : undefined} />
           {extraLayers.map((x) => (
             <LayerRow key={x.key} label={x.label} desc={layers[x.key] ? x.desc : undefined} checked={!!layers[x.key]} onChange={(v) => onLayer(x.key, v)} swatch={x.swatch} />
           ))}
@@ -105,7 +105,7 @@ export default function LayerPanel({
         )}
         {layers.shelters && (
           <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2" aria-label="임시주거시설 범례">
-            {[['border-success', '수용 여유'], ['border-warning', '수용 80% 이상'], ['border-danger', '수용 초과'], ['border-text-meta', '구역 안 제외']].map(([c, t]) => (
+            {[['border-primary', '수용 여유'], ['border-chart-heatDanger-2', '수용 80% 이상'], ['border-danger', '수용 초과'], ['border-text-ter', '구역 안 제외']].map(([c, t]) => (
               <li key={t} className="flex items-center gap-2 type-meta text-text-sec">
                 <span aria-hidden="true" className={clsx('inline-block h-3 w-3 shrink-0 rounded-full border-[3px] bg-page', c)} />{t}
               </li>
