@@ -8,6 +8,7 @@ import clsx from 'clsx'
 import { ChevronDown, ChevronUp, Layers, Maximize, X } from 'lucide-react'
 import Card from '../../components/ui/Card.jsx'
 import Button from '../../components/ui/Button.jsx'
+import Select from '../../components/ui/Select.jsx'
 import IconButton from '../../components/ui/IconButton.jsx'
 import MapCanvas from '../../components/map/MapCanvas.jsx'
 import Map3D from '../../components/map/Map3D.jsx'
@@ -296,11 +297,10 @@ export default function MapPage() {
             <SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} />
             <div className="mt-3 flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <label className="sr-only" htmlFor="scenario-pick">시나리오</label>
-                <select id="scenario-pick" value={scenario.id} onChange={(e) => { setActiveScenario(e.target.value); setSelected(null) }}
-                  className="-ml-1 h-8 max-w-full truncate rounded-md bg-subtle px-1.5 type-meta text-text-pri">
-                  {scenarios.map((x) => <option key={x.id} value={x.id}>{`${HAZARD_KINDS[x.kind]?.label || '재난'}: ${x.name}`}</option>)}
-                </select>
+                <Select label="시나리오" hideLabel compact size="sm" portal menuMinWidth={260} value={scenario.id}
+                  onChange={(v) => { setActiveScenario(v); setSelected(null) }}
+                  options={scenarios.map((x) => ({ value: x.id, label: x.name, secondary: HAZARD_KINDS[x.kind]?.label || '재난' }))}
+                  className="-ml-1 max-w-full" triggerClassName="bg-subtle ring-0" />
                 <p className="mt-0.5 flex items-baseline gap-1.5">
                   <span className="type-h2 text-danger-text tabular-nums">{result.total}</span>
                   <span className="type-body-sm text-text-sec">명 미이송 예상</span>

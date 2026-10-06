@@ -30,5 +30,13 @@ export default {
       }
     }
   },
-  plugins: []
+  // 콘텐츠 폭 기준 반응형(container query). 사이드바가 열리고 닫히면 창 폭과 본문 폭이 달라지므로,
+  // 카드 격자처럼 본문 폭에 따라 바뀌어야 하는 배치는 md:, lg: 대신 cq-md:, cq-xl: 을 쓴다. 기준 상자는 .cq(PageShell 본문)
+  plugins: [
+    function ({ addVariant, addUtilities }) {
+      addUtilities({ '.cq': { 'container-type': 'inline-size' } })
+      const CQ = { sm: 480, md: 640, lg: 840, xl: 1040, '2xl': 1280 }
+      for (const [k, v] of Object.entries(CQ)) addVariant(`cq-${k}`, `@container (min-width: ${v}px)`)
+    }
+  ]
 }

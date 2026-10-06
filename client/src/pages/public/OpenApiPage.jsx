@@ -59,7 +59,7 @@ export default function OpenApiPage() {
 
       <Card tone="mute" title="예시" desc="터미널이나 다른 서비스에서 이렇게 부릅니다.">
         <pre className="overflow-auto type-meta leading-5 text-text-pri">{`curl "https://miri-indol.vercel.app/api/open?kind=scenario&id=S-1"`}</pre>
-        <p className="mt-3 type-body-sm text-text-sec">계산 코드와 원자료 수집 스크립트는 <a href={REPO_URL} target="_blank" rel="noreferrer" className="text-primary-text underline">GitHub 저장소</a>에 있습니다.</p>
+        <p className="mt-3 type-body-sm text-text-sec">계산 코드와 원자료 수집 스크립트는 <a href={REPO_URL} target="_blank" rel="noreferrer" className="whitespace-nowrap text-primary-text underline">GitHub 저장소</a>에 있습니다.</p>
       </Card>
     </div>
   )

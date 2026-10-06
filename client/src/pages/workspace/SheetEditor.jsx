@@ -6,6 +6,7 @@ import clsx from 'clsx'
 import { ArrowDownAZ, ArrowUpAZ, Copy, Download, Link2, Plus, Search, Sheet, Trash2, Upload } from 'lucide-react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import Button from '../../components/ui/Button.jsx'
+import Select from '../../components/ui/Select.jsx'
 import { toCsv } from '../../components/ui/ExportButton.jsx'
 import useToast from '../../hooks/useToast.js'
 import { GRADES } from '../../lib/shortage.js'
@@ -172,11 +173,11 @@ export default function SheetEditor() {
       {!sheet.source && (
         <>
           <input ref={fileRef} type="file" accept=".csv,text/csv" className="sr-only" onChange={importCsv} />
-          <Button variant="ghost" size="sm" leftIcon={<Upload size={16} aria-hidden="true" />} onClick={() => fileRef.current?.click()}>CSV 가져오기</Button>
+          <Button variant="ghost" size="sm" collapse="xl" leftIcon={<Upload size={16} aria-hidden="true" />} onClick={() => fileRef.current?.click()}>CSV 가져오기</Button>
         </>
       )}
-      <Button variant="ghost" size="sm" leftIcon={<Download size={16} aria-hidden="true" />} onClick={exportCsv}>CSV</Button>
-      <Button size="sm" leftIcon={<Copy size={16} aria-hidden="true" />} onClick={copyForGoogle}>구글 시트로 복사</Button>
+      <Button variant="ghost" size="sm" collapse="lg" leftIcon={<Download size={16} aria-hidden="true" />} onClick={exportCsv}>CSV 저장</Button>
+      <Button size="sm" collapse="sm" leftIcon={<Copy size={16} aria-hidden="true" />} onClick={copyForGoogle}>구글 시트로 복사</Button>
     </>
   )
 
@@ -196,14 +197,14 @@ export default function SheetEditor() {
         {sort && <button type="button" onClick={() => setSort(null)} className="type-caption text-primary-text underline">정렬 해제</button>}
         <label className="ml-auto flex h-9 w-full max-w-xs items-center gap-2 rounded-md bg-mute px-3 sm:w-auto">
           <Search size={14} aria-hidden="true" className="text-text-meta" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="시트에서 찾기" className="min-w-0 flex-1 bg-transparent type-body-sm outline-none" />
+          <input autoComplete="off" spellCheck={false} value={q} onChange={(e) => setQ(e.target.value)} placeholder="시트에서 찾기" className="min-w-0 flex-1 bg-transparent type-body-sm outline-none" />
         </label>
       </div>
       <div className="flex items-center gap-2 border-t border-line-sub px-3 md:px-5">
         <span className="w-14 shrink-0 py-2 text-center type-caption text-text-meta tabular-nums">{letter(sel.c)}{sel.r + 2}</span>
         <span className="h-5 w-px bg-line-sub" />
         <span className="px-1 type-caption italic text-text-meta">fx</span>
-        <input
+        <input autoComplete="off" spellCheck={false}
           aria-label="선택한 칸 내용" defaultValue={selVal} key={`${sel.r}-${sel.c}-${selVal}`} readOnly={selLocked}
           onBlur={(e) => { if (e.target.value !== String(selVal)) setCell(sel.r, sel.c, e.target.value) }}
           onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
@@ -240,7 +241,7 @@ export default function SheetEditor() {
               <th className="sticky left-0 z-20 h-9 border-b border-r border-line-sub bg-subtle type-caption font-normal text-text-meta">1</th>
               {columns.map((c, ci) => (
                 <th key={c.key} className="h-9 border-b border-r border-line-def bg-page p-0 text-left">
-                  <input
+                  <input autoComplete="off" spellCheck={false}
                     value={c.label} readOnly={locked || !!sheet.source} onChange={(e) => setHeader(ci, e.target.value)} aria-label={`${letter(ci)}열 제목`}
                     className="h-9 w-full bg-transparent px-2 type-strong text-text-pri outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
                   />
@@ -257,17 +258,24 @@ export default function SheetEditor() {
                   const bad = c.options && r[ci] && !c.options.includes(r[ci])
                   return (
                     <td key={c.key} className={clsx('h-8 border-b border-r border-line-sub p-0', bad && 'bg-danger-soft')}>
-                      <input
+                      {c.options && !ro ? (
+                        <Select label={`${letter(ci)}${i + 2}`} hideLabel size="xs" portal menuMinWidth={140}
+                          value={r[ci] ?? ''} placeholder={r[ci] || '선택'}
+                          onChange={(v) => setCell(i, ci, v)}
+                          options={[{ value: '', label: '비우기' }, ...c.options.map((o) => ({ value: o, label: o }))]}
+                          triggerClassName="h-8 w-full rounded-none bg-transparent ring-0 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary" />
+                      ) : (
+                      <input autoComplete="off" spellCheck={false}
                         data-cell={`${vi}-${ci}`}
                         defaultValue={r[ci] ?? ''} key={`${i}-${ci}-${r[ci]}`}
                         readOnly={ro}
-                        list={c.options ? `opt-${c.key}` : undefined}
                         onFocus={() => setSel({ r: i, c: ci })}
                         onBlur={(e) => { if (e.target.value !== String(r[ci] ?? '')) setCell(i, ci, e.target.value) }}
                         onKeyDown={(e) => onKey(e, vi, ci)}
                         aria-label={`${letter(ci)}${i + 2}`}
                         className={clsx('h-8 w-full bg-transparent px-2 outline-none focus:ring-2 focus:ring-inset focus:ring-primary', ro ? 'text-text-sec' : 'text-text-pri', c.type === 'number' && 'text-right tabular-nums')}
                       />
+                      )}
                     </td>
                   )
                 })}
@@ -275,9 +283,6 @@ export default function SheetEditor() {
             ))}
           </tbody>
         </table>
-        {columns.filter((c) => c.options).map((c) => (
-          <datalist key={c.key} id={`opt-${c.key}`}>{c.options.map((o) => <option key={o} value={o} />)}</datalist>
-        ))}
         {view.length === 0 && <p className="px-6 py-8 type-body-sm text-text-meta">{q ? '찾는 내용이 없습니다.' : '아직 행이 없습니다.'}</p>}
         {view.length > limit && (
           <div className="px-4 py-3 md:px-6">

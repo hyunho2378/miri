@@ -2,14 +2,16 @@
 // DESIGN_DELTA.md 추가 2. 봄내 FieldSelect 디테일 흡수: 옵션 아이콘 + 주 텍스트 + 보조 텍스트,
 // compact 변형, 열릴 때 선택 옵션으로 하이라이트 이동, detail 0 키보드 발화 무애니메이션, usePopExit 퇴장.
 // options: [{ value, label, icon, secondary }]
-import { useEffect, useId, useRef, useState } from 'react'
+// size: md(기본 44px, md 이상 36px) | sm(32px) | xs(28px, 편집기 도구줄). portal: 목록을 body 에 띄워 스크롤 상자에 잘리지 않게(도구줄, 지도 패널)
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import clsx from 'clsx'
 import { Check, ChevronDown } from 'lucide-react'
 import usePopExit from '../../hooks/usePopExit.js'
 
 export default function Select({
   label, value, onChange, options = [], placeholder = '선택',
-  disabled, error, compact = false, id, className
+  disabled, error, compact = false, id, className, size = 'md', portal = false, menuMinWidth = 0, triggerClassName, hideLabel = false
 }) {
   const auto = useId()
   const btnId = id || auto
@@ -21,6 +23,27 @@ export default function Select({
   const triggerRef = useRef(null)
   const listRef = useRef(null)
   const typed = useRef({ s: '', t: 0 })
+  const [pos, setPos] = useState(null)
+  const small = size !== 'md'
+
+  // 포털 목록 위치: 아래 공간이 모자라면 위로 연다. 화면 오른쪽 끝을 넘지 않게 맞춘다
+  useLayoutEffect(() => {
+    if (!open || !portal) return undefined
+    const place = () => {
+      const r = triggerRef.current?.getBoundingClientRect()
+      if (!r) return
+      const width = Math.max(r.width, menuMinWidth)
+      const below = window.innerHeight - r.bottom - 8
+      const up = below < 220 && r.top > below
+      const maxH = Math.min(320, Math.max(120, (up ? r.top : below) - 8))
+      const left = Math.max(8, Math.min(r.left, window.innerWidth - width - 8))
+      setPos({ left, width, maxH, top: up ? undefined : r.bottom + 4, bottom: up ? window.innerHeight - r.top + 4 : undefined })
+    }
+    place()
+    window.addEventListener('resize', place)
+    window.addEventListener('scroll', place, true)
+    return () => { window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true) }
+  }, [open, portal, menuMinWidth])
 
   const selected = options.find((o) => o.value === value) || null
   // 아이콘은 대문자 변수로 받는다. 소문자 멤버 표현식으로 바로 쓰면 네이티브 태그 금지 grep 에 걸린다
@@ -28,7 +51,7 @@ export default function Select({
 
   useEffect(() => {
     if (!open) return undefined
-    const onDown = (e) => { if (!rootRef.current?.contains(e.target)) setOpen(false) }
+    const onDown = (e) => { if (!rootRef.current?.contains(e.target) && !listRef.current?.contains(e.target)) setOpen(false) }
     document.addEventListener('pointerdown', onDown)
     return () => document.removeEventListener('pointerdown', onDown)
   }, [open])
@@ -89,40 +112,45 @@ export default function Select({
 
   return (
     <div className={clsx('relative', className)} ref={rootRef} onKeyDown={onKeyDown}>
-      {label && !compact && <label htmlFor={btnId} className="block type-caption text-text-sec mb-1.5">{label}</label>}
+      {label && !compact && !hideLabel && <label htmlFor={btnId} className="block type-caption text-text-sec mb-1.5">{label}</label>}
       <button
         ref={triggerRef} id={btnId} type="button" role="combobox"
         aria-haspopup="listbox" aria-expanded={open}
         aria-invalid={error ? true : undefined} aria-controls={`${btnId}-list`}
         aria-activedescendant={open ? `${btnId}-opt-${highlight}` : undefined}
-        aria-label={compact ? label : undefined}
+        aria-label={compact || hideLabel ? label : undefined}
         disabled={disabled}
         onClick={(e) => { setInstantPop(e.detail === 0); setOpen((o) => !o) }}
+        onMouseDown={(e) => { if (portal) e.preventDefault() }}
         className={clsx(
-          'flex items-center gap-2 h-11 px-3 rounded-md bg-page transition-colors duration-fast',
-          compact ? 'w-auto max-w-full md:h-9' : 'w-full',
+          'flex items-center gap-2 bg-page transition-colors duration-fast',
+          size === 'xs' ? 'h-7 rounded-xs px-2' : size === 'sm' ? 'h-8 rounded-md px-2.5' : 'h-11 px-3 rounded-md',
+          compact ? clsx('w-auto max-w-full', !small && 'md:h-9') : 'w-full',
           'ring-1 ring-inset disabled:opacity-40 disabled:cursor-not-allowed',
           error ? 'ring-danger' : open ? 'ring-primary ring-2' : 'ring-line-def hover:ring-line-strong',
-          compact ? 'justify-start' : 'justify-between'
+          compact ? 'justify-start' : 'justify-between',
+          triggerClassName
         )}
       >
-        {compact && label && <span className="shrink-0 type-caption text-text-meta">{label}</span>}
+        {compact && label && !hideLabel && <span className="shrink-0 type-caption text-text-meta">{label}</span>}
         <span className="flex min-w-0 items-center gap-2">
           {!compact && SelectedIcon && <SelectedIcon size={16} className="shrink-0 text-text-meta" aria-hidden="true" />}
-          <span className={clsx('truncate type-body-sm', selected ? 'text-text-pri' : 'text-text-ter')}>
+          <span className={clsx('truncate', small ? 'text-[12px] leading-4' : 'type-body-sm', selected ? 'text-text-pri' : 'text-text-ter')}>
             {selected ? selected.label : placeholder}
           </span>
-          <ChevronDown size={16} className="shrink-0 text-text-meta" aria-hidden="true" />
+          <ChevronDown size={small ? 14 : 16} className={clsx('shrink-0 text-text-meta transition-transform duration-fast', open && 'rotate-180')} aria-hidden="true" />
         </span>
       </button>
 
-      {popMounted && (
+      {popMounted && (portal ? (p) => createPortal(p, document.body) : (p) => p)(
         <ul
+          style={portal && pos ? { position: 'fixed', left: pos.left, width: pos.width, top: pos.top, bottom: pos.bottom, maxHeight: pos.maxH } : undefined}
+          onMouseDown={(e) => { if (portal) e.preventDefault() }}
           ref={listRef} id={`${btnId}-list`} role="listbox" aria-label={label} tabIndex={-1}
           aria-hidden={popClosing || undefined}
           className={clsx(
-            'pop-panel origin-top absolute inset-x-0 top-full mt-1 z-dropdown max-h-[320px] overflow-y-auto',
-            'rounded-md bg-page shadow-md p-1',
+            'pop-panel origin-top z-dropdown overflow-y-auto rounded-md bg-page shadow-md ring-1 ring-line-sub p-1',
+            portal ? (pos ? '' : 'invisible fixed') : 'absolute inset-x-0 top-full mt-1 max-h-[320px]',
             instantPop && 'pop-instant',
             popClosing && 'pop-panel-exit'
           )}
@@ -135,13 +163,14 @@ export default function Select({
                 onMouseEnter={() => setHighlight(i)}
                 onClick={(e) => pick(i, e.detail === 0)}
                 className={clsx(
-                  'flex cursor-pointer items-center gap-3 min-h-11 px-2.5 rounded-xs transition-colors duration-fast',
+                  'flex cursor-pointer items-center gap-3 px-2.5 rounded-xs transition-colors duration-fast',
+                  small ? 'min-h-8 md:min-h-8' : 'min-h-11',
                   highlight === i || o.value === value ? 'bg-mute text-text-pri' : 'text-text-sec'
                 )}
               >
                 {Icon && <Icon size={20} className="shrink-0 text-text-meta" aria-hidden="true" />}
                 <span className="flex min-w-0 flex-1 items-baseline justify-between gap-3">
-                  <span className="truncate type-body-sm">{o.label}</span>
+                  <span className={clsx('truncate', small ? 'text-[13px]' : 'type-body-sm')} style={o.style}>{o.label}</span>
                   {o.secondary && <span className="shrink-0 type-caption text-text-meta">{o.secondary}</span>}
                 </span>
                 {o.value === value && <Check size={16} className="shrink-0 text-primary" aria-hidden="true" />}

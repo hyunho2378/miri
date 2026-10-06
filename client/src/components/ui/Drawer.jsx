@@ -1,5 +1,6 @@
 // PATTERNS.md 14번. side right 기본. 포커스 트랩, Esc, body 스크롤 락.
 import clsx from 'clsx'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useLang } from '../../i18n/LangContext.jsx'
 import useBodyScrollLock from '../../hooks/useBodyScrollLock.js'
@@ -12,7 +13,8 @@ export default function Drawer({ open, onClose, title, footer, side = 'right', c
   useBodyScrollLock(open)
   if (!open) return null
   const isLeft = side === 'left'
-  return (
+  // body 로 띄운다: 화면 안의 container query 상자(layout containment)에 갇히지 않게
+  return createPortal(
     <div className="fixed inset-0 z-drawer">
       <div className="absolute inset-0 bg-text-pri/40 animate-fade-in-sheet" onClick={onClose} />
       <aside
@@ -29,6 +31,8 @@ export default function Drawer({ open, onClose, title, footer, side = 'right', c
         <div className="flex-1 overflow-y-auto p-5">{children}</div>
         {footer && <footer className="p-4 border-t border-line-sub flex justify-end gap-2">{footer}</footer>}
       </aside>
-    </div>
+    </div>,
+    document.body
+
   )
 }

@@ -97,8 +97,8 @@ export default function FormEditor() {
 
   const actions = (
     <>
-      <Button variant="ghost" size="sm" leftIcon={<Eye size={16} aria-hidden="true" />} onClick={() => setPreview(true)}>미리 보기</Button>
-      <Button variant="ghost" size="sm" leftIcon={<Link2 size={16} aria-hidden="true" />} onClick={copyLink}>링크 복사</Button>
+      <Button variant="ghost" size="sm" collapse="lg" leftIcon={<Eye size={16} aria-hidden="true" />} onClick={() => setPreview(true)}>미리 보기</Button>
+      <Button variant="ghost" size="sm" collapse="lg" leftIcon={<Link2 size={16} aria-hidden="true" />} onClick={copyLink}>링크 복사</Button>
       <Button size="sm" variant={form.open ? 'secondary' : 'primary'} onClick={() => update(id, { open: !form.open })}>{form.open ? '응답 마감' : '응답 다시 받기'}</Button>
     </>
   )
@@ -122,8 +122,8 @@ export default function FormEditor() {
             <div className="overflow-hidden rounded-lg bg-page shadow-card">
               <div className="h-2 bg-primary" />
               <div className="p-5 md:p-6">
-                <input value={form.title} onChange={(e) => update(id, { title: e.target.value })} aria-label="설문지 제목" className="w-full border-b border-transparent bg-transparent type-h2 text-text-pri outline-none focus:border-primary" />
-                <textarea value={form.desc || ''} onChange={(e) => update(id, { desc: e.target.value })} rows={3} aria-label="설문지 설명" placeholder="설문지 설명" className="mt-3 w-full resize-y border-b border-transparent bg-transparent type-body text-text-sec outline-none focus:border-primary" />
+                <input autoComplete="off" spellCheck={false} value={form.title} onChange={(e) => update(id, { title: e.target.value })} aria-label="설문지 제목" className="w-full border-b border-transparent bg-transparent type-h2 text-text-pri outline-none focus:border-primary" />
+                <textarea autoComplete="off" spellCheck={false} value={form.desc || ''} onChange={(e) => update(id, { desc: e.target.value })} rows={3} aria-label="설문지 설명" placeholder="설문지 설명" className="mt-3 w-full resize-y border-b border-transparent bg-transparent type-body text-text-sec outline-none focus:border-primary" />
               </div>
             </div>
             {form.questions.map((q, i) => {
@@ -131,7 +131,7 @@ export default function FormEditor() {
               return (
                 <section key={q.id} onClick={() => setActive(q.id)} className={clsx('rounded-lg bg-page p-5 shadow-card md:p-6', open && 'ring-2 ring-primary')}>
                   <div className="flex flex-wrap items-start gap-3">
-                    <input value={q.title} onChange={(e) => setQ(q.id, { title: e.target.value })} aria-label={`질문 ${i + 1}`} className="min-w-0 flex-1 rounded-xs bg-subtle px-3 py-2 type-body-strong text-text-pri outline-none focus:ring-2 focus:ring-primary-line" />
+                    <input autoComplete="off" spellCheck={false} value={q.title} onChange={(e) => setQ(q.id, { title: e.target.value })} aria-label={`질문 ${i + 1}`} className="min-w-0 flex-1 rounded-xs bg-subtle px-3 py-2 type-body-strong text-text-pri outline-none focus:ring-2 focus:ring-primary-line" />
                     <div className="w-40"><Select compact value={q.type} onChange={(v) => setQ(q.id, { type: v, options: (v === 'choice' || v === 'check') ? (q.options?.length ? q.options : ['선택지 1']) : q.options })} options={QUESTION_TYPES} /></div>
                   </div>
                   {(q.type === 'choice' || q.type === 'check') && (
@@ -139,7 +139,7 @@ export default function FormEditor() {
                       {(q.options || []).map((o, oi) => (
                         <li key={oi} className="flex items-center gap-2">
                           <span className={clsx('h-4 w-4 shrink-0 ring-1 ring-line-strong', q.type === 'choice' ? 'rounded-full' : 'rounded-xs')} />
-                          <input value={o} onChange={(e) => setQ(q.id, { options: q.options.map((x, xi) => (xi === oi ? e.target.value : x)) })} aria-label={`선택지 ${oi + 1}`} className="min-w-0 flex-1 border-b border-transparent bg-transparent py-1.5 type-body outline-none hover:border-line-sub focus:border-primary" />
+                          <input autoComplete="off" spellCheck={false} value={o} onChange={(e) => setQ(q.id, { options: q.options.map((x, xi) => (xi === oi ? e.target.value : x)) })} aria-label={`선택지 ${oi + 1}`} className="min-w-0 flex-1 border-b border-transparent bg-transparent py-1.5 type-body outline-none hover:border-line-sub focus:border-primary" />
                           <button type="button" aria-label="선택지 삭제" onClick={() => setQ(q.id, { options: q.options.filter((_, xi) => xi !== oi) })} className="inline-flex h-8 w-8 items-center justify-center rounded-full text-text-meta hover:bg-mute"><X size={16} aria-hidden="true" /></button>
                         </li>
                       ))}

@@ -16,6 +16,7 @@ export default function Input({ label, hint, error, leftIcon, rightSlot, id, cla
       )}>
         {leftIcon && <span className="mr-2 text-text-meta">{leftIcon}</span>}
         <input
+          autoComplete="off" spellCheck={false}
           id={inputId}
           aria-invalid={error ? true : undefined}
           aria-label={compact ? label : undefined}

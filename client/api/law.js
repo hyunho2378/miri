@@ -1,10 +1,22 @@
-// api/law.js Vercel 서버리스 함수. 본문 속 법령 인용(「법령명」 제N조)이 실제로 있는지 확인한다(PRD v2 F6).
+// api/law.js Vercel 서버리스 함수. 법령 사전과 인용 확인(PRD v2 F6). 화면 밖으로 나가지 않고 법령을 찾아 읽게 한다.
+// POST { action, ... }
+//  verify(기본) { text }               본문 속 「법령명」 제N조 인용 실존 확인(verify_citations)
+//  search { query }                    법령, 자치법규(조례), 행정규칙 이름 검색(search_law)
+//  toc { mst, kind }                   조문 목차(get_law_text, 자치법규는 get_ordinance)
+//  article { mst, jo, kind }           조문 본문
+//  system { query }                    위임 법령 3단 비교(법률, 시행령, 시행규칙)(legal_research law_system)
+//  annex { lawName, annexNo }          별표, 서식(get_annexes)
+//  terms { query } / term { query }    법령용어 목록과 정의(search_legal_terms, get_legal_term_detail)
+//  decisions { domain, query, page }   해석례(interpretation), 판례(precedent) 검색(search_decisions)
+//  decision { domain, id }             해석례, 판례 전문(get_decision_text)
 // 공개 korean-law-mcp 서버(https://mcp.gomdori.app/law, 스트리머블 HTTP MCP, JSON-RPC 2.0)의 verify_citations 도구를 호출한다.
 // POST { text } → { status: 'ok' | 'rate_limited', results: [{ citation, status: 'exists'|'not_found'|'unknown', title, detail }] }
 // LAW_OC 환경변수가 있으면 법제처 인증키로 헤더 apikey 에 실어 보낸다(무키 공용 한도를 피한다). 없으면 공용 한도를 쓴다.
 // 서버가 세션 없이 도구 호출을 받으므로 initialize 는 생략한다(실측 2026-10-06). 응답은 JSON 또는 SSE 틀을 모두 처리한다.
 
 export const config = { maxDuration: 40 }
+
+import { parseAnnex, parseArticle, parseDecision, parseDecisions, parseHead, parseSearch, parseSystem, parseTermDetail, parseTermList, parseToc, upstreamError } from '../src/lib/lawParse.js'
 
 const ENDPOINT = process.env.LAW_MCP_URL || 'https://mcp.gomdori.app/law'
 const MAX_TEXT = 12000
@@ -59,10 +71,101 @@ export function normalize(text) {
   return out
 }
 
+// 따뜻한 함수 안에서 같은 질의는 6시간 다시 쓴다(법제처 호출 줄이기)
+const CACHE = new Map()
+const TTL = 6 * 3600 * 1000
+async function tool(name, args, apikey) {
+  const key = `${name}|${JSON.stringify(args)}`
+  const hit = CACHE.get(key)
+  if (hit && Date.now() - hit.at < TTL) return hit.v
+  let r = await rpc('tools/call', { name, arguments: args }, 1, apikey)
+  if (r.http === 429) return { limited: true, retryAfter: r.retryAfter }
+  if (r.http >= 500 || !r.json) throw new Error(`법령 서버 응답 오류 ${r.http}`)
+  if (r.json.error) {
+    if (/429|rate|한도/i.test(JSON.stringify(r.json.error))) return { limited: true }
+    throw new Error('법령 서버가 요청을 처리하지 못했습니다')
+  }
+  const text = (r.json.result?.content || []).map((c) => c.text || '').join('\n')
+  if (/rate.?limit|retry in \d+s/i.test(text) && text.length < 300) return { limited: true }
+  const v = { text }
+  if (CACHE.size > 500) CACHE.delete(CACHE.keys().next().value)
+  CACHE.set(key, { at: Date.now(), v })
+  return v
+}
+const str = (v, n = 200) => (typeof v === 'string' ? v.trim().slice(0, n) : '')
+const JO = /^제\d{1,4}조(의\d{1,3})?$/
+const SOURCE = '법제처 국가법령정보 Open API(korean-law-mcp 경유)'
+
+async function dictionary(action, b, apikey, res) {
+  const send = (data) => { res.setHeader('Cache-Control', 'no-store'); return res.status(200).json({ status: 'ok', source: SOURCE, ...data }) }
+  const limited = () => res.status(200).json({ status: 'rate_limited' })
+  if (action === 'search') {
+    const query = str(b.query, 80); if (!query) return fail(res, 400, 'BAD_INPUT', 'query 필요')
+    const r = await tool('search_law', { query, display: 20 }, apikey); if (r.limited) return limited()
+    const err = upstreamError(r.text)
+    return send({ items: err ? [] : parseSearch(r.text), note: err?.message || '' })
+  }
+  if (action === 'toc' || action === 'article') {
+    const mst = str(b.mst, 12); if (!/^\d+$/.test(mst)) return fail(res, 400, 'BAD_INPUT', 'mst 필요')
+    const kind = b.kind === 'ordin' ? 'ordin' : 'law'
+    const jo = action === 'article' ? str(b.jo, 12).replace(/\s+/g, '') : ''
+    if (action === 'article' && !JO.test(jo)) return fail(res, 400, 'BAD_INPUT', 'jo 형식: 제N조 또는 제N조의M')
+    const r = kind === 'ordin'
+      ? await tool('execute_tool', { tool_name: 'get_ordinance', params: { ordinSeq: mst, ...(jo ? { jo } : {}) } }, apikey)
+      : await tool('get_law_text', { mst, ...(jo ? { jo } : {}) }, apikey)
+    if (r.limited) return limited()
+    const err = upstreamError(r.text); if (err) return send({ error: err.message })
+    if (action === 'toc') return send({ head: parseHead(r.text), toc: parseToc(r.text, kind) })
+    return send({ article: parseArticle(r.text, jo) })
+  }
+  if (action === 'system') {
+    const query = str(b.query, 80); if (!query) return fail(res, 400, 'BAD_INPUT', 'query 필요')
+    const args = { task: 'law_system', query }
+    const jo = str(b.jo, 12).replace(/\s+/g, ''); if (JO.test(jo)) args.articles = [jo]
+    const r = await tool('legal_research', args, apikey); if (r.limited) return limited()
+    return send({ groups: parseSystem(r.text) })
+  }
+  if (action === 'annex') {
+    const lawName = str(b.lawName, 80), annexNo = str(b.annexNo, 20)
+    if (!lawName || !annexNo) return fail(res, 400, 'BAD_INPUT', 'lawName, annexNo 필요')
+    const r = await tool('get_annexes', { lawName, annexNo }, apikey); if (r.limited) return limited()
+    const err = upstreamError(r.text); if (err) return send({ error: err.message })
+    return send({ annex: parseAnnex(r.text) })
+  }
+  if (action === 'terms' || action === 'term') {
+    const query = str(b.query, 40); if (!query) return fail(res, 400, 'BAD_INPUT', 'query 필요')
+    const r = await tool('execute_tool', { tool_name: action === 'terms' ? 'search_legal_terms' : 'get_legal_term_detail', params: { query } }, apikey)
+    if (r.limited) return limited()
+    const err = upstreamError(r.text); if (err) return send({ items: [], note: err.message })
+    return send(action === 'terms' ? { items: parseTermList(r.text) } : { items: parseTermDetail(r.text) })
+  }
+  if (action === 'decisions') {
+    const query = str(b.query, 80); if (!query) return fail(res, 400, 'BAD_INPUT', 'query 필요')
+    const domain = b.domain === 'precedent' ? 'precedent' : 'interpretation'
+    const page = Math.max(1, Math.min(50, Number(b.page) || 1))
+    const r = await tool('search_decisions', { domain, query, display: 20, page }, apikey); if (r.limited) return limited()
+    const err = upstreamError(r.text); if (err) return send({ total: 0, items: [], note: err.message })
+    return send(parseDecisions(r.text))
+  }
+  if (action === 'decision') {
+    const id = str(b.id, 12); if (!/^\d+$/.test(id)) return fail(res, 400, 'BAD_INPUT', 'id 필요')
+    const domain = b.domain === 'precedent' ? 'precedent' : 'interpretation'
+    const r = await tool('get_decision_text', { domain, id, full: true }, apikey); if (r.limited) return limited()
+    const err = upstreamError(r.text); if (err) return send({ error: err.message })
+    return send({ decision: parseDecision(r.text) })
+  }
+  return fail(res, 400, 'ACTION', '알 수 없는 action')
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return fail(res, 405, 'METHOD', 'POST 만 허용')
   let body = req.body
+  if (Buffer.isBuffer(body)) body = body.toString('utf8')
   if (typeof body === 'string') { try { body = JSON.parse(body) } catch { return fail(res, 400, 'BAD_JSON', '요청 형식 오류') } }
+  const action = body?.action || 'verify'
+  if (action !== 'verify') {
+    try { return await dictionary(action, body || {}, process.env.LAW_OC || '', res) } catch (e) { return fail(res, 502, 'UPSTREAM', e.message) }
+  }
   const text = typeof body?.text === 'string' ? body.text.trim() : ''
   if (!text) return fail(res, 400, 'BAD_INPUT', 'text 필요')
   if (text.length > MAX_TEXT) return fail(res, 413, 'TOO_LARGE', `본문 ${MAX_TEXT}자 초과`)

@@ -5,7 +5,7 @@ import Button from '../ui/Button.jsx'
 export default class ErrorBoundary extends Component {
   state = { error: null }
   static getDerivedStateFromError(error) { return { error } }
-  componentDidCatch(error) { console.error('화면 오류', error) }
+  componentDidCatch(error) { console.error('화면 오류', error); if (import.meta.env.DEV) window.__lastErr = String(error?.stack || error) }
   render() {
     if (!this.state.error) return this.props.children
     return (

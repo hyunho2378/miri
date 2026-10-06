@@ -1,5 +1,6 @@
 // 편집기 공통 틀. 왼쪽 위 문서함으로 돌아가기, 제목 바로 고치기, 저장 상태, 오른쪽 동작 버튼.
 // 사이드바 없이 화면 전체를 쓴다(구글 문서와 같은 배치).
+import clsx from 'clsx'
 import { ArrowLeft, Cloud } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
@@ -15,7 +16,8 @@ export function download(filename, content, type) {
   URL.revokeObjectURL(url)
 }
 
-export default function EditorFrame({ fill = false, kind, Icon, title, onTitle, updatedAt, actions, tabs, children }) {
+// 문서, 시트, 설문지 편집기가 모두 쓰는 머리(높이 44px). 뒤로, 종류 표시, 제목, 저장 상태, 오른쪽 동작 순서가 같다
+export default function EditorFrame({ fill = false, kind, Icon, title, onTitle, updatedAt, actions, tabs, badge, suffix, children }) {
   const [draft, setDraft] = useState(title)
   useEffect(() => { setDraft(title) }, [title])
   const commit = () => { const t = draft.trim(); if (t && t !== title) onTitle(t); else setDraft(title) }
@@ -23,26 +25,30 @@ export default function EditorFrame({ fill = false, kind, Icon, title, onTitle, 
   const sync = useWorkspaceStore((s) => s.sync)
   const savedAt = useWorkspaceStore((s) => s.savedAt)
   const time = updatedAt ? new Date(updatedAt).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' }) : ''
+  const KIND_LABEL = { doc: '문서', sheet: '시트', form: '설문지' }
   return (
     <div className={fill ? 'flex h-dvh flex-col overflow-hidden bg-canvas' : 'flex min-h-dvh flex-col bg-canvas'}>
-      <header className="sticky top-0 z-nav shrink-0 bg-page border-b border-line-sub">
-        <div className="flex h-16 items-center gap-3 px-3 md:px-5">
-          <Link to={`/console/workspace?kind=${kind}`} aria-label="문서함으로" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-sec hover:bg-mute">
-            <ArrowLeft size={20} aria-hidden="true" />
+      <header className="sticky top-0 z-nav shrink-0 border-b border-line-sub bg-page">
+        <div className="flex h-14 items-center gap-1.5 px-2 sm:gap-2 md:h-11">
+          <Link to={`/console/workspace?kind=${kind}`} aria-label="문서함으로" title="문서함으로" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-text-sec hover:bg-mute">
+            <ArrowLeft size={18} aria-hidden="true" />
           </Link>
-          <Icon size={26} aria-hidden="true" className="shrink-0 text-text-sec" />
+          <span className={clsx('hidden h-6 shrink-0 items-center gap-1 rounded-xs px-1.5 text-[11px] font-bold text-text-inverse sm:inline-flex', { doc: 'bg-kind-doc', sheet: 'bg-kind-sheet', form: 'bg-kind-form' }[kind])}>
+            {Icon && <Icon size={12} aria-hidden="true" />}{badge || KIND_LABEL[kind]}
+          </span>
           <input
             value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={commit}
             onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-            aria-label="제목"
-            className="min-w-0 flex-1 rounded-xs bg-transparent px-2 py-1 type-h3 text-text-pri outline-none hover:ring-1 hover:ring-line-def focus:ring-2 focus:ring-primary-line"
+            aria-label="제목" autoComplete="off" spellCheck={false}
+            className="min-w-[80px] max-w-md flex-1 truncate rounded-xs bg-transparent px-1.5 py-0.5 type-strong text-text-pri outline-none hover:ring-1 hover:ring-line-def focus:ring-2 focus:ring-primary-line"
           />
-          <span className="hidden items-center gap-1 type-meta text-text-meta md:inline-flex">
-            <Cloud size={14} aria-hidden="true" />{mode === 'server'
+          {suffix && <span className="hidden shrink-0 type-meta text-text-meta sm:inline">{suffix}</span>}
+          <span className="ml-2 hidden shrink-0 items-center gap-1 whitespace-nowrap type-meta text-text-meta lg:inline-flex">
+            <Cloud size={13} aria-hidden="true" />{mode === 'server'
               ? (sync === 'saving' ? '저장 중' : sync === 'error' ? '저장 실패, 다시 시도 중' : `서버에 저장됨${savedAt ? ` ${new Date(savedAt).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })}` : ''}`)
               : (time ? `${time} 저장됨(이 창)` : '저장됨(이 창)')}
           </span>
-          <div className="flex shrink-0 items-center gap-2">{actions}</div>
+          <div className="ml-auto flex shrink-0 items-center gap-1">{actions}</div>
         </div>
         {tabs}
       </header>

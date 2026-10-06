@@ -7,6 +7,7 @@ import PublicLayout from './components/layout/PublicLayout.jsx'
 import RequireAuth from './components/layout/RequireAuth.jsx'
 import ErrorBoundary from './components/layout/ErrorBoundary.jsx'
 import Toast from './components/ui/Toast.jsx'
+import GlobalTooltip from './components/ui/GlobalTooltip.jsx'
 import { LangProvider } from './i18n/LangContext.jsx'
 
 const loaders = {
@@ -75,6 +76,7 @@ export default function App() {
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
         <Toast />
+        <GlobalTooltip />
         <ErrorBoundary>
         <Suspense fallback={<div className="min-h-screen bg-canvas" aria-busy="true" />}>
           <Routes>

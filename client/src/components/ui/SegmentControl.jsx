@@ -1,4 +1,4 @@
-// 보기 전환(dah SegmentControl 구조, G-Chat 토큰). role=radiogroup, 좌우 화살표 이동.
+// 보기 전환(dah SegmentControl 구조, G-Chat 토큰). role=radiogroup, 좌우 화살표 이동. items: [{ value, label, icon? }]
 import { useRef } from 'react'
 import clsx from 'clsx'
 
@@ -23,7 +23,7 @@ export default function SegmentControl({ items = [], value, onChange, label, cla
             className={clsx('pressable h-8 min-h-11 md:min-h-0 px-3 rounded-xs type-caption whitespace-nowrap',
               active ? 'bg-page text-text-pri shadow-sm' : 'text-text-sec hover:text-text-pri')}
           >
-            {it.label}
+            <span className="inline-flex items-center gap-1.5">{it.icon && <it.icon size={16} aria-hidden="true" className={it.iconClass} />}{it.label}</span>
           </button>
         )
       })}

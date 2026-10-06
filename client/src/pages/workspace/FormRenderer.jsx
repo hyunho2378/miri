@@ -64,14 +64,14 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
         <fieldset key={q.id} id={`q-${q.id}`} className={clsx('rounded-lg bg-page p-5 shadow-card md:p-6', errors[q.id] && 'ring-2 ring-danger')}>
           <legend className="type-body-strong text-text-pri">{q.title}{q.required && <span className="ml-1 text-danger-text" aria-label="필수">*</span>}</legend>
           <div className="mt-3">
-            {q.type === 'short' && <input value={answers[q.id] || ''} onChange={(e) => set(q.id, e.target.value)} className="h-11 w-full border-b border-line-def bg-transparent type-body outline-none focus:border-primary" placeholder="내 답변" />}
-            {q.type === 'long' && <textarea value={answers[q.id] || ''} onChange={(e) => set(q.id, e.target.value)} rows={3} className="w-full resize-y border-b border-line-def bg-transparent type-body outline-none focus:border-primary" placeholder="내 답변" />}
-            {q.type === 'date' && <input inputMode="numeric" value={answers[q.id] || ''} onChange={(e) => set(q.id, e.target.value)} className="h-11 w-48 border-b border-line-def bg-transparent type-body outline-none focus:border-primary" placeholder="2026. 10. 12." />}
+            {q.type === 'short' && <input autoComplete="off" spellCheck={false} value={answers[q.id] || ''} onChange={(e) => set(q.id, e.target.value)} className="h-11 w-full border-b border-line-def bg-transparent type-body outline-none focus:border-primary" placeholder="내 답변" />}
+            {q.type === 'long' && <textarea autoComplete="off" spellCheck={false} value={answers[q.id] || ''} onChange={(e) => set(q.id, e.target.value)} rows={3} className="w-full resize-y border-b border-line-def bg-transparent type-body outline-none focus:border-primary" placeholder="내 답변" />}
+            {q.type === 'date' && <input autoComplete="off" spellCheck={false} inputMode="numeric" value={answers[q.id] || ''} onChange={(e) => set(q.id, e.target.value)} className="h-11 w-48 border-b border-line-def bg-transparent type-body outline-none focus:border-primary" placeholder="2026. 10. 12." />}
             {q.type === 'choice' && (
               <div className="space-y-1">
                 {(q.options || []).map((o) => (
                   <label key={o} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 hover:bg-mute">
-                    <input type="radio" name={q.id} checked={answers[q.id] === o} onChange={() => set(q.id, o)} className="h-5 w-5 accent-primary" />
+                    <input type="radio" name={q.id} checked={answers[q.id] === o} onChange={() => set(q.id, o)} className="" />
                     <span className="type-body text-text-pri">{o}</span>
                   </label>
                 ))}
@@ -83,7 +83,7 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
                   const cur = answers[q.id] || []
                   return (
                     <label key={o} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 hover:bg-mute">
-                      <input type="checkbox" checked={cur.includes(o)} onChange={() => set(q.id, cur.includes(o) ? cur.filter((x) => x !== o) : [...cur, o])} className="h-5 w-5 accent-primary" />
+                      <input type="checkbox" checked={cur.includes(o)} onChange={() => set(q.id, cur.includes(o) ? cur.filter((x) => x !== o) : [...cur, o])} className="" />
                       <span className="type-body text-text-pri">{o}</span>
                     </label>
                   )

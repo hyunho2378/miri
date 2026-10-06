@@ -3,7 +3,8 @@
 import clsx from 'clsx'
 import { Loader2 } from 'lucide-react'
 
-const BASE = 'pressable inline-flex items-center justify-center gap-2 rounded-md font-bold disabled:opacity-40 disabled:cursor-not-allowed'
+// 글자는 절대 두 줄로 꺾지 않는다(whitespace-nowrap). 좁은 화면에서는 collapse 로 아이콘만 남긴다
+const BASE = 'pressable inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md font-bold disabled:opacity-40 disabled:cursor-not-allowed'
 // 모바일 터치 타깃 44(플레이북 5.2, DESIGN.md 접근성 절). md 이상은 데스크톱 밀도를 그대로 둔다
 const SIZE = {
   sm: 'h-8 min-h-11 min-w-11 md:min-h-0 md:min-w-0 px-3 type-caption',
@@ -21,17 +22,21 @@ const VARIANT = {
 
 export default function Button({
   as: As = 'button', variant = 'primary', size = 'md',
-  loading = false, leftIcon, rightIcon, disabled, className, children, ...rest
+  loading = false, leftIcon, rightIcon, disabled, className, children, collapse, ...rest
 }) {
   const isButton = As === 'button'
+  // collapse: 'sm' | 'md' | 'lg' | 'xl' 미만 폭에서는 글자를 숨기고 아이콘만(이름은 aria-label 과 말풍선으로)
+  const SHOW = { sm: 'hidden sm:inline', md: 'hidden md:inline', lg: 'hidden lg:inline', xl: 'hidden xl:inline' }
+  const named = collapse && typeof children === 'string' ? { 'aria-label': rest['aria-label'] || children, title: rest.title || children } : {}
   return (
     <As
-      className={clsx(BASE, SIZE[size], VARIANT[variant], !isButton && (disabled || loading) && 'pointer-events-none opacity-40', className)}
+      className={clsx(BASE, SIZE[size], VARIANT[variant], collapse && leftIcon && 'max-[1279px]:px-2', !isButton && (disabled || loading) && 'pointer-events-none opacity-40', className)}
       {...(isButton ? { type: rest.type || 'button', disabled: disabled || loading } : {})}
+      {...named}
       {...rest}
     >
       {loading ? <Loader2 size={16} className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : leftIcon}
-      {children}
+      {collapse ? <span className={SHOW[collapse]}>{children}</span> : children}
       {!loading && rightIcon}
     </As>
   )

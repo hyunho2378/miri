@@ -26,7 +26,7 @@ function Stat({ label, value, unit, tone }) {
   return (
     <div className="min-w-0">
       <p className="type-meta text-text-meta">{label}</p>
-      <p className={clsx('mt-0.5 type-h3 tabular-nums', tone === 'danger' ? 'text-danger-text' : 'text-text-pri')}>
+      <p className={clsx('mt-0.5 whitespace-nowrap type-h3 tabular-nums', tone === 'danger' ? 'text-danger-text' : 'text-text-pri')}>
         {value}{unit && <span className="ml-0.5 type-body-sm">{unit}</span>}
       </p>
     </div>
@@ -48,17 +48,19 @@ function VillageBars({ rows }) {
   const max = Math.max(1, ...rows.map((r) => r.value))
   const top = rows.reduce((m, r) => (r.value > m.value ? r : m), { value: -1 })
   return (
-    <div className="flex h-44 items-end gap-2 lg:h-48" role="img" aria-label={`마을별 미이송 예상. ${rows.map((r) => `${r.name} ${r.value}명`).join(', ')}`}>
+    <div className="flex h-44 gap-1 cq-xl:h-48" role="img" aria-label={`마을별 미이송 예상. ${rows.map((r) => `${r.name} ${r.value}명`).join(', ')}`}>
       {rows.map((r) => {
         const hot = r.key === top.key && r.value > 0
+        const pct = Math.max(r.value > 0 ? 8 : 4, (r.value / max) * 100)
         return (
-          <div key={r.key} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end">
-            {hot && <span className="mb-1 type-caption text-danger-text tabular-nums">{r.value}</span>}
-            <div
-              className={clsx('w-full max-w-[28px] rounded-full', hot ? 'bg-danger' : r.value > 0 ? 'bg-text-sec' : 'bg-mute')}
-              style={{ height: `${Math.max(r.value > 0 ? 8 : 4, (r.value / max) * 100)}%` }}
-            />
-            <span className="mt-2 w-full truncate text-center type-meta text-text-meta" title={r.name}>{r.name.replace(/동$/, '')}</span>
+          // 막대 영역(남은 높이)과 이름 칸(두 줄 고정)으로 나눠 강조 값이 이름 줄을 밀지 않게 한다
+          <div key={r.key} className="flex h-full min-w-0 flex-1 flex-col items-center">
+            <div className="flex w-full flex-1 items-end justify-center pt-5">
+              <div className={clsx('relative w-full max-w-[28px] rounded-full', hot ? 'bg-danger' : r.value > 0 ? 'bg-text-sec' : 'bg-mute')} style={{ height: `${pct}%` }}>
+                {hot && <span className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap type-caption text-danger-text tabular-nums">{r.value}</span>}
+              </div>
+            </div>
+            <span className="mt-2 flex h-8 w-full items-start justify-center break-keep text-center text-[12px] leading-4 text-text-meta [overflow-wrap:anywhere]" title={`${r.name} ${r.value}명`}>{r.name.replace(/동$/, '')}</span>
           </div>
         )
       })}
@@ -105,7 +107,8 @@ export default function OverviewPage() {
   // 대피 대상 마을을 도달 순으로 세운다
   const arrival = (code) => result.ctx?.deadlines?.[code]?.arrival ?? Infinity
   const ordered = [...inScope].sort((a, b) => arrival(a.v.code) - arrival(b.v.code))
-  const bars = ordered.map(({ v, r }) => ({ key: v.code, name: v.label, value: grade === 'all' ? r.total : r.shortage[grade] }))
+  // 값 큰 순으로 12곳까지(작은 화면에서도 막대가 가로로 넘치지 않게). 전체는 상황판에서 본다
+  const bars = ordered.map(({ v, r }) => ({ key: v.code, name: v.label, value: grade === 'all' ? r.total : r.shortage[grade] })).sort((a, b) => b.value - a.value).slice(0, 12)
   const chips = [{ key: 'all', label: '전체', n: scopeTotal }, ...GRADES.map((g) => ({ key: g.key, label: g.label, n: scopeByGrade[g.key] }))]
 
   const topVillages = [...shortVillages].sort((a, b) => b.r.total - a.r.total).slice(0, 6)
@@ -149,9 +152,9 @@ export default function OverviewPage() {
 
   return (
     <PageShell title="오늘의 현황" eyebrow={todayLabel()} actions={actions}>
-      <div className="grid gap-3 md:grid-flow-row-dense md:grid-cols-6 lg:grid-cols-12">
+      <div className="grid gap-3 cq-md:grid-flow-row-dense cq-md:grid-cols-6 cq-xl:grid-cols-12">
         {/* 미이송 예상 */}
-        <Card title="미이송 예상" className="flex flex-col md:col-span-3 lg:col-span-3" bodyClassName="flex flex-1 flex-col">
+        <Card title="미이송 예상" className="flex flex-col cq-md:col-span-3 cq-xl:col-span-3" bodyClassName="flex flex-1 flex-col">
           <p className="type-meta text-text-meta">{scopeName}, 기준 시나리오 {scenario.name}</p>
           <p className="mt-1 type-kpi text-danger-text">{fmt(scopeTotal)}<span className="ml-1 type-h3">명</span></p>
           <p className="mt-1 type-meta text-text-meta tabular-nums">{GRADES.filter((x) => scopeByGrade[x.key]).map((x) => `${x.label} ${scopeByGrade[x.key]}`).join(', ') || '부족 없음'}</p>
@@ -169,7 +172,7 @@ export default function OverviewPage() {
         {/* 마을별 미이송 예상 */}
         <Card
           title="마을별 미이송 예상"
-          className="md:col-span-6 lg:col-span-6"
+          className="cq-md:col-span-6 cq-xl:col-span-6"
           actions={<Link to="/console/shortage" className="inline-flex items-center gap-0.5 type-meta text-text-sec hover:text-text-pri">전체 보기<ChevronRight size={14} aria-hidden="true" /></Link>}
         >
           <div className="flex flex-wrap gap-x-8 gap-y-2">
@@ -199,7 +202,7 @@ export default function OverviewPage() {
         {/* 확인할 일 */}
         <Card
           title="확인할 일"
-          className="md:col-span-3 lg:col-span-3"
+          className="cq-md:col-span-3 cq-xl:col-span-3"
           actions={<span className="type-h2 text-text-pri tabular-nums">{todo}</span>}
         >
           {todo === 0 ? (
@@ -219,8 +222,8 @@ export default function OverviewPage() {
                 <li key={a.id}>
                   <Link to={a.to} className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
                     <Circle size={16} aria-hidden="true" className={clsx('shrink-0', a.rule === 'deadline' || a.rule === 'noAck' ? 'text-danger' : 'text-text-meta')} />
-                    <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">{ANOMALY_RULES[a.rule]}</span>
-                    <span className="max-w-[45%] truncate type-meta text-text-meta tabular-nums">{a.target}</span>
+                    <span className="min-w-0 flex-1 break-keep type-body-sm text-text-pri">{ANOMALY_RULES[a.rule]}</span>
+                    <span className="max-w-[45%] shrink-0 truncate type-meta text-text-meta tabular-nums" title={a.target}>{a.target}</span>
                   </Link>
                 </li>
               ))}
@@ -231,7 +234,7 @@ export default function OverviewPage() {
         {/* 부족 상위 마을 */}
         <Card
           title="부족 상위 마을"
-          className="md:col-span-6 lg:col-span-5"
+          className="cq-md:col-span-6 cq-xl:col-span-5"
           actions={<Link to="/console/map" className="inline-flex items-center gap-0.5 type-meta text-text-sec hover:text-text-pri">상황판<ChevronRight size={14} aria-hidden="true" /></Link>}
         >
           {topVillages.length === 0 ? (
@@ -244,7 +247,7 @@ export default function OverviewPage() {
                     <span className="type-meta leading-4 text-text-meta">{dongName(v.dongCode)}<br />왕복 {v.roundTripMin}분</span>
                     <span className="min-w-0">
                       <span className="block truncate type-strong text-text-pri">{v.label}</span>
-                      <span className="block truncate type-meta text-text-meta tabular-nums">{GRADES.filter((x) => r.targets[x.key]).map((x) => `${x.label} ${r.targets[x.key]}`).join(' ')}</span>
+                      <span className="block break-keep type-meta text-text-meta tabular-nums">{GRADES.filter((x) => r.targets[x.key]).map((x) => `${x.label} ${r.targets[x.key]}`).join(' ')}</span>
                     </span>
                     <span className="type-strong text-danger-text tabular-nums">{r.total}명</span>
                     <ChevronRight size={16} aria-hidden="true" className="text-text-meta" />
@@ -256,7 +259,7 @@ export default function OverviewPage() {
         </Card>
 
         {/* 오늘 산불 여건 */}
-        <Card title="오늘 산불 여건" className="md:col-span-3 lg:col-span-4">
+        <Card title="오늘 산불 여건" className="cq-md:col-span-3 cq-xl:col-span-4">
           <ul className="flex flex-col gap-4">
             {conditions.map((x) => (
               <li key={x.key} className="flex gap-2.5">
@@ -271,7 +274,7 @@ export default function OverviewPage() {
         </Card>
 
         {/* 부족 마을, 가용 차량 */}
-        <div className="grid gap-3 md:col-span-3 lg:col-span-3">
+        <div className="grid gap-3 cq-md:col-span-3 cq-xl:col-span-3">
           <Card
             title="부족 마을"
             actions={<Link to="/console/shortage" aria-label="부족분 계산으로 이동" className="text-text-meta hover:text-text-pri"><ChevronRight size={16} aria-hidden="true" /></Link>}

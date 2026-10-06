@@ -6,13 +6,20 @@ import { useCallback, useEffect, useState } from 'react'
 import { create } from 'zustand'
 import * as api from '../lib/workspaceApi.js'
 import { DOC_TEMPLATES, FORM_TEMPLATES, SHEET_TEMPLATES } from '../lib/workspaceTemplates.js'
+import { HANDOVER_ITEM } from '../lib/handoverDoc.js'
 
 // 서버 id 규칙(^[A-Za-z][A-Za-z0-9_-]{1,63}$)에 맞는 추측하기 어려운 id
 const nid = (p) => `${p}${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36).slice(-4)}`
 const now = () => new Date().toISOString()
 
+// 공문 정보(meta): 양식(preset), 항목 체계, 기안문 두문과 결문, 결재란, 공고 머리, 보도자료 머리. 한글 내보내기에 그대로 쓴다
+const metaOf = (t) => ({
+  template: t.key, preset: t.preset || '보고서', numbering: t.numbering || 'report', bodyFont: 'myeongjo',
+  head: t.head ? { ...t.head } : null, foot: t.foot ? { ...t.foot } : null, approval: t.approval ? [...t.approval] : null,
+  noticeHead: t.noticeHead ? { ...t.noticeHead } : null, press: t.press ? JSON.parse(JSON.stringify(t.press)) : null
+})
 const fromDocTemplate = (t, title) => ({
-  id: nid('d'), kind: 'doc', title: title || t.title, html: t.html, updatedAt: now(), createdAt: now(),
+  id: nid('d'), kind: 'doc', title: title || t.head?.title || t.title, html: t.html, meta: metaOf(t), updatedAt: now(), createdAt: now(),
   versions: [{ at: now(), label: '처음 만듦', html: t.html }]
 })
 const fromSheetTemplate = (t, title) => ({
@@ -28,6 +35,8 @@ const fromFormTemplate = (t, title) => ({
 
 function buildSeed() {
   const docs = [
+    fromDocTemplate(DOC_TEMPLATES.find((t) => t.key === 'situation')),
+    fromDocTemplate(DOC_TEMPLATES.find((t) => t.key === 'gian-request')),
     fromDocTemplate(DOC_TEMPLATES.find((t) => t.key === 'request'), '동해시 안전과 협조 요청서'),
     fromDocTemplate(DOC_TEMPLATES.find((t) => t.key === 'interview'), '망상동 담당자 인터뷰 기록')
   ]
@@ -76,7 +85,8 @@ export const useWorkspaceStore = create((set, get) => {
   }
 
   return {
-    items: buildSeed(),
+    // 인수인계서는 코드(handoverDoc.js)가 원본이라 서버에 저장하지 않고 늘 맨 앞에 끼운다
+    items: [HANDOVER_ITEM(), ...buildSeed()],
     mode: 'loading',   // loading | server | memory
     ready: false,
     sync: 'idle',      // idle | saving | error
@@ -88,13 +98,13 @@ export const useWorkspaceStore = create((set, get) => {
       if (initPromise) return initPromise
       initPromise = (async () => {
         try {
-          let items = await api.list()
+          let items = (await api.list()).filter((x) => x.id !== 'handover')
           if (!items.length) {
-            const r = await api.seed(get().items)
-            items = r.seeded ? get().items : await api.list()
-            if (!items.length) items = get().items
+            const r = await api.seed(get().items.filter((x) => x.id !== 'handover'))
+            items = r.seeded ? get().items.filter((x) => x.id !== 'handover') : await api.list()
+            if (!items.length) items = get().items.filter((x) => x.id !== 'handover')
           }
-          set({ items, mode: 'server', ready: true })
+          set({ items: [HANDOVER_ITEM(), ...items], mode: 'server', ready: true })
           window.addEventListener('pagehide', () => {
             for (const id of [...timers.keys()]) {
               const item = get().items.find((x) => x.id === id)
@@ -130,11 +140,13 @@ export const useWorkspaceStore = create((set, get) => {
     },
 
     update: (id, patch) => {
+      if (get().items.find((x) => x.id === id)?.meta?.locked) return
       set((s) => ({ items: s.items.map((x) => (x.id === id ? { ...x, ...patch, updatedAt: now() } : x)) }))
       schedule(id)
     },
 
     remove: (id) => {
+      if (get().items.find((x) => x.id === id)?.meta?.locked) return
       const gone = get().items.filter((x) => x.id === id || x.formId === id).map((x) => x.id)
       set((s) => ({ items: s.items.filter((x) => !gone.includes(x.id)) }))
       for (const g of gone) {
@@ -151,6 +163,7 @@ export const useWorkspaceStore = create((set, get) => {
       copy.title = `${src.title} 사본`
       copy.createdAt = now(); copy.updatedAt = now()
       if (copy.kind === 'form') { copy.responses = []; copy.sheetId = null }
+      if (copy.meta) { delete copy.meta.locked; delete copy.meta.pinned }
       set((s) => ({ items: [copy, ...s.items] }))
       schedule(copy.id)
       return copy.id
@@ -158,6 +171,7 @@ export const useWorkspaceStore = create((set, get) => {
 
     // 문서 버전 저장. 같은 내용이면 건너뛴다
     saveVersion: (id, label) => {
+      if (get().items.find((x) => x.id === id)?.meta?.locked) return
       let changed = false
       set((s) => ({
         items: s.items.map((x) => {

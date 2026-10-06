@@ -4,7 +4,7 @@ import clsx from 'clsx'
 export default function Checkbox({ checked, onChange, label, srOnlyLabel = false, disabled, className }) {
   return (
     <label className={clsx('inline-flex items-center gap-2 min-h-11 min-w-11 md:min-h-0 md:min-w-0 cursor-pointer', disabled && 'opacity-40 cursor-not-allowed', className)}>
-      <input type="checkbox" checked={!!checked} disabled={disabled} onChange={(e) => onChange?.(e.target.checked)} className="h-5 w-5 shrink-0 cursor-pointer accent-primary" />
+      <input type="checkbox" checked={!!checked} disabled={disabled} onChange={(e) => onChange?.(e.target.checked)} className="shrink-0" />
       <span className={clsx('type-body-sm text-text-sec', srOnlyLabel && 'sr-only')}>{label}</span>
     </label>
   )

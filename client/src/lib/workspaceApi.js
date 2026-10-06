@@ -37,16 +37,20 @@ export const submit = (formId, answers) => call(`/api/workspace?action=submit&id
 export const responses = (id) => call(`/api/workspace?action=responses&id=${encodeURIComponent(id)}`).then((b) => b.responses || [])
 export const seed = (items) => call('/api/workspace?action=seed', json('POST', { items: items.map(serialize) }))
 export const law = (text) => call('/api/law', json('POST', { text }))
+export const lint = (text, preset) => call('/api/lint', json('POST', { text, preset }))
 
 export async function parseFile(file) {
   if (file.size > 4 * 1024 * 1024) throw new ApiError(413, 'TOO_LARGE', '4MB 이하 파일만 읽을 수 있습니다')
   return call(`/api/parse?name=${encodeURIComponent(file.name)}`, { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: file })
 }
 
-export async function hwpx({ title, markdown, preset }) {
+// 한글 미리보기: 내보낼 파일과 같은 HWPX 를 kordoc 조판 엔진으로 그린 SVG
+export const hwpxPreview = (doc) => call('/api/hwpx', json('POST', { ...doc, render: true }))
+
+export async function hwpx({ title, markdown, preset, gongmun, spans, paras }) {
   let r
   try {
-    r = await fetch('/api/hwpx', json('POST', { title, markdown, preset }))
+    r = await fetch('/api/hwpx', json('POST', { title, markdown, preset, gongmun, spans, paras }))
   } catch {
     throw new ApiError(0, 'NETWORK', '서버에 연결하지 못했습니다')
   }

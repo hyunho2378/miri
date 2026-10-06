@@ -49,6 +49,8 @@ export const colors = {
   warning: { DEFAULT: r[50], soft: r[5], text: r[60] },
   success: { DEFAULT: g[70], soft: g[10], text: g[80] },
 
+  // 문서함 종류 식별색(DAH Docs·Sheet·Form 규칙 준용: 흐린 틴트 금지, 진한 단색). 아이콘, 배지, 서식 카드 머리에만 쓴다
+  kind: { doc: '#256ef4', sheet: '#0f9d58', form: '#7a3cff' },
   chart: {
     1: p[50],
     2: g[70],

@@ -13,6 +13,7 @@ export default function Textarea({ label, hint, error, rows = 4, id, className, 
         'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary-line'
       )}>
         <textarea
+          autoComplete="off" spellCheck={false}
           id={inputId}
           rows={rows}
           aria-invalid={error ? true : undefined}
