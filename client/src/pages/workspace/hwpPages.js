@@ -86,3 +86,80 @@ export async function pagesToPdf(pages, title) {
   push(`trailer\n<< /Size ${total} /Root 1 0 R /Info 3 0 R >>\nstartxref\n${xref}\n%%EOF\n`)
   return new Blob(chunks, { type: 'application/pdf' })
 }
+
+// ── 편집 화면 쪽 나눔(인쇄, PDF 저장용). 편집기와 같은 CSS(양식 실측값)로 블록 높이를 재서 A4 쪽에 나눠 담는다.
+// 표는 쪽을 넘기지 않고 통째로 다음 쪽으로, 장 제목은 다음 블록과 함께 넘긴다(외톨이 제목 방지).
+// pageCss: docCss(양식), headHtml/footHtml: 두문과 결문, page: { width, height, top, bottom, left, right } mm
+export function paginateHtml({ pageCss, bodyHtml, headHtml = '', footHtml = '', page }) {
+  const MMPX = 96 / 25.4
+  const host = document.createElement('div')
+  host.style.cssText = 'position:absolute;left:-20000px;top:0;visibility:hidden;'
+  host.innerHTML = `<style>${pageCss}</style><div class="hwp-page" style="min-height:0;height:auto;padding-top:0;padding-bottom:0"><div class="hwp-frame hf">${headHtml}</div><div class="hwp-body">${bodyHtml}</div><div class="hwp-frame ff">${footHtml}</div></div>`
+  document.body.appendChild(host)
+  const pageEl = host.querySelector('.hwp-page')
+  // 쪽에 담을 블록: 두문 덩어리, 본문 블록 하나하나, 결문 덩어리
+  const blocks = []
+  const hf = host.querySelector('.hf'); if (hf.innerHTML.trim()) blocks.push({ el: hf, frame: true })
+  for (const el of host.querySelector('.hwp-body').children) if (!(el.tagName === 'P' && !el.textContent.trim() && !el.querySelector('img,table'))) blocks.push({ el })
+  const ff = host.querySelector('.ff'); if (ff.innerHTML.trim()) blocks.push({ el: ff, frame: true })
+  const top0 = pageEl.getBoundingClientRect().top
+  const meas = blocks.map((b, i) => {
+    const r = b.el.getBoundingClientRect()
+    const next = blocks[i + 1]?.el.getBoundingClientRect().top
+    const cs = getComputedStyle(b.el)
+    const h = next != null ? next - r.top : r.height + parseFloat(cs.marginBottom || 0)
+    return { ...b, h, top: r.top - top0 }
+  })
+  const avail = (page.height - page.top - page.bottom) * MMPX - 2
+  const pages = [[]]
+  let used = 0
+  const isHead = (el) => el.tagName === 'H1' || el.tagName === 'H2' || (el.tagName === 'P' && el.classList.contains('gm') && el.dataset.lv === '1' && el.textContent.length < 40)
+  for (let i = 0; i < meas.length; i++) {
+    const b = meas[i]
+    const forced = b.el.tagName === 'HR' && b.el.classList.contains('page-break')
+    if (forced) { if (pages[pages.length - 1].length) { pages.push([]); used = 0 } continue }
+    let need = b.h
+    // 제목은 다음 블록 높이까지 같이 본다
+    // 제목은 다음 블록과 붙여 둔다. 다음이 표면 표가 통째로 넘어가므로 표 높이 전체를 같이 본다
+    const nx = meas[i + 1]
+    if (isHead(b.el) && nx) need += (nx.el.tagName === 'TABLE' || nx.el.classList?.contains('dv-block')) ? Math.min(nx.h, avail) : Math.min(nx.h, avail / 3)
+    if (used + need > avail && pages[pages.length - 1].length) { pages.push([]); used = 0 }
+    pages[pages.length - 1].push(b)
+    used += b.h
+  }
+  const html = pages.map((list) => list.map((b) => (b.frame ? `<div class="hwp-frame">${b.el.innerHTML}</div>` : b.el.outerHTML)).join(''))
+  host.remove()
+  return html
+}
+
+// 쪽 HTML → 인쇄 창(글자 벡터)
+export function printHtmlPages(pagesHtml, { pageCss, title }) {
+  const w = window.open('', '_blank')
+  if (!w) return false
+  const esc = (s) => String(s || '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+  w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${esc(title)}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@400;700;900&family=Nanum+Gothic+Coding&display=swap">
+<style>@page{size:A4;margin:0}html,body{margin:0;background:#fff}${pageCss}
+.hwp-page{height:297mm;min-height:0;overflow:hidden;break-after:page;box-shadow:none;background-image:none}.hwp-page:last-child{break-after:auto}
+.hwp-body .dv{background:none}.hwp-body hr.page-break{display:none}</style></head>
+<body>${pagesHtml.map((p) => `<div class="hwp-page"><div class="hwp-body">${p}</div></div>`).join('')}</body></html>`)
+  w.document.close()
+  w.focus()
+  const go = () => setTimeout(() => w.print(), 300)
+  if (w.document.fonts?.ready) w.document.fonts.ready.then(go); else go()
+  return true
+}
+
+// 쪽 HTML → PDF(쪽마다 SVG foreignObject 로 그려 200dpi 그림으로 담음)
+export async function htmlPagesToPdf(pagesHtml, { pageCss, title }) {
+  const W = 794, H = 1123
+  const ser = new XMLSerializer()
+  const svgs = pagesHtml.map((p) => {
+    const div = document.createElement('div')
+    div.innerHTML = `<div class="hwp-page" style="width:210mm;height:297mm;min-height:0;overflow:hidden;background:#fff;background-image:none"><div class="hwp-body">${p}</div></div>`
+    const xhtml = ser.serializeToString(div.firstChild)
+    const css = `${pageCss} .hwp-body .dv{background:none} .hwp-body hr.page-break{display:none}`
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="297mm" viewBox="0 0 ${W} ${H}"><foreignObject x="0" y="0" width="${W}" height="${H}"><div xmlns="http://www.w3.org/1999/xhtml"><style>${css.replace(/</g, '&lt;')}</style>${xhtml}</div></foreignObject></svg>`
+  })
+  return pagesToPdf(svgs, title)
+}

@@ -3,8 +3,8 @@
 // 갱신 원칙: 작업 단위가 끝날 때마다 이 파일을 고치고 VERSION 과 변경 이력(10장)을 늘린 뒤 커밋한다.
 // 앱에서는 문서함 맨 위 고정 문서로 보이고(읽기 전용, 통지 양식: 장 1. 2., 항목 가. 나.), 한글(HWPX)과 PDF 로 내보낼 수 있다.
 
-export const HANDOVER_VERSION = '2026.10.07-1'
-export const HANDOVER_UPDATED = '2026. 10. 7. 05:10'
+export const HANDOVER_VERSION = '2026.10.07-2'
+export const HANDOVER_UPDATED = '2026. 10. 7. 05:40'
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
 const H = (t) => `<h2>${t}</h2>`
@@ -120,6 +120,7 @@ const html = [
     ['기관 협조 요청서', '초안 작성, 미발송', '팀 검토 뒤 발송'],
     ['사용성 평가', '미실시', '과업 시나리오 준비'],
     ['한글 파일 열람', '구조 검사와 kordoc 조판 통과', '한컴 한글에서 직접 열어 확인'],
+    ['한글 미리보기 엔진', '쪽을 넘는 표 뒤 내용이 겹쳐 그려짐(kordoc 4.18.13)', 'kordoc 저장소에 제보, 갱신판 반영'],
     ['재난 위험 자료', '침수흔적도, 산사태 위험지도, 해일 대피지구 미반영', '공공 자료 확보 뒤 반영'],
     ['법령 사전 화면', '서버 기능과 내장본 완료', '화면 연결'],
     ['케이스 스터디 화면', '이전 화면 사진', '새 화면으로 다시 촬영'],
@@ -133,7 +134,8 @@ const html = [
 
   H('변경 이력'),
   T(['판', '날짜', '내용'], [
-    ['2026.10.07-1', '2026. 10. 7.', '인수인계서 첫 판 작성']
+    ['2026.10.07-1', '2026. 10. 7.', '인수인계서 첫 판 작성'],
+    ['2026.10.07-2', '2026. 10. 7.', '인쇄와 PDF 저장을 편집 화면 쪽 나눔으로 변경(표 통째 넘김, 제목과 표 함께 넘김). kordoc 미리보기 엔진에서 쪽을 넘는 표가 겹치는 현상 확인, 한글 파일 자체는 정상']
   ])
 ].join('')
 
@@ -141,6 +143,6 @@ export const HANDOVER_HTML = html
 export const HANDOVER_ITEM = () => ({
   id: 'handover', kind: 'doc', title: '미리 프로젝트 인수인계서', html,
   meta: { preset: '통지', locked: true, pinned: true, version: HANDOVER_VERSION },
-  updatedAt: '2026-10-07T05:10:00+09:00', createdAt: '2026-10-07T05:10:00+09:00',
-  versions: [{ at: '2026-10-07T05:10:00+09:00', label: `판 ${HANDOVER_VERSION}`, html }]
+  updatedAt: '2026-10-07T05:40:00+09:00', createdAt: '2026-10-07T05:10:00+09:00',
+  versions: [{ at: '2026-10-07T05:40:00+09:00', label: `판 ${HANDOVER_VERSION}`, html }]
 })

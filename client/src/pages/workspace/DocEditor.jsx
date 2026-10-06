@@ -17,14 +17,14 @@ import { findCitations, hashText } from './docConvert.js'
 import { C as calcHtml, V as varHtml, VAR_DEFS, computeVars, formatVar, refreshVars } from '../../lib/docVars.js'
 import {
   END_MARK, FONTS, LINE_SPACINGS, METRICS_INFO, PRESETS, SIZES, STYLES, annotate, docCss, fontCss, footHtml, gongmunOptions, headHtml,
-  metricsOf, presetOf, printHtml, toHwpxPayload
+  metricsOf, presetOf, toHwpxPayload
 } from './hwpDoc.js'
 import useToast from '../../hooks/useToast.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import useWorkspaceStore, { useWorkspaceInit } from '../../store/useWorkspaceStore.js'
 import EditorFrame, { download } from './EditorFrame.jsx'
 import Button from '../../components/ui/Button.jsx'
-import { pagesToPdf, printPages, splitPages } from './hwpPages.js'
+import { htmlPagesToPdf, paginateHtml, printHtmlPages } from './hwpPages.js'
 
 const lawCache = new Map()
 const LAW_TONE = { exists: ['success', '실존'], not_found: ['danger', '없음'], unknown: ['warning', '확인 불가'] }
@@ -393,25 +393,18 @@ export default function DocEditor() {
         toast(`${preset.label} 양식 한글 문서를 받았습니다(구조 검사 통과)`, 'primary')
       } catch (e) { toast(e.message, 'danger') }
     }
+    // 인쇄와 PDF 저장: 편집 화면과 같은 양식 CSS 로 A4 쪽을 나눠 만든다(표는 쪽을 넘기지 않음)
+    const pagesNow = () => paginateHtml({ pageCss: docCss(presetKey), bodyHtml: body, headHtml: headHtml({ ...meta, preset: presetKey }), footHtml: footHtml({ ...meta, preset: presetKey }), page })
     if (type === 'print') {
-      // 한글 파일과 같은 쪽 모양으로 인쇄. 서버에 닿지 못하면 편집 화면 모양으로 인쇄
-      try {
-        const r = await ensurePreview()
-        if (!printPages(splitPages(r.svg, r), doc.title)) toast('팝업이 막혀 인쇄 창을 열지 못했습니다', 'danger')
-      } catch {
-        const w = window.open('', '_blank')
-        if (!w) { toast('팝업이 막혀 인쇄 창을 열지 못했습니다', 'danger'); return }
-        w.document.write(printHtml(doc.title, { ...meta, preset: presetKey }, body)); w.document.close(); w.focus(); setTimeout(() => w.print(), 500)
-        toast('서버에 닿지 못해 편집 화면 모양으로 인쇄합니다')
-      }
+      if (!printHtmlPages(pagesNow(), { pageCss: docCss(presetKey), title: doc.title })) toast('팝업이 막혀 인쇄 창을 열지 못했습니다', 'danger')
     }
     if (type === 'pdf') {
       try {
         toast('PDF 를 만드는 중입니다')
-        const r = await ensurePreview()
-        const blob = await pagesToPdf(splitPages(r.svg, r), doc.title)
+        const pages = pagesNow()
+        const blob = await htmlPagesToPdf(pages, { pageCss: docCss(presetKey), title: doc.title })
         download(`${name}.pdf`, blob)
-        toast(`PDF ${r.pageCount}쪽을 받았습니다(한글 파일과 같은 쪽 모양)`, 'primary')
+        toast(`PDF ${pages.length}쪽을 받았습니다`, 'primary')
       } catch (e) { toast(`PDF 를 만들지 못했습니다: ${e.message}`, 'danger') }
     }
     if (type === 'md') download(`${name}.md`, toHwpxPayload(bodyRef.current, meta).markdown.replace(/⟪(?:s\d+|p\d+|\/)⟫/g, ''), 'text/markdown')
@@ -871,7 +864,7 @@ function PreviewPane({ preview, zoom, onBack, onRetry, onSave, onPrint, onPdf })
         <Eye size={14} className="shrink-0" aria-hidden="true" />
         <span className="min-w-0 flex-1 truncate" title="내보낼 HWPX 파일을 서버에서 실제로 만들어 kordoc 조판 엔진으로 그린 모양입니다">
           <span className="font-bold text-text-pri">한글 미리보기</span>
-          <span className="hidden md:inline">{preview?.state === 'ok' ? `, ${preview.pageCount}쪽, 구조 검사 통과` : ''}</span>
+          <span className="hidden md:inline">{preview?.state === 'ok' ? `, ${preview.pageCount}쪽, 구조 검사 통과. 표가 쪽을 넘는 자리는 미리보기 엔진에서 겹쳐 보일 수 있으나 한글은 파일을 열 때 다시 조판` : ''}</span>
         </span>
         <span className="flex shrink-0 gap-1.5">
           <Button variant="ghost" size="sm" collapse="lg" leftIcon={<RefreshCw size={16} aria-hidden="true" />} onClick={onRetry}>다시 그리기</Button>
