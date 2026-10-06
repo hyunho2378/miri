@@ -9,8 +9,9 @@
 // - 이름 주소 연락처는 지자체 서버 보관 전제. 이 파일에서는 privateInfo 로 분리하고 도우미 화면에서만 사용
 import { intIn, mulberry32 } from '../lib/rng.js'
 import { HOUR, MIN } from '../lib/time.js'
-import { citywideScenario, fireScenario } from '../lib/scenario.js'
+import { citywideScenario, hazardScenario, fireScenario } from '../lib/scenario.js'
 import { DONG_CENTERS, LTC, TEMP_SHELTERS, VILLAGES } from './donghaeData.js'
+import { VILLAGE_TERRAIN } from './villageTerrain.js'
 
 const DAY = 24 * HOUR
 
@@ -170,6 +171,30 @@ export function buildSeed() {
       id: 'S-3', name: '옥계 방면 초고속 확산', villages,
       origin: ORIGIN_NAMYANG, originLabel: '강릉시 옥계면 남양리', heading: 110, halfWidthKm: 5, speedKmh: 8.2, leadHours: 3, scopeHours: 1,
       basis: '확산 속도 시속 8.2km는 2025년 3월 경북 의성 산불의 확산 속도로, 국내 관측 이래 가장 빠른 값입니다(국가산림위성정보활용센터 분석, 2025. 3. 27. 발표). 산불 위험 예보에 따라 발화 3시간 전에 사전 발령한다고 봅니다.'
+    }),
+    hazardScenario({
+      id: 'T-1', name: '동해 지진해일 경보', kind: 'tsunami', villages, terrain: VILLAGE_TERRAIN, windowHours: 1.5, prepMinutes: 10,
+      pick: (t) => t.elev <= 12 && t.seaKm != null && t.seaKm <= 1.3,
+      rule: '해발 12m 이하이면서 바다에서 1.3km 안인 마을',
+      basis: '2024년 1월 1일 일본 노토반도 지진(16시 10분) 뒤 묵호에 18시 6분 첫 지진해일이 닿았고 최대 85cm였습니다(연합뉴스 2024. 1. 2.). 1983년 동해 중부 지진해일 때 묵호에 2m 넘는 해일이 들어 1명이 숨졌습니다(조선비즈 2024. 1. 2.). 도달 1시간 30분, 준비 10분, 대상 마을 기준(해발 12m, 해안 1.3km)은 가정입니다. 지형 값은 약 90m 칸 고도라 해안 저지대 오차가 큽니다.'
+    }),
+    hazardScenario({
+      id: 'R-1', name: '태풍 호우 저지대 침수', kind: 'flood', villages, terrain: VILLAGE_TERRAIN, windowHours: 6,
+      pick: (t) => t.elev <= 15,
+      rule: '해발 15m 이하 마을',
+      basis: '2019년 10월 태풍 미탁 때 동해에 367.7mm가 내렸고 동해시 망상동이 특별재난지역으로 선포됐습니다(연합뉴스 2019. 10. 3., 정부 발표 2019. 10. 17.). 호우경보 뒤 6시간 안 사전 대피와 대상 마을 기준(해발 15m)은 가정입니다. 실제 침수흔적도와 하천 범람 구역은 반영하지 않았습니다(진행 예정).'
+    }),
+    hazardScenario({
+      id: 'L-1', name: '집중호우 산사태 우려', kind: 'landslide', villages, terrain: VILLAGE_TERRAIN, windowHours: 2,
+      pick: (t) => t.slope >= 25,
+      rule: '집결지 둘레 300m 안 최대 경사 25도 이상 마을',
+      basis: '2019년 10월 3일 태풍 미탁 폭우로 삼척시 오분동 주택지 사면이 무너져 1명이 숨졌습니다(연합뉴스 2019. 10. 3.). 산사태 경보 뒤 2시간 안 대피와 경사 25도 기준은 가정입니다. 산림청 산사태 위험지도는 반영하지 않았습니다(진행 예정).'
+    }),
+    hazardScenario({
+      id: 'W-1', name: '대설 산간 마을 고립', kind: 'snow', villages, terrain: VILLAGE_TERRAIN, windowHours: 24, travelFactor: 1.8,
+      pick: (t) => t.elev >= 100 || (t.seaKm != null && t.seaKm >= 6),
+      rule: '해발 100m 이상이거나 바다에서 6km 넘게 떨어진 산간 마을',
+      basis: '2014년 2월 6일부터 14일까지 9일 연속 눈이 내려 영동 산간마을 14곳 390여 가구가 고립됐습니다(연합뉴스 2014. 2. 10.). 대설경보 뒤 24시간 안 이송, 눈길 주행 시간 1.8배, 대상 마을 기준은 가정입니다.'
     }),
     citywideScenario({
       id: 'S-4', name: '시 전체 동시 대피', villages, windowHours: 8,

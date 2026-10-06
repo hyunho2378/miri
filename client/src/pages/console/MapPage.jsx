@@ -18,7 +18,7 @@ import TimeAxis from '../../components/map/TimeAxis.jsx'
 import useMediaQuery from '../../hooks/useMediaQuery.js'
 import { buildTimeline, fireArrow, fmtDotDate, placeVehicles, placeVillages, progressAt, severityOf } from '../../lib/geo.js'
 import { GRADES, typeOf } from '../../lib/shortage.js'
-import { SHELTER_NOTE } from '../../lib/scenario.js'
+import { HAZARD_KINDS, SHELTER_NOTE } from '../../lib/scenario.js'
 import { agingStops } from '../../components/map/mapTheme.js'
 import { DATA_SOURCES, DONG_STATS, LTC_DAYCARE, LTC_RESIDENTIAL, TEMP_SHELTERS } from '../../mock/donghaeData.js'
 import { computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
@@ -189,9 +189,10 @@ export default function MapPage() {
   const fire = useMemo(() => (isNormal ? null : fireArrow(scenario, villages)), [scenario, villages, isNormal])
   // 대피 대상 구역(마을과 발화 가정 지점)을 감싸는 범위. 시 전체 시나리오는 지정하지 않는다
   const scopeBounds = useMemo(() => {
-    if (isNormal || scenario.kind !== 'fire') return null
+    if (isNormal || scenario.kind === 'all') return null
     const pts = villageVm.filter((v) => v.inScope).map((v) => v.lngLat)
     if (scenario.origin) pts.push(scenario.origin)
+    if (pts.length === 1) pts.push([pts[0][0] + 0.01, pts[0][1] + 0.01])
     if (pts.length < 2) return null
     const xs = pts.map((p) => p[0])
     const ys = pts.map((p) => p[1])
@@ -295,7 +296,11 @@ export default function MapPage() {
             <SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} />
             <div className="mt-3 flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="truncate type-meta text-text-meta">{scenario.name}</p>
+                <label className="sr-only" htmlFor="scenario-pick">시나리오</label>
+                <select id="scenario-pick" value={scenario.id} onChange={(e) => { setActiveScenario(e.target.value); setSelected(null) }}
+                  className="-ml-1 h-8 max-w-full truncate rounded-md bg-subtle px-1.5 type-meta text-text-pri">
+                  {scenarios.map((x) => <option key={x.id} value={x.id}>{`${HAZARD_KINDS[x.kind]?.label || '재난'}: ${x.name}`}</option>)}
+                </select>
                 <p className="mt-0.5 flex items-baseline gap-1.5">
                   <span className="type-h2 text-danger-text tabular-nums">{result.total}</span>
                   <span className="type-body-sm text-text-sec">명 미이송 예상</span>

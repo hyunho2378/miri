@@ -4,6 +4,7 @@ import AnimatedNumber from '../motion/AnimatedNumber.jsx'
 import Select from '../ui/Select.jsx'
 import { GRADES } from '../../lib/shortage.js'
 import { fmtElapsed } from '../../lib/geo.js'
+import { HAZARD_KINDS } from '../../lib/scenario.js'
 
 const gradeLine = (byGrade) => {
   const parts = GRADES.filter((g) => byGrade?.[g.key]).map((g) => `${g.label} ${byGrade[g.key]}명`)
@@ -44,7 +45,7 @@ export default function SummaryPanel({
       <div className="pb-3">
         <Select
           label="기준 시나리오" compact value={scenario.id} onChange={onScenario}
-          options={scenarios.map((s) => ({ value: s.id, label: s.name }))}
+          options={scenarios.map((s) => ({ value: s.id, label: `${HAZARD_KINDS[s.kind]?.label || '재난'}: ${s.name}` }))}
         />
         {onWindScenario && scenario.id !== 'S-W' && (
           <button type="button" onClick={onWindScenario} className="mt-2 inline-flex min-h-9 items-center rounded-md px-1 type-strong text-primary-text hover:underline">
@@ -53,7 +54,7 @@ export default function SummaryPanel({
         )}
         {scenario.basis && <p className="mt-2 type-meta leading-5 text-text-sec">{scenario.basis}</p>}
         <p className="mt-1.5 type-meta text-text-meta">
-          {scenario.kind === 'fire' ? `발령 후 첫 도달 ${fmtElapsed(scenario.windowHours)}, 확산 시속 ${scenario.speedKmh}km, ` : ''}명부 기준일 {dateLabel}
+          {scenario.kind === 'fire' ? `발령 후 첫 도달 ${fmtElapsed(scenario.windowHours)}, 확산 시속 ${scenario.speedKmh}km, ` : scenario.rule ? `대상 마을: ${scenario.rule}. 이송 기한 발령 후 ${fmtElapsed(scenario.windowHours)}${scenario.travelFactor && scenario.travelFactor !== 1 ? `, 주행 시간 ${scenario.travelFactor}배` : ''}, ` : ''}명부 기준일 {dateLabel}
         </p>
       </div>
 

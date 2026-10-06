@@ -44,6 +44,25 @@ export function fireScenario({ id, name, origin, originLabel, heading, halfWidth
   }
 }
 
+// 재난 종류(산불 밖). 마을 지형 값(villageTerrain.js: 고도, 바다 거리, 경사)으로 대피 대상 마을을 고른다.
+// pick(t, v) 가 참인 마을이 대상이고 모두 같은 도달 시각(windowHours)을 쓴다. travelFactor 는 도로 주행 시간 배수(대설 등)
+export const HAZARD_KINDS = {
+  fire: { label: '산불' },
+  tsunami: { label: '지진해일' },
+  flood: { label: '태풍과 호우 침수' },
+  landslide: { label: '산사태' },
+  snow: { label: '대설 고립' },
+  all: { label: '시 전체' }
+}
+export function hazardScenario({ id, name, kind, villages, terrain, pick, windowHours, prepMinutes = 60, travelFactor = 1, rule, basis, avoidAffectedShelters = true }) {
+  const affected = villages.filter((v) => terrain[v.code] && pick(terrain[v.code], v)).map((v) => v.code)
+  return {
+    id, name, kind, windowHours, prepMinutes, completeBeforeHours: 0, extraVehicles: {}, travelFactor, rule,
+    offsetHours: Object.fromEntries(villages.map((v) => [v.code, affected.includes(v.code) ? 0 : 24])),
+    affected, basis, avoidAffectedShelters
+  }
+}
+
 export function citywideScenario({ id, name, villages, windowHours = 8, prepMinutes = 60, basis }) {
   return {
     id, name, kind: 'all', windowHours, prepMinutes, completeBeforeHours: 0, extraVehicles: {},
@@ -108,7 +127,9 @@ export function resolveVillages({ villages, persons, scenario, shelters = [], se
       load[code] = (load[code] || 0) + need
       parts.push([code, need])
     }
-    out[v.code] = { ...base, shelterCode: code, shelterParts: parts, driveMin: min, roundTripMin: Math.round(2 * min + boarding), shelterNote: note }
+    const tf = scenario?.travelFactor ?? 1
+    const dm = Math.round(min * tf)
+    out[v.code] = { ...base, shelterCode: code, shelterParts: parts, driveMin: dm, roundTripMin: Math.round(2 * dm + boarding), shelterNote: note }
   }
   return { villages: villages.map((v) => out[v.code]), shelterLoad: load, scope }
 }
