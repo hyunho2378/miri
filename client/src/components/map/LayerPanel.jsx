@@ -58,7 +58,7 @@ export default function LayerPanel({
         <Segment label="지도" value={mode} onChange={onMode} items={[{ value: '2d', label: '2D' }, { value: '3d', label: '3D' }]} />
         <Segment label="바탕" value={theme} onChange={onTheme} items={[{ value: 'light', label: '밝게' }, { value: 'dark', label: '어둡게' }]} />
         <button type="button" onClick={onFit} className="inline-flex h-9 items-center gap-2 rounded-md px-2 type-strong text-primary-text hover:bg-mute">
-          <Maximize size={16} aria-hidden="true" />동해시 전체 보기
+          <Maximize size={16} aria-hidden="true" />{mode === '3d' ? '대피 대상 구역 보기' : '동해시 전체 보기'}
         </button>
       </section>
 
@@ -66,7 +66,11 @@ export default function LayerPanel({
         <h3 id="map-layer-title" className="type-caption text-text-meta">레이어</h3>
         <ul className="mt-1.5 -mx-2 divide-y divide-line-sub">
           <LayerRow label="마을별 부족분" checked={layers.shortage} onChange={(v) => onLayer('shortage', v)} swatch="bg-chart-heatDanger-3" />
-          <LayerRow label="행정동 경계" checked={layers.dongs} onChange={(v) => onLayer('dongs', v)} />
+          <LayerRow label={mode === '3d' ? '읍면동 조각 선과 이름' : '행정동 경계'} checked={layers.dongs} onChange={(v) => onLayer('dongs', v)} />
+          {mode === '3d' && (
+            <LayerRow label="조각 펼치기" checked={!!layers.spread} onChange={(v) => onLayer('spread', v)}
+              desc={layers.spread ? '읍면동 조각을 바깥으로 벌려 서로 가려진 곳을 볼 수 있게 합니다.' : undefined} />
+          )}
           <LayerRow label="산불 확산 가정 구역" checked={layers.fire} onChange={(v) => onLayer('fire', v)} swatch="bg-text-pri"
             desc={layers.fire ? (fireInfo ? `${fireInfo.label}에서 시속 ${fireInfo.speed}km로 번진다고 둔 가정입니다. 띠 안 마을에 발령 후 ${fmtElapsed(fireInfo.fromH)}부터 ${fmtElapsed(fireInfo.toH)} 사이에 차례로 도달합니다.` : '시 전체 시나리오라 발화 가정 지점이 없습니다.') : undefined} />
           <LayerRow label="이재민 임시주거시설" checked={layers.shelters} onChange={(v) => onLayer('shelters', v)} swatch="bg-primary" desc={layers.shelters ? shelterDesc : undefined} />
@@ -115,7 +119,7 @@ export default function LayerPanel({
         <ul className="mt-3 space-y-1.5 type-meta leading-5 text-text-meta">
           <li>회색 작은 점은 대피 대상 구역 밖 마을입니다.</li>
           <li>숫자는 선택한 시점의 대기 인원입니다. 도달 시점에는 부족분과 같습니다.</li>
-          <li>{mode === '3d' ? '막대 높이는 선택한 시점의 대기 인원입니다.' : '원 크기는 선택한 시점의 대기 인원입니다.'}</li>
+          <li>{mode === '3d' ? '기둥 높이는 선택한 시점의 대기 인원입니다. 동해시 행정동 조각이 솟은 높이는 그 행정동의 미이송 예상 인원에 비례합니다.' : '원 크기는 선택한 시점의 대기 인원입니다.'}</li>
         </ul>
       </section>
     </div>

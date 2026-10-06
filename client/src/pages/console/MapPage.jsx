@@ -10,6 +10,7 @@ import Card from '../../components/ui/Card.jsx'
 import Button from '../../components/ui/Button.jsx'
 import IconButton from '../../components/ui/IconButton.jsx'
 import MapCanvas from '../../components/map/MapCanvas.jsx'
+import Map3D from '../../components/map/Map3D.jsx'
 import SummaryPanel from '../../components/map/SummaryPanel.jsx'
 import VillageDetail from '../../components/map/VillageDetail.jsx'
 import LayerPanel from '../../components/map/LayerPanel.jsx'
@@ -19,7 +20,7 @@ import { buildTimeline, fireArrow, fmtDotDate, placeVehicles, placeVillages, pro
 import { typeOf } from '../../lib/shortage.js'
 import { SHELTER_NOTE } from '../../lib/scenario.js'
 import { agingStops } from '../../components/map/mapTheme.js'
-import { DATA_SOURCES, LTC_DAYCARE, LTC_RESIDENTIAL, TEMP_SHELTERS } from '../../mock/donghaeData.js'
+import { DATA_SOURCES, DONG_STATS, LTC_DAYCARE, LTC_RESIDENTIAL, TEMP_SHELTERS } from '../../mock/donghaeData.js'
 import { computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import { HOUR } from '../../lib/time.js'
 import { useTopbar } from '../../store/useAdminUi.js'
@@ -66,8 +67,9 @@ export default function MapPage() {
 
   const [mode, setMode] = useState('2d')
   const [theme, setTheme] = useState('light')
-  const [layers, setLayers] = useState({ shortage: true, dongs: true, fire: true, shelters: true, vehicles: false, ltc: false, aging: false })
+  const [layers, setLayers] = useState({ shortage: true, dongs: true, fire: true, shelters: true, vehicles: false, ltc: false, aging: false, spread: false })
   const [selected, setSelected] = useState(null)
+  const [opened3d, setOpened3d] = useState(false)    // 3D 를 한 번 열면 장면을 유지한다(지형을 다시 만들지 않는다)
   const [focus, setFocus] = useState(null)
   const [fitSeq, setFitSeq] = useState(0)
   const [layerOpen, setLayerOpen] = useState(null)   // null 이면 화면 폭 기본값(xl 이상 펼침)
@@ -97,7 +99,7 @@ export default function MapPage() {
     const level = inScope ? severityOf(row.total) : 0
     const rt = inScope ? ev.roundTripMin : v.roundTripMin
     return {
-      code: v.code, label: v.label, dongName: dongName(v.dongCode), lngLat: positions[v.code], inScope,
+      code: v.code, label: v.label, dongCode: v.dongCode, dongName: dongName(v.dongCode), lngLat: positions[v.code], inScope,
       pickup: v.pickup, estTargets: v.estTargets, weightBasis: v.weightBasis,
       roundTripMin: rt, driveMin: inScope ? ev.driveMin : v.driveMin,
       shelterName: shelterName(inScope ? ev.shelterCode : v.shelterCode), plannedShelterName: shelterName(v.shelterCode),
@@ -113,6 +115,20 @@ export default function MapPage() {
       ariaLabel: `${v.label}. 선택 시점 대기 ${p.waiting}명, 도달 시점 부족 ${row.total ? `${row.total}명` : '없음'}. 상세 보기`
     }
   }), [villages, positions, result, effVillage, timeline, progress, dongName, shelterName, scenario, today])
+
+  // 3D 행정동 조각 색과 높이에 쓰는 행정동별 수치
+  const dongStats = useMemo(() => {
+    const out = {}
+    for (const [code, st] of Object.entries(DONG_STATS)) out[code] = { name: st.name, aging: st.agingRate, targets: 0, shortage: 0, level: 0 }
+    for (const v of villageVm) {
+      const d = out[v.dongCode]
+      if (!d) continue
+      d.targets += v.target
+      d.shortage += v.shortage
+    }
+    for (const d of Object.values(out)) d.level = severityOf(d.shortage)
+    return out
+  }, [villageVm])
 
   const shortList = useMemo(() => villageVm.filter((v) => v.shortage > 0).sort((a, b) => b.shortage - a.shortage || a.code.localeCompare(b.code)), [villageVm])
   const scopeCount = villageVm.filter((v) => v.inScope).length
@@ -165,6 +181,7 @@ export default function MapPage() {
 
   const selectedVm = selected ? villageVm.find((v) => v.code === selected) : null
 
+  const changeMode = (m) => { setMode(m); if (m === '3d') setOpened3d(true) }
   const onLayer = (key, v) => setLayers((l) => ({ ...l, [key]: v }))
   const pick = useCallback((code) => {
     setSelected(code)
@@ -190,10 +207,21 @@ export default function MapPage() {
 
       {/* 지도 */}
       <div className={clsx('relative h-[60vh] min-h-80 lg:absolute lg:inset-0 lg:h-auto', theme === 'dark' ? 'bg-text-pri' : 'bg-mute')}>
-        <MapCanvas
-          theme={theme} mode={mode} layers={layers} villages={villageVm} vehicles={vehicleVm} shelters={shelterVm}
-          routes={routes} ltc={ltcVm} agingStops={AGING} fire={fire} scopeBounds={scopeBounds} selected={selected} onSelect={pick} focus={focus} fitSeq={fitSeq} padding={padding}
-        />
+        <div className={clsx('absolute inset-0', mode === '3d' && 'hidden')} aria-hidden={mode === '3d' || undefined}>
+          <MapCanvas
+            theme={theme} mode="2d" layers={layers} villages={villageVm} vehicles={vehicleVm} shelters={shelterVm}
+            routes={routes} ltc={ltcVm} agingStops={AGING} fire={fire} scopeBounds={scopeBounds} selected={selected} onSelect={pick} focus={focus} fitSeq={fitSeq} padding={padding}
+          />
+        </div>
+        {(mode === '3d' || opened3d) && (
+          <div className={clsx('absolute inset-0', mode !== '3d' && 'hidden')} aria-hidden={mode !== '3d' || undefined}>
+            <Map3D
+              theme={theme} layers={layers} villages={villageVm} vehicles={vehicleVm} shelters={shelterVm} ltc={ltcVm}
+              fire={fire} scopeBounds={scopeBounds} selected={selected} onSelect={pick} focus={focus} fitSeq={fitSeq} padding={padding}
+              dongStats={dongStats} spread={layers.spread}
+            />
+          </div>
+        )}
         {/* 실제 자료와 가정 구분 고정 표기 */}
         <p className={clsx(
           'pointer-events-none absolute left-3 bottom-3 z-raised rounded-xs bg-page px-2 py-1 type-caption text-text-sec shadow-sm',
@@ -257,7 +285,7 @@ export default function MapPage() {
             className="lg:absolute lg:right-4 lg:top-4 lg:z-raised lg:w-72 lg:max-h-[calc(100%-theme(spacing.16))] lg:overflow-y-auto lg:shadow-md"
           >
             <LayerPanel
-              mode={mode} onMode={setMode} theme={theme} onTheme={setTheme} onFit={() => setFitSeq((n) => n + 1)}
+              mode={mode} onMode={changeMode} theme={theme} onTheme={setTheme} onFit={() => setFitSeq((n) => n + 1)}
               layers={layers} onLayer={onLayer} shelterStats={shelterStats} shelterTotal={TEMP_SHELTERS.length}
               ltcCounts={{ residential: LTC_RESIDENTIAL.length, daycare: LTC_DAYCARE.length }}
               fireInfo={fireInfo} vehicleCount={vehicles.length} sources={DATA_SOURCES}
