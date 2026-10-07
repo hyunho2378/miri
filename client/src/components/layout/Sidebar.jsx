@@ -1,5 +1,5 @@
 // 담당자 메뉴. 레퍼런스(IMG_1531) 구조를 따른다.
-// 1열 아이콘 레일: 로고, 묶음 아이콘(담당 업무, 기록과 설정, 공개 화면), 맨 아래 사용자.
+// 1열 아이콘 레일: 로고, 묶음 아이콘(담당 업무, 기록과 설정, 공개 화면 | 문서함), 맨 아래 사용자. 문서함은 메뉴 칸 없이 바로 연다.
 // 2열 메뉴 칸: 묶음 이름과 알림 종, 그 묶음의 메뉴. 발령 준비 아래에는 하위 화면을 들여 쓴다.
 import clsx from 'clsx'
 import { Timer } from 'lucide-react'
@@ -25,7 +25,10 @@ export function Rail({ group, onGroup }) {
         {RAIL_GROUPS.map((g) => {
           const active = g.key === group
           return (
-            <Tooltip key={g.key} label={g.label} side="right">
+            <div key={g.key} className="flex flex-col items-center">
+            {/* 문서함은 업무 묶음과 떼어 둔다 */}
+            {g.direct && <span aria-hidden="true" className="my-1.5 h-px w-6 bg-line-def" />}
+            <Tooltip label={g.label} side="right">
               <button
                 type="button" aria-pressed={active} aria-label={g.label}
                 onClick={() => onGroup(g.key, firstLink(g, role))}
@@ -35,6 +38,7 @@ export function Rail({ group, onGroup }) {
                 <g.Icon size={18} aria-hidden="true" />
               </button>
             </Tooltip>
+            </div>
           )
         })}
       </nav>

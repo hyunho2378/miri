@@ -7,7 +7,11 @@ export const MAIN_NAV = [
   { key: 'people', to: '/console/roster', label: '대상자 명부', Icon: UsersRound, match: ['/console/roster'] },
   { key: 'map', to: '/console/map', label: '상황판', Icon: MapPinned, match: ['/console/map'] },
   { key: 'resources', to: '/console/resources', label: '차량과 도우미', Icon: Truck, match: ['/console/resources'] },
-  { key: 'dispatch', to: '/console/shortage', label: '발령 준비', Icon: Siren, match: ['/console/shortage', '/console/dispatch', '/console/handover'] },
+  { key: 'dispatch', to: '/console/shortage', label: '발령 준비', Icon: Siren, match: ['/console/shortage', '/console/dispatch', '/console/handover'] }
+]
+
+// 문서함은 업무 메뉴와 따로 레일에 둔다. 열면 메뉴 칸 없이 본문 전체를 쓴다
+export const DOCS_NAV = [
   { key: 'workspace', to: '/console/workspace', label: '문서함', Icon: FolderOpen, match: ['/console/workspace'] }
 ]
 
@@ -27,10 +31,13 @@ export const PUBLIC_NAV = [
 export const RAIL_GROUPS = [
   { key: 'work', label: '담당 업무', Icon: LayoutGrid, items: MAIN_NAV },
   { key: 'admin', label: '기록과 설정', Icon: Archive, items: SUB_NAV },
-  { key: 'public', label: '공개 화면', Icon: BookOpenText, items: PUBLIC_NAV }
+  { key: 'public', label: '공개 화면', Icon: BookOpenText, items: PUBLIC_NAV },
+  // 문서함은 세 묶음 아래에 따로 둔다
+  { key: 'docs', label: '문서함', Icon: FolderOpen, items: DOCS_NAV, direct: true }
 ]
 
 export function groupOf(pathname) {
+  if (pathname === '/console/workspace' || pathname.startsWith('/console/workspace/')) return 'docs'
   if (SUB_NAV.some((m) => m.match?.some((p) => pathname === p || pathname.startsWith(p + '/')))) return 'admin'
   return 'work'
 }
@@ -45,5 +52,5 @@ export const SECTION_TABS = {
 }
 
 export function sectionOf(pathname) {
-  return [...MAIN_NAV, ...SUB_NAV.filter((m) => m.match)].find((m) => (m.exact ? pathname === m.to : m.match.some((p) => pathname === p || pathname.startsWith(p + '/'))))
+  return [...MAIN_NAV, ...DOCS_NAV, ...SUB_NAV.filter((m) => m.match)].find((m) => (m.exact ? pathname === m.to : m.match.some((p) => pathname === p || pathname.startsWith(p + '/'))))
 }

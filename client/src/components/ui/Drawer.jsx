@@ -1,4 +1,5 @@
-// PATTERNS.md 14번. side right 기본. 포커스 트랩, Esc, body 스크롤 락.
+// 화면 위에 띄우는 창. 기본은 가운데 모달(공용 Modal). 휴대폰 메뉴처럼 side='left' 일 때만 왼쪽에서 밀려 나오는 서랍.
+// 오른쪽 서랍은 쓰지 않는다(사용자 결정 2026-10-07: 추가, 상세, 알림 모두 가운데 모달).
 import clsx from 'clsx'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
@@ -6,8 +7,14 @@ import { useLang } from '../../i18n/LangContext.jsx'
 import useBodyScrollLock from '../../hooks/useBodyScrollLock.js'
 import useFocusTrap from '../../hooks/useFocusTrap.js'
 import IconButton from './IconButton.jsx'
+import Modal from './Modal.jsx'
 
-export default function Drawer({ open, onClose, title, footer, side = 'right', children }) {
+export default function Drawer(props) {
+  if (props.side !== 'left') return <Modal open={props.open} onClose={props.onClose} title={props.title} footer={props.footer} className={props.size === 'wide' ? 'max-w-[760px]' : undefined}>{props.children}</Modal>
+  return <SideSheet {...props} />
+}
+
+function SideSheet({ open, onClose, title, footer, side, children }) {
   const { t } = useLang()
   const trapRef = useFocusTrap(open, onClose)
   useBodyScrollLock(open)

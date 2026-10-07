@@ -11,7 +11,7 @@ import usePopExit from '../../hooks/usePopExit.js'
 
 export default function Select({
   label, value, onChange, options = [], placeholder = '선택',
-  disabled, error, compact = false, id, className, size = 'md', portal = false, menuMinWidth = 0, triggerClassName, hideLabel = false
+  disabled, error, compact = false, id, className, size = 'md', portal = true, menuMinWidth = 0, triggerClassName, hideLabel = false
 }) {
   const auto = useId()
   const btnId = id || auto
@@ -144,7 +144,7 @@ export default function Select({
 
       {popMounted && (portal ? (p) => createPortal(p, document.body) : (p) => p)(
         <ul
-          style={portal && pos ? { position: 'fixed', left: pos.left, width: pos.width, top: pos.top, bottom: pos.bottom, maxHeight: pos.maxH } : undefined}
+          style={portal && pos ? { position: 'fixed', left: pos.left, width: pos.width, top: pos.top, bottom: pos.bottom, maxHeight: pos.maxH, zIndex: 75 } : undefined}
           onMouseDown={(e) => { if (portal) e.preventDefault() }}
           ref={listRef} id={`${btnId}-list`} role="listbox" aria-label={label} tabIndex={-1}
           aria-hidden={popClosing || undefined}

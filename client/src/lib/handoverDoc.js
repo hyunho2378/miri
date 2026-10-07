@@ -3,8 +3,8 @@
 // 갱신 원칙: 작업 단위가 끝날 때마다 이 파일을 고치고 VERSION 과 변경 이력(10장)을 늘린 뒤 커밋한다.
 // 앱에서는 문서함 맨 위 고정 문서로 보이고(읽기 전용, 통지 양식: 장 1. 2., 항목 가. 나.), 한글(HWPX)과 PDF 로 내보낼 수 있다.
 
-export const HANDOVER_VERSION = '2026.10.07-2'
-export const HANDOVER_UPDATED = '2026. 10. 7. 05:40'
+export const HANDOVER_VERSION = '2026.10.07-3'
+export const HANDOVER_UPDATED = '2026. 10. 7. 09:20'
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
 const H = (t) => `<h2>${t}</h2>`
@@ -111,7 +111,9 @@ const html = [
   L(2, '흐린 틴트와 같은 회색 겹침 금지: 카드는 흰 판과 그림자로 바탕과 구분'),
   L(2, '시스템 UI 금지: 선택 상자, 말풍선, 체크박스, 슬라이더, 스크롤바, 자동완성 모두 디자인 시스템 모양'),
   L(2, '반응형: 카드 격자는 본문 폭 기준(cq-md, cq-xl), 버튼 글자 줄바꿈 금지, 좁으면 아이콘만'),
-  L(2, '공용 부품만 사용: Button, Select, SegmentControl, ChoiceChips, Input, Card, EditorFrame'),
+  L(2, '공용 부품만 사용: Button, Select, SegmentControl, ChoiceChips, Input, DatePicker, Modal, Card, EditorFrame'),
+  L(2, '띄우는 창은 가운데 모달만 사용, 오른쪽 서랍 금지(휴대폰 메뉴만 왼쪽 서랍)'),
+  L(2, '메뉴: 왼쪽 레일 담당 업무, 기록과 설정, 공개 화면, 구분선 아래 문서함'),
   L(2, '문체: 한다체와 명사형, 숫자마다 기준과 출처, 모르는 값은 ○○○'),
 
   H('검증 현황과 남은 일'),
@@ -135,6 +137,7 @@ const html = [
   H('변경 이력'),
   T(['판', '날짜', '내용'], [
     ['2026.10.07-1', '2026. 10. 7.', '인수인계서 첫 판 작성'],
+    ['2026.10.07-3', '2026. 10. 7.', '오른쪽 서랍을 모두 가운데 모달로(추가, 상세, 이상 탐지), 문서함을 왼쪽 레일 세 묶음 아래 독립 항목으로(열면 메뉴 칸 없이 전체 폭), 날짜 칸을 디자인 시스템 달력으로, 선택 목록 기본 포털'],
     ['2026.10.07-2', '2026. 10. 7.', '인쇄와 PDF 저장을 편집 화면 쪽 나눔으로 변경(표 통째 넘김, 제목과 표 함께 넘김). kordoc 미리보기 엔진에서 쪽을 넘는 표가 겹치는 현상 확인, 한글 파일 자체는 정상']
   ])
 ].join('')
@@ -143,6 +146,6 @@ export const HANDOVER_HTML = html
 export const HANDOVER_ITEM = () => ({
   id: 'handover', kind: 'doc', title: '미리 프로젝트 인수인계서', html,
   meta: { preset: '통지', locked: true, pinned: true, version: HANDOVER_VERSION },
-  updatedAt: '2026-10-07T05:40:00+09:00', createdAt: '2026-10-07T05:10:00+09:00',
-  versions: [{ at: '2026-10-07T05:40:00+09:00', label: `판 ${HANDOVER_VERSION}`, html }]
+  updatedAt: '2026-10-07T09:20:00+09:00', createdAt: '2026-10-07T05:10:00+09:00',
+  versions: [{ at: '2026-10-07T09:20:00+09:00', label: `판 ${HANDOVER_VERSION}`, html }]
 })

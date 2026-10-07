@@ -57,7 +57,7 @@ export default function ResourcesPage() {
     { key: 'type', label: '차종', kind: 'select', required: true, options: VEHICLE_TYPES.map((t) => ({ value: t.key, label: t.label, secondary: capText(t.key) })) },
     { key: 'owner', label: '소속', kind: 'select', required: true, options: Object.entries(OWNERS).map(([value, label]) => ({ value, label })) },
     { key: 'baseDong', label: '대기 동', kind: 'select', required: true, options: dongs.map((d) => ({ value: d.code, label: d.name })) },
-    { key: 'contractUntil', label: '협약 만료일', kind: 'date', hint: '민간 협약 차량에만 입력합니다. 형식은 YYYY-MM-DD입니다.' },
+    { key: 'contractUntil', label: '협약 만료일', kind: 'date', hint: '민간 협약 차량에만 고릅니다.' },
     { key: 'note', label: '비고', kind: 'text' },
     { key: 'available', label: '대피 이송 가용', kind: 'toggle' }
   ]

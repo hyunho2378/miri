@@ -1,6 +1,7 @@
 // 필드 정의 기반 폼(dah EntityCrud 구조, G-Chat 토큰).
 // fields: [{ key, label, kind: 'text'|'number'|'select'|'multiselect'|'toggle'|'date', options, hint, required, disabled }]
-// date 는 네이티브 날짜 입력 대신 YYYY-MM-DD 텍스트 입력. 값은 ms 로 주고받는다.
+// date 는 디자인 시스템 달력(DatePicker). 값은 'YYYY-MM-DD' 문자열, 바깥과는 ms 로 주고받는다.
+import DatePicker from '../ui/DatePicker.jsx'
 import Input from '../ui/Input.jsx'
 import MultiSelect from '../ui/MultiSelect.jsx'
 import Select from '../ui/Select.jsx'
@@ -39,6 +40,9 @@ export default function EntityForm({ fields, value, onChange, errors = {} }) {
         }
         if (f.kind === 'multiselect') {
           return <MultiSelect key={f.key} label={f.label} values={v || []} options={f.options} onChange={(x) => set(f.key, x)} />
+        }
+        if (f.kind === 'date') {
+          return <DatePicker key={f.key} label={f.label} value={v || ''} hint={f.hint} error={errors[f.key]} disabled={f.disabled} onChange={(x) => set(f.key, x)} />
         }
         if (f.kind === 'toggle') {
           return <Toggle key={f.key} label={f.label} checked={!!v} onChange={(x) => set(f.key, x)} disabled={f.disabled} />
