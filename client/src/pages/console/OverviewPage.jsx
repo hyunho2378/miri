@@ -37,8 +37,8 @@ function Stat({ label, value, unit, tone }) {
 function Meter({ value, max, tone }) {
   const pct = max ? Math.min(100, Math.round((value / max) * 100)) : 0
   return (
-    <div className="mt-3 h-1.5 w-full rounded-full bg-mute" role="presentation">
-      <div className={clsx('h-full rounded-full', tone === 'danger' ? 'bg-danger' : 'bg-primary')} style={{ width: `${pct}%` }} />
+    <div className="mt-3 h-1.5 w-full rounded-xs bg-mute" role="presentation">
+      <div className={clsx('h-full rounded-xs', tone === 'danger' ? 'bg-danger' : 'bg-primary')} style={{ width: `${pct}%` }} />
     </div>
   )
 }
@@ -56,7 +56,7 @@ function VillageBars({ rows }) {
           // 막대 영역(남은 높이)과 이름 칸(두 줄 고정)으로 나눠 강조 값이 이름 줄을 밀지 않게 한다
           <div key={r.key} className="flex h-full min-w-0 flex-1 flex-col items-center">
             <div className="flex w-full flex-1 items-end justify-center pt-5">
-              <div className={clsx('relative w-full max-w-[28px] rounded-full', hot ? 'bg-danger' : r.value > 0 ? 'bg-text-sec' : 'bg-mute')} style={{ height: `${pct}%` }}>
+              <div className={clsx('relative w-full max-w-[28px] rounded-sm', hot ? 'bg-danger' : r.value > 0 ? 'bg-text-sec' : 'bg-mute')} style={{ height: `${pct}%` }}>
                 {hot && <span className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap type-caption text-danger-text tabular-nums">{r.value}</span>}
               </div>
             </div>
@@ -139,13 +139,13 @@ export default function OverviewPage() {
 
   const actions = (
     <>
-      <Link to="/console/map" className="inline-flex h-10 items-center gap-2 rounded-full bg-subtle px-4 type-body-sm text-text-sec hover:bg-mute">
+      <Link to="/console/map" className="inline-flex h-10 items-center gap-2 rounded-md bg-subtle px-4 type-body-sm text-text-sec hover:bg-mute">
         <Layers size={16} aria-hidden="true" className="text-text-meta" />
         <span className="max-w-[16rem] truncate">{scenario.name}</span>
       </Link>
-      <Link to="/console/shortage" className="inline-flex h-10 items-center gap-2 rounded-full bg-text-pri pl-4 pr-1.5 type-strong text-text-inverse hover:bg-text-sec">
+      <Link to="/console/shortage" className="inline-flex h-10 items-center gap-2 rounded-md bg-text-pri pl-4 pr-1.5 type-strong text-text-inverse hover:bg-text-sec">
         부족분 계산
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-page text-text-pri"><ArrowRight size={16} aria-hidden="true" /></span>
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-sm bg-page text-text-pri"><ArrowRight size={16} aria-hidden="true" /></span>
       </Link>
     </>
   )

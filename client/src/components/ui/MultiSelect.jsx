@@ -93,7 +93,7 @@ export default function MultiSelect({
         ) : selected.length ? (
           <span className="flex flex-wrap items-center gap-1.5">
             {selected.map((o) => (
-              <span key={o.value} className="inline-flex items-center gap-1 h-6 pl-2 pr-1 rounded-full bg-primary-soft text-primary-text type-caption">
+              <span key={o.value} className="inline-flex items-center gap-1 h-6 pl-2 pr-1 rounded-xs bg-primary-soft text-primary-text type-caption">
                 {o.label}
                 <X size={12} aria-hidden="true" onClick={(e) => { e.stopPropagation(); toggle(o.value) }} />
               </span>

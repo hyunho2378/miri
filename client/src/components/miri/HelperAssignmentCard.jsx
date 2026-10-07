@@ -74,7 +74,7 @@ export default function HelperAssignmentCard({
           <div>
             <p className="type-caption text-text-sec">주의사항</p>
             {tags.length
-              ? <ul className="mt-1 flex flex-wrap gap-2">{tags.map((t) => <li key={t} className="inline-flex items-center h-8 px-3 rounded-full bg-mute type-body-sm text-text-pri">{t}</li>)}</ul>
+              ? <ul className="mt-1 flex flex-wrap gap-2">{tags.map((t) => <li key={t} className="inline-flex items-center h-8 px-3 rounded-sm bg-mute type-body-sm text-text-pri">{t}</li>)}</ul>
               : <p className="mt-0.5 type-body text-text-meta">특이사항이 없습니다.</p>}
           </div>
         </div>

@@ -124,7 +124,7 @@ export default function Select({
         onMouseDown={(e) => { if (portal) e.preventDefault() }}
         className={clsx(
           'flex items-center gap-2 bg-page transition-colors duration-fast',
-          size === 'xs' ? 'h-7 rounded-xs px-2' : size === 'sm' ? 'h-8 rounded-md px-2.5' : 'h-11 px-3 rounded-md',
+          size === 'xs' ? 'h-7 rounded-xs px-2' : size === 'sm' ? 'h-8 rounded-sm px-2.5' : 'h-11 px-3 rounded-md',
           compact ? clsx('w-auto max-w-full', !small && 'md:h-9') : 'w-full',
           'ring-1 ring-inset disabled:opacity-40 disabled:cursor-not-allowed',
           error ? 'ring-danger' : open ? 'ring-primary ring-2' : 'ring-line-def hover:ring-line-strong',

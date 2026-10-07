@@ -93,7 +93,7 @@ export function formatVar(key, vals) {
   const d = VAR_BY_KEY[key]
   const v = vals[key]
   if (v == null) return '○○○'
-  if (d?.num) return `${n(v)}${d.unit || ''}`
+  if (d?.num && typeof v === 'number') return `${n(v)}${d.unit || ''}`
   return String(v)
 }
 
@@ -106,6 +106,18 @@ export function evalCalc(expr, vals, digits = 0) {
     if (!Number.isFinite(r)) return '계산 불가'
     return r.toLocaleString('ko-KR', { minimumFractionDigits: digits, maximumFractionDigits: digits })
   } catch { return '계산 불가' }
+}
+
+// 문서에서 고친 값(overrides: 키별 글)을 얹는다. 숫자로 읽히면 숫자로 바꿔 계산에도 쓴다
+export function withOverrides(vals, overrides) {
+  if (!overrides) return vals
+  const out = { ...vals }
+  for (const [k, t] of Object.entries(overrides)) {
+    if (t == null) continue
+    const num = Number(String(t).replace(/[,\s]/g, '').replace(/(명|대|곳|건|%|분)$/, ''))
+    out[k] = VAR_BY_KEY[k]?.num && Number.isFinite(num) && /\d/.test(t) ? num : t
+  }
+  return out
 }
 
 // 문서 안 자료 칸을 지금 값으로 바꾼다. 표 자료는 칸 안에 표를 다시 그린다

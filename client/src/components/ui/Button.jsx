@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react'
 const BASE = 'pressable inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md font-bold disabled:opacity-40 disabled:cursor-not-allowed'
 // 모바일 터치 타깃 44(플레이북 5.2, DESIGN.md 접근성 절). md 이상은 데스크톱 밀도를 그대로 둔다
 const SIZE = {
-  sm: 'h-8 min-h-11 min-w-11 md:min-h-0 md:min-w-0 px-3 type-caption',
+  sm: 'h-8 min-h-11 min-w-11 md:min-h-0 md:min-w-0 px-3 type-caption !rounded-sm',
   md: 'h-10 min-h-11 min-w-11 md:min-h-0 md:min-w-0 px-4 type-body-sm',
   lg: 'h-11 px-5 type-body-sm',
   // 도우미 화면 단계 버튼. 높이 56, 고령 사용자 기준

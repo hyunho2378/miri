@@ -55,7 +55,7 @@ export default function AdminLayout() {
             </IconButton>
           </div>
         )}
-        <div className="flex min-h-0 flex-1 overflow-hidden bg-page md:mr-2 md:rounded-t-xl md:shadow-[0_0_0_1px_rgba(16,24,40,0.03),0_1px_3px_rgba(16,24,40,0.06)]">
+        <div className="flex min-h-0 flex-1 overflow-hidden bg-page md:mr-2 md:rounded-t-lg md:shadow-[0_0_0_1px_rgba(16,24,40,0.03),0_1px_3px_rgba(16,24,40,0.06)]">
           {isDesktop && panelOpen && group !== 'docs' && (
             <aside className="w-56 shrink-0 overflow-y-auto bg-subtle">
               <NavPanel group={group} />

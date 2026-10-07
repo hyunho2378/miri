@@ -32,7 +32,7 @@ function Summary({ form }) {
               {opts.map((o) => (
                 <li key={o} className="grid grid-cols-[120px_1fr_40px] items-center gap-3">
                   <span className="truncate type-body-sm text-text-sec">{o}</span>
-                  <span className="h-3 rounded-full bg-mute"><span className="block h-3 rounded-full bg-primary" style={{ width: `${(count(o) / max) * 100}%` }} /></span>
+                  <span className="h-3 rounded-xs bg-mute"><span className="block h-3 rounded-xs bg-primary" style={{ width: `${(count(o) / max) * 100}%` }} /></span>
                   <span className="text-right type-caption text-text-meta tabular-nums">{count(o)}</span>
                 </li>
               ))}
@@ -106,7 +106,7 @@ export default function FormEditor() {
     <div role="tablist" className="flex justify-center gap-2 border-t border-line-sub py-1">
       {TABS.map((t) => (
         <button key={t.v} type="button" role="tab" aria-selected={tab === t.v} onClick={() => setTab(t.v)}
-          className={clsx('inline-flex h-9 items-center gap-2 rounded-full px-4 type-strong', tab === t.v ? 'bg-primary-soft text-primary-text' : 'text-text-sec hover:bg-mute')}>
+          className={clsx('inline-flex h-9 items-center gap-2 rounded-md px-4 type-strong', tab === t.v ? 'bg-primary-soft text-primary-text' : 'text-text-sec hover:bg-mute')}>
           {t.l}
           {t.v === 'r' && <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 type-count text-text-inverse">{form.responses.length}</span>}
         </button>

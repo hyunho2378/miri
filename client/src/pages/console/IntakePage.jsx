@@ -35,7 +35,7 @@ function Step({ n, title, desc, count, active, onClick, Icon }) {
     <Tag type={onClick ? 'button' : undefined} onClick={onClick}
       className={clsx('flex min-w-0 flex-1 items-start gap-3 rounded-lg p-4 text-left transition-colors duration-fast',
         active ? 'bg-mute' : 'bg-subtle', onClick && 'hover:bg-mute')}>
-      <span className={clsx('inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full type-strong', active ? 'bg-text-pri text-text-inverse' : 'bg-page text-text-sec')}>
+      <span className={clsx('inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm type-strong', active ? 'bg-text-pri text-text-inverse' : 'bg-page text-text-sec')}>
         {Icon ? <Icon size={16} aria-hidden="true" /> : n}
       </span>
       <span className="min-w-0">

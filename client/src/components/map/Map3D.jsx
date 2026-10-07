@@ -82,7 +82,7 @@ export default function Map3D({
         <div role="status" className="pointer-events-none absolute inset-x-0 top-1/2 z-raised mx-auto w-64 -translate-y-1/2 rounded-md bg-page px-4 py-3 shadow-md">
           <p className="type-strong text-text-pri">지형을 만드는 중</p>
           <p className="type-meta text-text-meta">읍면동 {Math.round(progress * 60)} / 60곳</p>
-          <div className="mt-2 h-1.5 w-full rounded-full bg-mute"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.round(progress * 100)}%` }} /></div>
+          <div className="mt-2 h-1.5 w-full rounded-xs bg-mute"><div className="h-full rounded-xs bg-primary" style={{ width: `${Math.round(progress * 100)}%` }} /></div>
         </div>
       )}
       {failed && (
@@ -94,7 +94,7 @@ export default function Map3D({
         건물 국토교통부 GIS건물통합정보. 지형 Mapzen, AWS. 바탕 OpenStreetMap 기여자. 경계 vuski/admdongkor. 높이 {EXAG}배 과장
       </p>
       {tip && (
-        <div role="presentation" className="pointer-events-none absolute z-raised max-w-source-col-md rounded-sm bg-text-pri px-3 py-2 text-text-inverse shadow-md" style={{ left: tip.x + 14, top: tip.y + 14 }}>
+        <div role="presentation" className="pointer-events-none absolute z-raised max-w-source-col-md rounded-md bg-text-pri px-3 py-2 text-text-inverse shadow-md" style={{ left: tip.x + 14, top: tip.y + 14 }}>
           <p className="type-strong">{tip.title}</p>
           {tip.line && <p className="type-meta">{tip.line}</p>}
         </div>

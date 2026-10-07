@@ -46,7 +46,7 @@ function TemplateThumb({ kind, t }) {
   } else if (kind === 'form') {
     inner = (
       <>
-        <div className="h-1 rounded-full bg-primary" />
+        <div className="h-1 rounded-xs bg-kind-form" />
         <div className="mt-2 space-y-1.5">
           {t.questions.slice(0, 4).map((q, i) => <p key={i} className="truncate rounded-xs bg-subtle px-1.5 py-1 text-[11px] leading-4 text-text-sec">{q.title}</p>)}
         </div>

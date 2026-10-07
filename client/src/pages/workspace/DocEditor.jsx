@@ -14,7 +14,8 @@ import Badge from '../../components/ui/Badge.jsx'
 import Select from '../../components/ui/Select.jsx'
 import * as api from '../../lib/workspaceApi.js'
 import { findCitations, hashText } from './docConvert.js'
-import { C as calcHtml, V as varHtml, VAR_DEFS, computeVars, formatVar, refreshVars } from '../../lib/docVars.js'
+import { C as calcHtml, V as varHtml, computeVars, refreshVars, withOverrides } from '../../lib/docVars.js'
+import DataPanel from './DataPanel.jsx'
 import {
   END_MARK, FONTS, LINE_SPACINGS, METRICS_INFO, PRESETS, SIZES, STYLES, annotate, docCss, fontCss, footHtml, gongmunOptions, headHtml,
   metricsOf, presetOf, toHwpxPayload
@@ -138,16 +139,16 @@ export default function DocEditor() {
   const [pop, setPop] = useState(null) // table | symbol | color | mark | find
   const [tablePick, setTablePick] = useState({ r: 3, c: 3 })
   const [find, setFind] = useState({ q: '', r: '', n: 0 })
-  const [calcExpr, setCalcExpr] = useState('unserved/scopeTargets*100')
-  const [calcDigits, setCalcDigits] = useState(1)
-  const [calcUnit, setCalcUnit] = useState('%')
+  const [editKey, setEditKey] = useState(null)
 
   const miri = useMiriStore()
   const scenario = useMiriStore(activeScenario)
-  const vals = useMemo(() => computeVars(miri, scenario), [miri.persons, miri.villages, miri.vehicles, miri.helpers, miri.settings, scenario]) // eslint-disable-line react-hooks/exhaustive-deps
+  const baseVals = useMemo(() => computeVars(miri, scenario), [miri.persons, miri.villages, miri.vehicles, miri.helpers, miri.settings, scenario]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const meta = doc?.meta || { preset: '보고서' }
   const locked = !!meta.locked
+  // 문서에서 고친 자료 값(meta.varOverrides)을 상황판 값 위에 얹는다
+  const vals = useMemo(() => withOverrides(baseVals, meta.varOverrides), [baseVals, meta.varOverrides])
   const presetKey = PRESETS.some((p) => p.key === meta.preset) ? meta.preset : '보고서'
   const preset = presetOf(presetKey)
   const metrics = metricsOf(presetKey)
@@ -177,6 +178,8 @@ export default function DocEditor() {
     }
   }, [id, ready]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { measure() }, [presetKey, measure])
+  // 자료 값을 고치면 본문 자료 칸을 바로 바꾼다
+  useEffect(() => { if (bodyRef.current && ready) refreshVars(bodyRef.current, vals) }, [vals]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => {
     clearTimeout(timer.current)
@@ -330,7 +333,8 @@ export default function DocEditor() {
     setPop(null)
   }
   const insertVar = (key) => { insertHtml(`${varHtml(key)}&nbsp;`); refreshVars(bodyRef.current, vals) }
-  const insertCalc = () => { insertHtml(`${calcHtml(calcExpr, calcUnit, Number(calcDigits))}&nbsp;`); refreshVars(bodyRef.current, vals) }
+  const insertCalc = (expr, unit, digits) => { insertHtml(`${calcHtml(expr, unit, digits)}&nbsp;`); refreshVars(bodyRef.current, vals) }
+  const setOverride = (k, t) => { const o = { ...(meta.varOverrides || {}) }; if (t == null) delete o[k]; else o[k] = t; setMeta({ varOverrides: o }) }
   const refreshAll = () => { refreshVars(bodyRef.current, vals); onInput(); toast('자료를 지금 값으로 바꿨습니다', 'primary') }
   const freezeVars = () => {
     bodyRef.current.querySelectorAll('.dv').forEach((el) => {
@@ -659,7 +663,8 @@ export default function DocEditor() {
                     style={{ backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent calc(${page.height}mm - 1px), #b1b8be calc(${page.height}mm - 1px), #b1b8be ${page.height}mm)` }}>
                     <div className="hwp-frame" contentEditable={false} dangerouslySetInnerHTML={{ __html: headHtml({ ...meta, preset: presetKey }) }} />
                     <div ref={bodyRef} className="hwp-body" contentEditable={!locked} suppressContentEditableWarning spellCheck={false}
-                      onInput={onInput} onKeyDown={onKeyDown} onPaste={onPaste} onBlur={() => saveVersion(id, '편집')}
+                      onInput={onInput} onKeyDown={onKeyDown} onPaste={onPaste}
+                      onClick={(e) => { const chip = e.target.closest?.('.dv[data-var]'); if (chip && !chip.classList.contains('dv-block')) { setPanelOpen(true); setPanel('data'); setEditKey(chip.dataset.var) } }} onBlur={() => saveVersion(id, '편집')}
                       aria-label="문서 본문" role="textbox" aria-multiline="true" />
                     <div className="hwp-frame" contentEditable={false} dangerouslySetInnerHTML={{ __html: footHtml({ ...meta, preset: presetKey }) }} />
                   </div>
@@ -729,39 +734,7 @@ export default function DocEditor() {
                   </section>
                 </div>
               )}
-              {panel === 'data' && (
-                <div>
-                  <h3 className="type-strong text-text-pri">자료 넣기</h3>
-                  <p className="mt-1 type-meta leading-5 text-text-meta">상황판과 같은 계산으로 만든 지금 값입니다. 기준 시나리오: {scenario.name}. 누르면 커서 자리에 들어가고, 문서를 열 때마다 새 값으로 바뀝니다.</p>
-                  {[...new Set(VAR_DEFS.map((d) => d.group))].map((g) => (
-                    <section key={g} className="mt-3">
-                      <p className="type-caption text-text-sec">{g}</p>
-                      <ul className="mt-1 space-y-0.5">
-                        {VAR_DEFS.filter((d) => d.group === g).map((d) => (
-                          <li key={d.key}>
-                            <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => insertVar(d.key)} className="flex w-full items-center justify-between gap-2 rounded-xs px-2 py-1.5 text-left hover:bg-mute">
-                              <span className="type-body-sm text-text-pri">{d.label}</span>
-                              <span className="truncate type-meta text-text-meta tabular-nums">{d.table ? '표' : formatVar(d.key, vals)}</span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
-                  ))}
-                  <section className="mt-4 rounded-md bg-subtle p-3">
-                    <p className="type-caption text-text-sec">계산 넣기</p>
-                    <p className="mt-1 type-meta text-text-meta">자료 키와 + - * / ( ) 로 식을 씁니다. 예) unserved/scopeTargets*100</p>
-                    <input autoComplete="off" spellCheck={false} value={calcExpr} onChange={(e) => setCalcExpr(e.target.value)} aria-label="계산식" className="mt-2 h-8 w-full rounded-xs bg-page px-2 font-mono text-[12px] ring-1 ring-inset ring-line-def" />
-                    <div className="mt-2 flex gap-2">
-                      <label className="flex items-center gap-1 type-meta">소수<input autoComplete="off" spellCheck={false} type="number" min="0" max="3" value={calcDigits} onChange={(e) => setCalcDigits(e.target.value)} className="h-7 w-12 rounded-xs bg-page px-1 ring-1 ring-inset ring-line-def" /></label>
-                      <label className="flex items-center gap-1 type-meta">단위<input autoComplete="off" spellCheck={false} value={calcUnit} onChange={(e) => setCalcUnit(e.target.value)} className="h-7 w-12 rounded-xs bg-page px-1 ring-1 ring-inset ring-line-def" /></label>
-                      <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={insertCalc} className="ml-auto h-7 rounded-xs bg-text-pri px-3 type-meta text-text-inverse">넣기</button>
-                    </div>
-                    <p className="mt-2 break-all type-meta text-text-meta">키: {VAR_DEFS.filter((d) => d.num).map((d) => d.key).join(', ')}</p>
-                  </section>
-                  <button type="button" onClick={freezeVars} className="mt-3 h-9 w-full rounded-md bg-subtle type-body-sm text-text-sec hover:bg-mute">자료 칸을 지금 값으로 고정</button>
-                </div>
-              )}
+              {panel === 'data' && <DataPanel vals={vals} base={baseVals} overrides={meta.varOverrides || {}} setOverride={setOverride} onInsertVar={insertVar} onInsertCalc={insertCalc} editKey={editKey} setEditKey={setEditKey} scenarioName={scenario.name} locked={locked} />}
               {panel === 'info' && <DocInfo meta={{ ...meta, preset: presetKey }} setMeta={setMeta} />}
               {panel === 'lint' && (
                 <div>

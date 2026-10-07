@@ -11,7 +11,7 @@ export default function Chip({ as: As = 'button', variant = 'outline', size = 's
   return (
     <As
       className={clsx(
-        'pressable inline-flex items-center gap-2 rounded-full px-4 type-strong whitespace-nowrap',
+        'pressable inline-flex items-center gap-2 rounded-md px-4 type-strong whitespace-nowrap',
         'disabled:opacity-40 disabled:cursor-not-allowed',
         size === 'md' ? 'h-10' : 'h-8',
         'min-h-11 min-w-11 md:min-h-0 md:min-w-0',   // 모바일 터치 타깃 44

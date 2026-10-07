@@ -23,7 +23,7 @@ export default function DeadlineClock({ title, dispatchDeadline, completeDeadlin
         {remain < 0 ? `기한 ${remainText(remain)}` : `${remainText(remain)} 남음`}
       </p>
       {!compact && (
-        <div className="mt-3 h-1.5 rounded-full bg-mute overflow-hidden" aria-hidden="true">
+        <div className="mt-3 h-1.5 rounded-xs bg-mute overflow-hidden" aria-hidden="true">
           <div className={clsx('h-full w-full origin-left', remain < 0 ? 'bg-danger' : late ? 'bg-warning' : 'bg-primary')} style={{ transform: `scaleX(${ratio})` }} />
         </div>
       )}

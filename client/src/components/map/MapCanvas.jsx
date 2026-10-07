@@ -492,7 +492,7 @@ export default function MapCanvas({
       {tip && (
         <div
           role="presentation"
-          className="pointer-events-none absolute z-raised max-w-source-col-md rounded-sm bg-text-pri px-3 py-2 text-text-inverse shadow-md"
+          className="pointer-events-none absolute z-raised max-w-source-col-md rounded-md bg-text-pri px-3 py-2 text-text-inverse shadow-md"
           style={{ left: tip.x + 14, top: tip.y + 14 }}
         >
           <p className="type-strong">{tip.title}</p>

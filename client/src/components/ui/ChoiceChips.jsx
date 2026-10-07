@@ -10,7 +10,7 @@ export default function ChoiceChips({ options = [], value, onChange, label, size
         return (
           <button
             key={o.value} type="button" role="radio" aria-checked={on} onClick={() => onChange?.(o.value)}
-            className={clsx('pressable inline-flex items-center gap-1.5 rounded-full whitespace-nowrap',
+            className={clsx('pressable inline-flex items-center gap-1.5 rounded-md whitespace-nowrap',
               size === 'lg' ? 'h-12 px-4 type-strong' : size === 'sm' ? 'h-8 px-3 type-meta' : 'h-11 px-4 type-strong md:h-9',
               on ? 'bg-primary-soft text-primary-text' : 'bg-page text-text-sec ring-1 ring-inset ring-line-def hover:text-text-pri hover:ring-line-strong')}
           >
