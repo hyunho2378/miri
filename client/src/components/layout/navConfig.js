@@ -3,7 +3,7 @@ import { Archive, BookOpenText, FileScan, FolderOpen, History, LayoutDashboard, 
 
 export const MAIN_NAV = [
   { key: 'home', to: '/console', end: true, label: '현황판', Icon: LayoutDashboard, match: ['/console'] , exact: true },
-  { key: 'intake', to: '/console/intake', label: '서류 읽기', Icon: FileScan, match: ['/console/intake'], queue: true },
+  { key: 'intake', to: '/console/intake', label: '서류 읽기', Icon: FileScan, match: ['/console/intake', '/console/notes'], queue: true },
   { key: 'people', to: '/console/roster', label: '대상자 명부', Icon: UsersRound, match: ['/console/roster'] },
   { key: 'map', to: '/console/map', label: '상황판', Icon: MapPinned, match: ['/console/map'] },
   { key: 'resources', to: '/console/resources', label: '차량과 도우미', Icon: Truck, match: ['/console/resources'] },
@@ -44,6 +44,10 @@ export function groupOf(pathname) {
 
 // 같은 일을 하는 화면을 한 줄 탭으로 묶는다
 export const SECTION_TABS = {
+  intake: [
+    { to: '/console/intake', label: '서류 사진', queue: 'docs' },
+    { to: '/console/notes', label: '현장 소식', queue: 'notes' }
+  ],
   dispatch: [
     { to: '/console/shortage', label: '부족분 계산' },
     { to: '/console/dispatch', label: '발령 운영' },

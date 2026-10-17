@@ -5,6 +5,7 @@ import { buildContext, runBaseline, runOptimize, planDispatch } from '../src/lib
 import { computeShortage, requiredExtraVehicles, scopeInput } from '../src/lib/shortageCalc.js'
 import { LTC, TEMP_SHELTERS, VILLAGES } from '../src/mock/donghaeData.js'
 import { verifyResult } from '../src/lib/intake.js'
+import { diffOf, verifyNote, SAMPLE_NOTES, seedFieldNotes } from '../src/lib/notes.js'
 import { detectAnomalies } from '../src/lib/anomaly.js'
 import { buildSeed } from '../src/mock/seed.js'
 
@@ -89,5 +90,33 @@ ok('이상 탐지 규칙', () => {
   const rules = a.reduce((m, x) => (m[x.rule] = (m[x.rule] || 0) + 1, m), {})
   console.log('   ', JSON.stringify(rules))
   for (const k of ['pendingLong', 'gradeConflict', 'duplicate', 'contract', 'helperLoad']) assert.ok(rules[k] > 0, k)
+})
+// ---- 현장 소식(글, 음성) 판독
+const noteSample = (id) => SAMPLE_NOTES.find((x) => x.id === id)
+ok('현장 소식: 등급이 무거워지면 명부 변경 후보가 생긴다', () => {
+  const s = noteSample('worse')
+  const r = verifyNote(s.text, s.read, { grade: 'assist', tags: [] })
+  assert.equal(r.diff.gradeChanged, true); assert.equal(r.diff.next.grade, 'wheelchair')
+  assert.equal(r.quoteMatched, true); assert.equal(r.lightened, false); assert.equal(r.confidence, 'high')
+})
+ok('현장 소식: 등급을 낮추는 제안은 일치도를 한 단계 내린다', () => {
+  const s = noteSample('better')
+  const r = verifyNote(s.text, s.read, { grade: 'wheelchair', tags: ['oxygen'] })
+  assert.equal(r.lightened, true); assert.equal(r.confidence, 'mid')
+  assert.deepEqual(r.diff.removedTags, ['oxygen']); assert.deepEqual(r.diff.next.tags, [])
+})
+ok('현장 소식: 소식에 없는 근거 문구는 확인 필요로 떨어진다', () => {
+  const s = noteSample('hallu')
+  const r = verifyNote(s.text, s.read, { grade: 'walk', tags: [] })
+  assert.equal(r.quoteMatched, false); assert.equal(r.confidence, 'low')
+})
+ok('현장 소식: 달라진 점이 없으면 명부를 바꾸지 않는다', () => {
+  const s = noteSample('same')
+  const d = diffOf({ grade: 'assist', tags: ['guardian'] }, s.read)
+  assert.equal(d.changed, false); assert.deepEqual(d.next, { grade: 'assist', tags: ['guardian'] })
+})
+ok('현장 소식: 처음 화면에 확인 대기 3건이 있다', () => {
+  const notes = seedFieldNotes(seed.persons, seed.today)
+  assert.equal(notes.length, 3); assert.ok(notes.every((n) => n.status === 'pending' && n.mock))
 })
 console.log(`${n} passed`)

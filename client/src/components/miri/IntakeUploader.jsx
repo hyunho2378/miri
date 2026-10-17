@@ -8,13 +8,13 @@ import Select from '../ui/Select.jsx'
 
 export const READ_STEPS = ['글자 인식', '등급 판정', '근거 추출', '원문 대조']
 
-export function ReadTimeline({ name, step, failed }) {
+export function ReadTimeline({ name, step, failed, steps = READ_STEPS, title = '서류 읽기 진행 중' }) {
   return (
     <div role="status" aria-live="polite" className="rounded-md bg-subtle p-4">
-      <p className="inline-flex items-center gap-1 type-caption text-text-sec"><ScanText size={16} aria-hidden="true" />서류 읽기 진행 중</p>
+      <p className="inline-flex items-center gap-1 type-caption text-text-sec"><ScanText size={16} aria-hidden="true" />{title}</p>
       <p className="mt-1 type-body-sm text-text-pri truncate">{name}</p>
       <ol className="mt-3 grid gap-2 sm:grid-cols-4">
-        {READ_STEPS.map((s, i) => {
+        {steps.map((s, i) => {
           const done = step > i
           const active = step === i && !failed
           return (

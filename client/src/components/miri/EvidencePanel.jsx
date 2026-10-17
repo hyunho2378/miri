@@ -18,7 +18,7 @@ function Highlighted({ transcript, quote }) {
   )
 }
 
-export default function EvidencePanel({ quote, matched, confidence, conflict, transcript, docName, className }) {
+export default function EvidencePanel({ quote, matched, confidence, conflict, transcript, docName, className, subject = '서류' }) {
   return (
     <aside className={clsx('rounded-md bg-subtle p-4 min-w-0', className)} aria-label="판독 근거">
       <div className="flex flex-wrap items-center gap-2">
@@ -32,7 +32,7 @@ export default function EvidencePanel({ quote, matched, confidence, conflict, tr
       <p className="mt-1 type-body-sm text-text-pri">{quote ? `"${quote}"` : '근거 문구가 없습니다.'}</p>
       <p className={clsx('mt-2 inline-flex items-center gap-1 type-caption', matched ? 'text-text-sec' : 'text-danger-text')}>
         {matched ? <CircleCheck size={16} aria-hidden="true" /> : <CircleAlert size={16} aria-hidden="true" />}
-        {matched ? '서류 원문과 일치합니다.' : '서류 원문에서 찾지 못한 문구입니다.'}
+        {matched ? `${subject} 원문과 일치합니다.` : `${subject} 원문에서 찾지 못한 문구입니다.`}
       </p>
       {conflict && (
         <p className="mt-1 inline-flex items-center gap-1 type-caption text-danger-text">
@@ -40,7 +40,7 @@ export default function EvidencePanel({ quote, matched, confidence, conflict, tr
         </p>
       )}
       {transcript && (
-        <Disclosure className="mt-3" summary="서류 원문 보기">
+        <Disclosure className="mt-3" summary={`${subject} 원문 보기`}>
           <p className="type-meta text-text-sec leading-relaxed"><Highlighted transcript={transcript} quote={quote} /></p>
         </Disclosure>
       )}

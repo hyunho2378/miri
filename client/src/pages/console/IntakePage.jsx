@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Card from '../../components/ui/Card.jsx'
 import IntakeUploader, { ReadTimeline } from '../../components/miri/IntakeUploader.jsx'
+import StepCard from '../../components/miri/StepCard.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import ReviewRow from '../../components/miri/ReviewRow.jsx'
 import Button from '../../components/ui/Button.jsx'
@@ -28,25 +29,6 @@ const CONF = {
   low: { label: '원문 불일치', tone: 'text-danger-text' }
 }
 
-// 단계 안내 한 칸
-function Step({ n, title, desc, count, active, onClick, Icon }) {
-  const Tag = onClick ? 'button' : 'div'
-  return (
-    <Tag type={onClick ? 'button' : undefined} onClick={onClick}
-      className={clsx('flex min-w-0 flex-1 items-start gap-3 rounded-lg p-4 text-left transition-colors duration-fast',
-        active ? 'bg-mute' : 'bg-subtle', onClick && 'hover:bg-mute')}>
-      <span className={clsx('inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm type-strong', active ? 'bg-text-pri text-text-inverse' : 'bg-page text-text-sec')}>
-        {Icon ? <Icon size={16} aria-hidden="true" /> : n}
-      </span>
-      <span className="min-w-0">
-        <span className="block type-caption text-text-meta">{n}단계</span>
-        <span className="block type-strong text-text-pri">{title}</span>
-        <span className="mt-0.5 block type-meta leading-5 text-text-sec">{desc}</span>
-        <span className="mt-2 block type-h3 text-text-pri tabular-nums">{count}</span>
-      </span>
-    </Tag>
-  )
-}
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 
 export default function IntakePage() {
@@ -165,10 +147,10 @@ export default function IntakePage() {
   return (
     <PageShell title="서류 읽기">
       <section aria-label="서류 읽기 단계" className="mb-4 flex flex-col gap-3 lg:flex-row">
-        <Step n={1} Icon={FileUp} title="서류 올리기" desc="동 담당자가 받은 대피계획서나 대피카드를 찍거나 스캔해 올립니다." count={`${docs.length}건`}
+        <StepCard n={1} Icon={FileUp} title="서류 올리기" desc="동 담당자가 받은 대피계획서나 대피카드를 찍거나 스캔해 올립니다." count={`${docs.length}건`}
           active={uploadOpen} onClick={canEdit ? () => setShowUpload((v) => !v) : undefined} />
-        <Step n={2} Icon={ScanText} title="AI가 읽기" desc="AI가 거동 상태 문구를 찾아 이송 등급 초안과 근거 문구를 만듭니다. 이름과 연락처는 읽지 않습니다." count={`${readPeople}명`} />
-        <Step n={3} Icon={UserCheck} title="담당자 확인" desc="원본과 근거 문구를 대조해 확인, 수정, 제외합니다. 확인해야 명부와 부족분 계산에 들어갑니다." count={`대기 ${queue.length}건`} active={!uploadOpen && queue.length > 0} />
+        <StepCard n={2} Icon={ScanText} title="AI가 읽기" desc="AI가 거동 상태 문구를 찾아 이송 등급 초안과 근거 문구를 만듭니다. 이름과 연락처는 읽지 않습니다." count={`${readPeople}명`} />
+        <StepCard n={3} Icon={UserCheck} title="담당자 확인" desc="원본과 근거 문구를 대조해 확인, 수정, 제외합니다. 확인해야 명부와 부족분 계산에 들어갑니다." count={`대기 ${queue.length}건`} active={!uploadOpen && queue.length > 0} />
       </section>
 
       {uploadOpen && (

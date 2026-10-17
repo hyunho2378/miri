@@ -1,6 +1,6 @@
 // 대상자 명부(IA 4.2). 이름 열 없음(원본 명부는 지자체 서버 보관 전제). ?person=코드 로 상세 드로어.
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
-import { ScanText, Trash2, UserRound } from 'lucide-react'
+import { MessageSquareText, ScanText, Trash2, UserRound } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
@@ -36,12 +36,12 @@ const REVIEW_OPTIONS = [
   { value: 'all', label: '전체 확인 상태' }, { value: 'pending', label: '확인 대기' },
   { value: 'confirmed', label: '확인 완료' }, { value: 'edited', label: '담당자 수정' }, { value: 'rejected', label: '제외' }
 ]
-const SOURCE_OPTIONS = [{ value: 'all', label: '전체 입력 방법' }, { value: 'ai', label: '서류 자동 판독' }, { value: 'manual', label: '담당자 입력' }]
+const SOURCE_OPTIONS = [{ value: 'all', label: '전체 입력 방법' }, { value: 'ai', label: '서류 자동 판독' }, { value: 'note', label: '현장 소식 반영' }, { value: 'manual', label: '담당자 입력' }]
 
 function SourceLabel({ source }) {
-  return source === 'ai'
-    ? <span className="inline-flex items-center gap-1 type-caption text-text-sec"><ScanText size={14} aria-hidden="true" />서류 자동 판독</span>
-    : <span className="inline-flex items-center gap-1 type-caption text-text-sec"><UserRound size={14} aria-hidden="true" />담당자 입력</span>
+  if (source === 'ai') return <span className="inline-flex items-center gap-1 type-caption text-text-sec"><ScanText size={14} aria-hidden="true" />서류 자동 판독</span>
+  if (source === 'note') return <span className="inline-flex items-center gap-1 type-caption text-text-sec"><MessageSquareText size={14} aria-hidden="true" />현장 소식 반영</span>
+  return <span className="inline-flex items-center gap-1 type-caption text-text-sec"><UserRound size={14} aria-hidden="true" />담당자 입력</span>
 }
 
 export default function RosterPage() {
@@ -224,7 +224,7 @@ export default function RosterPage() {
               </div>
             ) : (
               <p className="rounded-md bg-subtle p-4 type-meta text-text-meta">
-                {open.gradeSource === 'ai' ? '판독 근거는 서류 읽기 화면에서 올린 서류에 대해서만 표시합니다.' : '담당자가 직접 입력한 건이므로 판독 근거가 없습니다.'}
+                {open.gradeSource === 'ai' ? '판독 근거는 서류 읽기 화면에서 올린 서류에 대해서만 표시합니다.' : open.gradeSource === 'note' ? '현장 소식 화면에서 담당자가 승인한 변경입니다. 근거 문구는 현장 소식 화면의 처리 완료 목록에 남아 있습니다.' : '담당자가 직접 입력한 건이므로 판독 근거가 없습니다.'}
               </p>
             )}
           </div>

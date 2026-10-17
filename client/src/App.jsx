@@ -14,6 +14,7 @@ const loaders = {
   Overview: () => import('./pages/console/OverviewPage.jsx'),
   Roster: () => import('./pages/console/RosterPage.jsx'),
   Intake: () => import('./pages/console/IntakePage.jsx'),
+  Notes: () => import('./pages/console/NotesPage.jsx'),
   Resources: () => import('./pages/console/ResourcesPage.jsx'),
   Shortage: () => import('./pages/console/ShortagePage.jsx'),
   Dispatch: () => import('./pages/console/DispatchPage.jsx'),
@@ -39,6 +40,7 @@ const LoginPage = lazy(() => import('./pages/console/LoginPage.jsx'))
 const OverviewPage = lazy(loaders.Overview)
 const RosterPage = lazy(loaders.Roster)
 const IntakePage = lazy(loaders.Intake)
+const NotesPage = lazy(loaders.Notes)
 const ResourcesPage = lazy(loaders.Resources)
 const ShortagePage = lazy(loaders.Shortage)
 const DispatchPage = lazy(loaders.Dispatch)
@@ -92,6 +94,7 @@ export default function App() {
                 <Route path="map" element={<MapPage />} />
                 <Route path="roster" element={<RosterPage />} />
                 <Route path="intake" element={<IntakePage />} />
+                <Route path="notes" element={<NotesPage />} />
                 <Route path="resources" element={<ResourcesPage />} />
                 <Route path="shortage" element={<ShortagePage />} />
                 <Route path="dispatch" element={<DispatchPage />} />

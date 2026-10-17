@@ -8,7 +8,8 @@ import { SECTION_TABS, sectionOf } from './navConfig.js'
 export default function SectionTabs() {
   const { pathname } = useLocation()
   const role = useAuthStore((s) => s.user?.role)
-  const pending = useMiriStore((s) => s.persons.filter((p) => p.review === 'pending').length)
+  const docsPending = useMiriStore((s) => s.persons.filter((p) => p.review === 'pending').length)
+  const notesPending = useMiriStore((s) => s.fieldNotes.filter((n) => n.status === 'pending').length)
   const section = sectionOf(pathname)
   const tabs = section && SECTION_TABS[section.key]
   if (!tabs) return null
@@ -27,8 +28,8 @@ export default function SectionTabs() {
             {({ isActive }) => (
               <>
                 {t.label}
-                {t.queue && pending > 0 && (
-                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 type-count text-text-inverse" aria-label={`확인 대기 ${pending}건`}>{pending}</span>
+                {t.queue && (t.queue === 'notes' ? notesPending : docsPending) > 0 && (
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 type-count text-text-inverse" aria-label={`확인 대기 ${t.queue === 'notes' ? notesPending : docsPending}건`}>{t.queue === 'notes' ? notesPending : docsPending}</span>
                 )}
                 {isActive && <span className="absolute left-3 right-3 bottom-1 h-0.5 rounded-full bg-text-pri" />}
               </>

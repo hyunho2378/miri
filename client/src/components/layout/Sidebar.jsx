@@ -52,7 +52,7 @@ export function Rail({ group, onGroup }) {
 // 2열. 고른 묶음의 메뉴. 휴대폰 서랍에서는 묶음을 모두 펼친다
 export function NavPanel({ group = 'work', onNavigate, showAll = false }) {
   const role = useAuthStore((s) => s.user?.role)
-  const pending = useMiriStore((s) => s.persons.filter((p) => p.review === 'pending').length)
+  const pending = useMiriStore((s) => s.persons.filter((p) => p.review === 'pending').length + s.fieldNotes.filter((n) => n.status === 'pending').length)
   const { pathname } = useLocation()
   const current = sectionOf(pathname)
   const groups = showAll ? RAIL_GROUPS : RAIL_GROUPS.filter((g) => g.key === group)

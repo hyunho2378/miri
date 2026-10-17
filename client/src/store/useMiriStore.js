@@ -2,11 +2,14 @@
 // VITE_USE_MOCK=true 에서는 가상 데이터로 시작하고 새로고침하면 초기 상태로 돌아간다.
 import { create } from 'zustand'
 import { buildSeed } from '../mock/seed.js'
+import { seedFieldNotes } from '../lib/notes.js'
 
 const seed = buildSeed()
 
 export const useMiriStore = create((set, get) => ({
   ...seed,
+  // 현장 소식(글, 음성)에서 읽은 명부 변경 후보. 담당자가 반영해야 명부가 바뀐다
+  fieldNotes: seedFieldNotes(seed.persons, seed.today),
 
   // 명부
   updatePerson: (code, patch) => set((s) => ({
@@ -39,6 +42,21 @@ export const useMiriStore = create((set, get) => ({
     return { intakeDocs: [doc, ...s.intakeDocs], persons: [...s.persons, ...persons] }
   }),
   nextDocId: () => `DOC-${String(100 + get().intakeDocs.length).padStart(4, '0')}`,
+
+  // 현장 소식. action: apply | edit | reject. 반영과 수정은 명부를 바꾸고 제외는 명부를 그대로 둔다
+  addFieldNote: (note) => set((s) => ({ fieldNotes: [note, ...s.fieldNotes] })),
+  nextNoteId: () => `NOTE-${String(1 + get().fieldNotes.length).padStart(4, '0')}`,
+  reviewFieldNote: (id, action, patch = {}) => set((s) => {
+    const note = s.fieldNotes.find((n) => n.id === id)
+    if (!note) return {}
+    const status = action === 'reject' ? 'rejected' : action === 'edit' ? 'edited' : 'applied'
+    const fieldNotes = s.fieldNotes.map((n) => (n.id === id ? { ...n, status, final: action === 'reject' ? null : patch, reviewedAt: s.today } : n))
+    if (action === 'reject') return { fieldNotes }
+    const persons = s.persons.map((p) => (p.code === note.personCode
+      ? { ...p, grade: patch.grade, tags: patch.tags || [], gradeSource: 'note', review: 'confirmed', docId: note.id, updatedAt: s.today }
+      : p))
+    return { fieldNotes, persons }
+  }),
 
   // 자원
   upsertVehicle: (v) => set((s) => ({
