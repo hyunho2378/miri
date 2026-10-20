@@ -133,12 +133,12 @@ export default function NotesPage() {
   }
 
   return (
-    <PageShell title="현장 소식">
+    <PageShell title="현장 소식" desc="명부 갱신은 동 맞춤형복지 담당(사회복지 담당자)이 맡습니다. 이사와 거주 변화를 가장 먼저 아는 사회복지 담당자가 요양보호사, 이장, 가족의 소식을 확인해 승인합니다.">
       <section aria-label="현장 소식 단계" className="mb-4 flex flex-col gap-3 lg:flex-row">
         <StepCard n={1} Icon={MessageSquareText} title="소식 받기" desc="요양보호사, 이장, 가족이 전한 말을 글로 붙여 넣거나 음성 녹음을 올립니다." count={`${notes.length}건`}
           active={inputOpen} onClick={canEdit ? () => setShowInput((v) => !v) : undefined} />
-        <StepCard n={2} Icon={ScanText} title="AI가 읽기" desc="AI가 대상자의 거동이 달라졌는지 찾고 근거 문구를 붙입니다. 이름과 연락처는 읽지 않습니다." count={`${notes.filter((n) => n.read.diff.changed).length}건 변경 후보`} />
-        <StepCard n={3} Icon={UserCheck} title="담당자 승인" desc="근거와 현재 명부를 견주어 반영, 수정 후 반영, 반영 안 함을 고릅니다. 반영해야 명부와 부족분 계산이 바뀝니다." count={`대기 ${queue.length}건`} active={!inputOpen && queue.length > 0} />
+        <StepCard n={2} Icon={ScanText} title="AI가 읽기" desc="글이나 음성을 AI에 보내 대상자의 거동이 달라졌는지 찾고 근거 문구를 붙입니다. 이름, 주소, 연락처는 결과에 남기지 않습니다." count={`${notes.filter((n) => n.read.diff.changed).length}건 변경 후보`} />
+        <StepCard n={3} Icon={UserCheck} title="사회복지 담당자 승인" desc="동 맞춤형복지 담당이 근거와 현재 명부를 견주어 반영, 수정 후 반영, 반영 안 함을 고릅니다. 반영해야 명부와 부족분 계산이 바뀝니다." count={`대기 ${queue.length}건`} active={!inputOpen && queue.length > 0} />
       </section>
 
       {inputOpen && (

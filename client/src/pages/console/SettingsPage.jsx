@@ -1,6 +1,7 @@
 // 설정(IA 4.9). 시 관리자 전용. 계산 기본값, 이상 탐지 임계값, 마을과 대피소, 임시주거시설, 차종 정원, 사용자, 데이터 출처.
 import Card from '../../components/ui/Card.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
+import { rosterBreakdown, rosterSourceText } from '../../lib/rosterCount.js'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import Badge from '../../components/ui/Badge.jsx'
 import KeyValue from '../../components/ui/KeyValue.jsx'
@@ -14,6 +15,7 @@ import { DATA_SOURCES, DONG_STATS, LTC } from '../../mock/donghaeData.js'
 
 export default function SettingsPage() {
   const settings = useMiriStore((s) => s.settings)
+  const persons = useMiriStore((s) => s.persons)
   const villages = useMiriStore((s) => s.villages)
   const shelters = useMiriStore((s) => s.shelters)
   const dongs = useMiriStore((s) => s.dongs)
@@ -62,6 +64,7 @@ export default function SettingsPage() {
             { label: '마을', value: `법정동 ${villages.length}곳(동호동은 행정동 일대 1곳)` },
             { label: '임시주거시설', value: `${shelters.length}곳, 수용 가능 ${shelterCap.toLocaleString('ko-KR')}명` },
             { label: '재가 장기요양 수급자 추정', value: `${LTC.homeTotal.toLocaleString('ko-KR')}명(${LTC.period}년 급여이용 ${LTC.users['계'].toLocaleString('ko-KR')}명 중 시설급여 ${LTC.facilityUsers['계']}명 제외)` },
+            { label: '명부 건수', value: rosterSourceText(rosterBreakdown(persons)) },
             { label: '주민등록인구', value: `${dongRows.reduce((t, d) => t + d.total, 0).toLocaleString('ko-KR')}명, 65세 이상 ${dongRows.reduce((t, d) => t + d.age65, 0).toLocaleString('ko-KR')}명(${DATA_SOURCES.population.period})` }
           ]} />
         </Card>
@@ -69,7 +72,7 @@ export default function SettingsPage() {
         <Card title="계산 기본값">
           <div className="divide-y divide-line-sub">
             <NumberStepper className="pb-3" label="준비 시간" unit="분" step={15} min={0} max={180} value={settings.prepMinutes} onChange={(v) => updateSettings({ prepMinutes: v })} hint="발령 후 첫 차량이 출발하기까지 걸리는 시간" />
-            <NumberStepper className="py-3" label="탑승과 하차 시간" unit="분" step={5} min={5} max={60} value={settings.boardingMinutes ?? 20} onChange={(v) => updateSettings({ boardingMinutes: v })} hint="왕복 시간 = 편도 주행 시간 × 2 + 이 값. 주행 시간은 OSRM 도로 경로 계산값" />
+            <NumberStepper className="py-3" label="탑승과 하차 시간" unit="분" step={5} min={5} max={60} value={settings.boardingMinutes ?? 20} onChange={(v) => updateSettings({ boardingMinutes: v })} hint="왕복 시간 = 편도 주행 시간 × 2 + 이 값. 주행 시간은 OSRM 도로 경로 계산값. 회신 R17(개인 경험 기준): 휠체어 특장차 탑승과 안전벨트 착용은 숙련자 5분 이내. 근거가 한 곳뿐이라 기본값은 그대로 둡니다." />
             <div className="pt-3">
               <p className="type-caption text-text-sec">이송 완료 기한</p>
               <SegmentControl

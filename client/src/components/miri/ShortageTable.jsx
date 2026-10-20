@@ -6,14 +6,17 @@ import { GRADES } from '../../lib/shortage.js'
 import TableCard from '../dashboard/TableCard.jsx'
 import SegmentControl from '../ui/SegmentControl.jsx'
 import { byGradeLine } from './ShortageValue.jsx'
+import { fmtElapsed } from '../../lib/geo.js'
 
 const STEPS = ['bg-mute text-text-meta', 'bg-chart-heatDanger-1 text-text-pri', 'bg-chart-heatDanger-2 text-text-pri', 'bg-chart-heatDanger-3 text-text-pri', 'bg-chart-heatDanger-4 text-text-inverse']
 
-export default function ShortageTable({ title = '마을별 부족분', basis, headingLevel = 2, villages, dongs, byVillage, initialView = 'table', pageSize = 20, className }) {
+export default function ShortageTable({ title = '마을별 부족분', basis, headingLevel = 2, villages, dongs, byVillage, arrivals, t0, initialView = 'table', pageSize = 20, className }) {
   const [view, setView] = useState(initialView)
   const dongName = (c) => dongs.find((d) => d.code === c)?.name || c
-  const rows = useMemo(() => villages.map((v) => ({ ...v, ...byVillage[v.code] }))
-    .sort((a, b) => b.total - a.total || a.code.localeCompare(b.code)), [villages, byVillage])
+  // 회신 R27(최충익): 산불 위험(도달 시각)과 대피 취약성(침상과 휠체어 인원)을 따로 본다
+  const hours = (code) => (arrivals && t0 != null && arrivals[code] != null ? (arrivals[code] - t0) / 3600000 : null)
+  const rows = useMemo(() => villages.map((v) => ({ ...v, ...byVillage[v.code], arrivalH: hours(v.code), vulnerable: (byVillage[v.code]?.targets?.bed || 0) + (byVillage[v.code]?.targets?.wheelchair || 0) }))
+    .sort((a, b) => b.total - a.total || a.code.localeCompare(b.code)), [villages, byVillage, arrivals, t0]) // eslint-disable-line react-hooks/exhaustive-deps
   const max = Math.max(1, ...rows.flatMap((r) => GRADES.map((g) => r.shortage[g.key])))
   const level = (x) => (x <= 0 ? 0 : Math.min(4, Math.ceil((x / max) * 4)))
 
@@ -21,7 +24,9 @@ export default function ShortageTable({ title = '마을별 부족분', basis, he
     { key: 'label', label: '마을', sortable: true, render: (r) => <span className="type-strong">{r.label}</span> },
     { key: 'dong', label: '행정동', hideBelow: 'lg', render: (r) => dongName(r.dongCode) },
     { key: 'roundTripMin', label: '왕복 시간', align: 'right', sortable: true, hideBelow: 'md', render: (r) => `${r.roundTripMin}분` },
+    ...(arrivals ? [{ key: 'arrivalH', label: '산불 도달(위험)', align: 'right', sortable: true, hideBelow: 'md', render: (r) => (r.arrivalH == null ? '-' : <span className="whitespace-nowrap">발령 후 {fmtElapsed(r.arrivalH)}</span>) }] : []),
     { key: 'targetTotal', label: '대상자', align: 'right', sortable: true, render: (r) => `${r.targetTotal}명` },
+    ...(arrivals ? [{ key: 'vulnerable', label: '이동 취약(침상과 휠체어)', align: 'right', sortable: true, hideBelow: 'lg', render: (r) => `${r.vulnerable}명` }] : []),
     { key: 'targets', label: '등급별 대상자', hideBelow: 'lg', render: (r) => <span className="type-meta text-text-meta">{byGradeLine(r.targets)}</span> },
     {
       key: 'total', label: '부족분', align: 'right', sortable: true,
@@ -36,7 +41,7 @@ export default function ShortageTable({ title = '마을별 부족분', basis, he
     return (
       <TableCard
         title={title} headingLevel={headingLevel} className={className}
-        count={shortVillages ? `부족 ${shortVillages}곳` : '부족 없음'} desc={basis} actions={toggle}
+        count={shortVillages ? `부족 ${shortVillages}곳` : '부족 없음'} desc={arrivals ? `${basis}. 산불 도달은 시나리오 가정이고 이동 취약 인원은 명부 기준이라 따로 봅니다(회신 R27).` : basis} actions={toggle}
         columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={pageSize} caption={title}
       />
     )

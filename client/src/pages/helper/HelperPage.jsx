@@ -1,6 +1,6 @@
 // 도우미 면(IA 5.1). 설치 없는 링크 접속. 데모는 token 'demo' 만 동작.
 // 내 도우미 코드는 발령 전송 시 정해지는 manualHelper. 내 대상자는 자동 진행 없이 이 화면 보고로만 바뀐다.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CircleCheck, CircleX, Clock, LinkIcon, Truck } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import FailReportSheet from '../../components/miri/FailReportSheet.jsx'
@@ -46,6 +46,7 @@ function startDemo() {
 }
 
 export default function HelperPage() {
+  useEffect(() => { document.title = '도우미 배정 | 미리' }, [])
   const { token } = useParams()
   const d = useDispatchStore()
   const vnow = useNow()
@@ -81,7 +82,7 @@ export default function HelperPage() {
   if (d.status === 'idle') {
     return (
       <Notice image="/images/illustrations/empty.svg" title="배정 대기 중" action={demoButton}>
-        발령이 내려지면 이 화면에 배정이 표시됩니다.
+        혼자 대피하기 어려운 이웃을 돕는 배정입니다. 발령이 내려지면 이 화면에 표시됩니다.
       </Notice>
     )
   }

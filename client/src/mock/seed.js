@@ -108,6 +108,12 @@ export function buildSeed() {
     docSeq += 1
   }
 
+  // 회신 R24(김현규): 주야간보호 이용자는 낮에는 집이 아니라 센터에 있다. 이용자 수는 공단 통계(LTC.dayCareUsers 계)를 쓰고,
+  // 누가 이용자인지는 가상이라 코드의 고정 해시 순서로 고른다(난수 순서를 바꾸지 않음)
+  const dayCareN = LTC.dayCareUsers?.['계'] || 0
+  const hash = (str) => { let h = 2166136261; for (let i = 0; i < str.length; i += 1) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) } return h >>> 0 }
+  ;[...persons].sort((a, b) => hash(a.code) - hash(b.code) || a.code.localeCompare(b.code)).slice(0, dayCareN).forEach((p) => { p.dayCare = true })
+
   // 판독 확인 대기 8건은 아래 INTAKE_DOCS 결과와 연결
   // 이상 탐지 시연용: 와상 표기된 부축 등급 1건, 같은 서류 같은 위치 중복 1쌍
   const conflict = persons.find((p) => p.villageCode === 'BS-02' && p.grade === 'assist')
@@ -144,7 +150,7 @@ export function buildSeed() {
     })),
     { code: 'V-07', type: 'bedVan', owner: 'facility', baseDong: 'BG', available: true, note: '노인요양시설 차량(가정)' },
     { code: 'V-08', type: 'bedVan', owner: 'facility', baseDong: 'BP', available: true, note: '노인요양시설 차량(가정)' },
-    ...lift.map((dong, k) => ({ code: `V-${String(9 + k).padStart(2, '0')}`, type: 'liftVan', owner: 'facility', baseDong: dong, available: true, note: '주야간보호기관 차량(가정)' })),
+    ...lift.map((dong, k) => ({ code: `V-${String(9 + k).padStart(2, '0')}`, type: 'liftVan', owner: 'facility', baseDong: dong, available: true, note: '주야간보호기관 차량(가정)', dayCare: true })),
     { code: 'V-18', type: 'liftVan', owner: 'city', baseDong: 'CG', available: true, note: '' },
     ...carBase.map((dong, k) => ({
       code: `V-${19 + k}`, type: 'car', owner: 'contract', baseDong: dong,

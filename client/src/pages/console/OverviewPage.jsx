@@ -9,6 +9,7 @@ import { ArrowRight, ChevronRight, Circle, Layers } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
 import PageShell, { todayLabel } from '../../components/miri/PageShell.jsx'
+import { rosterBreakdown, rosterPartsText } from '../../lib/rosterCount.js'
 import { useFireRisk, useWarning, useWind, dirName } from '../../components/miri/FireRiskStrip.jsx'
 import useAnomalies from '../../hooks/useAnomalies.js'
 import useNow from '../../hooks/useNow.js'
@@ -151,7 +152,7 @@ export default function OverviewPage() {
   )
 
   return (
-    <PageShell title="오늘의 현황" eyebrow={todayLabel()} actions={actions}>
+    <PageShell title="오늘의 현황" eyebrow={todayLabel()} desc="혼자 대피하기 어려운 주민을 보호하기 위해, 옮길 차와 사람이 몇 명분 모자라는지 평소에 확인합니다." actions={actions}>
       <div className="grid gap-3 cq-md:grid-flow-row-dense cq-md:grid-cols-6 cq-xl:grid-cols-12">
         {/* 미이송 예상 */}
         <Card title="미이송 예상" className="flex flex-col cq-md:col-span-3 cq-xl:col-span-3" bodyClassName="flex flex-1 flex-col">
@@ -163,8 +164,9 @@ export default function OverviewPage() {
             <span className="whitespace-nowrap type-strong text-text-pri tabular-nums">{fmt(optUnserved)}명{diff < 0 ? <span className="ml-1 type-meta text-text-sec">{-diff}명 감소</span> : null}</span>
           </div>
           {scopeProvisional > 0 && <p className="mt-2 type-meta text-text-meta">확인 대기 서류 {scopeProvisional}건이 포함된 잠정값입니다.</p>}
+          <p className="mt-2 type-meta leading-5 text-text-meta">명부 {fmt(active.length)}건: {rosterPartsText(rosterBreakdown(active))}. 재가 장기요양 수급자 추정(2025, 국민건강보험공단)에 맞춘 가상 명부이며 등록장애인은 명부 확인 뒤 포함합니다.</p>
           <div className="mt-auto grid grid-cols-2 gap-3 pt-5">
-            <Stat label="대상자" value={fmt(active.length)} unit="명" />
+            <Stat label="명부" value={fmt(active.length)} unit="건" />
             <Stat label="부족 마을" value={shortVillages.length} unit="곳" tone={shortVillages.length ? 'danger' : undefined} />
           </div>
         </Card>
@@ -277,7 +279,7 @@ export default function OverviewPage() {
         <div className="grid gap-3 cq-md:col-span-3 cq-xl:col-span-3">
           <Card
             title="부족 마을"
-            actions={<Link to="/console/shortage" aria-label="부족분 계산으로 이동" className="text-text-meta hover:text-text-pri"><ChevronRight size={16} aria-hidden="true" /></Link>}
+            actions={<Link to="/console/shortage" aria-label="부족분 계산으로 이동" className="-m-1 inline-flex h-6 w-6 items-center justify-center rounded-sm text-text-meta hover:bg-mute hover:text-text-pri"><ChevronRight size={16} aria-hidden="true" /></Link>}
           >
             <p className="type-h2 text-danger-text tabular-nums">{shortVillages.length}<span className="ml-0.5 type-body-sm">곳</span></p>
             <Meter value={shortVillages.length} max={inScope.length} tone="danger" />
@@ -285,7 +287,7 @@ export default function OverviewPage() {
           </Card>
           <Card
             title="가용 차량"
-            actions={<Link to="/console/resources" aria-label="차량과 도우미로 이동" className="text-text-meta hover:text-text-pri"><ChevronRight size={16} aria-hidden="true" /></Link>}
+            actions={<Link to="/console/resources" aria-label="차량과 도우미로 이동" className="-m-1 inline-flex h-6 w-6 items-center justify-center rounded-sm text-text-meta hover:bg-mute hover:text-text-pri"><ChevronRight size={16} aria-hidden="true" /></Link>}
           >
             <p className="type-h2 text-text-pri tabular-nums">{availVehicles}<span className="ml-0.5 type-body-sm">대</span></p>
             <Meter value={availVehicles} max={vehicles.length} />

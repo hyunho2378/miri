@@ -44,6 +44,8 @@ export default function AdminLayout() {
 
   return (
     <div className="flex h-dvh overflow-hidden bg-mute">
+      {/* KWCAG 반복 영역 건너뛰기(회신 R14 지침 자체 점검) */}
+      <a href="#main" onClick={(e) => { e.preventDefault(); mainRef.current?.focus() }} className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-md focus:bg-text-pri focus:px-4 focus:py-2 focus:font-bold focus:text-text-inverse">본문 바로가기</a>
       {isDesktop && <aside className="shrink-0"><Rail group={group} onGroup={onGroup} /></aside>}
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar isDesktop={isDesktop} panelOpen={panelOpen} onTogglePanel={() => setPanelOpen((o) => !o)} />
@@ -63,7 +65,7 @@ export default function AdminLayout() {
           )}
           <div className="flex min-w-0 flex-1 flex-col">
             <DispatchBanner />
-            <main ref={mainRef} className="admin-surface relative min-h-0 flex-1 overflow-y-auto">
+            <main id="main" tabIndex={-1} ref={mainRef} className="admin-surface relative min-h-0 flex-1 overflow-y-auto focus:outline-none">
               {/* 본문만 경로별로 다시 만든다. Suspense 는 경계 바깥에 둔다 */}
               <Suspense fallback={<div className="min-h-[60vh]" aria-busy="true" />}>
                 <ErrorBoundary key={pathname}>

@@ -1,7 +1,7 @@
 // 대상자 명부(IA 4.2). 이름 열 없음(원본 명부는 지자체 서버 보관 전제). ?person=코드 로 상세 드로어.
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { MessageSquareText, ScanText, Trash2, UserRound } from 'lucide-react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import EditPencil from '../../components/edit/EditPencil.jsx'
@@ -10,6 +10,7 @@ import InlineEditBar from '../../components/edit/InlineEditBar.jsx'
 import EvidencePanel from '../../components/miri/EvidencePanel.jsx'
 import GradeChip from '../../components/miri/GradeChip.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
+import { DISABLED_NOTE, rosterBreakdown, rosterSourceText } from '../../lib/rosterCount.js'
 import { DocImage, GRADE_OPTIONS, TAG_OPTIONS } from '../../components/miri/ReviewRow.jsx'
 import Button from '../../components/ui/Button.jsx'
 import KeyValue from '../../components/ui/KeyValue.jsx'
@@ -166,7 +167,7 @@ export default function RosterPage() {
       </div>
       {view === 'list' ? (
       <TableCard
-        title="대상자" count={`${rows.length}명`} desc={`명부 ${fmtKDate(today)} 기준. 이름 없이 대상자 코드로 표시합니다.`}
+        title="대상자" count={`${rows.length}명`} desc={`명부 ${fmtKDate(today)} 기준. 이름 없이 대상자 코드로 표시합니다. ${rosterSourceText(rosterBreakdown(persons))} ${DISABLED_NOTE}`}
         actions={<InlineEditBar resource="persons" addLabel="대상자 추가" onAdd={() => { setErrors({}); setEditing({ mode: 'add', value: { villageCode: village !== 'all' ? village : villageOptions[1]?.value, grade: 'assist', tags: [] } }) }} />}
         filters={filterBar}
         columns={columns} rows={rows} rowKey={(p) => p.code} onRowClick={(p) => { setEditing(null); openPerson(p.code) }} emptyTitle="조건에 맞는 대상자가 없습니다" emptyDesc="필터 조건을 바꿔 다시 확인해 주십시오." caption="대상자 명부"
@@ -221,7 +222,8 @@ export default function RosterPage() {
                 { label: '소통 방식', value: open.access.comm }
               ] : []),
               { label: '근거 서류', value: open.docId || '없음' },
-              { label: '갱신일', value: fmtDate(open.updatedAt) }
+              { label: '갱신일', value: fmtDate(open.updatedAt) },
+              { label: '갱신 담당', value: <span>동 맞춤형복지 담당(사회복지 담당자). 이사, 입원, 거동 변화는 <Link to="/console/notes" className="text-primary-text underline underline-offset-2">현장 소식</Link>에서 승인해 반영합니다.</span> }
             ]} />
             {evidence ? (
               <div className="space-y-3">

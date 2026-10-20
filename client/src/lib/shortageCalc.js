@@ -7,9 +7,31 @@ import { HOUR } from './time.js'
 import { resolveVillages } from './scenario.js'
 import { TEMP_SHELTERS } from '../mock/donghaeData.js'
 
+// 발령 시간대. 회신 R24(김현규)와 R27(최충익). 시나리오에 timeBand 가 없으면 이전과 같이 모두 집에 있다고 본다
+export const TIME_BANDS = [
+  { value: 'home', label: '밤이나 휴일', desc: '모든 대상자가 집에 있다고 봅니다.' },
+  { value: 'day', label: '평일 낮', desc: '주야간보호 이용자는 센터에 있어 센터 송영 차량으로 대피한다고 보고 마을 이송 대상에서 뺍니다. 주야간보호기관 차량도 마을 이송에서 뺍니다.' }
+]
+export const bandOf = (scenario) => TIME_BANDS.find((b) => b.value === (scenario?.timeBand || 'home')) || TIME_BANDS[0]
+const isDayCareVehicle = (v) => Boolean(v.dayCare) || /주야간보호/.test(v.note || '')
+
+export function bandPersons(persons, scenario) {
+  return scenario?.timeBand === 'day' ? persons.filter((p) => !p.dayCare) : persons
+}
+
+// 차량 가용률(%)은 기관 조사 전 담당자가 정하는 값. 차종마다 코드 순으로 그 비율만큼 남긴다
+export function bandVehicles(vehicles, scenario) {
+  const list = scenario?.timeBand === 'day' ? vehicles.filter((v) => !isDayCareVehicle(v)) : vehicles
+  const rate = scenario?.availability ?? 100
+  if (rate >= 100) return list
+  const byType = {}
+  for (const v of list) if (v.available !== false) (byType[v.type] = byType[v.type] || []).push(v)
+  return Object.values(byType).flatMap((arr) => [...arr].sort((a, b) => a.code.localeCompare(b.code)).slice(0, Math.ceil((arr.length * rate) / 100)))
+}
+
 // 시나리오 범위 적용. 대피 대상 구역 마을과 그 대상자만 계산에 넣고, 마을별 대피소와 왕복 시간을 시나리오에 맞춘다
 export function scopeInput({ persons, villages, scenario, settings = {}, shelters = TEMP_SHELTERS }) {
-  const active = persons.filter((p) => p.review !== 'rejected')
+  const active = bandPersons(persons.filter((p) => p.review !== 'rejected'), scenario)
   const r = resolveVillages({ villages, persons: active, scenario, shelters, settings })
   const scoped = r.villages.filter((v) => v.inScope)
   const codes = new Set(scoped.map((v) => v.code))
@@ -45,12 +67,12 @@ export function computeShortage({ persons, villages: allVillages, vehicles, help
     windowHours: scenario?.windowHours ?? settings.windowHours,
     completeBeforeHours: scenario?.completeBeforeHours ?? settings.completeBeforeHours
   }
-  const ctx = buildContext({ ...params, vehicles: withExtra(vehicles, scenario?.extraVehicles) })
+  const ctx = buildContext({ ...params, vehicles: withExtra(bandVehicles(vehicles, scenario), scenario?.extraVehicles) })
   const base = runBaseline(ctx)
 
   const byVillage = {}
   for (const v of scope.all) byVillage[v.code] = { targets: emptyByGrade(), shortage: emptyByGrade(), total: 0, targetTotal: 0, provisional: 0, inScope: v.inScope }
-  for (const p of persons.filter((x) => x.review !== 'rejected')) {
+  for (const p of bandPersons(persons.filter((x) => x.review !== 'rejected'), scenario)) {
     const row = byVillage[p.villageCode]
     if (!row) continue
     row.targets[p.grade] += 1
@@ -91,7 +113,9 @@ export function computeShortage({ persons, villages: allVillages, vehicles, help
 
   return {
     byVillage, byGrade, timeByGrade, timeTotal, total, provisional, formula, arrivals, ctx, baselineUnserved: base.unserved,
-    villages: scope.all, shelterLoad: scope.shelterLoad, scopeVillages: villages.length, scopeTargets: params.persons.length
+    villages: scope.all, shelterLoad: scope.shelterLoad, scopeVillages: villages.length, scopeTargets: params.persons.length,
+    // 평일 낮에 센터에 있어 마을 이송에서 뺀 주야간보호 이용자(대피 대상 구역 안)
+    dayCareAway: scenario?.timeBand === 'day' ? persons.filter((p) => p.dayCare && p.review !== 'rejected' && villages.some((v) => v.code === p.villageCode)).length : 0
   }
 }
 

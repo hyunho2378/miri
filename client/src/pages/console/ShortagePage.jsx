@@ -18,13 +18,19 @@ import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
 import { EXTRA_TYPE, GRADES, typeOf } from '../../lib/shortage.js'
-import { computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
+import { TIME_BANDS, bandOf, computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
+import { DISABLED_NOTE } from '../../lib/rosterCount.js'
 import { fireScenario } from '../../lib/scenario.js'
 import { fmtElapsed } from '../../lib/geo.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
+import { LTC } from '../../mock/donghaeData.js'
+
+const LTC_DAYCARE = LTC.dayCareUsers?.['계'] || 0
 
 const MAX_SCENARIOS = 5
+// 탑승과 하차 시간 민감도. 현재 가정값(설정)을 가운데에 두고 앞뒤로 본다
+const BOARDING_STEPS = [10, 15, 20, 25, 30]
 const EXTRA_TYPES = [...new Set(Object.values(EXTRA_TYPE))]
 
 const offsetText = (h) => `+${fmtElapsed(h)}`
@@ -59,6 +65,10 @@ export default function ShortagePage() {
   const result = useMemo(() => computeShortage(input), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
   const extra = useMemo(() => requiredExtraVehicles(input, result), [result]) // eslint-disable-line react-hooks/exhaustive-deps
   const compare = useMemo(() => scenarios.map((sc) => ({ sc, r: computeShortage({ ...input, scenario: sc }) })), [scenarios, persons, villages, vehicles, helpers, settings, today]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 가정값 점검(회신 R17, R24, R27). 지금 조건에서 시간대와 탑승 시간만 바꿔 다시 계산한다
+  const bandCompare = useMemo(() => TIME_BANDS.map((b) => ({ b, r: computeShortage({ ...input, scenario: { ...draft, timeBand: b.value } }) })), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
+  const boardingNow = settings.boardingMinutes ?? 20
+  const boardingCompare = useMemo(() => [...new Set([...BOARDING_STEPS, boardingNow])].sort((a, b) => a - b).map((m) => ({ m, r: computeShortage({ ...input, settings: { ...settings, boardingMinutes: m } }) })), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
   const dirty = JSON.stringify(draft) !== JSON.stringify(base)
 
   const set = (patch) => setDraft((d) => ({ ...d, ...patch }))
@@ -92,6 +102,7 @@ export default function ShortagePage() {
     { key: 'scope', label: '대피 대상', render: ({ r }) => <span className="whitespace-nowrap tabular-nums">{r.scopeVillages}곳 {r.scopeTargets}명</span> },
     { key: 'first', label: '첫 도달', hideBelow: 'md', render: ({ sc }) => <span className="whitespace-nowrap">발령 후 {fmtElapsed(sc.windowHours)}</span> },
     { key: 'prep', label: '준비 시간', hideBelow: 'lg', render: ({ sc }) => <span className="whitespace-nowrap">{sc.prepMinutes}분</span> },
+    { key: 'band', label: '시간대', hideBelow: 'lg', render: ({ sc }) => <span className="whitespace-nowrap">{bandOf(sc).label}{(sc.availability ?? 100) < 100 ? `, 차량 ${sc.availability}%` : ''}</span> },
     { key: 'complete', label: '완료 기한', hideBelow: 'lg', render: ({ sc }) => <span className="whitespace-nowrap">{completeText(sc.completeBeforeHours)}</span> },
     { key: 'extra', label: '추가 차량', hideBelow: 'lg', render: ({ sc }) => <span className="type-meta text-text-sec">{Object.entries(sc.extraVehicles || {}).filter(([, n]) => n).map(([t, n]) => `${typeOf(t).label} ${n}대`).join(', ') || '없음'}</span> },
     ...GRADES.map((g) => ({ key: g.key, label: g.label, align: 'right', hideBelow: 'md', render: ({ r }) => r.byGrade[g.key] || '-' })),
@@ -103,8 +114,8 @@ export default function ShortagePage() {
       key: 'actions', label: '관리', align: 'right',
       render: ({ sc }) => (sc.id !== activeId ? (
         <span className="inline-flex gap-1">
-          <Button size="sm" variant="ghost" leftIcon={<Star size={14} aria-hidden="true" />} onClick={() => { setActiveScenario(sc.id); toast(`현황판 기준 지정: ${sc.name}`, 'primary') }}>기준 지정</Button>
-          {scenarios.length > 1 && <Button size="sm" variant="ghost" onClick={() => { removeScenario(sc.id); if (selectedId === sc.id) setSelectedId(activeId); toast('시나리오를 삭제했습니다.') }}>삭제</Button>}
+          <Button size="sm" variant="ghost" aria-label={`${sc.name} 현황판 기준 지정`} leftIcon={<Star size={14} aria-hidden="true" />} onClick={() => { setActiveScenario(sc.id); toast(`현황판 기준 지정: ${sc.name}`, 'primary') }}>기준 지정</Button>
+          {scenarios.length > 1 && <Button size="sm" variant="ghost" aria-label={`${sc.name} 시나리오 삭제`} onClick={() => { removeScenario(sc.id); if (selectedId === sc.id) setSelectedId(activeId); toast('시나리오를 삭제했습니다.') }}>삭제</Button>}
         </span>
       ) : null)
     }] : [])
@@ -115,7 +126,8 @@ export default function ShortagePage() {
   const changedVillages = Object.keys(draft.manual || {}).length
   const scopeSet = new Set(draft.affected || villages.map((v) => v.code))
   const fireLine = draft.kind === 'fire' ? `발화 ${draft.originLabel}, 확산 시속 ${draft.speedKmh}km, 첫 도달 발령 후 ${fmtElapsed(draft.windowHours)}, 대피 대상 ${result.scopeVillages}곳 ${result.scopeTargets}명, ` : `대피 대상 ${result.scopeVillages}곳 ${result.scopeTargets}명, `
-  const summary = `${fireLine}준비 ${prepText(draft.prepMinutes)}, 이송 완료 기한 ${completeText(draft.completeBeforeHours ?? 0)}, 추가 협약 차량 ${extraSummary}${changedVillages ? `, 도달 가정 변경 ${changedVillages}곳` : ''}`
+  const bandLine = `${bandOf(draft).label}${(draft.availability ?? 100) < 100 ? `, 차량 가용률 ${draft.availability}%` : ''}, `
+  const summary = `${fireLine}${bandLine}준비 ${prepText(draft.prepMinutes)}, 이송 완료 기한 ${completeText(draft.completeBeforeHours ?? 0)}, 추가 협약 차량 ${extraSummary}${changedVillages ? `, 도달 가정 변경 ${changedVillages}곳` : ''}`
 
   const conditions = (
     <Card
@@ -138,6 +150,16 @@ export default function ShortagePage() {
             <p className="type-meta leading-5 text-text-meta">발화 가정 지점 {draft.originLabel}. 확산 방향 띠 안 마을에 앞쪽 거리 ÷ 속도만큼 늦게 도달한다고 계산합니다.</p>
           </div>
         )}
+        <div>
+          <p className="mb-1.5 type-caption text-text-sec">발령 시간대</p>
+          <SegmentControl label="발령 시간대" value={draft.timeBand || 'home'} onChange={(v) => set({ timeBand: v })}
+            items={TIME_BANDS.map((b) => ({ value: b.value, label: b.label }))} />
+          <p className="mt-1.5 type-meta leading-5 text-text-meta">{bandOf(draft).desc} 주야간보호 이용 {LTC_DAYCARE.toLocaleString('ko-KR')}명은 공단 통계이고, 누가 이용자인지는 가상입니다(회신 R24).</p>
+        </div>
+        <div>
+          <NumberStepper label="차량 가용률" value={draft.availability ?? 100} min={30} max={100} step={10} unit="%" format={(v) => `${v}%`} onChange={(v) => set({ availability: v })}
+            hint="야간이나 휴일에 차량과 운전 인력을 다 모으지 못하는 경우를 봅니다. 기관 조사 전이라 담당자가 정하는 값입니다(회신 R27)." />
+        </div>
         <div>
           <p className="mb-1.5 type-caption text-text-sec">준비 시간</p>
           <SegmentControl label="준비 시간" value={draft.prepMinutes} onChange={(v) => set({ prepMinutes: v })}
@@ -176,7 +198,7 @@ export default function ShortagePage() {
         <div className="min-w-0">
           <p className="type-caption text-text-sec">계산 조건</p>
           <p className="mt-0.5 type-body-sm text-text-pri tabular-nums">{summary}</p>
-          <p className="mt-1 type-meta text-text-sec">입력 기준: 장기요양 재가 수급자 2025년 통계, 명부는 가상 자료. 계산 규칙 1.1판(2026. 10. 20.)</p>
+          <p className="mt-1 type-meta text-text-sec">입력 기준: 장기요양 재가 수급자 2025년 통계, 명부는 가상 자료. 등록장애인은 명부 확인 뒤 포함. 계산 규칙 1.2판(2026. 10. 20.)</p>
         </div>
         <Button
           variant={panelOpen ? 'primary' : 'secondary'} aria-expanded={panelOpen} aria-controls={panelId}
@@ -198,7 +220,7 @@ export default function ShortagePage() {
               <div className="min-w-0">
                 <p className="type-caption text-text-sec">필요 추가 차량</p>
                 <p className="mt-2 type-h3 text-text-pri">{extraLine || '없음'}</p>
-                <p className="mt-1 type-meta text-text-meta">{extraLine ? '위 차량을 추가하면 미이송 예상이 0명이 됩니다.' : '현재 보유 차량으로 미이송 예상이 0명입니다.'}</p>
+                <p className="mt-1 type-meta text-text-meta">{extraLine ? '필요 추가 차량을 모두 더하면 미이송 예상이 0명이 됩니다.' : '현재 보유 차량으로 미이송 예상이 0명입니다.'}</p>
                 {extra.length > 0 && (
                   <ul className="mt-3 flex flex-wrap gap-2">
                     {extra.map((e) => (
@@ -213,7 +235,48 @@ export default function ShortagePage() {
             </div>
           </Card>
 
-          <ShortageTable basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} />
+          <ShortageTable basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} arrivals={result.arrivals} t0={today} />
+
+          <Card title="가정값 점검" meta="회신 R17, R24, R27">
+            <p className="mb-4 type-body-sm text-text-sec">자문 회신으로 받은 의견과 계산 가정을 나란히 둡니다. 근거가 한 곳뿐인 값은 가정을 바꾸지 않고 바꿨을 때의 결과만 보여 줍니다.</p>
+            <div className="grid gap-5 lg:grid-cols-2">
+              <section aria-labelledby="chk-band" className="min-w-0">
+                <h3 id="chk-band" className="type-h3 text-text-pri">발령 시간대</h3>
+                <ul className="mt-2 grid gap-2">
+                  {bandCompare.map(({ b, r }) => (
+                    <li key={b.value} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">
+                      <span className="type-body-sm text-text-sec">{b.label}{b.value === (draft.timeBand || 'home') ? ' (지금 조건)' : ''}</span>
+                      <span className="type-strong text-text-pri tabular-nums">미이송 예상 {r.total}명{r.dayCareAway ? <span className="ml-1 type-meta text-text-sec">센터 대피 {r.dayCareAway}명 제외</span> : null}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 type-meta leading-5 text-text-meta">회신 R24(개발자 자문): 주야간보호 이용자는 낮에 센터에 있고 센터는 송영 차량을 갖고 있어 시간대 변수가 필요함. 회신 R27(행정학 자문): 야간이나 휴일에는 인력과 차량 확보가 어려울 수 있어 별도 시나리오가 필요함.</p>
+              </section>
+              <section aria-labelledby="chk-board" className="min-w-0">
+                <h3 id="chk-board" className="type-h3 text-text-pri">탑승과 하차 시간</h3>
+                <ul className="mt-2 grid gap-2">
+                  {boardingCompare.map(({ m, r }) => (
+                    <li key={m} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">
+                      <span className="type-body-sm text-text-sec tabular-nums">회차당 {m}분{m === boardingNow ? ' (지금 가정)' : ''}</span>
+                      <span className="type-strong text-text-pri tabular-nums">미이송 예상 {r.total}명</span>
+                    </li>
+                  ))}
+                </ul>
+                <dl className="mt-3 grid gap-2">
+                  <div className="rounded-md bg-page px-3 py-2">
+                    <dt className="type-caption text-text-sec">계산 가정</dt>
+                    <dd className="mt-0.5 type-body-sm text-text-pri">휠체어는 리프트 승합차와 도우미 2명, 회차마다 탑승과 하차 {boardingNow}분</dd>
+                  </div>
+                  <div className="rounded-md bg-page px-3 py-2">
+                    <dt className="type-caption text-text-sec">회신 R17, 개인 경험 기준</dt>
+                    <dd className="mt-0.5 type-body-sm text-text-pri">특장차량은 슬로프와 안전벨트가 있어 운전자 1명으로 가능하고, 숙련자는 탑승과 안전벨트 착용이 5분 이내. 경수 장애는 보호자가 함께할 수 있고, 전동 휠체어는 경차 개조 특장차에 타기 어려울 수 있음</dd>
+                  </div>
+                </dl>
+                <p className="mt-2 type-meta leading-5 text-text-meta">근거가 한 곳뿐이라 가정값은 바꾸지 않았습니다. 도우미 수는 미이송 계산에 들어가지 않고 도우미 부족 경고에만 쓰입니다.</p>
+              </section>
+            </div>
+            <p className="mt-4 rounded-md bg-page px-3 py-2 type-meta leading-5 text-text-sec">{DISABLED_NOTE}</p>
+          </Card>
 
           <Disclosure summary={`시나리오 저장과 비교 (${scenarios.length} / ${MAX_SCENARIOS}개)`}>
             <TableCard
