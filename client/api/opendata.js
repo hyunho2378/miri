@@ -143,7 +143,7 @@ async function access(key) {
       let got = xmlItems(xml, 'servList')
       if (!got.length) got = xmlItems(xml)
       items.push(...got)
-      if (!got.length || (total != null && items.length >= total)) break
+      if (got.length < 1000 || total == null || items.length >= total) break
     }
     if (items.length) break
   }
