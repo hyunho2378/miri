@@ -71,7 +71,11 @@ export function sameSite(req) {
 // 횟수 세기. Redis 가 있으면 공유 원자 카운터, 없으면 인스턴스 메모리
 let redis = null
 let redisKey = ''
+let storeOverride = null
+// 시험에서만 쓰는 저장소 바꿔 끼우기. null 을 넣으면 실제 환경변수 기준으로 돌아간다
+export function setStoreForTest(s) { storeOverride = s }
 function store() {
+  if (storeOverride) return storeOverride
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
   if (!url || !token) return null
@@ -95,6 +99,22 @@ export async function incr(key, ttlSec) {
     return n
   } catch {
     return memIncr(key, ttlSec)
+  }
+}
+
+// AI 호출 상한 전용. 공유 저장소가 없거나 오류면 인스턴스 메모리로 돌아가지 않고 실패를 알린다(GPT 3차 확인 R2).
+// 서버 인스턴스마다 따로 세면 전체 합계 상한이 인스턴스 수만큼 늘어나기 때문이다
+export class StoreUnavailable extends Error { constructor(m) { super(m); this.code = 'NO_LIMIT_STORE' } }
+export async function incrShared(key, ttlSec) {
+  const r = store()
+  if (!r) throw new StoreUnavailable('공유 횟수 저장소 미연결')
+  try {
+    const n = await r.incr(`miri:rl:${key}`)
+    if (n === 1) await r.expire(`miri:rl:${key}`, ttlSec)
+    if (!Number.isFinite(Number(n))) throw new Error('횟수 값 오류')
+    return Number(n)
+  } catch (e) {
+    throw new StoreUnavailable(`공유 횟수 저장소 오류: ${e?.message || e}`)
   }
 }
 
@@ -123,7 +143,7 @@ export async function aiBudget(req, name, sid) {
     [`${name}:ip:${clientIpOf(req)}`, 60, L.ip]
   ]
   for (const [key, ttl, max] of checks) {
-    if ((await incr(key, ttl)) > max) return false
+    if ((await incrShared(key, ttl)) > max) return false
   }
   return true
 }
@@ -139,7 +159,16 @@ export async function guard(req, res, { requireSession = true, ai = null } = {})
     if (!s) return deny(res, 401, 'NEED_SESSION', '시연 코드가 필요합니다. 로그인 화면에서 시연 코드를 입력해 주십시오')
     req.miriSession = s
   }
-  if (ai && !(await aiBudget(req, ai, req.miriSession?.id || 'none'))) {
+  let within = true
+  if (ai) {
+    try {
+      within = await aiBudget(req, ai, req.miriSession?.id || 'none')
+    } catch (e) {
+      if (e instanceof StoreUnavailable) return deny(res, 503, 'NO_LIMIT_STORE', '사용량을 셀 저장소에 연결되지 않아 AI 판독을 잠시 닫아 두었습니다. 잠시 뒤 다시 시도해 주십시오')
+      throw e
+    }
+  }
+  if (!within) {
     res.setHeader('Retry-After', '60')
     return deny(res, 429, 'RATE_LIMIT', '요청이 너무 잦거나 오늘 시연 사용량을 넘었습니다. 잠시 뒤 다시 시도해 주십시오')
   }

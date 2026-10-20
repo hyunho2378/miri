@@ -1,7 +1,7 @@
 // useDispatchStore.js 발령 상태 머신. 평시 → 실행대기 발령 → 배정 → 전송 → 종료.
 // 가상 시계: 훈련 발령은 배속으로 진행해 8시간 창을 몇 분 안에 시연한다.
 import { create } from 'zustand'
-import { helperQualifies, planDispatch, scorePlan } from '../lib/assign.js'
+import { helperDeclined, helperQualifies, planDispatch, reassignBlock, scorePlan } from '../lib/assign.js'
 import { capOf, gradeOf } from '../lib/shortage.js'
 import { calcTiming, calcVehicles, scenarioArrivals, scopeInput } from '../lib/shortageCalc.js'
 import { indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
@@ -116,7 +116,7 @@ export const useDispatchStore = create((set, get) => ({
     if (!a) return null
     // 도우미가 필요한 회차의 모든 등급을 지원하고 활성 상태이며, 이미 불가로 답한 사람은 아닌 도우미만(GPT 재검토 R7)
     const grades = [...new Set(a.trips.map((t) => t.grade))].filter((g) => gradeOf(g).helpers > 0)
-    const declined = (c) => d.ackOverride[c]?.answer === 'decline' || d.ackPlan[c]?.answer === 'decline'
+    const declined = (c) => helperDeclined(c, d.ackOverride, d.ackPlan)
     const next = data.helpers.find((h) => h.code !== oldCode && !used.has(h.code) && !declined(h.code) && helperQualifies(h, grades))
     if (!next) return null
     const result = structuredClone(d.result)
@@ -140,6 +140,10 @@ export const useDispatchStore = create((set, get) => ({
     const person = data.persons.find((p) => p.code === code)
     const village = ctx?.vmap?.[person?.villageCode]
     if (!person || !village || !Number.isFinite(village.roundTripMin)) return false
+    // 대피소 자리가 없어 뺀 사람, 목적지가 없는 사람은 재배정하지 않는다(GPT 3차 확인 R6)
+    if (reassignBlock(code, ctx)) return false
+    const destCode = ctx.dest[code]
+    const declined = (c) => helperDeclined(c, d.ackOverride, d.ackPlan)
     const vnow = vnowOf(d)
     const completeBy = ctx.deadlines[village.code].completeBy
     const result = structuredClone(d.result)
@@ -154,9 +158,11 @@ export const useDispatchStore = create((set, get) => ({
       if (need) {
         if (a) {
           const hs = a.helperCodes.map((c) => data.helpers.find((h) => h.code === c)).filter(Boolean)
+          // 불가로 답한 도우미가 탄 차량은 후보에서 뺀다(GPT 3차 확인 R7)
+          if (a.helperCodes.some(declined)) continue
           if (hs.length < need || !hs.every((h) => helperQualifies(h, [person.grade]))) continue
         } else {
-          crew = data.helpers.filter((h) => !usedHelpers.has(h.code) && helperQualifies(h, [person.grade])).slice(0, need)
+          crew = data.helpers.filter((h) => !usedHelpers.has(h.code) && !declined(h.code) && helperQualifies(h, [person.grade])).slice(0, need)
           if (crew.length < need) continue
         }
       }
@@ -171,7 +177,7 @@ export const useDispatchStore = create((set, get) => ({
       best.a = { vehicleCode: best.vehicle.code, trips: [], helperCodes: (best.crew || []).map((h) => h.code), reasons: ['실패 대상자 재배정용 추가 차량'] }
       result.assignments.push(best.a)
     }
-    best.a.trips.push({ index: best.a.trips.length + 1, vehicle: best.a.vehicleCode, village: village.code, grade: person.grade, personCodes: [code], departAt: best.free, finishAt: best.finish, added: true, shelters: ctx.dest?.[code] ? [ctx.dest[code]] : [] })
+    best.a.trips.push({ index: best.a.trips.length + 1, vehicle: best.a.vehicleCode, village: village.code, grade: person.grade, personCodes: [code], departAt: best.free, finishAt: best.finish, added: true, shelters: [destCode] })
     result.assignments.forEach((a) => { a.trips = a.trips.filter((t) => t.personCodes.length) })
     result.assignments = result.assignments.filter((a) => a.trips.length)
     const m = scorePlan({ trips: result.assignments.flatMap((a) => a.trips), unserved: result.unassigned })

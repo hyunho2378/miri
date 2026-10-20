@@ -13,6 +13,7 @@ import KeyValue from '../../components/ui/KeyValue.jsx'
 import useNow from '../../hooks/useNow.js'
 import useToast from '../../hooks/useToast.js'
 import { USE_MOCK } from '../../lib/api.js'
+import { personDest } from '../../lib/assign.js'
 import { DECLINE_REASONS, ackOf, indexStops, stepOf } from '../../lib/dispatchSim.js'
 import { typeOf } from '../../lib/shortage.js'
 import { fmtHM } from '../../lib/time.js'
@@ -200,7 +201,7 @@ export default function HelperPage() {
               <HelperAssignmentCard
                 key={code} order={i + 1} person={person} step={steps[i]} tripIndex={trip.index}
                 info={data.privateInfo[code]} villageLabel={villageOf(trip.village)?.label || trip.village}
-                shelterName={shelterOf(trip.village)}
+                shelterName={personDest(code, trip, d.result?.ctx) ? shelterName(personDest(code, trip, d.result?.ctx)) : shelterOf(trip.village)}
                 current={i === currentIdx} expanded={!!expanded[code]}
                 onToggle={() => setExpanded((x) => ({ ...x, [code]: !x[code] }))}
                 doneAt={ev?.at} failReason={ev?.reason}

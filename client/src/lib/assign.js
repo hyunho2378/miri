@@ -319,3 +319,21 @@ export function helperQualifies(h, grades) {
 }
 
 export const UNSERVED_REASON = { capacity: '차량 부족', noCompatibleVehicle: '호환 차량 없음', noHelper: '도우미 부족', noShelter: '안전한 대피소 없음', noShelterRoom: '대피소 자리 부족' }
+
+// 사람별 목적지 시설 코드(GPT 3차 확인 R6). 배정 때 정한 목적지를 먼저 쓰고, 없으면 회차 목적지가 하나일 때 그것을, 그다음 마을 기본 대피소를 쓴다
+export function personDest(code, trip, ctx) {
+  if (ctx?.dest?.[code]) return ctx.dest[code]
+  if (trip?.shelters?.length === 1) return trip.shelters[0]
+  return ctx?.vmap?.[trip?.village]?.shelterCode || null
+}
+
+// 재배정할 수 없는 이유(GPT 3차 확인 R6). 대피소 자리가 없어 처음부터 뺀 사람과 목적지가 정해지지 않은 사람은 재배정하지 않는다
+export function reassignBlock(code, ctx) {
+  if (!ctx) return 'noContext'
+  if ((ctx.preUnserved || []).some((u) => u.personCode === code && u.reason === 'noShelterRoom')) return 'noShelterRoom'
+  if (!ctx.dest?.[code]) return 'noDestination'
+  return null
+}
+
+// 불가로 답한 도우미(GPT 3차 확인 R7). 화면 보고(ackOverride)와 훈련 응답 계획(ackPlan) 둘 다 본다
+export const helperDeclined = (code, ackOverride = {}, ackPlan = {}) => ackOverride[code]?.answer === 'decline' || ackPlan[code]?.answer === 'decline'

@@ -121,6 +121,8 @@ export default async function handler(req, res) {
     const left = residualPII(masked)
     if (left.length) return fail(res, 422, 'PII_REMAINS', `개인정보로 보이는 글자(${left.join(', ')})가 남아 AI 판독을 멈췄습니다. ${VIRTUAL_ONLY_MSG}`)
     const transcript = one(masked.join(' '))
+    // 글자를 하나도 못 읽었으면 언어 모델을 부르지 않고 확인 요청으로 돌려준다(GPT 3차 확인 R9)
+    if (!transcript) return fail(res, 422, 'EMPTY_RESULT', '읽은 내용 없음. 담당자가 서류를 직접 확인해 주십시오')
     const size = imageSize(buf)
     const segs = segment(masked)
 
@@ -137,6 +139,8 @@ export default async function handler(req, res) {
       const items = itemsOf(await hcxJson(FREE_SYSTEM, transcript))
       persons = items.map((it, k) => judge(it, transcript, `순번 ${k + 1}`, null, true))
     }
+    // 읽은 내용이 없으면 성공으로 넘기지 않는다(GPT 3차 확인 R9)
+    if (!transcript || !persons.length) return fail(res, 422, 'EMPTY_RESULT', '읽은 내용 없음. 담당자가 서류를 직접 확인해 주십시오')
     return res.status(200).json({ transcript, persons, engine: { ocr: 'CLOVA OCR', llm: HCX_MODEL, region: 'KR' } })
   } catch (e) {
     if (e.code === 'NO_KEY') return fail(res, 503, 'NO_KEY', `판독 서버 미연결. ${e.message}`)

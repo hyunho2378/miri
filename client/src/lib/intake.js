@@ -43,6 +43,10 @@ export async function readDocument(file) {
   if (!body || typeof body.transcript !== 'string' || !Array.isArray(body.persons)) {
     throw Object.assign(new Error('판독 결과 형식 오류'), { code: 'BAD_RESPONSE' })
   }
+  // 대상자가 한 명도 없으면 빈 성공으로 보이지 않게 확인 요청으로 바꾼다(GPT 3차 확인 R9)
+  if (!body.transcript.trim() || !body.persons.length) {
+    throw Object.assign(new Error('읽은 내용 없음. 담당자가 서류를 직접 확인해 주십시오'), { code: 'EMPTY_RESULT' })
+  }
   return verifyPage(body)
 }
 

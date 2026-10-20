@@ -7,6 +7,9 @@ const mockRes = () => { const r = { status(c) { r.code = c; return r }, json(j) 
 for (const k of ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN', 'KV_REST_API_URL', 'KV_REST_API_TOKEN']) delete process.env[k]
 
 const G = await import('../api/_guard.js')
+// 공유 횟수 저장소(Upstash) 모의. 실제 배포는 Redis 원자 카운터를 쓴다
+export const fakeRedis = () => { const m = new Map(); return { incr: async (k) => { m.set(k, (m.get(k) || 0) + 1); return m.get(k) }, expire: async () => 1 } }
+G.setStoreForTest(fakeRedis())
 const { routeKind } = await import('../api/workspace.js')
 
 await ok('R1 시연 코드 설정이 없으면 비공개 기능을 닫는다', async () => {
