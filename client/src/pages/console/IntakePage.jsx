@@ -15,6 +15,7 @@ import Disclosure from '../../components/ui/Disclosure.jsx'
 import EmptyState from '../../components/ui/EmptyState.jsx'
 import useToast from '../../hooks/useToast.js'
 import { readDocument, verifyPage, verifyResult } from '../../lib/intake.js'
+import { aiErrorMessage } from '../../lib/aiErrors.js'
 import { fmtDate } from '../../lib/time.js'
 import { SAMPLE_UPLOAD } from '../../mock/seed.js'
 import useAuthStore from '../../store/useAuthStore.js'
@@ -132,9 +133,7 @@ export default function IntakePage() {
       })
     } catch (e) {
       setReading(null)
-      setError(e.code === 'NO_KEY' || e.code === 503 || e.code === 404 || e.code === 405
-        ? { title: '판독 서버에 연결되지 않았습니다', desc: '샘플 서류 읽기로 화면을 확인해 주십시오.' }
-        : { title: '서류 읽기에 실패했습니다', desc: `${e.message}. 샘플 서류 읽기로 화면을 확인해 주십시오.` })
+      setError(aiErrorMessage(e, '서류'))
     }
   }
 

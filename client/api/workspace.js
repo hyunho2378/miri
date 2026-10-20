@@ -144,14 +144,35 @@ async function handleSeed(req, res, redis) {
   return res.status(200).json({ seeded: true, count: cleaned.length })
 }
 
+// 공개 경로 판별. 설문지 조회는 action 이 없을 때만, 응답 제출은 POST action=submit 만 공개다
+export function routeKind(method, q = {}) {
+  if (method === 'GET' && q.public && q.id && !q.action) return 'publicForm'
+  if (method === 'POST' && q.action === 'submit') return 'publicSubmit'
+  return 'private'
+}
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store')
   const redis = getStore()
   if (!redis) return fail(res, 503, 'NO_STORE', '저장소 미연결. UPSTASH_REDIS_REST_URL 과 UPSTASH_REDIS_REST_TOKEN 설정 필요')
   const q = req.query || {}
-  // 공개 설문 조회와 응답 제출은 링크를 받은 누구나 쓴다. 그 밖의 조회, 저장, 삭제는 미리 화면에서 온 요청만 받는다(GPT 검토 S6)
-  const publicCall = (req.method === 'GET' && q.public && q.id) || (req.method === 'POST' && q.action === 'submit')
-  if (!publicCall && !guard(req, res, { name: 'workspace' })) return
+  // 공개 경로는 두 가지뿐이다: 설문지 조회(GET, public=1, id, action 없음)와 응답 제출(POST, action=submit).
+  // 그 밖의 조회(목록, 항목, 설문 응답), 저장, 삭제는 서버가 발급한 서명 쿠키가 있어야 처리한다(GPT 재검토 R1)
+  const kind = routeKind(req.method, q)
+  const isPublicForm = kind === 'publicForm'
+  const publicSubmit = kind === 'publicSubmit'
+  if (isPublicForm) {
+    const id = String(q.id)
+    if (!ID_RE.test(id)) return fail(res, 400, 'BAD_ID', 'id 형식 오류')
+    try {
+      const item = await redis.get(KEY_ITEM(id))
+      if (!item || item.kind !== 'form') return fail(res, 404, 'NOT_FOUND', '설문지를 찾을 수 없습니다')
+      return res.status(200).json({ item: publicForm(item) })
+    } catch (e) {
+      return fail(res, 500, 'STORE', '저장소 오류')
+    }
+  }
+  if (!publicSubmit && !(await guard(req, res, { requireSession: true }))) return
   try {
     if (req.method === 'GET') {
       if (q.action === 'responses') {
@@ -164,10 +185,6 @@ export default async function handler(req, res) {
         if (!ID_RE.test(id)) return fail(res, 400, 'BAD_ID', 'id 형식 오류')
         const item = await redis.get(KEY_ITEM(id))
         if (!item) return fail(res, 404, 'NOT_FOUND', '항목을 찾을 수 없습니다')
-        if (q.public) {
-          if (item.kind !== 'form') return fail(res, 404, 'NOT_FOUND', '설문지를 찾을 수 없습니다')
-          return res.status(200).json({ item: publicForm(item) })
-        }
         if (item.kind === 'form') item.responses = await loadResponses(redis, id)
         return res.status(200).json({ item })
       }

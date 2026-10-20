@@ -24,10 +24,30 @@ export function buildContext({
       completeBy: arrival - completeBeforeHours * 60 * MIN
     }
   }
+  // 대피소 자리와 목적지(GPT 재검토 R6). 마을마다 들어갈 자리(shelterCap)까지만 배정하고, 자리를 받은 사람에게 목적지 시설을 정한다.
+  // 자리 순서는 배정 우선순위와 같게 침상부터, 같은 등급은 코드 순
+  const preUnserved = []
+  const dest = {}
+  const rank = Object.fromEntries(GRADES.map((g, i) => [g.key, i]))
+  const byVillage = {}
+  for (const p of persons) if (vmap[p.villageCode]) (byVillage[p.villageCode] = byVillage[p.villageCode] || []).push(p)
+  const seated = new Set()
+  for (const [code, list] of Object.entries(byVillage)) {
+    const v = vmap[code]
+    const sorted = [...list].sort((a, b) => rank[a.grade] - rank[b.grade] || a.code.localeCompare(b.code))
+    const cap = Number.isFinite(v.shelterCap) ? v.shelterCap : sorted.length
+    const parts = (v.shelterParts || []).map(([c, n]) => [c, n])
+    sorted.forEach((p, i) => {
+      if (i >= cap) { preUnserved.push({ personCode: p.code, grade: p.grade, village: code, reason: 'noShelterRoom' }); return }
+      seated.add(p.code)
+      const part = parts.find((x) => x[1] > 0)
+      if (part) { dest[p.code] = part[0]; part[1] -= 1 } else if (v.shelterCode) dest[p.code] = v.shelterCode
+    })
+  }
   const qmap = {}
   const queues = []
   for (const p of persons) {
-    if (!vmap[p.villageCode]) continue
+    if (!vmap[p.villageCode] || !seated.has(p.code)) continue
     const id = `${p.villageCode}|${p.grade}`
     if (!qmap[id]) {
       qmap[id] = { id, village: p.villageCode, grade: p.grade, codes: [] }
@@ -37,7 +57,7 @@ export function buildContext({
   }
   queues.forEach((q) => q.codes.sort())
   return {
-    vmap, deadlines, qmap, queues,
+    vmap, deadlines, qmap, queues, preUnserved, dest,
     vehicles: vehicles.filter((v) => v.available !== false).sort((a, b) => a.code.localeCompare(b.code)),
     // helpers 를 넘기면 도우미 수와 지원 등급을 회차의 실행 조건으로 쓴다(GPT 검토 S2). 넘기지 않으면 차량만 본다
     helpers: Array.isArray(helpers) ? helpers.filter((h) => h.active !== false).sort((a, b) => a.code.localeCompare(b.code)) : [],
@@ -57,7 +77,7 @@ function simulate(ctx, order, rule) {
   const avail = Object.fromEntries(ctx.vehicles.map((v) => [v.code, ctx.start]))
   const remaining = Object.fromEntries(ctx.queues.map((q) => [q.id, [...q.codes]]))
   const trips = []
-  const unserved = []
+  const unserved = [...(ctx.preUnserved || [])]
   // 도우미는 같은 차량에 끝까지 동승한다. 차량이 처음 쓰일 때 지원 등급이 맞는 도우미를 붙이고, 모자라면 그 차량은 쓰지 않는다
   const crew = {}
   let free = [...ctx.helpers]
@@ -103,7 +123,9 @@ function simulate(ctx, order, rule) {
       const take = remaining[qid].splice(0, capOf(v, g.key))
       const departAt = avail[v.code]
       const finishAt = departAt + rtOf(ctx, qid)
-      trips.push({ vehicle: v.code, village: q.village, grade: g.key, personCodes: take, departAt, finishAt })
+      // 회차에 탄 사람들의 목적지 시설(분산되면 둘 이상)
+      const shelters = [...new Set(take.map((c) => ctx.dest?.[c]).filter(Boolean))]
+      trips.push({ vehicle: v.code, village: q.village, grade: g.key, personCodes: take, departAt, finishAt, shelters })
       avail[v.code] = finishAt
     }
 
@@ -291,4 +313,9 @@ export function planDispatch(input, opts) {
   }
 }
 
-export const UNSERVED_REASON = { capacity: '차량 부족', noCompatibleVehicle: '호환 차량 없음', noHelper: '도우미 부족', noShelter: '안전한 대피소 없음' }
+// 도우미 자격(최초 배정, 교체, 재배정 공통. GPT 재검토 R7): 활성 상태이고 그 차량 회차의 모든 등급을 지원
+export function helperQualifies(h, grades) {
+  return Boolean(h) && h.active !== false && Array.isArray(h.grades) && grades.every((g) => h.grades.includes(g))
+}
+
+export const UNSERVED_REASON = { capacity: '차량 부족', noCompatibleVehicle: '호환 차량 없음', noHelper: '도우미 부족', noShelter: '안전한 대피소 없음', noShelterRoom: '대피소 자리 부족' }

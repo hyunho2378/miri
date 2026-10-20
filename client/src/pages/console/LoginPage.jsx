@@ -1,6 +1,6 @@
 // 담당자 로그인(ROUTES /console/login). AdminLayout 밖 단독 화면.
 // mock 이면 데모 계정 선택. 실서버용 폼은 mock 이 아닐 때만 표시.
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import Logo from '../../components/nav/Logo.jsx'
@@ -14,6 +14,39 @@ const DEMO = [
   { role: 'city', desc: '전체 화면을 이용합니다. 발령 개시와 종료, 소방 인계, 설정을 처리합니다.' },
   { role: 'dong', desc: '망상동 명부 관리, 서류 읽기, 부족분 계산, 배정 확인을 처리합니다.' }
 ]
+
+// 시연 코드: AI 판독과 문서함 서버 저장을 쓰려면 서버가 발급하는 서명 쿠키가 필요하다(GPT 재검토 R1)
+function DemoCode() {
+  const [code, setCode] = useState('')
+  const [state, setState] = useState({ active: false, checked: false, error: '' })
+  useEffect(() => {
+    fetch('/api/session').then((r) => r.json()).then((b) => setState((s) => ({ ...s, active: !!b.active, configured: b.configured, checked: true }))).catch(() => setState((s) => ({ ...s, checked: true })))
+  }, [])
+  const submit = async (e) => {
+    e.preventDefault()
+    const r = await fetch('/api/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) }).catch(() => null)
+    const b = r ? await r.json().catch(() => null) : null
+    if (r?.ok && b?.active) { setState({ active: true, checked: true, error: '' }); setCode('') }
+    else setState((s) => ({ ...s, error: b?.error?.message || '시연 코드를 확인하지 못했습니다' }))
+  }
+  if (!state.checked) return null
+  return (
+    <form onSubmit={submit} className="mt-6 rounded-md bg-subtle p-4">
+      <p className="type-strong text-text-pri">AI 판독과 서버 저장</p>
+      {state.active ? (
+        <p className="mt-1 type-body-sm text-text-sec" role="status">시연 코드가 확인되었습니다. 12시간 동안 AI 서류 읽기, 현장 소식 읽기, 문서함 서버 저장을 쓸 수 있습니다.</p>
+      ) : (
+        <>
+          <p className="mt-1 type-meta text-text-meta">AI 판독과 문서함 서버 저장은 시연 코드를 받은 분만 씁니다. 코드 없이도 샘플 읽기로 모든 화면을 볼 수 있습니다.</p>
+          <div className="mt-3 flex items-end gap-2">
+            <Input className="flex-1" label="시연 코드" type="password" autoComplete="off" value={code} onChange={(e) => setCode(e.target.value)} error={state.error || undefined} />
+            <Button type="submit" disabled={!code}>확인</Button>
+          </div>
+        </>
+      )}
+    </form>
+  )
+}
 
 export default function LoginPage() {
   useEffect(() => { document.title = '담당자 로그인 | 미리' }, [])
@@ -48,6 +81,7 @@ export default function LoginPage() {
                   </li>
                 ))}
               </ul>
+              <DemoCode />
             </>
           ) : (
             <form className="mt-6 space-y-4" onSubmit={(e) => e.preventDefault()}>

@@ -5,11 +5,12 @@
 //   2. 읽은 글자에서 이름, 연락처, 주소, 주민번호로 보이는 값을 가린다.
 //   3. "거동 상태" 칸을 코드로 나눠 대상자 단위를 정한다(누락 방지).
 //   4. 가린 글자만 HyperCLOVA X(HCX-005)에 보내 이송 등급 초안과 근거 문구를 받는다.
-//   5. 근거 문구가 원문에 그대로 있는지 코드로 대조하고, 없으면 일치도를 낮춘다.
+//   5. 근거 문구가 원문에 그대로 있는지 코드로 대조하고, 없으면 등급을 비우고 실패로 표시해 담당자 확인으로 넘긴다.
+//   가린 뒤에도 개인정보로 보이는 글자가 남으면 4번 전에 멈춘다. 서류 사진 원본은 1번 글자 인식에는 그대로 간다.
 // 원문 대조와 신뢰도 강제 하향은 프론트 lib/intake.verifyPage 가 다시 수행한다(서버 응답을 그대로 믿지 않음).
 // 키가 없으면 503 NO_KEY. 키는 서버 환경변수(NCP_OCR_INVOKE_URL, NCP_OCR_SECRET, NCP_CLOVASTUDIO_KEY)에만 둔다.
 
-import { clovaOcr, ocrFormat, imageSize, toLines, maskLines, boxOf, hcxJson, pick, pickTags, GRADES, CONFS, HCX_MODEL } from './_ncp.js'
+import { clovaOcr, ocrFormat, imageSize, toLines, maskLines, residualPII, boxOf, hcxJson, pick, pickTags, GRADES, CONFS, HCX_MODEL, B64, readJsonBody, VIRTUAL_ONLY_MSG } from './_ncp.js'
 import { guard } from './_guard.js'
 
 const MAX_BYTES = 6 * 1024 * 1024
@@ -63,22 +64,62 @@ export function segment(masked) {
   return segs
 }
 
+// 요청 검사(GPT 재검토 R4, R9): 형식, 크기, 가상 자료 확인
+export function validateRequest(body) {
+  if (!body) return { status: 400, code: 'BAD_JSON', error: '요청 형식 오류' }
+  const { mimeType, data, virtualOnly } = body
+  if (virtualOnly !== true) return { status: 400, code: 'VIRTUAL_ONLY', error: VIRTUAL_ONLY_MSG }
+  if (typeof mimeType !== 'string' || !ocrFormat(mimeType)) return { status: 400, code: 'BAD_INPUT', error: 'PNG, JPG, TIFF, PDF 파일 필요' }
+  if (typeof data !== 'string' || !data || data.length > Math.ceil(MAX_BYTES / 3) * 4 + 4 || !B64.test(data)) return { status: data && typeof data === 'string' && data.length > MAX_BYTES ? 413 : 400, code: typeof data === 'string' && data.length > MAX_BYTES ? 'TOO_LARGE' : 'BAD_INPUT', error: '파일 내용 형식 오류이거나 6MB를 넘습니다' }
+  const buf = Buffer.from(data, 'base64')
+  if (!buf.length) return { status: 400, code: 'BAD_INPUT', error: '빈 파일입니다' }
+  if (buf.length > MAX_BYTES) return { status: 413, code: 'TOO_LARGE', error: '파일 크기 6MB 초과' }
+  // 실제 파일 머리와 형식이 맞는지 확인
+  const head = buf.subarray(0, 4).toString('hex')
+  const okHead = { 'image/png': head.startsWith('89504e47'), 'image/jpeg': head.startsWith('ffd8'), 'image/jpg': head.startsWith('ffd8'), 'application/pdf': buf.subarray(0, 4).toString() === '%PDF', 'image/tiff': head === '49492a00' || head === '4d4d002a' }
+  if (!okHead[mimeType]) return { status: 400, code: 'BAD_INPUT', error: '파일 형식과 내용이 맞지 않습니다' }
+  return { mimeType, data, buf }
+}
+
+// 모델 응답 검사(GPT 재검토 R9). items 배열이 아니면 형식 오류로 멈추고, 항목마다 형식이 틀리면 그 항목은 없는 것으로 본다
+export function itemsOf(out) {
+  if (!out || typeof out !== 'object' || !Array.isArray(out.items)) throw Object.assign(new Error('분류 결과 형식 오류'), { code: 'BAD_MODEL_OUTPUT' })
+  return out.items.filter((x) => x && typeof x === 'object' && !Array.isArray(x)).map((x) => ({
+    id: typeof x.id === 'string' ? x.id.trim() : '',
+    grade: GRADES.includes(x.grade) ? x.grade : null,
+    confidence: CONFS.includes(x.confidence) ? x.confidence : null,
+    quote: typeof x.quote === 'string' ? x.quote : '',
+    tags: Array.isArray(x.tags) ? x.tags.filter((t) => typeof t === 'string') : []
+  }))
+}
+
+// 한 사람 판정. 근거 문구가 그 구간 원문에 없으면 원래 문구를 남기고 실패로 표시해 담당자 확인으로 넘긴다(GPT 재검토 R3)
+export function judge(it, segText, personHint, box, free = false) {
+  const quote = one(it?.quote)
+  const base = { personHint, tags: [], quote, context: free ? undefined : segText, confidence: 'low', box }
+  if (!it || !it.grade || !it.confidence) return { ...base, grade: 'unknown', reason: 'noResult' }
+  if (!free && UNREADABLE.test(segText)) return { ...base, grade: 'unknown', quote: quote || segText, reason: 'unreadable' }
+  if (!quote || !segText.includes(quote)) {
+    return { ...base, grade: 'unknown', proposedGrade: it.grade === 'unknown' ? undefined : it.grade, quoteMismatch: true, reason: 'quoteMismatch' }
+  }
+  const grade = it.grade
+  return { ...base, grade, tags: grade === 'unknown' ? [] : pickTags(it.tags, free ? quote : segText), confidence: grade === 'unknown' ? 'low' : it.confidence }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return fail(res, 405, 'METHOD', 'POST 만 허용')
-  if (!guard(req, res, { perMin: 10, name: 'intake' })) return
-  let body = req.body
-  if (typeof body === 'string') {
-    try { body = JSON.parse(body) } catch { return fail(res, 400, 'BAD_JSON', '요청 형식 오류') }
-  }
-  const { mimeType, data } = body || {}
-  if (!data || !ocrFormat(mimeType)) return fail(res, 400, 'BAD_INPUT', 'PNG, JPG, TIFF, PDF 파일 필요')
-  const buf = Buffer.from(data, 'base64')
-  if (buf.length > MAX_BYTES) return fail(res, 413, 'TOO_LARGE', '파일 크기 6MB 초과')
+  if (!(await guard(req, res, { requireSession: true, ai: 'intake' }))) return
+  const v = validateRequest(readJsonBody(req))
+  if (v.error) return fail(res, v.status, v.code, v.error)
+  const { mimeType, data, buf } = v
 
   try {
     const fields = await clovaOcr(data, mimeType)
     const lines = toLines(fields)
     const masked = maskLines(lines.map((l) => l.text))
+    // 가린 뒤에도 개인정보로 보이는 글자가 남으면 언어 모델에 보내지 않고 멈춘다(GPT 재검토 R4)
+    const left = residualPII(masked)
+    if (left.length) return fail(res, 422, 'PII_REMAINS', `개인정보로 보이는 글자(${left.join(', ')})가 남아 AI 판독을 멈췄습니다. ${VIRTUAL_ONLY_MSG}`)
     const transcript = one(masked.join(' '))
     const size = imageSize(buf)
     const segs = segment(masked)
@@ -86,31 +127,20 @@ export default async function handler(req, res) {
     let persons
     if (segs.length) {
       const user = segs.map((s, k) => `S${k + 1}: ${s.text}`).join('\n')
-      const out = await hcxJson(SYSTEM, user)
-      const items = Array.isArray(out?.items) ? out.items : []
+      const items = itemsOf(await hcxJson(SYSTEM, user))
       persons = segs.map((s, k) => {
-        const it = items.find((x) => String(x?.id || '').trim() === `S${k + 1}`) || (items.length === segs.length && !items.some((x) => x?.id) ? items[k] : undefined)
-        let grade = pick(it?.grade, GRADES, 'unknown')
-        let confidence = pick(it?.confidence, CONFS, 'low')
-        let quote = one(it?.quote)
-        if (!quote || !s.text.includes(quote)) { quote = s.text; if (confidence === 'high') confidence = 'mid' }
-        if (!it) { grade = 'unknown'; confidence = 'low' }
-        if (UNREADABLE.test(s.text)) { grade = 'unknown'; confidence = 'low'; quote = s.text }
+        const it = items.find((x) => x.id === `S${k + 1}`) || (items.length === segs.length && !items.some((x) => x.id) ? items[k] : undefined)
         const idx = s.lines.flatMap((li) => lines[li].idx)
-        return { personHint: `순번 ${k + 1}`, grade, tags: grade === 'unknown' ? [] : pickTags(it?.tags, s.text), quote, confidence, box: boxOf(fields, idx, size) }
+        return judge(it, s.text, `순번 ${k + 1}`, boxOf(fields, idx, size))
       })
     } else {
-      const out = await hcxJson(FREE_SYSTEM, transcript)
-      const items = Array.isArray(out?.items) ? out.items : []
-      persons = items.map((it, k) => {
-        const quote = one(it?.quote)
-        const grade = quote ? pick(it?.grade, GRADES, 'unknown') : 'unknown'
-        return { personHint: `순번 ${k + 1}`, grade, tags: pickTags(it?.tags, quote), quote, confidence: pick(it?.confidence, CONFS, 'low'), box: null }
-      })
+      const items = itemsOf(await hcxJson(FREE_SYSTEM, transcript))
+      persons = items.map((it, k) => judge(it, transcript, `순번 ${k + 1}`, null, true))
     }
     return res.status(200).json({ transcript, persons, engine: { ocr: 'CLOVA OCR', llm: HCX_MODEL, region: 'KR' } })
   } catch (e) {
     if (e.code === 'NO_KEY') return fail(res, 503, 'NO_KEY', `판독 서버 미연결. ${e.message}`)
-    return fail(res, 502, e.code || 'NETWORK', `판독 실패: ${e.message}`)
+    if (e.code === 'TIMEOUT') return fail(res, 504, 'TIMEOUT', `판독 실패: ${e.message}. 잠시 뒤 다시 시도해 주십시오`)
+    return fail(res, 502, ['UPSTREAM', 'BAD_UPSTREAM', 'PARSE', 'BAD_MODEL_OUTPUT', 'NETWORK'].includes(e.code) ? e.code : 'NETWORK', `판독 실패: ${e.message}`)
   }
 }

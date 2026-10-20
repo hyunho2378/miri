@@ -18,6 +18,12 @@ export const env = {
 }
 
 const rid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
+// 외부 호출 시간 제한(GPT 재검토 R5). 단계마다 끊어 서버리스 실행이 오래 붙잡히지 않게 한다
+export const TIMEOUT_MS = { ocr: 20000, hcx: 25000, stt: 20000 }
+const timeoutSignal = (ms) => (typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(ms) : undefined)
+const upstream = (e, what) => (e?.name === 'TimeoutError' || e?.name === 'AbortError'
+  ? Object.assign(new Error(`${what} 응답 시간 초과`), { code: 'TIMEOUT' })
+  : e?.code ? e : Object.assign(new Error(`${what} 연결 실패`), { code: 'NETWORK' }))
 
 // PNG, JPEG 머리에서 가로세로 크기를 읽는다(상자 위치를 퍼센트로 바꾸기 위함)
 export function imageSize(buf) {
@@ -42,19 +48,25 @@ export const ocrFormat = (mime) => FORMAT[mime] || null
 export async function clovaOcr(base64, mime) {
   const url = env.ocrUrl(); const secret = env.ocrSecret()
   if (!url || !secret) throw Object.assign(new Error('글자 인식 서버 미연결'), { code: 'NO_KEY' })
-  const r = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-OCR-SECRET': secret },
-    body: JSON.stringify({ version: 'V2', requestId: rid(), timestamp: Date.now(), lang: 'ko', images: [{ format: ocrFormat(mime), name: 'doc', data: base64 }] })
-  })
-  const out = await r.json().catch(() => ({}))
+  let r
+  try {
+    r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-OCR-SECRET': secret },
+      body: JSON.stringify({ version: 'V2', requestId: rid(), timestamp: Date.now(), lang: 'ko', images: [{ format: ocrFormat(mime), name: 'doc', data: base64 }] }),
+      signal: timeoutSignal(TIMEOUT_MS.ocr)
+    })
+  } catch (e) { throw upstream(e, '글자 인식') }
+  const out = await r.json().catch(() => null)
   const img = out?.images?.[0]
-  if (!r.ok || !img) throw Object.assign(new Error(out?.message || `글자 인식 오류 ${r.status}`), { code: 'UPSTREAM' })
-  if (img.inferResult && img.inferResult !== 'SUCCESS') throw Object.assign(new Error(img.message || '글자 인식 실패'), { code: 'UPSTREAM' })
-  return (img.fields || []).map((f) => ({
+  // 공급자 원문 오류는 그대로 보이지 않고 고정 문구로 정리한다
+  if (!r.ok || !img || typeof img !== 'object') throw Object.assign(new Error(`글자 인식 오류 ${r.status}`), { code: 'UPSTREAM' })
+  if (img.inferResult && img.inferResult !== 'SUCCESS') throw Object.assign(new Error('글자 인식 실패'), { code: 'UPSTREAM' })
+  if (img.fields != null && !Array.isArray(img.fields)) throw Object.assign(new Error('글자 인식 결과 형식 오류'), { code: 'BAD_UPSTREAM' })
+  return (img.fields || []).filter((f) => f && typeof f === 'object').map((f) => ({
     text: String(f.inferText || ''),
     lineBreak: !!f.lineBreak,
-    pts: (f.boundingPoly?.vertices || []).map((v) => [Number(v.x) || 0, Number(v.y) || 0])
+    pts: (Array.isArray(f.boundingPoly?.vertices) ? f.boundingPoly.vertices : []).map((v) => [Number.isFinite(Number(v?.x)) ? Number(v.x) : 0, Number.isFinite(Number(v?.y)) ? Number(v.y) : 0])
   })).filter((f) => f.text)
 }
 
@@ -64,15 +76,46 @@ const PHONE = /(0\d{1,2})[\s.-]?\d{3,4}[\s.-]?\d{4}/g
 const RRN = /\d{6}\s*-\s*[1-4]\d{6}/g
 // 성으로 시작하는 두세 글자 이름 뒤에 어르신, 할머니, 할아버지, 씨가 오면 이름으로 보고 가린다
 const NAMED = /(^|[\s(])([김이박최정강조윤장임한오서신권황안송류유전홍고문양손배백허남심노하곽성차주우구민진나지엄채원천방공현함변염여추도소석선설길연위표명기반왕금옥육인맹제모탁국은편용예봉경][가-힣]{1,2})\s?(어르신|할머니|할아버지|씨)/g
+// 13자리 번호(주민번호 꼴, 붙임표 없음 포함)
+const RRN13 = /(^|\D)\d{6}\s*-?\s*\d{7}(?!\d)/g
+// 날짜(생년월일 등). 판정에 필요 없으므로 모두 가린다
+const DATE = /(19|20)\d{2}\s*[.\-/년]\s*\d{1,2}\s*[.\-/월]\s*\d{1,2}\s*[.일]?/g
+// 주소: 시도 시군구 뒤 도로명과 번호, 또는 도로명과 번호만
+const ADDR = /([가-힣]+(특별자치도|광역시|특별시|도|시|군|구)\s+)*[가-힣0-9]+(로|길)\s*\d+(\s*-\s*\d+)?(\s*번길\s*\d+)?/g
+// 성으로 시작하는 두세 글자 뒤 님, 씨. 직함과 관계 낱말은 이름이 아니므로 둔다
+const NAMED_HON = /(^|[^가-힣])([김이박최정강조윤장임한오서신권황안송류유전홍고문양손배백허남심노하곽성차주우구민진나지엄채원천방공현함변염여추도소석선설길연위표명기반왕금옥육인맹제모탁국은편용예봉경][가-힣]{1,2})\s?(님|씨)/g
+const ROLE = /^(이장|반장|통장|선생|기사|박사|원장|회장|과장|계장|팀장|부장|실장|소장|국장|시장|동장|사장|주무관|공무원|간호사|보호사|복지사|요양사|대원|봉사자|도우미|담당자|어르신|할머|할아|어머|아버|며느|사위|손자|손녀|조카|형|누나|언니|오빠|동생|아드|따|고객|손)/
+const LABEL_ONLY = /^\s*(성\s*명|이\s*름|연\s*락\s*처|전\s*화(?:\s*번\s*호)?|휴\s*대\s*폰|주\s*소|생\s*년\s*월\s*일|주\s*민(?:\s*등\s*록)?\s*번\s*호)\s*[:：]?\s*$/
 export function maskLines(lines) {
-  return lines.map((line) => {
-    let s = line.replace(RRN, '[주민번호 가림]').replace(PHONE, '[연락처 가림]').replace(NAMED, '$1[이름 가림] $3')
+  const out = lines.map((line) => {
+    let s = line.replace(RRN, '[주민번호 가림]').replace(RRN13, '$1[번호 가림]').replace(PHONE, '[연락처 가림]').replace(DATE, '[날짜 가림]')
+      .replace(ADDR, '[주소 가림]').replace(NAMED, '$1[이름 가림] $3')
+      .replace(NAMED_HON, (all, pre, name, hon) => (ROLE.test(name) ? all : `${pre}[이름 가림]${hon}`))
     const m = s.match(LABEL)
     // 항목 이름 뒤에 쌍점이 있거나 줄 맨 앞에 항목 이름이 올 때만 값으로 보고 가린다(안내 문장 속 낱말은 두기)
     const josa = /^[과와은는이가을를의도]/.test(s.slice(m ? m.index + m[1].length : 0))
     if (m && (/[:：]/.test(m[0]) || (!s.slice(0, m.index).trim() && !josa))) s = s.slice(0, m.index) + m[1].replace(/\s/g, '') + ': [가림]'
     return s
   })
+  // 표에서 항목 이름과 값이 다른 줄로 읽히면 항목 이름만 있는 줄 다음 줄을 값으로 보고 가린다(GPT 재검토 R4)
+  lines.forEach((line, i) => {
+    if (LABEL_ONLY.test(line) && i + 1 < out.length && !/거\s*동\s*상\s*태/.test(out[i + 1])) out[i + 1] = '[가림]'
+  })
+  return out
+}
+
+// 가린 뒤에도 개인정보로 보이는 글자가 남았는지 검사한다. 남았으면 언어 모델에 보내지 않는다(GPT 재검토 R4)
+const RESIDUAL = [
+  [/\d{6}\s*-?\s*\d{7}/, '주민번호 꼴 번호'],
+  [/(^|\D)\d{2,4}[\s.-]\d{3,4}[\s.-]\d{4}(?!\d)/, '전화번호 꼴 번호'],
+  [/(^|\D)\d{10,11}(?!\d)/, '긴 번호'],
+  [/(성\s*명|이\s*름|연\s*락\s*처|주\s*소|생\s*년\s*월\s*일|주\s*민\s*번\s*호)\s*[:：]\s*(?!\[)[^\s[]/, '항목 값'],
+  [/@[A-Za-z0-9-]+\.[A-Za-z]{2,}/, '전자우편 주소']
+]
+export function residualPII(lines) {
+  const hits = []
+  for (const line of lines) for (const [re, label] of RESIDUAL) if (re.test(line) && !hits.includes(label)) hits.push(label)
+  return hits
 }
 
 // 글자 조각을 줄 단위로 묶는다(lineBreak 기준). 각 줄은 조각 번호 범위를 가진다
@@ -98,13 +141,17 @@ export function boxOf(fields, idx, size) {
 export async function hcxJson(system, user, maxTokens = 1200) {
   const key = env.hcxKey()
   if (!key) throw Object.assign(new Error('문구 분류 서버 미연결'), { code: 'NO_KEY' })
-  const r = await fetch(`https://clovastudio.stream.ntruss.com/v3/chat-completions/${HCX_MODEL}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'X-NCP-CLOVASTUDIO-REQUEST-ID': rid() },
-    body: JSON.stringify({ messages: [{ role: 'system', content: system }, { role: 'user', content: user }], temperature: 0.1, topP: 0.8, maxTokens, repetitionPenalty: 1.0 })
-  })
-  const out = await r.json().catch(() => ({}))
-  if (!r.ok || (out?.status?.code && out.status.code !== '20000')) throw Object.assign(new Error(out?.status?.message || `문구 분류 오류 ${r.status}`), { code: 'UPSTREAM' })
+  let r
+  try {
+    r = await fetch(`https://clovastudio.stream.ntruss.com/v3/chat-completions/${HCX_MODEL}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'X-NCP-CLOVASTUDIO-REQUEST-ID': rid() },
+      body: JSON.stringify({ messages: [{ role: 'system', content: system }, { role: 'user', content: user }], temperature: 0.1, topP: 0.8, maxTokens, repetitionPenalty: 1.0 }),
+      signal: timeoutSignal(TIMEOUT_MS.hcx)
+    })
+  } catch (e) { throw upstream(e, '문구 분류') }
+  const out = await r.json().catch(() => null)
+  if (!r.ok || !out || (out?.status?.code && out.status.code !== '20000')) throw Object.assign(new Error(`문구 분류 오류 ${r.status}`), { code: 'UPSTREAM' })
   const text = String(out?.result?.message?.content || '').replace(/```(?:json)?/g, '').trim()
   // 모델이 객체 대신 배열만 내는 경우가 있어 둘 다 받는다. 배열이면 { items } 로 감싼다
   const tries = [text]
@@ -112,7 +159,11 @@ export async function hcxJson(system, user, maxTokens = 1200) {
   if (as >= 0 && ae > as && (os < 0 || as < os)) tries.push(text.slice(as, ae + 1))
   if (os >= 0 && oe > os) tries.push(text.slice(os, oe + 1))
   for (const t of tries) {
-    try { const v = JSON.parse(t); return Array.isArray(v) ? { items: v } : v } catch {}
+    let v
+    try { v = JSON.parse(t) } catch { continue }
+    // 객체나 배열만 받는다. null, 숫자, 문자열은 형식 오류(GPT 재검토 R9)
+    if (Array.isArray(v)) return { items: v }
+    if (v && typeof v === 'object') return v
   }
   throw Object.assign(new Error('분류 결과 형식 오류'), { code: 'PARSE' })
 }
@@ -123,14 +174,19 @@ export const csrSupported = (mime) => CSR_MIME.test(mime || '')
 export async function clovaStt(base64) {
   const id = env.csrId(); const sec = env.csrSecret()
   if (!id || !sec) throw Object.assign(new Error('음성 받아쓰기 서버 미연결'), { code: 'NO_KEY' })
-  const r = await fetch('https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=Kor', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/octet-stream', 'X-NCP-APIGW-API-KEY-ID': id, 'X-NCP-APIGW-API-KEY': sec },
-    body: Buffer.from(base64, 'base64')
-  })
-  const out = await r.json().catch(() => ({}))
-  if (!r.ok) throw Object.assign(new Error(out?.errorMessage || out?.error?.message || `음성 받아쓰기 오류 ${r.status}`), { code: 'UPSTREAM' })
-  return String(out?.text || '')
+  let r
+  try {
+    r = await fetch('https://naveropenapi.apigw.ntruss.com/recog/v1/stt?lang=Kor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/octet-stream', 'X-NCP-APIGW-API-KEY-ID': id, 'X-NCP-APIGW-API-KEY': sec },
+      body: Buffer.from(base64, 'base64'),
+      signal: timeoutSignal(TIMEOUT_MS.stt)
+    })
+  } catch (e) { throw upstream(e, '음성 받아쓰기') }
+  const out = await r.json().catch(() => null)
+  if (!r.ok || !out) throw Object.assign(new Error(`음성 받아쓰기 오류 ${r.status}`), { code: 'UPSTREAM' })
+  if (typeof out.text !== 'string') throw Object.assign(new Error('음성 받아쓰기 결과 형식 오류'), { code: 'BAD_UPSTREAM' })
+  return out.text
 }
 
 export const pick = (v, list, d) => (list.includes(v) ? v : d)
@@ -141,3 +197,13 @@ const TAG_EVIDENCE = {
 }
 export const pickTags = (a, evidence) => (Array.isArray(a) ? [...new Set(a.filter((t) => TAGS.includes(t) && (evidence == null || TAG_EVIDENCE[t].test(evidence))))] : [])
 export const norm = (s) => String(s || '').replace(/\s+/g, '')
+
+// 요청 검사(GPT 재검토 R9)
+export const B64 = /^[A-Za-z0-9+/]+={0,2}$/
+export function readJsonBody(req) {
+  let body = req.body
+  if (typeof body === 'string') { try { body = JSON.parse(body) } catch { return null } }
+  return body && typeof body === 'object' && !Array.isArray(body) ? body : null
+}
+// 실제 개인정보 서류 업로드 금지 확인. 화면에서 '가상 자료만 올립니다'를 고른 요청만 받는다(GPT 재검토 R4)
+export const VIRTUAL_ONLY_MSG = '시안에서는 가상 자료만 처리합니다. 실제 개인정보가 담긴 서류나 소식은 올리지 마십시오'

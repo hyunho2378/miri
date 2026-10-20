@@ -30,13 +30,18 @@ export async function readDocument(file) {
   const res = await fetch('/api/intake', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mimeType: file.type || 'image/png', data })
+    // 가상 자료 확인은 화면에서 '가상 자료만 올립니다'를 고른 뒤에만 보낸다(GPT 재검토 R4)
+    body: JSON.stringify({ mimeType: file.type || 'image/png', data, virtualOnly: true })
   })
-  const body = await res.json().catch(() => ({}))
+  const body = await res.json().catch(() => null)
   if (!res.ok) {
     const err = new Error(body?.error?.message || '판독 서버 오류')
     err.code = body?.error?.code || res.status
     throw err
+  }
+  // 성공 응답이어도 형식이 틀리면 빈 결과로 넘기지 않는다(GPT 재검토 R9)
+  if (!body || typeof body.transcript !== 'string' || !Array.isArray(body.persons)) {
+    throw Object.assign(new Error('판독 결과 형식 오류'), { code: 'BAD_RESPONSE' })
   }
   return verifyPage(body)
 }

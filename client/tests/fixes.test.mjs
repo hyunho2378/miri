@@ -82,7 +82,7 @@ await ok('M5 영향 마을이 빈 배열이면 0곳, 없으면 전체', () => {
 
 await ok('M2 글 소식은 입력 원문으로 근거를 대조한다', async () => {
   const orig = globalThis.fetch
-  globalThis.fetch = async () => ({ ok: true, json: async () => ({ transcript: '어르신이 휠체어를 쓰십니다', quote: '휠체어를 쓰십니다', grade: 'wheelchair', confidence: 'high' }) })
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ changed: true, transcript: '어르신이 휠체어를 쓰십니다', quote: '휠체어를 쓰십니다', grade: 'wheelchair', confidence: 'high' }) })
   try {
     const r = await readNote({ text: '오늘 산책을 다녀오셨습니다', current: { grade: 'walk', tags: [] } })
     assert.equal(r.quoteMatched, false)

@@ -19,6 +19,8 @@ import Textarea from '../../components/ui/Textarea.jsx'
 import useToast from '../../hooks/useToast.js'
 import { TAGS } from '../../lib/intake.js'
 import { NOTE_SOURCES, SAMPLE_NOTES, readNote, sourceLabel, verifyNote } from '../../lib/notes.js'
+import { aiErrorMessage } from '../../lib/aiErrors.js'
+import Checkbox from '../../components/ui/Checkbox.jsx'
 import { gradeOf } from '../../lib/shortage.js'
 import { fmtDate } from '../../lib/time.js'
 import useAuthStore from '../../store/useAuthStore.js'
@@ -46,6 +48,8 @@ export default function NotesPage() {
 
   const [showInput, setShowInput] = useState(false)
   const [mode, setMode] = useState('text')
+  // 실제 개인정보 소식 입력 금지. 가상 소식임을 고른 뒤에만 AI에 보낸다(GPT 재검토 R4)
+  const [virtualOk, setVirtualOk] = useState(false)
   const [personCode, setPersonCode] = useState('')
   const [source, setSource] = useState('caregiver')
   const [text, setText] = useState('')
@@ -113,9 +117,7 @@ export default function NotesPage() {
       finish({ ...b, mode, fileName: mode === 'voice' ? file.name : '', text: read.transcript || text.trim(), read, mock: false })
     } catch (e) {
       setReading(null)
-      setError(e.code === 'NO_KEY' || e.code === 503 || e.code === 404 || e.code === 405
-        ? { title: '판독 서버에 연결되지 않았습니다', desc: '샘플 소식 읽기로 화면을 확인해 주십시오.' }
-        : { title: '소식 읽기에 실패했습니다', desc: `${e.message}. 샘플 소식 읽기로 화면을 확인해 주십시오.` })
+      setError(aiErrorMessage(e, '소식'))
     }
   }
 
@@ -155,7 +157,7 @@ export default function NotesPage() {
               <SegmentControl label="소식 입력 방법" items={MODES} value={mode} onChange={(v) => { setMode(v); setError(null) }} />
               {mode === 'text' ? (
                 <Textarea label="전해 들은 말" rows={4} value={text} onChange={(e) => setText(e.target.value)} maxLength={4000}
-                  placeholder="예) 지난주 넘어지신 뒤로 휠체어를 타고 이동하세요." hint="들은 말을 그대로 적습니다. 이름, 주소, 전화번호는 적지 않습니다." />
+                  placeholder="예) 지난주 넘어지신 뒤로 휠체어를 타고 이동하세요." hint="시안에서는 가상 소식만 적습니다. 실제 주민의 이름, 주소, 전화번호는 적지 않습니다. 가린 뒤에도 남으면 AI 판독을 멈춥니다." />
               ) : (
                 <div className="rounded-lg border-2 border-dashed border-line-def bg-subtle p-6 text-center">
                   <FileAudio size={32} aria-hidden="true" className="mx-auto text-text-meta" />
@@ -173,7 +175,10 @@ export default function NotesPage() {
                   <Select className="w-72" label="샘플 소식" value={sampleId} onChange={setSampleId} options={SAMPLE_NOTES.map((s) => ({ value: s.id, label: s.label }))} />
                   <Button variant="secondary" onClick={onSample} disabled={!!reading && !reading.failed}>샘플 읽기</Button>
                 </div>
-                <Button variant="primary" size="lg" onClick={onRead} disabled={!!reading && !reading.failed} leftIcon={<Send size={16} aria-hidden="true" />}>AI가 읽기</Button>
+                <div className="flex flex-col items-end gap-2">
+                  <Checkbox checked={virtualOk} onChange={setVirtualOk} label="실제 개인정보가 없는 가상 소식임을 확인했습니다" />
+                  <Button variant="primary" size="lg" onClick={onRead} disabled={(!!reading && !reading.failed) || !virtualOk} leftIcon={<Send size={16} aria-hidden="true" />}>AI가 읽기</Button>
+                </div>
               </div>
             </div>
           ) : <p className="type-body-sm text-text-meta">현장 소식을 올릴 권한이 없습니다.</p>}

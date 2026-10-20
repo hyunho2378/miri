@@ -7,7 +7,7 @@
 // 원문 대조와 신뢰도 강제 하향은 프론트 lib/notes.verifyNote 가 다시 수행한다(서버 응답을 그대로 믿지 않음).
 // 키가 없으면 503 NO_KEY. 키는 서버 환경변수(NCP_CLOVASTUDIO_KEY, NCP_CSR_CLIENT_ID, NCP_CSR_CLIENT_SECRET)에만 둔다.
 
-import { hcxJson, clovaStt, csrSupported, maskLines, pick, pickTags, GRADES, CONFS, HCX_MODEL } from './_ncp.js'
+import { hcxJson, clovaStt, csrSupported, maskLines, residualPII, pick, pickTags, GRADES, TAGS, CONFS, HCX_MODEL, B64, readJsonBody, VIRTUAL_ONLY_MSG } from './_ncp.js'
 import { guard } from './_guard.js'
 
 const MAX_BYTES = 6 * 1024 * 1024
@@ -38,53 +38,81 @@ const SYSTEM = `너는 지자체 재난취약자 담당자에게 들어온 현�
 const fail = (res, status, code, message) => res.status(status).json({ error: { code, message } })
 const one = (s) => String(s || '').replace(/\s+/g, ' ').trim()
 
+// 요청 검사(GPT 재검토 R4, R9). current 는 허용된 등급과 특이사항만 받는다
+const CUR_GRADES = GRADES.filter((g) => g !== 'unknown')
+export function validateRequest(body) {
+  if (!body) return { status: 400, code: 'BAD_JSON', error: '요청 형식 오류' }
+  const { text, mimeType, data, current, virtualOnly } = body
+  if (virtualOnly !== true) return { status: 400, code: 'VIRTUAL_ONLY', error: VIRTUAL_ONLY_MSG }
+  let cur = null
+  if (current != null) {
+    if (typeof current !== 'object' || Array.isArray(current) || !CUR_GRADES.includes(current.grade)) return { status: 400, code: 'BAD_INPUT', error: '현재 명부 등급 형식 오류' }
+    if (current.tags != null && (!Array.isArray(current.tags) || current.tags.some((t) => !TAGS.includes(t) && typeof t !== 'string'))) return { status: 400, code: 'BAD_INPUT', error: '현재 특이사항 형식 오류' }
+    cur = { grade: current.grade, tags: (current.tags || []).filter((t) => TAGS.includes(t)) }
+  }
+  if (typeof text === 'string' && text.trim()) {
+    if (text.length > MAX_TEXT) return { status: 413, code: 'TOO_LONG', error: `글이 ${MAX_TEXT}자를 넘습니다` }
+    return { text, current: cur }
+  }
+  if (text != null && typeof text !== 'string') return { status: 400, code: 'BAD_INPUT', error: '글 형식 오류' }
+  if (typeof data === 'string' && data && typeof mimeType === 'string' && /^audio\//.test(mimeType)) {
+    if (!csrSupported(mimeType)) return { status: 415, code: 'AUDIO_FORMAT', error: 'mp3, aac, ogg, flac, wav 음성만 받습니다' }
+    if (data.length > Math.ceil(MAX_BYTES / 3) * 4 + 4) return { status: 413, code: 'TOO_LARGE', error: '파일 크기 6MB 초과' }
+    if (!B64.test(data)) return { status: 400, code: 'BAD_INPUT', error: '음성 파일 형식 오류' }
+    return { data, mimeType, current: cur }
+  }
+  return { status: 400, code: 'BAD_INPUT', error: '글 또는 음성 파일 필요' }
+}
+
+// 모델 응답 검사와 판정(GPT 재검토 R3, R9). changed 는 참과 거짓 값만 받고, 근거 문구가 글에 없으면 등급을 비운다
+export function judgeNote(p, transcript) {
+  if (!p || typeof p !== 'object' || Array.isArray(p) || typeof p.changed !== 'boolean') throw Object.assign(new Error('판독 결과 형식 오류'), { code: 'BAD_MODEL_OUTPUT' })
+  let grade = pick(p.grade, GRADES, 'unknown')
+  const quote = one(typeof p.quote === 'string' ? p.quote : '')
+  let confidence = pick(p.confidence, CONFS, 'low')
+  let quoteMismatch = false
+  let proposedGrade
+  if (quote && !transcript.includes(quote)) { quoteMismatch = true; proposedGrade = grade === 'unknown' ? undefined : grade; grade = 'unknown'; confidence = 'low' }
+  if (!quote) { grade = 'unknown'; confidence = 'low' }
+  // 모델이 변화 없음이라고 하면 등급을 내지 않는다(현재 등급을 되풀이해 근거처럼 보이는 일 방지)
+  if (!p.changed) grade = 'unknown'
+  const evidence = quoteMismatch ? '' : transcript
+  const tags = pickTags(p.tags, evidence)
+  const removeTags = pickTags(p.removeTags, evidence)
+  return {
+    changed: p.changed && (grade !== 'unknown' || tags.length > 0 || removeTags.length > 0),
+    grade, tags, removeTags, quote, quoteMismatch, proposedGrade,
+    summary: typeof p.summary === 'string' ? one(p.summary) : '',
+    confidence
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return fail(res, 405, 'METHOD', 'POST 만 허용')
-  if (!guard(req, res, { perMin: 20, name: 'note' })) return
-  let body = req.body
-  if (typeof body === 'string') {
-    try { body = JSON.parse(body) } catch { return fail(res, 400, 'BAD_JSON', '요청 형식 오류') }
-  }
-  const { text, mimeType, data, current } = body || {}
+  if (!(await guard(req, res, { requireSession: true, ai: 'note' }))) return
+  const v = validateRequest(readJsonBody(req))
+  if (v.error) return fail(res, v.status, v.code, v.error)
+  const { text, mimeType, data, current } = v
 
   try {
     let raw
-    if (typeof text === 'string' && text.trim()) {
-      if (text.length > MAX_TEXT) return fail(res, 413, 'TOO_LONG', `글이 ${MAX_TEXT}자를 넘습니다`)
-      raw = text
-    } else if (data && /^audio\//.test(mimeType || '')) {
-      if (!csrSupported(mimeType)) return fail(res, 415, 'AUDIO_FORMAT', 'mp3, aac, ogg, flac, wav 음성만 받습니다')
-      if (Buffer.byteLength(data, 'base64') > MAX_BYTES) return fail(res, 413, 'TOO_LARGE', '파일 크기 6MB 초과')
+    if (text != null) raw = text
+    else {
       raw = await clovaStt(data)
       if (!raw.trim()) return fail(res, 422, 'EMPTY_AUDIO', '음성에서 글자를 받아쓰지 못했습니다')
-    } else {
-      return fail(res, 400, 'BAD_INPUT', '글 또는 음성 파일 필요')
     }
 
-    const transcript = one(maskLines(raw.split(/\n+/)).join(' '))
-    const cur = current?.grade ? `현재 명부 값: 등급 ${current.grade}, 특이사항 ${(current.tags || []).join(', ') || '없음'}\n` : ''
+    const masked = maskLines(raw.split(/\n+/))
+    // 가린 뒤에도 개인정보로 보이는 글자가 남으면 언어 모델에 보내지 않는다(GPT 재검토 R4)
+    const left = residualPII(masked)
+    if (left.length) return fail(res, 422, 'PII_REMAINS', `개인정보로 보이는 글자(${left.join(', ')})가 남아 AI 판독을 멈췄습니다. ${VIRTUAL_ONLY_MSG}`)
+    const transcript = one(masked.join(' '))
+    const cur = current ? `현재 명부 값: 등급 ${current.grade}, 특이사항 ${current.tags.join(', ') || '없음'}\n` : ''
     const p = await hcxJson(SYSTEM, `${cur}현장 소식 글:\n${transcript}`, 800)
-
-    let grade = pick(p?.grade, GRADES, 'unknown')
-    let quote = one(p?.quote)
-    let confidence = pick(p?.confidence, CONFS, 'low')
-    if (quote && !transcript.includes(quote)) confidence = 'low'
-    if (!quote) { grade = 'unknown'; confidence = 'low' }
-    // 모델이 변화 없음이라고 하면 등급을 내지 않는다(현재 등급을 되풀이해 근거처럼 보이는 일 방지)
-    if (!p?.changed) grade = 'unknown'
-    return res.status(200).json({
-      transcript,
-      changed: !!p?.changed && (grade !== 'unknown' || pickTags(p?.tags, transcript).length > 0 || pickTags(p?.removeTags, transcript).length > 0),
-      grade,
-      tags: pickTags(p?.tags, transcript),
-      removeTags: pickTags(p?.removeTags, transcript),
-      quote,
-      summary: one(p?.summary),
-      confidence,
-      engine: { stt: data ? 'CLOVA Speech Recognition' : null, llm: HCX_MODEL, region: 'KR' }
-    })
+    return res.status(200).json({ transcript, ...judgeNote(p, transcript), engine: { stt: data ? 'CLOVA Speech Recognition' : null, llm: HCX_MODEL, region: 'KR' } })
   } catch (e) {
     if (e.code === 'NO_KEY') return fail(res, 503, 'NO_KEY', `판독 서버 미연결. ${e.message}`)
-    return fail(res, 502, e.code || 'NETWORK', `판독 실패: ${e.message}`)
+    if (e.code === 'TIMEOUT') return fail(res, 504, 'TIMEOUT', `판독 실패: ${e.message}. 잠시 뒤 다시 시도해 주십시오`)
+    return fail(res, 502, ['UPSTREAM', 'BAD_UPSTREAM', 'PARSE', 'BAD_MODEL_OUTPUT', 'NETWORK'].includes(e.code) ? e.code : 'NETWORK', `판독 실패: ${e.message}`)
   }
 }

@@ -1,7 +1,7 @@
 // useDispatchStore.js 발령 상태 머신. 평시 → 실행대기 발령 → 배정 → 전송 → 종료.
 // 가상 시계: 훈련 발령은 배속으로 진행해 8시간 창을 몇 분 안에 시연한다.
 import { create } from 'zustand'
-import { planDispatch, scorePlan } from '../lib/assign.js'
+import { helperQualifies, planDispatch, scorePlan } from '../lib/assign.js'
 import { capOf, gradeOf } from '../lib/shortage.js'
 import { calcTiming, calcVehicles, scenarioArrivals, scopeInput } from '../lib/shortageCalc.js'
 import { indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
@@ -113,8 +113,11 @@ export const useDispatchStore = create((set, get) => ({
     const data = useMiriStore.getState()
     const used = new Set(d.result.assignments.flatMap((a) => a.helperCodes))
     const a = d.result.assignments.find((x) => x.helperCodes.includes(oldCode))
-    const grades = [...new Set(a.trips.map((t) => t.grade))]
-    const next = data.helpers.find((h) => !used.has(h.code) && grades.some((g) => h.grades.includes(g)))
+    if (!a) return null
+    // 도우미가 필요한 회차의 모든 등급을 지원하고 활성 상태이며, 이미 불가로 답한 사람은 아닌 도우미만(GPT 재검토 R7)
+    const grades = [...new Set(a.trips.map((t) => t.grade))].filter((g) => gradeOf(g).helpers > 0)
+    const declined = (c) => d.ackOverride[c]?.answer === 'decline' || d.ackPlan[c]?.answer === 'decline'
+    const next = data.helpers.find((h) => h.code !== oldCode && !used.has(h.code) && !declined(h.code) && helperQualifies(h, grades))
     if (!next) return null
     const result = structuredClone(d.result)
     const ra = result.assignments.find((x) => x.vehicleCode === a.vehicleCode)
@@ -151,9 +154,9 @@ export const useDispatchStore = create((set, get) => ({
       if (need) {
         if (a) {
           const hs = a.helperCodes.map((c) => data.helpers.find((h) => h.code === c)).filter(Boolean)
-          if (hs.length < need || !hs.every((h) => h.grades.includes(person.grade))) continue
+          if (hs.length < need || !hs.every((h) => helperQualifies(h, [person.grade]))) continue
         } else {
-          crew = data.helpers.filter((h) => h.active !== false && !usedHelpers.has(h.code) && h.grades.includes(person.grade)).slice(0, need)
+          crew = data.helpers.filter((h) => !usedHelpers.has(h.code) && helperQualifies(h, [person.grade])).slice(0, need)
           if (crew.length < need) continue
         }
       }
@@ -168,7 +171,7 @@ export const useDispatchStore = create((set, get) => ({
       best.a = { vehicleCode: best.vehicle.code, trips: [], helperCodes: (best.crew || []).map((h) => h.code), reasons: ['실패 대상자 재배정용 추가 차량'] }
       result.assignments.push(best.a)
     }
-    best.a.trips.push({ index: best.a.trips.length + 1, vehicle: best.a.vehicleCode, village: village.code, grade: person.grade, personCodes: [code], departAt: best.free, finishAt: best.finish, added: true })
+    best.a.trips.push({ index: best.a.trips.length + 1, vehicle: best.a.vehicleCode, village: village.code, grade: person.grade, personCodes: [code], departAt: best.free, finishAt: best.finish, added: true, shelters: ctx.dest?.[code] ? [ctx.dest[code]] : [] })
     result.assignments.forEach((a) => { a.trips = a.trips.filter((t) => t.personCodes.length) })
     result.assignments = result.assignments.filter((a) => a.trips.length)
     const m = scorePlan({ trips: result.assignments.flatMap((a) => a.trips), unserved: result.unassigned })

@@ -47,14 +47,17 @@ const toBase64 = (file) => new Promise((resolve, reject) => {
 
 // 서버 판독 호출(/api/note). 글이면 text, 음성이면 file. 키가 없으면 503
 export async function readNote({ text, file, current }) {
-  const payload = { current: { grade: current.grade, tags: current.tags || [] } }
+  const payload = { current: { grade: current.grade, tags: current.tags || [] }, virtualOnly: true }
   if (file) { payload.mimeType = file.type || 'audio/mpeg'; payload.data = await toBase64(file) } else payload.text = text
   const res = await fetch('/api/note', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-  const body = await res.json().catch(() => ({}))
+  const body = await res.json().catch(() => null)
   if (!res.ok) {
     const err = new Error(body?.error?.message || '판독 서버 오류')
     err.code = body?.error?.code || res.status
     throw err
+  }
+  if (!body || typeof body.changed !== 'boolean' || typeof body.transcript !== 'string') {
+    throw Object.assign(new Error('판독 결과 형식 오류'), { code: 'BAD_RESPONSE' })
   }
   // 글 소식은 담당자가 입력한 원문 자체를 대조 기준으로 쓴다. AI가 돌려준 전사문은 음성일 때만 쓴다(GPT 검토 M2)
   return verifyNote(file ? (body.transcript || '') : (text || ''), body, current)

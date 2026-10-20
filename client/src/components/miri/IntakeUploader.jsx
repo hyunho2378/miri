@@ -5,6 +5,7 @@ import clsx from 'clsx'
 import { Check, FileUp, Loader2, ScanText } from 'lucide-react'
 import Button from '../ui/Button.jsx'
 import Select from '../ui/Select.jsx'
+import Checkbox from '../ui/Checkbox.jsx'
 
 export const READ_STEPS = ['글자 인식', '등급 판정', '근거 추출', '원문 대조']
 
@@ -35,12 +36,19 @@ export default function IntakeUploader({ villages, onFile, onSample, busy }) {
   const [village, setVillage] = useState(villages[0]?.code)
   const [kind, setKind] = useState('plan')
   const [drag, setDrag] = useState(false)
-  const take = (file) => { if (file && !busy) onFile(file, { villageCode: village, kind }) }
+  // 실제 개인정보 서류 업로드 금지. 가상 자료임을 고른 뒤에만 파일을 받는다(GPT 재검토 R4)
+  const [virtualOk, setVirtualOk] = useState(false)
+  const take = (file) => { if (file && !busy && virtualOk) onFile(file, { villageCode: village, kind }) }
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <Select label="대상 마을" value={village} onChange={setVillage} options={villages.map((v) => ({ value: v.code, label: v.label, secondary: v.code }))} />
         <Select label="문서 종류" value={kind} onChange={setKind} options={[{ value: 'plan', label: '대피계획서' }, { value: 'card', label: '대피카드' }, { value: 'etc', label: '기타' }]} />
+      </div>
+      <div role="note" className="rounded-md bg-danger-soft p-4 text-danger-text">
+        <p className="type-strong">가상 자료만 올립니다</p>
+        <p className="mt-1 type-meta">이 시안은 공모전 시연용입니다. 실제 주민의 이름, 연락처, 주소, 주민번호가 담긴 서류는 올리지 마십시오. 가린 뒤에도 개인정보로 보이는 글자가 남으면 AI 판독을 멈춥니다.</p>
+        <Checkbox className="mt-2" checked={virtualOk} onChange={setVirtualOk} label="실제 개인정보가 없는 가상 자료임을 확인했습니다" />
       </div>
       <div
         onDragOver={(e) => { e.preventDefault(); setDrag(true) }}
@@ -52,10 +60,10 @@ export default function IntakeUploader({ villages, onFile, onSample, busy }) {
         <p className={clsx('mt-2', drag ? 'type-strong text-primary-text' : 'type-body-sm text-text-sec')}>{drag ? '놓으면 서류 읽기를 시작합니다.' : '사진이나 스캔 이미지를 끌어다 놓습니다.'}</p>
         <p className="mt-1 type-meta text-text-meta">6MB 이하의 이미지 파일을 올려 주십시오.</p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <label htmlFor={inputId} className={clsx('pressable inline-flex items-center gap-2 h-10 min-h-11 md:min-h-0 px-4 rounded-md bg-page text-text-pri shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-mute type-strong cursor-pointer', busy && 'pointer-events-none opacity-40')}>
+          <label htmlFor={inputId} aria-disabled={busy || !virtualOk} className={clsx('pressable inline-flex items-center gap-2 h-10 min-h-11 md:min-h-0 px-4 rounded-md bg-page text-text-pri shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-mute type-strong cursor-pointer', (busy || !virtualOk) && 'pointer-events-none opacity-40')}>
             <FileUp size={16} aria-hidden="true" />파일 선택
           </label>
-          <input id={inputId} ref={fileRef} type="file" accept="image/*" className="sr-only" disabled={busy}
+          <input id={inputId} ref={fileRef} type="file" accept="image/png,image/jpeg,image/tiff,application/pdf" className="sr-only" disabled={busy || !virtualOk}
             onChange={(e) => { take(e.target.files?.[0]); e.target.value = '' }} />
           <Button variant="primary" onClick={onSample} disabled={busy} leftIcon={<ScanText size={16} aria-hidden="true" />}>샘플 서류 읽기</Button>
         </div>
