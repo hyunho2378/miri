@@ -82,12 +82,23 @@ export function buildSeed() {
       if (r() < 0.1) tags.push('hearing')
       if (r() < 0.2) tags.push('medication')
       if (r() < 0.12) tags.push('pet')
+      // 회신 R17(한국척수장애인협회): 전동과 수동 휠체어 구분, 욕창 확인 필요. 난수 순서를 바꾸지 않도록 k로 정함
+      if (grade === 'wheelchair') tags.push(k % 3 === 0 ? 'wheelPower' : 'wheelManual')
+      if (grade === 'bed' && k % 2 === 0) tags.push('pressureSore')
       const code = `${v.code}-${String(k).padStart(3, '0')}`
       persons.push({
         code, villageCode: v.code, grade, ltcGrade, tags,
         gradeSource: r() < 0.6 ? 'ai' : 'manual', review: 'confirmed',
         docId: `DOC-${String(docSeq).padStart(4, '0')}`, docPos: k,
-        updatedAt: TODAY - intIn(r, 3, 60) * DAY
+        updatedAt: TODAY - intIn(r, 3, 60) * DAY,
+        // 회신 R28(최정원): 당사자와 계획 확인 상태와 마지막 확인 날짜, 이동 경로 항목. 모두 가상 값
+        planCheckedAt: k % 4 === 0 ? null : TODAY - ((k * 7) % 90 + 1) * DAY,
+        access: {
+          floor: k % 5 === 0 ? '3층' : k % 3 === 0 ? '2층' : '1층',
+          stairs: k % 5 === 0 ? '계단만 있음' : k % 3 === 0 ? '엘리베이터 있음' : '계단 없음',
+          vehicle: k % 2 === 0 ? '대문 앞까지 차량 진입 가능' : '골목 입구에서 하차, 30미터 도보',
+          comm: tags.includes('hearing') ? '글로 써서 설명' : tags.includes('dementia') ? '보호자가 먼저 설명' : '말로 설명'
+        }
       })
       privateInfo[code] = {
         address: `동해시 ${v.name} (가상 대상자, 번지 없음)`,

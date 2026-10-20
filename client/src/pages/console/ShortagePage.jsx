@@ -176,6 +176,7 @@ export default function ShortagePage() {
         <div className="min-w-0">
           <p className="type-caption text-text-sec">계산 조건</p>
           <p className="mt-0.5 type-body-sm text-text-pri tabular-nums">{summary}</p>
+          <p className="mt-1 type-meta text-text-sec">입력 기준: 장기요양 재가 수급자 2025년 통계, 명부는 가상 자료. 계산 규칙 1.1판(2026. 10. 20.)</p>
         </div>
         <Button
           variant={panelOpen ? 'primary' : 'secondary'} aria-expanded={panelOpen} aria-controls={panelId}

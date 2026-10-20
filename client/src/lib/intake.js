@@ -48,7 +48,10 @@ export const TAGS = {
   hearing: '청력 저하',
   bedridden: '와상',
   medication: '상시 복약',
-  pet: '반려동물 동반'
+  pet: '반려동물 동반',
+  wheelPower: '전동 휠체어',
+  wheelManual: '수동 휠체어',
+  pressureSore: '욕창 확인 필요'
 }
 
 export const CONF_LABEL = { high: '일치도 높음', mid: '일치도 보통', low: '확인 필요' }

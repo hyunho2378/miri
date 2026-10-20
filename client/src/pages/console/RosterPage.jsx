@@ -213,6 +213,13 @@ export default function RosterPage() {
               { label: '특이사항', value: open.tags.map((t) => TAGS[t]).join(', ') || '없음' },
               { label: '입력 방법', value: <SourceLabel source={open.gradeSource} /> },
               { label: '확인 상태', value: <StatusPill status={open.review} /> },
+              { label: '당사자와 계획 확인', value: open.planCheckedAt ? `확인 완료, 마지막 확인 ${fmtDate(open.planCheckedAt)}` : '확인 전' },
+              ...(open.access ? [
+                { label: '거주 층수', value: open.access.floor },
+                { label: '계단과 엘리베이터', value: open.access.stairs },
+                { label: '차량 접근 위치', value: open.access.vehicle },
+                { label: '소통 방식', value: open.access.comm }
+              ] : []),
               { label: '근거 서류', value: open.docId || '없음' },
               { label: '갱신일', value: fmtDate(open.updatedAt) }
             ]} />
