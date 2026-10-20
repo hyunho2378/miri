@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
 import PageShell, { todayLabel } from '../../components/miri/PageShell.jsx'
 import { rosterBreakdown, rosterPartsText } from '../../lib/rosterCount.js'
+import PublicFactsCard from '../../components/miri/PublicFactsCard.jsx'
 import { useFireRisk, useWarning, useWind, dirName } from '../../components/miri/FireRiskStrip.jsx'
 import useAnomalies from '../../hooks/useAnomalies.js'
 import useNow from '../../hooks/useNow.js'
@@ -294,6 +295,7 @@ export default function OverviewPage() {
             <p className="mt-2 type-meta text-text-meta tabular-nums">전체 {vehicles.length}대 중 {vehicles.length ? Math.round((availVehicles / vehicles.length) * 100) : 0}%, 도우미 {helpers.filter((h) => h.active).length}명</p>
           </Card>
         </div>
+        <PublicFactsCard className="cq-md:col-span-6 cq-xl:col-span-12" />
       </div>
     </PageShell>
   )

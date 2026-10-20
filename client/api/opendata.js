@@ -1,5 +1,5 @@
 // api/opendata.js Vercel 서버리스 함수. 공공데이터포털 연계(동해시 한정).
-// GET ?kind=fire | shelters | ltc | ambulance | warning | wind
+// GET ?kind=fire | shelters | ltc | ambulance | warning | wind | er | access
 // DATA_GO_KR_KEY 는 서버 환경변수에만 두고 프론트에 노출하지 않는다. 없으면 503 NO_KEY.
 const BASE = 'https://apis.data.go.kr'
 const fail = (res, status, code, message) => res.status(status).json({ error: { code, message } })
@@ -103,19 +103,56 @@ async function wind(key) {
   return { source: '기상청 단기예보 조회서비스', base: `${ymd} ${baseTime}`, grid: { nx, ny }, hours }
 }
 
-const KINDS = { fire, shelters, ltc, ambulance, warning, wind }
+
+// XML 응답의 item 목록을 객체 배열로 바꾼다
+function xmlItems(xml, tag = 'item') {
+  return [...String(xml).matchAll(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, 'g'))].map((m) =>
+    Object.fromEntries([...m[1].matchAll(/<(\w+)>([^<]*)<\/\1>/g)].map((x) => [x[1], x[2].trim()])))
+}
+async function getText(url) {
+  const r = await fetch(url, { signal: AbortSignal.timeout(9000) })
+  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+  const t = await r.text()
+  const code = t.match(/<resultCode>([^<]*)<\/resultCode>/)?.[1] || t.match(/<returnReasonCode>([^<]*)</)?.[1]
+  if (code && !['00', '0000', '0'].includes(code)) throw new Error(`결과코드 ${code}`)
+  return t
+}
+
+// 국립중앙의료원 전국 응급의료기관 정보 조회 서비스(15000563). 응급실 실시간 가용병상.
+// 시도 이름이 바뀐 뒤 두 표기가 섞여 있어 강원특별자치도와 강원도를 차례로 묻는다.
+async function er(key) {
+  let items = []
+  for (const stage1 of ['강원특별자치도', '강원도']) {
+    const xml = await getText(`${BASE}/B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${key}&STAGE1=${encodeURIComponent(stage1)}&STAGE2=${encodeURIComponent('동해시')}&pageNo=1&numOfRows=20`)
+    items = xmlItems(xml)
+    if (items.length) break
+  }
+  const list = items.map((o) => ({ name: o.dutyName, erBeds: o.hvec == null ? null : Number(o.hvec), tel: o.dutyTel3 || null, updatedAt: o.hvidate || null }))
+  return { source: '국립중앙의료원 전국 응급의료기관 정보 조회 서비스', area: '강원특별자치도 동해시', count: list.length, list, fetchedAt: new Date().toISOString() }
+}
+
+// 한국사회보장정보원 장애인편의시설 현황(15092317). 동해시 시설 목록과 좌표.
+async function access(key) {
+  const xml = await getText(`${BASE}/B554287/DisabledPersonConvenientFacility/getDisConvFaclList?serviceKey=${key}&pageNo=1&numOfRows=300&siDoNm=${encodeURIComponent('강원특별자치도')}&cggNm=${encodeURIComponent('동해시')}`)
+  let items = xmlItems(xml, 'servList')
+  if (!items.length) items = xmlItems(xml)
+  const list = items.map((o) => ({ id: o.wfcltId, name: o.faclNm, kind: o.faclTyCd || o.faclInfId || null, address: o.lcMnad || null, lat: Number(o.faclLat) || null, lon: Number(o.faclLng) || null }))
+  return { source: '한국사회보장정보원 장애인편의시설 현황', area: '강원특별자치도 동해시', count: list.length, list, fetchedAt: new Date().toISOString() }
+}
+
+const KINDS = { fire, shelters, ltc, ambulance, warning, wind, er, access }
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return fail(res, 405, 'METHOD', 'GET 만 허용')
   const key = process.env.DATA_GO_KR_KEY
   if (!key) return fail(res, 503, 'NO_KEY', '공공데이터포털 인증키 미설정')
   const fn = KINDS[req.query?.kind]
-  if (!fn) return fail(res, 400, 'KIND', 'kind 는 fire, shelters, ltc, ambulance, warning, wind 중 하나')
+  if (!fn) return fail(res, 400, 'KIND', 'kind 는 fire, shelters, ltc, ambulance, warning, wind, er, access 중 하나')
   try {
     const data = await fn(key)
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=3600')
     return res.status(200).json(data)
   } catch (e) {
-    return fail(res, 502, 'UPSTREAM', '공공데이터포털 응답 오류')
+    return fail(res, 502, 'UPSTREAM', `공공데이터포털 응답 오류: ${String(e.message || '').slice(0, 80)}`)
   }
 }

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { Ambulance, Printer } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
+import PublicFactsCard from '../../components/miri/PublicFactsCard.jsx'
 import GradeChip from '../../components/miri/GradeChip.jsx'
 import MetricCard from '../../components/miri/MetricCard.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
@@ -139,6 +140,8 @@ export default function HandoverPage() {
             columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={20} caption="미이송자 목록"
             emptyTitle="미이송자가 없습니다" emptyDesc="전원 기한 내 이송이 진행 중입니다."
           />
+
+          <PublicFactsCard only="er" />
 
           <Card title="전달 기록" meta={`${d.handovers.length}회`}>
             {d.handovers.length ? (
