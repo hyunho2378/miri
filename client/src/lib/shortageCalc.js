@@ -38,6 +38,19 @@ export function scopeInput({ persons, villages, scenario, settings = {}, shelter
   return { all: r.villages, villages: scoped, persons: active.filter((p) => codes.has(p.villageCode)), shelterLoad: r.shelterLoad }
 }
 
+// 발령 기준 칸과 현황판이 함께 쓰는 범위 요약. 명부 전체(반려 제외)와 기준 시나리오 대피 대상 구역 대상자를 나눠 센다
+export function scopeSummary({ persons, villages, scenario, settings = {} }) {
+  const sp = scopeInput({ persons, villages, scenario, settings })
+  const roster = persons.filter((p) => p.review !== 'rejected')
+  return {
+    targets: sp.persons.length,
+    pending: sp.persons.filter((p) => p.review === 'pending').length,
+    villages: sp.villages.length,
+    roster: roster.length,
+    rosterPending: roster.filter((p) => p.review === 'pending').length
+  }
+}
+
 export function scenarioArrivals(scenario, villages, t0) {
   const out = {}
   for (const v of villages) {

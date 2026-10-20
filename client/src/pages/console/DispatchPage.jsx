@@ -29,6 +29,7 @@ import { MIN, fmtHM, fmtHMFrom, remainText } from '../../lib/time.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
+import { scopeSummary } from '../../lib/shortageCalc.js'
 
 const SPEEDS = [{ value: 1, label: '1배' }, { value: 60, label: '60배' }, { value: 240, label: '240배' }]
 const KINDS = [{ value: 'drill', label: '훈련 발령' }, { value: 'real', label: '실제 발령' }]
@@ -92,8 +93,10 @@ function StartPanel() {
   const helpers = useMiriStore((s) => s.helpers)
   const [kind, setKind] = useState('drill')
   const [speed, setSpeed] = useState(60)
-  const targets = persons.filter((p) => p.review !== 'rejected')
-  const pending = targets.filter((p) => p.review === 'pending').length
+  const villages = useMiriStore((s) => s.villages)
+  const settings = useMiriStore((s) => s.settings)
+  // 발령은 기준 시나리오 대피 대상 구역 대상자만 배정하므로 그 수를 보여 주고, 명부 전체는 따로 적는다
+  const sum = useMemo(() => scopeSummary({ persons, villages, scenario, settings }), [persons, villages, scenario, settings])
 
   return (
     <div className="space-y-4">
@@ -124,7 +127,8 @@ function StartPanel() {
       <Card title="발령 기준" desc="현황판 기준 시나리오">
         <KeyValue items={[
           { label: '시나리오', value: scenario?.name, strong: true },
-          { label: '이송 대상', value: <>{targets.length}명{pending > 0 && <span className="text-primary-text">, 확인 대기 서류 {pending}건 포함</span>}</> },
+          { label: '이송 대상(대피 대상 구역)', value: <>{sum.villages}개 마을 {sum.targets}명{sum.pending > 0 && <span className="text-primary-text">, 확인 대기 서류 {sum.pending}건 포함</span>}</> },
+          { label: '명부 전체', value: `${sum.roster}건(확인 대기 ${sum.rosterPending}건 포함)` },
           { label: '가용 차량', value: `${vehicles.filter((v) => v.available !== false).length}대 / 전체 ${vehicles.length}대` },
           { label: '도우미', value: `${helpers.filter((h) => h.active !== false).length}명` }
         ]} />

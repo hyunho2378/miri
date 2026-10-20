@@ -99,7 +99,8 @@ export default function OverviewPage() {
   const scope = myVillages.map((v) => ({ v, r: result.byVillage[v.code] })).filter((x) => x.r)
   const scopeTotal = scope.reduce((s, x) => s + x.r.total, 0)
   const scopeByGrade = scope.reduce((acc, x) => { for (const g of GRADES) acc[g.key] += x.r.shortage[g.key]; return acc }, emptyByGrade())
-  const scopeProvisional = scope.reduce((s, x) => s + x.r.provisional, 0)
+  // 미이송 예상은 대피 대상 구역 마을에서만 나오므로, 잠정값 표시도 같은 범위의 확인 대기 서류만 센다
+  const scopeProvisional = scope.filter((x) => x.r.inScope).reduce((s, x) => s + x.r.provisional, 0)
   const inScope = scope.filter((x) => x.r.inScope)
   const shortVillages = inScope.filter((x) => x.r.total > 0)
   const diff = optUnserved - result.total

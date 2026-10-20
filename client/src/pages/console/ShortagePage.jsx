@@ -272,7 +272,7 @@ export default function ShortagePage() {
                     <dd className="mt-0.5 type-body-sm text-text-pri">특장차량은 슬로프와 안전벨트가 있어 운전자 1명으로 가능하고, 숙련자는 탑승과 안전벨트 착용이 5분 이내. 경수 장애는 보호자가 함께할 수 있고, 전동 휠체어는 경차 개조 특장차에 타기 어려울 수 있음</dd>
                   </div>
                 </dl>
-                <p className="mt-2 type-meta leading-5 text-text-meta">근거가 한 곳뿐이라 가정값은 바꾸지 않았습니다. 도우미 수는 미이송 계산에 들어가지 않고 도우미 부족 경고에만 쓰입니다.</p>
+                <p className="mt-2 type-meta leading-5 text-text-meta">근거가 한 곳뿐이라 가정값은 바꾸지 않았습니다. 도우미 수와 지원 등급도 차량과 함께 계산 조건이며, 함께 탈 도우미가 모자란 대상자는 '도우미 부족'으로 미이송 예상에 들어갑니다. 발령 배정도 같은 조건을 씁니다.</p>
               </section>
             </div>
             <p className="mt-4 rounded-md bg-page px-3 py-2 type-meta leading-5 text-text-sec">{DISABLED_NOTE}</p>
