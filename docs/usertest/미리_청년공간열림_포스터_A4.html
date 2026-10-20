@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>미리 청년공간 열림 포스터 A4</title>
+<style>
+@font-face{font-family:Pretendard;font-weight:400;src:url(font/Pretendard-Regular.otf)}
+@font-face{font-family:Pretendard;font-weight:500;src:url(font/Pretendard-Medium.otf)}
+@font-face{font-family:Pretendard;font-weight:600;src:url(font/Pretendard-SemiBold.otf)}
+@font-face{font-family:Pretendard;font-weight:700;src:url(font/Pretendard-Bold.otf)}
+@font-face{font-family:Pretendard;font-weight:800;src:url(font/Pretendard-ExtraBold.otf)}
+@page{size:210mm 297mm;margin:0}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:210mm;height:297mm;background:#fff}
+body{font-family:Pretendard,sans-serif;color:#111;word-break:keep-all;letter-spacing:-0.02em;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sheet{width:210mm;height:297mm;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.top{background:#2563EB;color:#fff;padding:12mm 13mm 8mm}
+.eyebrow{font-size:4.6mm;font-weight:700}
+h1{font-size:15mm;font-weight:800;line-height:1.12;margin-top:3mm;letter-spacing:-0.04em}
+.ask{font-size:6mm;font-weight:600;line-height:1.4;margin-top:4mm}
+.intro{padding:6mm 13mm 0;font-size:4.2mm;line-height:1.55;color:#222}
+.intro b{font-weight:700;color:#111}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;padding:6mm 13mm 0}
+.step .n{display:inline-flex;width:7mm;height:7mm;border-radius:50%;background:#2563EB;color:#fff;font-weight:800;font-size:4mm;align-items:center;justify-content:center}
+.step h3{font-size:4.4mm;font-weight:800;margin:2mm 0 1.2mm}
+.step p{font-size:3.3mm;line-height:1.45;color:#222;min-height:14mm}
+.shot{margin-top:2.5mm;width:100%;aspect-ratio:390/570;border-radius:4mm;overflow:hidden;background:#F1F3F6;box-shadow:0 1.2mm 4mm rgba(17,17,17,.16)}
+.shot img{width:100%;display:block}
+.qrbox{margin-top:2.5mm;width:100%;aspect-ratio:390/570;border-radius:4mm;background:#F1F3F6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5mm;padding:3mm}
+.qrbox img{width:90%;background:#fff;border-radius:2mm;padding:1.5mm}
+.qrbox span{font-size:3mm;font-weight:700;color:#2563EB;text-align:center}
+.learn{margin:7mm 13mm 0;background:#EEF3FF;border-radius:4mm;padding:5mm 6mm}
+.learn h2{font-size:5mm;font-weight:800}
+.learn ul{list-style:none;margin-top:2.5mm;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4mm}
+.learn li{font-size:3.5mm;line-height:1.5;color:#222}
+.learn li b{display:block;font-size:3.9mm;color:#111;font-weight:700;margin-bottom:1mm}
+.facts{display:flex;gap:6mm;padding:5mm 13mm 0;font-size:4.2mm;font-weight:800}
+.facts span{color:#2563EB}
+.mail{margin:5mm 13mm 0;background:#111;color:#fff;border-radius:4mm;padding:5mm 6mm}
+.mail p{font-size:3.9mm;font-weight:500}
+.mail strong{display:block;font-size:8mm;font-weight:800;margin-top:1.5mm}
+.foot{margin-top:auto;padding:0 13mm 9mm}
+.foot b{font-size:3.6mm;font-weight:700}
+.foot p{font-size:3mm;color:#333;margin-top:.8mm}
+</style></head><body><div class="sheet">
+<header class="top">
+<p class="eyebrow">동해 청년 여러분께 부탁드립니다</p>
+<h1>동해 산불, 이웃을 돕는 5분</h1>
+<p class="ask">도우미 화면을 청년의 눈으로 먼저 써 보고<br>고칠 점을 알려 주세요.</p>
+</header>
+<p class="intro"><b>미리</b>는 산불 같은 재난 때 혼자 대피하기 어려운 이웃을 옮길 차와 도우미를 미리 정해 두는 서비스입니다. 재난이 나면 도우미 휴대폰에 배정이 도착하고, 도우미는 버튼 몇 번으로 이송을 진행합니다. 여러분이 그 도우미가 되어 보는 체험입니다.</p>
+<section class="steps">
+<div class="step"><span class="n">1</span><h3>QR로 접속</h3><p>휴대폰 카메라로 찍으면 도우미 화면이 열립니다. 로그인은 없습니다.</p><div class="qrbox"><img src="img/qr.png" alt="도우미 화면 QR"><span>miri-indol.vercel.app<br>/h/demo</span></div></div>
+<div class="step"><span class="n">2</span><h3>배정 받기</h3><p>'시연 발령 시작'을 누르면 내 차량, 대상자 수, 대피소가 도착합니다. '수락'을 누르세요.</p><div class="shot"><img src="img/h1_배정도착.png" alt="배정 도착 화면"></div></div>
+<div class="step"><span class="n">3</span><h3>대상자 확인</h3><p>첫 대상자의 이동 방법, 필요한 차와 인력, 주의사항을 읽어 보세요.</p><div class="shot"><img src="img/h2_수락후.png" alt="대상자 카드"></div></div>
+<div class="step"><span class="n">4</span><h3>진행 보고</h3><p>출발, 도착, 탑승 완료, 대피소 인계를 차례로 누르세요. 못 옮기면 '이송 실패 보고'를 씁니다.</p><div class="shot"><img src="img/h5_1명완료.png" alt="인계 완료 화면"></div></div>
+</section>
+<section class="learn"><h2>써 보면 알게 되는 것</h2><ul>
+<li><b>재난 때 도우미가 받는 정보</b>누구를, 어떤 차로, 어느 대피소로 옮기는지 한 화면에 모입니다.</li>
+<li><b>버튼 하나로 하는 보고</b>현장에서 전화 없이 누른 기록이 담당자 화면에 바로 올라갑니다.</li>
+<li><b>못 옮긴 이웃을 놓치지 않는 법</b>부재나 진입 불가를 알리면 다음 대상자로 넘어가고 담당자가 다시 배정합니다.</li>
+</ul></section>
+<div class="facts"><p><span>5분</span> 소요</p><p><span>로그인 없음</span></p><p><span>개인정보 받지 않음</span></p></div>
+<div class="mail"><p>헷갈린 버튼이나 고칠 점을 한 줄로 보내 주세요.</p><strong>ekjjodia@naver.com</strong></div>
+<footer class="foot"><b>한림대학교 서비스디자인 수업 Team 오아시스</b><p>2026 AI·디지털 기반 사회문제 해결 챌린지 참가 서비스</p></footer>
+</div></body></html>
