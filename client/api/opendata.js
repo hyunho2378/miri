@@ -127,17 +127,29 @@ async function er(key) {
     items = xmlItems(xml)
     if (items.length) break
   }
-  const list = items.map((o) => ({ name: o.dutyName, erBeds: o.hvec == null ? null : Number(o.hvec), tel: o.dutyTel3 || null, updatedAt: o.hvidate || null }))
+  const list = items.map((o) => ({ name: o.dutyName, erBeds: o.hvec == null || String(o.hvec).trim() === '' || Number.isNaN(Number(o.hvec)) ? null : Number(o.hvec), tel: o.dutyTel3 || null, updatedAt: o.hvidate || null }))
   return { source: '국립중앙의료원 전국 응급의료기관 정보 조회 서비스', area: '강원특별자치도 동해시', count: list.length, list, fetchedAt: new Date().toISOString() }
 }
 
 // 한국사회보장정보원 장애인편의시설 현황(15092317). 동해시 시설 목록과 좌표.
 async function access(key) {
-  const xml = await getText(`${BASE}/B554287/DisabledPersonConvenientFacility/getDisConvFaclList?serviceKey=${key}&pageNo=1&numOfRows=300&siDoNm=${encodeURIComponent('강원특별자치도')}&cggNm=${encodeURIComponent('동해시')}`)
-  let items = xmlItems(xml, 'servList')
-  if (!items.length) items = xmlItems(xml)
+  // 전체 건수는 totalCount로 읽고, 목록은 1,000건씩 최대 5쪽까지 모은다. 시도 표기가 섞여 있어 강원도도 묻는다.
+  let items = [], total = null
+  for (const siDo of ['강원특별자치도', '강원도']) {
+    items = []; total = null
+    for (let page = 1; page <= 5; page++) {
+      const xml = await getText(`${BASE}/B554287/DisabledPersonConvenientFacility/getDisConvFaclList?serviceKey=${key}&pageNo=${page}&numOfRows=1000&siDoNm=${encodeURIComponent(siDo)}&cggNm=${encodeURIComponent('동해시')}`)
+      if (total == null) { const m = xml.match(/<totalCount>\s*(\d+)\s*<\/totalCount>/); total = m ? Number(m[1]) : null }
+      let got = xmlItems(xml, 'servList')
+      if (!got.length) got = xmlItems(xml)
+      items.push(...got)
+      if (!got.length || (total != null && items.length >= total)) break
+    }
+    if (items.length) break
+  }
+  if (!items.length) throw Object.assign(new Error('동해시 장애인편의시설 조회 결과가 없습니다'), { code: 'EMPTY' })
   const list = items.map((o) => ({ id: o.wfcltId, name: o.faclNm, kind: o.faclTyCd || o.faclInfId || null, address: o.lcMnad || null, lat: Number(o.faclLat) || null, lon: Number(o.faclLng) || null }))
-  return { source: '한국사회보장정보원 장애인편의시설 현황', area: '강원특별자치도 동해시', count: list.length, list, fetchedAt: new Date().toISOString() }
+  return { source: '한국사회보장정보원 장애인편의시설 현황', area: '강원특별자치도 동해시', count: total ?? list.length, listed: list.length, list, fetchedAt: new Date().toISOString() }
 }
 
 const KINDS = { fire, shelters, ltc, ambulance, warning, wind, er, access }

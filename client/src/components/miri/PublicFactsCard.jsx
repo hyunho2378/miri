@@ -35,7 +35,7 @@ export default function PublicFactsCard({ only = null, className = '' }) {
         {show('access') && <section aria-label="동해 장애인편의시설">
           <p className="mb-2 inline-flex items-center gap-1.5 type-caption text-text-sec"><Accessibility size={16} aria-hidden="true" />동해 장애인편의시설 등록</p>
           {access.data ? (
-            <p className="type-body-sm text-text-pri"><strong>{access.data.count.toLocaleString('ko-KR')}곳</strong> <span className="text-text-meta">(좌표 있는 곳 {access.data.list.filter((x) => x.lat && x.lon).length}곳, 지도 하차 지점 확인용)</span></p>
+            <p className="type-body-sm text-text-pri"><strong>{access.data.count.toLocaleString('ko-KR')}곳</strong> <span className="text-text-meta">(좌표 있는 곳 {access.data.list.filter((x) => x.lat && x.lon).length}곳)</span></p>
           ) : <Status s={access} />}
         </section>}
         {show('fires') && <section aria-label="동해 산불 이력">
