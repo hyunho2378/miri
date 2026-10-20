@@ -127,8 +127,8 @@ function StartPanel() {
       <Card title="발령 기준" desc="현황판 기준 시나리오">
         <KeyValue items={[
           { label: '시나리오', value: scenario?.name, strong: true },
-          { label: '이송 대상(대피 대상 구역)', value: <>{sum.villages}개 마을 {sum.targets}명{sum.pending > 0 && <span className="text-primary-text">, 확인 대기 서류 {sum.pending}건 포함</span>}</> },
-          { label: '명부 전체', value: `${sum.roster}건(확인 대기 ${sum.rosterPending}건 포함)` },
+          { label: '이송 대상(대피 대상 구역)', value: <>{sum.villages}개 마을 {sum.targets.toLocaleString('ko-KR')}명{sum.pending > 0 && <span className="text-primary-text">, 확인 대기 서류 {sum.pending}건 포함</span>}</> },
+          { label: '명부 전체', value: `${sum.roster.toLocaleString('ko-KR')}건(확인 대기 ${sum.rosterPending}건 포함)` },
           { label: '가용 차량', value: `${vehicles.filter((v) => v.available !== false).length}대 / 전체 ${vehicles.length}대` },
           { label: '도우미', value: `${helpers.filter((h) => h.active !== false).length}명` }
         ]} />
