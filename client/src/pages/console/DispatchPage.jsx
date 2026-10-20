@@ -107,7 +107,7 @@ function StartPanel() {
         step={status === 'closed' ? '종료' : '평시'} title="발령 개시"
         desc={`기준 시나리오 ${scenario?.name}에 따라 배정을 계산합니다.`}
         actions={role === 'city' ? (
-          <Button size="lg" leftIcon={<Siren size={16} aria-hidden="true" />} onClick={() => start({ kind, speed })}>
+          <Button size="lg" disabled={kind !== 'drill'} leftIcon={<Siren size={16} aria-hidden="true" />} onClick={() => start({ kind, speed })}>
             {kind === 'drill' ? '훈련 발령 개시' : '실제 발령 개시'}
           </Button>
         ) : (
@@ -117,7 +117,7 @@ function StartPanel() {
         <div>
           <p className="mb-1.5 type-caption text-text-sec">발령 종류</p>
           <SegmentControl label="발령 종류" items={KINDS} value={kind} onChange={(v) => { setKind(v); if (v === 'real') setSpeed(1) }} />
-          {kind === 'real' && <p className="mt-1.5 type-meta text-text-meta">실제 발령은 실제 시각 기준으로 진행하며 속도를 조절하지 않습니다.</p>}
+          {kind === 'real' && <p className="mt-1.5 type-meta text-text-meta">실제 발령은 도우미 휴대폰 보고를 받는 서버를 연결한 뒤 엽니다. 지금 시안은 훈련 발령만 진행하며, 훈련의 수락과 이송 진행은 시연용 자동 진행입니다.</p>}
         </div>
         {kind === 'drill' && <SpeedControl value={speed} onChange={setSpeed} />}
       </TaskCard>

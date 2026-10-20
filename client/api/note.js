@@ -8,6 +8,7 @@
 // 키가 없으면 503 NO_KEY. 키는 서버 환경변수(NCP_CLOVASTUDIO_KEY, NCP_CSR_CLIENT_ID, NCP_CSR_CLIENT_SECRET)에만 둔다.
 
 import { hcxJson, clovaStt, csrSupported, maskLines, pick, pickTags, GRADES, CONFS, HCX_MODEL } from './_ncp.js'
+import { guard } from './_guard.js'
 
 const MAX_BYTES = 6 * 1024 * 1024
 const MAX_TEXT = 4000
@@ -39,6 +40,7 @@ const one = (s) => String(s || '').replace(/\s+/g, ' ').trim()
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return fail(res, 405, 'METHOD', 'POST 만 허용')
+  if (!guard(req, res, { perMin: 20, name: 'note' })) return
   let body = req.body
   if (typeof body === 'string') {
     try { body = JSON.parse(body) } catch { return fail(res, 400, 'BAD_JSON', '요청 형식 오류') }

@@ -13,6 +13,7 @@
 //
 // 인증이 없는 시연 서비스다. 항목 ID 는 프론트가 추측하기 어려운 값으로 만든다. 실제 주민 정보는 저장하지 않는다.
 import { Redis } from '@upstash/redis'
+import { guard } from './_guard.js'
 
 const fail = (res, status, code, message) => res.status(status).json({ error: { code, message } })
 
@@ -148,6 +149,9 @@ export default async function handler(req, res) {
   const redis = getStore()
   if (!redis) return fail(res, 503, 'NO_STORE', '저장소 미연결. UPSTASH_REDIS_REST_URL 과 UPSTASH_REDIS_REST_TOKEN 설정 필요')
   const q = req.query || {}
+  // 공개 설문 조회와 응답 제출은 링크를 받은 누구나 쓴다. 그 밖의 조회, 저장, 삭제는 미리 화면에서 온 요청만 받는다(GPT 검토 S6)
+  const publicCall = (req.method === 'GET' && q.public && q.id) || (req.method === 'POST' && q.action === 'submit')
+  if (!publicCall && !guard(req, res, { name: 'workspace' })) return
   try {
     if (req.method === 'GET') {
       if (q.action === 'responses') {

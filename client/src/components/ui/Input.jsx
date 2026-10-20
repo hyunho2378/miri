@@ -6,6 +6,7 @@ import clsx from 'clsx'
 export default function Input({ label, hint, error, leftIcon, rightSlot, id, className, compact = false, ...rest }) {
   const auto = useId()
   const inputId = id || auto
+  const descId = error || hint ? `${inputId}-desc` : undefined
   return (
     <div className={className}>
       {label && !compact && <label htmlFor={inputId} className="block type-caption text-text-sec mb-1.5">{label}</label>}
@@ -19,14 +20,15 @@ export default function Input({ label, hint, error, leftIcon, rightSlot, id, cla
           autoComplete="off" spellCheck={false}
           id={inputId}
           aria-invalid={error ? true : undefined}
+          aria-describedby={descId}
           aria-label={compact ? label : undefined}
           className="flex-1 h-full min-w-0 bg-transparent outline-none type-body-sm text-text-pri placeholder:text-text-ter"
           {...rest}
         />
         {rightSlot && <span className="ml-2 shrink-0">{rightSlot}</span>}
       </div>
-      {error ? <p className="mt-1 type-caption text-danger-text">{error}</p>
-             : hint && <p className="mt-1 type-meta text-text-meta">{hint}</p>}
+      {error ? <p id={descId} role="alert" className="mt-1 type-caption text-danger-text">{error}</p>
+             : hint && <p id={descId} className="mt-1 type-meta text-text-meta">{hint}</p>}
     </div>
   )
 }

@@ -1,9 +1,9 @@
 // useDispatchStore.js 발령 상태 머신. 평시 → 실행대기 발령 → 배정 → 전송 → 종료.
 // 가상 시계: 훈련 발령은 배속으로 진행해 8시간 창을 몇 분 안에 시연한다.
 import { create } from 'zustand'
-import { planDispatch } from '../lib/assign.js'
-import { capOf } from '../lib/shortage.js'
-import { scenarioArrivals, scopeInput } from '../lib/shortageCalc.js'
+import { planDispatch, scorePlan } from '../lib/assign.js'
+import { capOf, gradeOf } from '../lib/shortage.js'
+import { calcTiming, calcVehicles, scenarioArrivals, scopeInput } from '../lib/shortageCalc.js'
 import { indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
 import { MIN } from '../lib/time.js'
 import { activeScenario, useMiriStore } from './useMiriStore.js'
@@ -11,13 +11,18 @@ import { activeScenario, useMiriStore } from './useMiriStore.js'
 const EMPTY = {
   status: 'idle', kind: 'drill', speed: 60, realStart: 0, vStart: 0, arrivals: {},
   result: null, confirmedAt: null, sentAt: null, ackPlan: {}, ackOverride: {}, failPlan: {}, events: {},
-  handovers: [], manualHelper: null, smsLog: [], closedRecordId: null
+  handovers: [], manualHelper: null, smsLog: [], closedRecordId: null, scopeCodes: [], blocked: null
 }
 
 export const useDispatchStore = create((set, get) => ({
   ...EMPTY,
 
   start: ({ kind = 'drill', speed = 60 } = {}) => {
+    // 실제 발령은 도우미 휴대폰 보고를 받는 서버 연결 전까지 열지 않는다. 자동 진행은 훈련 시연에만 쓴다(GPT 검토 S5)
+    if (kind !== 'drill') {
+      set({ blocked: '실제 발령은 도우미 보고 서버 연결 뒤 엽니다. 지금은 훈련 발령만 진행합니다.' })
+      return false
+    }
     const data = useMiriStore.getState()
     const sc = activeScenario(data)
     const now = Date.now()
@@ -42,13 +47,16 @@ export const useDispatchStore = create((set, get) => ({
     // 시나리오 범위와 시나리오별 대피소(왕복 시간)를 적용한 마을과 대상자만 배정한다
     const sp = scopeInput({ persons: data.persons, villages: data.villages, scenario: sc, settings: data.settings })
     const codes = new Set(Object.keys(d.arrivals))
+    const persons = sp.persons.filter((p) => codes.has(p.villageCode))
+    // 평시 부족분 계산과 같은 차량 목록(시간대, 가용률, 추가 협약)과 시간 조건을 쓴다(GPT 검토 S1)
     const result = planDispatch({
-      persons: sp.persons.filter((p) => codes.has(p.villageCode)), villages: sp.villages.filter((v) => codes.has(v.code)),
-      vehicles: data.vehicles, helpers: data.helpers, t0: vnowOf(d), arrivals: d.arrivals,
-      prepMinutes: sc?.prepMinutes ?? data.settings.prepMinutes, windowHours: sc?.windowHours ?? data.settings.windowHours,
-      completeBeforeHours: data.settings.completeBeforeHours
+      persons, villages: sp.villages.filter((v) => codes.has(v.code)),
+      vehicles: calcVehicles(data.vehicles, sc), helpers: data.helpers, t0: vnowOf(d), arrivals: d.arrivals,
+      ...calcTiming(sc, data.settings)
     })
-    set({ result, status: 'assigned' })
+    // 처음 추천 지표는 따로 보관하고, 재배정 뒤에는 현재 계획 지표를 다시 계산한다(GPT 검토 M6)
+    result.initialMetrics = { ...result.metrics }
+    set({ result, status: 'assigned', scopeCodes: persons.map((p) => p.code) })
     return result
   },
 
@@ -71,6 +79,7 @@ export const useDispatchStore = create((set, get) => ({
     const d = get()
     const vnow = vnowOf(d)
     const helpers = [...new Set(d.result.assignments.flatMap((a) => a.helperCodes))]
+    if (d.kind !== 'drill') return
     // 응답 계획: 대부분 1~4분 안에 수락, 1명 불가, 1명 무응답. 첫 도우미는 도우미 화면 시연용 수동 응답
     const manualHelper = helpers[0] || null
     const ackPlan = {}
@@ -120,31 +129,50 @@ export const useDispatchStore = create((set, get) => ({
   },
 
   // 실패 대상자 재배정: 지금 이후 가장 빨리 비는 호환 차량에 새 회차 추가
+  // 발령 때 확정한 계산 문맥(시나리오 대피소와 왕복 시간, 시간대 차량, 완료 기한)을 그대로 쓰고 도우미까지 다시 확인한다(GPT 검토 S4)
   reassign: (code) => {
     const d = get()
     const data = useMiriStore.getState()
+    const ctx = d.result?.ctx
     const person = data.persons.find((p) => p.code === code)
-    const village = data.villages.find((v) => v.code === person.villageCode)
+    const village = ctx?.vmap?.[person?.villageCode]
+    if (!person || !village || !Number.isFinite(village.roundTripMin)) return false
     const vnow = vnowOf(d)
-    const completeBy = d.arrivals[village.code] - data.settings.completeBeforeHours * 60 * MIN
+    const completeBy = ctx.deadlines[village.code].completeBy
     const result = structuredClone(d.result)
+    const need = gradeOf(person.grade).helpers
+    const usedHelpers = new Set(result.assignments.flatMap((a) => a.helperCodes))
     let best = null
-    // 같은 등급을 태울 수 있는 가용 차량 전체에서, 지금 이후 가장 빨리 비는 차량
-    for (const vehicle of data.vehicles) {
-      if (vehicle.available === false || capOf(vehicle, person.grade) === 0) continue
+    for (const vehicle of ctx.vehicles) {
+      if (capOf(vehicle, person.grade) === 0) continue
       const a = result.assignments.find((x) => x.vehicleCode === vehicle.code)
+      // 이미 쓰는 차량은 동승 도우미가 이 등급을 지원해야 하고, 새 차량은 남은 도우미로 채울 수 있어야 한다
+      let crew = null
+      if (need) {
+        if (a) {
+          const hs = a.helperCodes.map((c) => data.helpers.find((h) => h.code === c)).filter(Boolean)
+          if (hs.length < need || !hs.every((h) => h.grades.includes(person.grade))) continue
+        } else {
+          crew = data.helpers.filter((h) => h.active !== false && !usedHelpers.has(h.code) && h.grades.includes(person.grade)).slice(0, need)
+          if (crew.length < need) continue
+        }
+      }
       const free = Math.max(vnow, ...(a ? a.trips.map((t) => t.finishAt) : []))
       const finish = free + village.roundTripMin * MIN
-      if (finish <= completeBy && (!best || finish < best.finish)) best = { a, vehicle, free, finish }
+      if (finish <= completeBy && (!best || finish < best.finish)) best = { a, vehicle, free, finish, crew }
     }
     if (!best) return false
     for (const a of result.assignments) for (const tr of a.trips) tr.personCodes = tr.personCodes.filter((c) => c !== code)
     result.unassigned = result.unassigned.filter((u) => u.personCode !== code)
     if (!best.a) {
-      best.a = { vehicleCode: best.vehicle.code, trips: [], helperCodes: [], reasons: ['실패 대상자 재배정용 추가 차량'] }
+      best.a = { vehicleCode: best.vehicle.code, trips: [], helperCodes: (best.crew || []).map((h) => h.code), reasons: ['실패 대상자 재배정용 추가 차량'] }
       result.assignments.push(best.a)
     }
     best.a.trips.push({ index: best.a.trips.length + 1, vehicle: best.a.vehicleCode, village: village.code, grade: person.grade, personCodes: [code], departAt: best.free, finishAt: best.finish, added: true })
+    result.assignments.forEach((a) => { a.trips = a.trips.filter((t) => t.personCodes.length) })
+    result.assignments = result.assignments.filter((a) => a.trips.length)
+    const m = scorePlan({ trips: result.assignments.flatMap((a) => a.trips), unserved: result.unassigned })
+    result.metrics = { ...result.metrics, ...m }
     const events = { ...d.events }
     delete events[code]
     const failPlan = { ...d.failPlan }
@@ -168,8 +196,10 @@ export const useDispatchStore = create((set, get) => ({
     const stops = indexStops(d.result)
     const counts = {}
     const byVillage = {}
+    // 이번 발령 대상(배정 때 고정한 명단)만 집계한다. 구역 밖 주민을 미배정으로 세지 않는다(GPT 검토 M1)
+    const scope = new Set(d.scopeCodes || [])
     for (const p of data.persons) {
-      if (p.review === 'rejected') continue
+      if (p.review === 'rejected' || !scope.has(p.code)) continue
       let s = stepOf(d, p.code, vnow, stops)
       if (!s) s = d.events[p.code]?.step || 'unassigned'
       counts[s] = (counts[s] || 0) + 1
@@ -182,7 +212,7 @@ export const useDispatchStore = create((set, get) => ({
     const id = `R-${new Date(d.realStart).getTime()}`
     data.addRecord({
       id, kind: d.kind, startedAt: d.vStart, closedAt: vnow, counts, byVillage,
-      metrics: d.result?.metrics, baseline: d.result?.baseline?.metrics, handovers: d.handovers,
+      metrics: d.result?.metrics, initialMetrics: d.result?.initialMetrics, baseline: d.result?.baseline?.metrics, handovers: d.handovers, targets: scope.size,
       helpers: d.result ? d.result.assignments.flatMap((a) => a.helperCodes).length : 0
     })
     set({ ...EMPTY, status: 'closed', closedRecordId: id })

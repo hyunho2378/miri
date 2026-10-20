@@ -23,7 +23,7 @@ export default function ShortageTable({ title = '마을별 부족분', basis, he
   const columns = [
     { key: 'label', label: '마을', sortable: true, render: (r) => <span className="type-strong">{r.label}</span> },
     { key: 'dong', label: '행정동', hideBelow: 'lg', render: (r) => dongName(r.dongCode) },
-    { key: 'roundTripMin', label: '왕복 시간', align: 'right', sortable: true, hideBelow: 'md', render: (r) => `${r.roundTripMin}분` },
+    { key: 'roundTripMin', label: '왕복 시간', align: 'right', sortable: true, hideBelow: 'md', render: (r) => (r.roundTripMin == null ? '대피소 없음' : `${r.roundTripMin}분`) },
     ...(arrivals ? [{ key: 'arrivalH', label: '산불 도달(위험)', align: 'right', sortable: true, hideBelow: 'md', render: (r) => (r.arrivalH == null ? '-' : <span className="whitespace-nowrap">발령 후 {fmtElapsed(r.arrivalH)}</span>) }] : []),
     { key: 'targetTotal', label: '대상자', align: 'right', sortable: true, render: (r) => `${r.targetTotal}명` },
     ...(arrivals ? [{ key: 'vulnerable', label: '이동 취약(침상과 휠체어)', align: 'right', sortable: true, hideBelow: 'lg', render: (r) => `${r.vulnerable}명` }] : []),

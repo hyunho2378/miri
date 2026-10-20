@@ -56,7 +56,8 @@ export async function readNote({ text, file, current }) {
     err.code = body?.error?.code || res.status
     throw err
   }
-  return verifyNote(body.transcript || text || '', body, current)
+  // 글 소식은 담당자가 입력한 원문 자체를 대조 기준으로 쓴다. AI가 돌려준 전사문은 음성일 때만 쓴다(GPT 검토 M2)
+  return verifyNote(file ? (body.transcript || '') : (text || ''), body, current)
 }
 
 // 시연용 샘플 소식. AI 호출 없이 미리 써 둔 판독 결과(모의 응답)를 쓴다. 화면에도 모의 응답임을 표시한다.

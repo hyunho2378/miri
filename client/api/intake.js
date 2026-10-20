@@ -10,6 +10,7 @@
 // 키가 없으면 503 NO_KEY. 키는 서버 환경변수(NCP_OCR_INVOKE_URL, NCP_OCR_SECRET, NCP_CLOVASTUDIO_KEY)에만 둔다.
 
 import { clovaOcr, ocrFormat, imageSize, toLines, maskLines, boxOf, hcxJson, pick, pickTags, GRADES, CONFS, HCX_MODEL } from './_ncp.js'
+import { guard } from './_guard.js'
 
 const MAX_BYTES = 6 * 1024 * 1024
 const LABEL = /거\s*동\s*상\s*태\s*[:：]?\s*/
@@ -64,6 +65,7 @@ export function segment(masked) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return fail(res, 405, 'METHOD', 'POST 만 허용')
+  if (!guard(req, res, { perMin: 10, name: 'intake' })) return
   let body = req.body
   if (typeof body === 'string') {
     try { body = JSON.parse(body) } catch { return fail(res, 400, 'BAD_JSON', '요청 형식 오류') }

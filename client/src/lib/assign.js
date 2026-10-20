@@ -11,7 +11,7 @@ import { MIN, fmtHM } from './time.js'
 
 // 입력을 계산용 문맥으로 정리. 가용 차량만 사용
 export function buildContext({
-  persons, villages, vehicles, helpers = [], t0, arrivals = {},
+  persons, villages, vehicles, helpers = null, t0, arrivals = {},
   prepMinutes = 60, windowHours = 8, completeBeforeHours = 0
 }) {
   const vmap = Object.fromEntries(villages.map((v) => [v.code, v]))
@@ -39,31 +39,59 @@ export function buildContext({
   return {
     vmap, deadlines, qmap, queues,
     vehicles: vehicles.filter((v) => v.available !== false).sort((a, b) => a.code.localeCompare(b.code)),
-    helpers,
+    // helpers 를 넘기면 도우미 수와 지원 등급을 회차의 실행 조건으로 쓴다(GPT 검토 S2). 넘기지 않으면 차량만 본다
+    helpers: Array.isArray(helpers) ? helpers.filter((h) => h.active !== false).sort((a, b) => a.code.localeCompare(b.code)) : [],
+    crewModel: Array.isArray(helpers),
     t0,
     start: t0 + prepMinutes * MIN
   }
 }
 
-const rtOf = (ctx, qid) => ctx.vmap[ctx.qmap[qid].village].roundTripMin * MIN
+const rtOf = (ctx, qid) => {
+  const rt = ctx.vmap[ctx.qmap[qid].village].roundTripMin
+  // 안전한 대피소가 없는 마을은 왕복 시간이 없다. 배정하지 않는다(GPT 검토 S3)
+  return Number.isFinite(rt) ? rt * MIN : Infinity
+}
 
 function simulate(ctx, order, rule) {
   const avail = Object.fromEntries(ctx.vehicles.map((v) => [v.code, ctx.start]))
   const remaining = Object.fromEntries(ctx.queues.map((q) => [q.id, [...q.codes]]))
   const trips = []
   const unserved = []
+  // 도우미는 같은 차량에 끝까지 동승한다. 차량이 처음 쓰일 때 지원 등급이 맞는 도우미를 붙이고, 모자라면 그 차량은 쓰지 않는다
+  const crew = {}
+  let free = [...ctx.helpers]
+  const crewOk = (v, grade) => {
+    if (!ctx.crewModel) return true
+    const need = gradeOf(grade).helpers
+    if (!need) return true
+    if (crew[v.code]) return crew[v.code].length >= need && crew[v.code].every((h) => h.grades.includes(grade))
+    return free.filter((h) => h.grades.includes(grade)).length >= need
+  }
+  const takeCrew = (v, grade, village) => {
+    if (!ctx.crewModel || crew[v.code]) return
+    const need = gradeOf(grade).helpers
+    if (!need) return
+    const pick = free.filter((h) => h.grades.includes(grade))
+      .sort((a, b) => (b.villages.includes(village) ? 1 : 0) - (a.villages.includes(village) ? 1 : 0) || b.grades.length - a.grades.length || a.code.localeCompare(b.code))
+      .slice(0, need)
+    crew[v.code] = pick
+    const used = new Set(pick.map((h) => h.code))
+    free = free.filter((h) => !used.has(h.code))
+  }
 
   for (const g of GRADES) {
     const qs = order[g.key] || []
     const vs = ctx.vehicles.filter((v) => capOf(v, g.key) > 0)
 
-    const bestVehicle = (qid) => {
+    const bestVehicle = (qid, ignoreCrew = false) => {
       const r = rtOf(ctx, qid)
       const E = ctx.deadlines[ctx.qmap[qid].village].completeBy
       let best = null
       for (const v of vs) {
         const f = avail[v.code] + r
         if (f > E) continue
+        if (!ignoreCrew && !crewOk(v, g.key)) continue
         if (!best || f < best.f || (f === best.f && capOf(v, g.key) > capOf(best.v, g.key))) best = { v, f }
       }
       return best
@@ -71,6 +99,7 @@ function simulate(ctx, order, rule) {
 
     const doTrip = (qid, v) => {
       const q = ctx.qmap[qid]
+      takeCrew(v, g.key, q.village)
       const take = remaining[qid].splice(0, capOf(v, g.key))
       const departAt = avail[v.code]
       const finishAt = departAt + rtOf(ctx, qid)
@@ -101,12 +130,15 @@ function simulate(ctx, order, rule) {
     }
 
     for (const qid of qs) {
+      if (!remaining[qid].length) continue
+      const noShelter = !Number.isFinite(ctx.vmap[ctx.qmap[qid].village].roundTripMin)
+      const reason = !vs.length ? 'noCompatibleVehicle' : noShelter ? 'noShelter' : bestVehicle(qid, true) ? 'noHelper' : 'capacity'
       for (const code of remaining[qid]) {
-        unserved.push({ personCode: code, grade: g.key, village: ctx.qmap[qid].village, reason: vs.length ? 'capacity' : 'noCompatibleVehicle' })
+        unserved.push({ personCode: code, grade: g.key, village: ctx.qmap[qid].village, reason })
       }
     }
   }
-  return { trips, unserved }
+  return { trips, unserved, crew: Object.fromEntries(Object.entries(crew).map(([k, hs]) => [k, hs.map((h) => h.code)])) }
 }
 
 export function scorePlan(plan) {
@@ -144,7 +176,7 @@ export function runBaseline(ctx) {
 export function runOptimize(ctx, { iterations = 300, seed = 20261214, budgetMs = 1200 } = {}) {
   const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
   const t = now()
-  const rt = (q) => ctx.vmap[q.village].roundTripMin
+  const rt = (q) => (Number.isFinite(ctx.vmap[q.village].roundTripMin) ? ctx.vmap[q.village].roundTripMin : 1e9)
   const seeds = [
     baselineOrder(ctx),
     orderBy(ctx, (a, b) => rt(a) - rt(b)),
@@ -174,7 +206,7 @@ export function runOptimize(ctx, { iterations = 300, seed = 20261214, budgetMs =
       if (better(m, best.metrics)) best = { ...plan, order, rule, metrics: m }
     }
   }
-  return { trips: best.trips, unserved: best.unserved, rule: best.rule, metrics: best.metrics, elapsedMs: Math.round(now() - t) }
+  return { trips: best.trips, unserved: best.unserved, crew: best.crew, rule: best.rule, metrics: best.metrics, elapsedMs: Math.round(now() - t) }
 }
 
 // 차량 단위 묶음 + 도우미 매칭 + 배정 사유(계산 사실만 문장화. 생성 모델 아님)
@@ -196,6 +228,13 @@ export function bundle(ctx, plan) {
   for (const a of assignments) {
     const need = Math.max(...a.trips.map((tr) => gradeOf(tr.grade).helpers))
     if (!need) continue
+    // 계산 단계에서 이미 붙인 도우미가 있으면 그대로 쓴다
+    if (ctx.crewModel && plan.crew?.[a.vehicleCode]) {
+      a.helperCodes = [...plan.crew[a.vehicleCode]]
+      a.helperCodes.forEach((c) => used.add(c))
+      if (a.helperCodes.length < need) warnings.push({ vehicleCode: a.vehicleCode, need, got: a.helperCodes.length })
+      continue
+    }
     const villages = new Set(a.trips.map((tr) => tr.village))
     const grades = [...new Set(a.trips.map((tr) => tr.grade))]
     const score = (h) => (h.villages.some((v) => villages.has(v)) ? 2 : 0) + (grades.every((g) => h.grades.includes(g)) ? 1 : 0)
@@ -252,4 +291,4 @@ export function planDispatch(input, opts) {
   }
 }
 
-export const UNSERVED_REASON = { capacity: '차량 부족', noCompatibleVehicle: '호환 차량 없음' }
+export const UNSERVED_REASON = { capacity: '차량 부족', noCompatibleVehicle: '호환 차량 없음', noHelper: '도우미 부족', noShelter: '안전한 대피소 없음' }

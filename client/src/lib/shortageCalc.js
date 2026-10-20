@@ -48,6 +48,20 @@ export function scenarioArrivals(scenario, villages, t0) {
   return out
 }
 
+// 평시 계산과 발령 배정이 함께 쓰는 차량 목록: 시간대, 가용률, 추가 협약 차량을 같은 방식으로 적용(GPT 검토 S1)
+export function calcVehicles(vehicles, scenario) {
+  return withExtra(bandVehicles(vehicles, scenario), scenario?.extraVehicles)
+}
+
+// 평시 계산과 발령 배정이 함께 쓰는 시간 조건
+export function calcTiming(scenario, settings = {}) {
+  return {
+    prepMinutes: scenario?.prepMinutes ?? settings.prepMinutes,
+    windowHours: scenario?.windowHours ?? settings.windowHours,
+    completeBeforeHours: scenario?.completeBeforeHours ?? settings.completeBeforeHours
+  }
+}
+
 function withExtra(vehicles, extra = {}, baseDong = 'MS') {
   const add = []
   for (const [type, n] of Object.entries(extra)) {
@@ -63,11 +77,9 @@ export function computeShortage({ persons, villages: allVillages, vehicles, help
   const params = {
     persons: scope.persons,
     villages, helpers, t0, arrivals,
-    prepMinutes: scenario?.prepMinutes ?? settings.prepMinutes,
-    windowHours: scenario?.windowHours ?? settings.windowHours,
-    completeBeforeHours: scenario?.completeBeforeHours ?? settings.completeBeforeHours
+    ...calcTiming(scenario, settings)
   }
-  const ctx = buildContext({ ...params, vehicles: withExtra(bandVehicles(vehicles, scenario), scenario?.extraVehicles) })
+  const ctx = buildContext({ ...params, vehicles: calcVehicles(vehicles, scenario) })
   const base = runBaseline(ctx)
 
   const byVillage = {}

@@ -71,9 +71,10 @@ export function citywideScenario({ id, name, villages, windowHours = 8, prepMinu
   }
 }
 
-// 시나리오 범위 판정. affected 가 없으면(이전 형식) 모든 마을이 범위 안
+// 시나리오 범위 판정. affected 가 없으면(이전 형식) 모든 마을이 범위 안.
+// 빈 배열은 대피 대상 마을이 0곳이라는 뜻이므로 시 전체로 바꾸지 않는다(GPT 검토 M5)
 export function inScopeSet(scenario, villages) {
-  return new Set(scenario?.affected?.length ? scenario.affected : villages.map((v) => v.code))
+  return new Set(Array.isArray(scenario?.affected) ? scenario.affected : villages.map((v) => v.code))
 }
 
 // 시나리오별 마을 정보: 범위, 배정 대피소, 왕복 시간.
@@ -102,11 +103,16 @@ export function resolveVillages({ villages, persons, scenario, shelters = [], se
     }
     const eligible = v.drive.filter(([c]) => smap[c] && !(avoid && smap[c].villageCode && scope.has(smap[c].villageCode)))
     const room = (c) => smap[c].capacity - (load[c] || 0)
+    // 대피 대상 구역 밖에 쓸 수 있는 시설이 하나도 없으면 위험 구역 시설로 되돌아가지 않고 배정 불가로 둔다(GPT 검토 S3)
+    if (!eligible.length) {
+      out[v.code] = { ...base, shelterCode: null, shelterParts: [], driveMin: null, roundTripMin: null, shelterNote: 'noSafeShelter' }
+      continue
+    }
     let pick = eligible.find(([c]) => room(c) >= need)
     let note = null
     if (!pick) {
       // 한 곳에 다 못 들어가면 남는 자리가 있는 가장 가까운 시설을 주 시설로 두고 나머지는 다음 시설로 나눈다
-      pick = eligible.find(([c]) => room(c) > 0) || eligible[0] || v.drive[0]
+      pick = eligible.find(([c]) => room(c) > 0) || eligible[0]
       note = eligible.some(([c]) => room(c) > 0) ? 'split' : 'overflow'
     }
     const [code, min] = pick
@@ -128,8 +134,12 @@ export function resolveVillages({ villages, persons, scenario, shelters = [], se
       parts.push([code, need])
     }
     const tf = scenario?.travelFactor ?? 1
-    const dm = Math.round(min * tf)
-    out[v.code] = { ...base, shelterCode: code, shelterParts: parts, driveMin: dm, roundTripMin: Math.round(2 * dm + boarding), shelterNote: note }
+    // 나눠 보내는 경우 회차마다 목적지가 다를 수 있으므로 가장 먼 목적지의 주행 시간으로 보수적으로 계산한다(GPT 검토 S3)
+    const driveOf = (c) => (v.drive.find(([x]) => x === c) || [c, min])[1]
+    const farMin = parts.length ? Math.max(...parts.map(([c]) => driveOf(c))) : min
+    const dm = Math.round(farMin * tf)
+    const partsDetail = parts.map(([c, n]) => [c, n, Math.round(driveOf(c) * tf)])
+    out[v.code] = { ...base, shelterCode: code, shelterParts: parts, shelterPartsDrive: partsDetail, driveMin: dm, roundTripMin: Math.round(2 * dm + boarding), shelterNote: note }
   }
   return { villages: villages.map((v) => out[v.code]), shelterLoad: load, scope }
 }
@@ -138,5 +148,6 @@ export const SHELTER_NOTE = {
   inFirePath: '평시 지정 시설이 대피 대상 구역 안에 있어 구역 밖 시설로 바꿨습니다.',
   capacity: '가까운 시설의 수용 가능 인원이 차서 다음으로 가까운 시설로 넘겼습니다.',
   split: '한 시설에 모두 들어가지 않아 가장 가까운 시설에 먼저 배정하고 남는 인원은 다음 시설로 나눕니다.',
-  overflow: '대피 대상 구역 밖 임시주거시설의 수용 가능 인원이 모두 찼습니다. 추가 시설 지정이 필요합니다.'
+  overflow: '대피 대상 구역 밖 임시주거시설의 수용 가능 인원이 모두 찼습니다. 추가 시설 지정이 필요합니다.',
+  noSafeShelter: '대피 대상 구역 밖에 쓸 수 있는 임시주거시설이 없어 이 마을은 배정하지 않습니다. 시설 지정이 먼저 필요합니다.'
 }

@@ -40,7 +40,7 @@ export default function VillageDetail({ village, onBack }) {
           { label: '대상자', value: `${v.target}명`, strong: true },
           { label: '등급별', value: byGrade(v.targets) },
           { label: '대피소', value: v.shelterName || '미지정' },
-          { label: '왕복 시간', value: v.driveMin != null ? `${v.roundTripMin}분(편도 주행 ${v.driveMin}분, 탑승과 하차 포함)` : `${v.roundTripMin}분` },
+          { label: '왕복 시간', value: v.roundTripMin == null ? '대피소 없음' : v.driveMin != null ? `${v.roundTripMin}분(편도 주행 ${v.driveMin}분, 탑승과 하차 포함)` : `${v.roundTripMin}분` },
           ...(v.inScope ? [
             { label: '도달 시각', value: `발령 후 ${fmtElapsed(v.arrivalH)}, ${fmtHM(v.arrivalAt)}` },
             { label: '선택 시점', value: `대기 ${v.waiting}명, 이송 완료 추정 ${v.moved}명` }
