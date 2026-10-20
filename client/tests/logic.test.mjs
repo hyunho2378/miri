@@ -8,6 +8,7 @@ import { verifyResult } from '../src/lib/intake.js'
 import { diffOf, verifyNote, SAMPLE_NOTES, seedFieldNotes } from '../src/lib/notes.js'
 import { detectAnomalies } from '../src/lib/anomaly.js'
 import { buildSeed } from '../src/mock/seed.js'
+import { evaluateNoteCases } from '../src/lib/noteEvaluation.js'
 
 let n = 0
 const ok = (name, fn) => { fn(); n += 1; console.log('ok', name) }
@@ -118,5 +119,16 @@ ok('현장 소식: 달라진 점이 없으면 명부를 바꾸지 않는다', ()
 ok('현장 소식: 처음 화면에 확인 대기 3건이 있다', () => {
   const notes = seedFieldNotes(seed.persons, seed.today)
   assert.equal(notes.length, 3); assert.ok(notes.every((n) => n.status === 'pending' && n.mock))
+})
+ok('시연용 현장 소식 평가: 세 지표 분모와 결과 계산', () => {
+  const result = evaluateNoteCases([
+    { expected: { urgent: true, status: 'bed', quote: true }, predicted: { urgent: true, status: 'bed', quote: '침상' }, source: '침상에서 지냄' },
+    { expected: { urgent: true, status: 'wheelchair', quote: true }, predicted: { urgent: false, status: 'assist', quote: '근거 없음' }, source: '휠체어 사용' },
+    { expected: { urgent: false, status: 'walk', quote: true }, predicted: { urgent: false, status: 'walk', quote: '혼자 걷습니다' }, source: '혼자 걷습니다' }
+  ])
+  assert.equal(result.urgentOmissionCount, 1); assert.equal(result.urgentOmissionRate, 0.5)
+  assert.equal(result.statusCorrectCount, 2); assert.equal(result.statusAccuracy, 2 / 3)
+  assert.equal(result.evidenceMatchCount, 2); assert.equal(result.evidenceMatchRate, 2 / 3)
+  assert.equal(result.label, '시연용 합성 응답 평가')
 })
 console.log(`${n} passed`)

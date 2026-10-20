@@ -5,75 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>미리 시스템 구성도</title>
 <style>
-/* ================= 미리 도식 공통 스타일 (client/src/tokens.js 값) ================= */
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
-:root{
-  --pri:#2563EB; --pri-hover:#1D4ED8; --pri-soft:#D6E4FD; --pri-line:#BFDBFE; --pri-text:#1E40AF; --pri-wash:#F3F7FE;
-  --ink:#101010; --sec:#3D3F45; --meta:#6B6F76; --ter:#9A9EA5;
-  --canvas:#F5F7FA; --mute:#F0F2F5; --subtle:#F8F9FB;
-  --line:#DDE1E6; --line-sub:#ECEEF1; --line-strong:#C5CAD1;
-  --warn:#EA580C; --warn-soft:#FFF1E6; --warn-text:#B54708; --warn-line:#F7C9A6;
-  --crit:#E0001B; --crit-soft:#FFE8EA; --crit-text:#D10019;
-  --font:'Pretendard','Pretendard Variable','Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',-apple-system,system-ui,sans-serif;
-}
+:root{--pri:#256ef4;--pri-d:#0b50d0;--pri-s:#ecf2fe;--pri-m:#d8e5fd;--ink:#1e2124;--sub:#464c53;--meta:#58616a;
+  --gray:#f4f5f6;--gray2:#e6e8ea;--red:#d63d4a;--red-d:#ab2b36;--red-s:#fbeff0;
+  --font:'Pretendard','Pretendard Variable','Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',-apple-system,system-ui,sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#E9ECF1;font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased;padding:28px 18px;word-break:keep-all;overflow-wrap:anywhere;}
-.fig-stage{max-width:1352px;margin:0 auto;background:#fff;border-radius:16px;
-  box-shadow:0 14px 44px rgba(16,16,16,.10);padding:36px 36px 26px;}
-.head{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;max-width:1280px;margin:0 auto 22px;}
-.kick{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--pri);}
-h1{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-top:6px;}
-.lede{font-size:14px;line-height:1.55;color:var(--sec);margin-top:8px;max-width:640px;}
-.assume{display:inline-flex;align-items:center;gap:6px;margin-top:12px;height:28px;padding:0 12px;border-radius:999px;
-  background:var(--warn-soft);border:1px solid var(--warn-line);color:var(--warn-text);font-size:13px;font-weight:700;}
-.assume svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.legend{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;font-size:13px;color:var(--sec);
-  background:var(--subtle);border:1px solid var(--line-sub);border-radius:12px;padding:12px 14px;min-width:330px;}
-.legend .lt{grid-column:1/-1;font-size:12px;font-weight:700;color:var(--meta);letter-spacing:.04em}
-.tag{display:inline-flex;align-items:center;justify-content:center;height:20px;padding:0 7px;border-radius:6px;
-  font-size:12px;font-weight:700;line-height:1;white-space:nowrap;flex:0 0 auto;}
-.tag.ai{background:var(--pri);color:#fff;}
-.tag.rule{background:#fff;color:var(--sec);border:1px solid var(--line-strong);}
-.tag.human{background:var(--warn-soft);color:var(--warn-text);border:1px solid var(--warn-line);}
-.tag.hyp{background:#fff;color:var(--meta);border:1px dashed var(--line-strong);font-weight:600}
-.tag.off{background:var(--crit-soft);color:var(--crit-text);}
-.mono{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;letter-spacing:-.02em}
-.foot{display:flex;justify-content:space-between;gap:20px;max-width:1280px;margin:18px auto 0;padding-top:12px;
-  border-top:1px solid var(--line-sub);font-size:12px;line-height:1.5;color:var(--meta);}
-.ico{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
-
-/* ---- 시스템 구성도 ---- */
-.pnl{border-radius:16px;border:1px solid var(--line);background:var(--subtle);padding:14px 16px}
-.pnl .pt{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
-.pnl .pt .ico{width:18px;height:18px;color:var(--pri)}
-.pnl .ps{font-size:12px;color:var(--meta);margin-top:2px}
-.pnl.fn{background:var(--pri-wash);border-color:var(--pri-line)}
-.pnl.ext{background:var(--canvas);border-color:var(--line-sub)}
-.box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;color:var(--sec);
-  box-shadow:0 2px 8px rgba(16,16,16,.04)}
-.box .nh{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:800;color:var(--ink);line-height:1.25}
-.box .nh .ico{color:var(--pri)}
-.box .rt{font-size:12px;color:var(--pri-text);font-weight:600;margin-top:2px}
-.box .ds{margin-top:4px}
-.box .row{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap}
-.scr{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px}
-.scr span{background:var(--pri-wash);border:1px solid var(--pri-line);border-radius:7px;padding:4px 7px;font-size:12.5px;font-weight:700;color:var(--pri-text);line-height:1.2}
-.sub{margin-top:10px;border-radius:10px;background:var(--subtle);border:1px dashed var(--line-strong);padding:9px 10px}
-.sub .st{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink)}
-.sub .sd{font-size:12.5px;color:var(--sec);margin-top:3px;line-height:1.45}
-.fnb{border-color:var(--pri-line)}
-.fnb .path{font-size:15px;font-weight:800;color:var(--pri-text)}
-.fnb .mth{font-size:12px;font-weight:700;color:#fff;background:var(--pri);border-radius:5px;padding:2px 6px;line-height:1.2}
-.fnb .top{display:flex;align-items:center;justify-content:space-between;gap:6px}
-.api{display:grid;grid-template-columns:1fr auto;gap:4px 10px;margin-top:8px;font-size:13px}
-.api b{font-weight:700;color:var(--ink)}
-.api i{font-style:normal;color:var(--meta);font-size:12px;text-align:right}
-.api .plan{color:var(--meta);font-weight:600}
-.api .plan + i{color:var(--warn-text)}
-.ext-b .nh .ico{color:var(--sec)}
-.note{background:transparent;border:none;font-size:12.5px;color:var(--meta);line-height:1.5;display:flex;gap:8px;align-items:flex-start}
-.note .ico{color:var(--meta);margin-top:2px}
-
+body{background:#fff;font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased;word-break:keep-all}
+.fig-stage{max-width:1920px;margin:0 auto;background:#fff;padding:64px clamp(24px,8.333vw,160px) 56px}
+.kick{font-size:16px;font-weight:700;color:var(--pri-d)}
+h1{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1.2;margin:8px 0 12px}
+.lede{font-size:18px;line-height:1.6;color:var(--sub);max-width:1240px}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin:22px 0 30px;font-size:15px;color:var(--sub)}
+.legend i{display:inline-block;width:40px;height:0;border-top:3px solid var(--pri);vertical-align:middle;margin-right:8px}
+.legend i.g{border-top-color:var(--meta)} .legend i.r{border-top-color:var(--red)} .legend i.dash{border-top-style:dashed}
+.tag{display:inline-block;font-size:12px;font-weight:700;line-height:1.4;padding:2px 8px;border-radius:4px;margin-right:6px;vertical-align:2px;white-space:nowrap}
+.tag.ai{background:var(--pri);color:#fff}.tag.rule{background:var(--sub);color:#fff}.tag.human{background:var(--ink);color:#fff}
+.tag.fail{background:var(--red);color:#fff}.tag.plan{background:var(--gray2);color:var(--ink)}.tag.res{background:var(--pri-d);color:#fff}
+.zone{background:var(--gray);border-radius:16px;padding:20px 20px}
+.zone.blue{background:var(--pri-s)} .zone.red{background:var(--red-s)}
+.zt{font-size:20px;font-weight:800;letter-spacing:-.01em}.zs{font-size:14px;color:var(--meta);margin-top:4px;line-height:1.45}
+.box{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(30,33,36,.10),0 6px 16px rgba(30,33,36,.06)}
+.box.pri{background:var(--pri);color:#fff}.box.pri .d{color:#fff}
+.box.ink{background:var(--ink);color:#fff}.box.ink .d{color:#fff}
+.box.red{background:#fff}.box.red .h{color:var(--red-d)}
+.box.soft{background:var(--pri-m);box-shadow:none}
+.box.flat{background:var(--gray2);box-shadow:none}
+.h{font-size:17px;font-weight:700;line-height:1.35;letter-spacing:-.01em}
+.d{font-size:14px;line-height:1.5;color:var(--sub);margin-top:6px}
+.big{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+.lab{background:transparent;font-size:15px;font-weight:800;color:var(--ink);line-height:1.35}
+.lab .d{font-weight:400}
+.foot{display:flex;justify-content:space-between;gap:24px;margin-top:28px;font-size:14px;line-height:1.6;color:var(--meta)}
 </style>
 <style id="fig-editor-css">
 /* ================================================================
@@ -259,126 +222,59 @@ body:not(.fig-editing) .fig-h,body:not(.fig-editing) .fig-ep,body:not(.fig-editi
 <div class="fig-stage">
 
   <!-- ======== FIG:CONTENT START: 이 안을 작성한다 ======== -->
-  <div class="head">
-    <div>
-      <div class="kick">TEAM 오아시스 / 미리 서비스 도식 2</div>
-      <h1>시스템 구성도</h1>
-      <p class="lede">브라우저 화면, Vercel 서버리스 함수, 외부 서비스 사이에 오가는 요청과 데이터를 정리한 도식입니다. 인증키는 서버 함수에만 두고 브라우저에 노출하지 않습니다.</p>
-    </div>
-    <div class="legend">
-      <span class="lt">선 종류</span>
-      <svg width="44" height="10" viewBox="0 0 44 10"><path d="M2 5h34" stroke="#2563EB" stroke-width="2"/><path d="M34 1l8 4-8 4z" fill="#2563EB"/></svg><span>브라우저에서 서버 함수로 가는 요청과 응답</span>
-      <svg width="44" height="10" viewBox="0 0 44 10"><path d="M2 5h34" stroke="#505358" stroke-width="2"/><path d="M34 1l8 4-8 4z" fill="#505358"/></svg><span>서버 함수에서 외부 서비스 호출</span>
-      <svg width="44" height="10" viewBox="0 0 44 10"><path d="M2 5h34" stroke="#2563EB" stroke-width="2" stroke-dasharray="5 4"/><path d="M34 1l8 4-8 4z" fill="#2563EB"/></svg><span>브라우저 직접 요청 (지도 타일)</span>
-      <span class="tag hyp">v2 추가</span><span>PRD v2(2026. 10. 6.)에서 추가하는 구성</span>
-    </div>
+
+  <div class="kick">TEAM 오아시스 / 미리 도식 2</div>
+  <h1>시스템 구성도</h1>
+  <p class="lede">브라우저 화면, 서울에서 도는 Vercel 서버 함수, 네이버 클라우드의 국내 AI, 그 밖의 외부 서비스 사이에 오가는 요청을 정리했습니다. 인증키는 서버 환경변수에만 두고 브라우저에 보내지 않습니다.</p>
+  <div class="legend"><span><span class="tag ai">AI</span>국내 AI가 초안을 만듦(확정하지 않음)</span><span><span class="tag rule">규칙</span>고정 공식과 코드 규칙. 같은 입력이면 같은 결과</span><span><span class="tag human">사람 확인</span>담당자가 확정</span><span><i></i>요청과 주요 흐름</span><span><i class="g"></i>외부 서비스 호출과 보조 입력</span></div>
+  <div class="fig-canvas" data-size="1600x1040" style="margin:0 auto">
+    <div class="fig-node zone" id="z-br" style="left:0px; top:0px; width:340px; height:1040px"><div class="zt">브라우저</div><div class="zs">React 18 단일 앱(Vite 빌드)</div></div>
+    <div class="fig-node zone blue" id="z-fn" style="left:440px; top:0px; width:400px; height:1040px"><div class="zt">Vercel 서버 함수</div><div class="zs">실행 지역 서울(icn1). 키는 서버 환경변수에만 둠</div></div>
+    <div class="fig-node zone blue" id="z-nc" style="left:940px; top:0px; width:660px; height:580px"><div class="zt">네이버 클라우드</div><div class="zs">민관협력 지원 플랫폼 계정(민간 리전, 한국)</div></div>
+    <div class="fig-node zone" id="z-ex" style="left:940px; top:600px; width:660px; height:440px"><div class="zt">그 밖의 외부 서비스</div><div class="zs">저장소, 공공데이터, 문서, 법령, 지도</div></div>
+    <div class="fig-node box" id="a-console" style="left:16px; top:84px; width:308px; height:560px"><div class="h">담당자 콘솔 <span class="mono">/console</span></div><div class="d">현황판, 상황판, 대상자 명부, 서류 읽기, 현장 소식, 차량과 도우미, 부족분 계산, 발령 운영, 소방 인계, 이송 기록, 문서함</div><div class="d" style="margin-top:14px"><span class="tag rule">규칙</span>브라우저 안 계산</div><div class="d">부족분 계산, 배정 탐색, 명부 점검, 화면 상태 저장</div><div class="d mono" style="margin-top:4px">client/src/lib</div><div class="d" style="margin-top:14px">시제품 데이터: 가상 명부 2,013건, 마을 37곳, 차량 42대, 도우미 88명, 대피소 27곳. 실제 주민 정보 없음</div></div>
+    <div class="fig-node box" id="a-form" style="left:16px; top:660px; width:308px; height:90px"><div class="h">공개 설문 <span class="mono">/f/</span></div><div class="d">도우미 모집 응답</div></div>
+    <div class="fig-node box" id="a-helper" style="left:16px; top:766px; width:308px; height:124px"><div class="h">도우미 휴대폰 화면 <span class="mono">/h/demo</span></div><div class="d">배정 수락, 단계 보고, 불가 응답. 시안은 같은 기기 안 시연(기기 간 전달 미연결)</div></div>
+    <div class="fig-node box flat" id="a-tile" style="left:16px; top:906px; width:308px; height:118px"><div class="h">지도 타일</div><div class="d">브라우저가 OpenFreeMap 타일을 직접 받음(서버 함수 거치지 않음)</div></div>
+    <div class="fig-node box pri" id="b-guard" style="left:456px; top:84px; width:368px; height:150px"><div class="h">요청 확인(가드)</div><div class="d">같은 사이트 요청인지, 시연 세션 서명 쿠키가 있는지 확인. AI 호출은 세션, IP, 전체 합계로 횟수를 셈</div></div>
+    <div class="fig-node box" id="b-session" style="left:456px; top:250px; width:368px; height:80px"><div class="h"><span class="mono">/api/session</span></div><div class="d">시연 코드 확인 뒤 서명 쿠키 발급(12시간)</div></div>
+    <div class="fig-node box" id="b-intake" style="left:456px; top:346px; width:368px; height:96px"><div class="h"><span class="mono">/api/intake</span> 서류 읽기</div><div class="d">사진 6MB 이하. 등급 초안과 근거 문구 반환</div></div>
+    <div class="fig-node box" id="b-note" style="left:456px; top:458px; width:368px; height:96px"><div class="h"><span class="mono">/api/note</span> 현장 소식</div><div class="d">글 또는 음성에서 거동 변화 후보 반환</div></div>
+    <div class="fig-node box" id="b-open" style="left:456px; top:570px; width:368px; height:84px"><div class="h"><span class="mono">/api/opendata</span></div><div class="d">산불, 대피소, 장기요양, 구급, 특보, 바람, 응급실 병상, 편의시설</div></div>
+    <div class="fig-node box" id="b-ws" style="left:456px; top:670px; width:368px; height:80px"><div class="h"><span class="mono">/api/workspace</span></div><div class="d">문서함과 설문 응답 저장</div></div>
+    <div class="fig-node box" id="b-doc" style="left:456px; top:766px; width:368px; height:80px"><div class="h"><span class="mono">/api/hwpx</span>, <span class="mono">/api/parse</span></div><div class="d">한글 문서 만들기와 본문 읽기</div></div>
+    <div class="fig-node box" id="b-law" style="left:456px; top:862px; width:368px; height:70px"><div class="h"><span class="mono">/api/law</span></div><div class="d">법령 조문 확인</div></div>
+    <div class="fig-node box flat" id="b-static" style="left:456px; top:948px; width:368px; height:76px"><div class="h">Vercel 정적 배포</div><div class="d">화면 빌드 결과와 도식 <span class="mono">/diagrams/</span></div></div>
+    <div class="fig-node box" id="c-gw" style="left:956px; top:84px; width:320px; height:96px"><div class="h">API Gateway</div><div class="d">OCR을 밖에서 부를 주소. 콘솔 기본 주소는 내부망이라 필요</div></div>
+    <div class="fig-node box" id="c-ocr" style="left:1292px; top:84px; width:292px; height:130px"><div class="h"><span class="tag ai">AI</span>CLOVA OCR</div><div class="d">일반 도메인. 서류 사진의 글자와 위치를 읽음. 사진은 여기까지만 감</div></div>
+    <div class="fig-node box" id="c-hcx" style="left:956px; top:196px; width:320px; height:150px"><div class="h"><span class="tag ai">AI</span>HyperCLOVA X</div><div class="d">CLOVA Studio, HCX-005. 이름과 연락처를 가린 글자만 받아 등급 초안, 특이사항, 근거 문구를 냄</div></div>
+    <div class="fig-node box" id="c-csr" style="left:956px; top:362px; width:320px; height:100px"><div class="h"><span class="tag ai">AI</span>CLOVA Speech</div><div class="d">현장 소식 음성 받아쓰기</div></div>
+    <div class="fig-node box" id="c-os" style="left:1292px; top:230px; width:292px; height:112px"><div class="h">Object Storage</div><div class="d">같은 빌드의 화면 정적 사본 한 벌(국내 배포 시험)</div></div>
+    <div class="fig-node box flat" id="c-plan" style="left:1292px; top:358px; width:292px; height:206px"><div class="h"><span class="tag plan">운영 단계 계획</span></div><div class="d">실제 운영 때는 동해시가 계약 주체가 되어 공공기관용(CSAP) 환경으로 옮김. 서버 함수 국내 이전(Cloud Functions)은 계정 권한 요청 중</div></div>
+    <div class="fig-node box soft" id="c-res" style="left:956px; top:478px; width:320px; height:86px"><div class="h">처리 위치</div><div class="d">서버 함수 서울, AI 한국 리전. 해외 AI 호출 없음</div></div>
+    <div class="fig-node box" id="d-portal" style="left:956px; top:682px; width:320px; height:76px"><div class="h">공공데이터포털 API</div><div class="d"><span class="mono">apis.data.go.kr</span></div></div>
+    <div class="fig-node box" id="d-redis" style="left:956px; top:770px; width:320px; height:76px"><div class="h">Upstash Redis</div><div class="d">문서함 저장, AI 호출 횟수 공유 계수</div></div>
+    <div class="fig-node box" id="d-kordoc" style="left:956px; top:858px; width:320px; height:72px"><div class="h">kordoc</div><div class="d">한글(HWPX) 생성과 읽기</div></div>
+    <div class="fig-node box" id="d-law" style="left:956px; top:942px; width:320px; height:82px"><div class="h">법령 공개 서버</div><div class="d"><span class="mono">mcp.gomdori.app/law</span></div></div>
+    <div class="fig-node box flat" id="d-note1" style="left:1292px; top:682px; width:292px; height:164px"><div class="h">공공데이터 출처</div><div class="d">산림청 산불위험예보, 행정안전부 민방위대피시설, 국민건강보험공단 장기요양기관, 응급환자이송업, 기상특보, 국립중앙의료원 응급실 가용병상, 한국사회보장정보원 장애인편의시설</div></div>
+    <div class="fig-node box red" id="d-note2" style="left:1292px; top:858px; width:292px; height:166px"><div class="h">저장소가 끊기면</div><div class="d">AI 호출 횟수를 셀 수 없으므로 서류 읽기와 현장 소식을 503으로 막음. 다른 기능은 그대로 열림</div></div>
+    <div class="fig-edge" data-from="a-console" data-to="b-session" data-color="#256ef4" data-width="2" data-arrow="end" data-anchor-from="1,0.35" data-anchor-to="0,0.5" data-label="시연 코드"></div>
+    <div class="fig-edge" data-from="a-console" data-to="b-intake" data-color="#256ef4" data-width="2" data-arrow="end" data-anchor-from="1,0.536" data-anchor-to="0,0.5" data-label="서류 사진"></div>
+    <div class="fig-edge" data-from="a-console" data-to="b-note" data-color="#256ef4" data-width="2" data-arrow="end" data-anchor-from="1,0.736" data-anchor-to="0,0.5" data-label="글, 음성"></div>
+    <div class="fig-edge" data-from="a-console" data-to="b-open" data-color="#256ef4" data-width="2" data-arrow="end" data-anchor-from="1,0.93" data-anchor-to="0,0.5" data-label="kind 요청"></div>
+    <div class="fig-edge" data-from="a-form" data-to="b-ws" data-color="#256ef4" data-width="2" data-arrow="end" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-label="설문 응답"></div>
+    <div class="fig-edge" data-from="b-intake" data-to="c-gw" data-color="#58616a" data-width="2" data-arrow="end" data-anchor-from="1,0.3" data-anchor-to="0,0.5" data-label="사진"></div>
+    <div class="fig-edge" data-from="c-gw" data-to="c-ocr" data-color="#58616a" data-width="2" data-arrow="end" data-anchor-from="1,0.5" data-anchor-to="0,0.37"></div>
+    <div class="fig-edge" data-from="b-intake" data-to="c-hcx" data-color="#58616a" data-width="2" data-arrow="end" data-anchor-from="1,0.7" data-anchor-to="0,0.45" data-label="가린 글자"></div>
+    <div class="fig-edge" data-from="b-note" data-to="c-hcx" data-color="#58616a" data-width="2" data-arrow="end" data-anchor-from="1,0.3" data-anchor-to="0,0.85"></div>
+    <div class="fig-edge" data-from="b-note" data-to="c-csr" data-color="#58616a" data-width="2" data-arrow="end" data-anchor-from="1,0.7" data-anchor-to="0,0.5" data-label="음성"></div>
+    <div class="fig-edge" data-from="b-open" data-to="d-portal" data-color="#58616a" data-width="2" data-arrow="end" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-label="동해시 조회"></div>
+    <div class="fig-edge" data-from="b-ws" data-to="d-redis" data-color="#58616a" data-width="2" data-arrow="end" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-label="키값 저장"></div>
+    <div class="fig-edge" data-from="b-doc" data-to="d-kordoc" data-color="#58616a" data-width="2" data-arrow="end" data-anchor-from="1,0.5" data-anchor-to="0,0.5"></div>
+    <div class="fig-edge" data-from="b-law" data-to="d-law" data-color="#58616a" data-width="2" data-arrow="end" data-anchor-from="1,0.5" data-anchor-to="0,0.5"></div>
   </div>
+  <div class="foot"><span>근거: client/api/_guard.js, _ncp.js, intake.js, note.js, opendata.js, workspace.js, client/vercel.json(regions icn1)</span><span>작성 2026. 10. 20.</span></div>
 
-  <div class="fig-canvas" data-size="1280x908" style="margin:0 auto">
-
-    <!-- 영역 판 -->
-    <div class="fig-node pnl" id="p-browser" style="left:0px;top:0px;width:304px;height:908px"><div class="pt"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/></svg>브라우저</div><div class="ps">React 18 단일 앱 (Vite 빌드)</div></div>
-    <div class="fig-node pnl fn" id="p-vercel" style="left:424px;top:0px;width:352px;height:704px"><div class="pt"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l9 16H3z"/></svg>Vercel 서버리스 함수</div><div class="ps">인증키는 서버 환경변수에만 보관</div></div>
-    <div class="fig-node pnl ext" id="p-ext" style="left:896px;top:0px;width:384px;height:908px"><div class="pt"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>외부 서비스</div><div class="ps">공공데이터, AI, 저장소, 문서, 법령, 지도</div></div>
-
-    <!-- 브라우저 -->
-    <div class="fig-node box" id="b-console" style="left:16px;top:60px;width:272px;height:540px">
-      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>담당자 콘솔</div><div class="rt mono">/console/*</div>
-      <div class="scr"><span>현황판</span><span>상황판</span><span>대상자 명부</span><span>서류 읽기</span><span>차량과 도우미</span><span>부족분 계산</span><span>발령 운영</span><span>소방 인계</span><span>이송 기록</span><span>문서함</span></div>
-      <div class="sub"><div class="st"><span class="tag rule">규칙</span>브라우저 안 계산</div><div class="sd">부족분 계산, 추천 배정 탐색, 점검 규칙, 판독 결과 원문 대조<br><span class="mono" style="font-size:12px;color:var(--meta)">client/src/lib</span></div></div>
-      <div class="sub"><div class="st">시제품 데이터</div><div class="sd">가상 대상자, 가상 마을 좌표. 실제 주민 정보는 저장하지 않음</div></div>
-    </div>
-    <div class="fig-node box" id="b-form" style="left:16px;top:616px;width:272px;height:84px">
-      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>설문 응답</div><div class="rt mono">/f/:id</div><div class="ds">다른 기기에서 제출. 주민 정보는 받지 않음</div>
-    </div>
-    <div class="fig-node box" id="b-map" style="left:16px;top:724px;width:272px;height:76px">
-      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>상황판 지도 엔진</div><div class="ds">MapLibre GL, three.js. 상황판 진입 시 불러옴</div>
-    </div>
-    <div class="fig-node box" id="b-helper" style="left:16px;top:816px;width:272px;height:76px">
-      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg>도우미 화면 <span class="rt mono" style="margin:0">/h/:token</span></div><div class="ds">콘솔과 같은 앱. 시제품은 발령 상태를 브라우저 안에서 공유</div>
-    </div>
-
-    <!-- 함수 -->
-    <div class="fig-node box fnb" id="f-opendata" style="left:440px;top:60px;width:320px;height:164px">
-      <div class="top"><span class="path mono">/api/opendata</span><span class="mth">GET</span></div>
-      <div class="ds">kind 별 동해시 항목 조회</div>
-      <div class="row"><span class="tag rule mono">fire</span><span class="tag rule mono">shelters</span><span class="tag rule mono">ltc</span><span class="tag rule mono">ambulance</span></div>
-      <div class="ds" style="margin-top:8px">응답 캐시 10분. 인증키 없으면 503 NO_KEY</div>
-    </div>
-    <div class="fig-node box fnb" id="f-intake" style="left:440px;top:240px;width:320px;height:76px">
-      <div class="top"><span class="path mono">/api/intake</span><span class="mth">POST</span></div>
-      <div class="ds">서류 이미지(6MB 이하)를 읽어 전사, 등급, 근거 문구 반환</div>
-    </div>
-    <div class="fig-node box fnb" id="f-law" style="left:440px;top:332px;width:320px;height:76px">
-      <div class="top"><span class="path mono">/api/law</span><span class="tag hyp">v2 추가</span></div>
-      <div class="ds">본문의 「법령명」 제N조 실존 확인</div>
-    </div>
-    <div class="fig-node box fnb" id="f-hwpx" style="left:440px;top:424px;width:320px;height:76px">
-      <div class="top"><span class="path mono">/api/hwpx</span><span class="tag hyp">v2 추가</span></div>
-      <div class="ds">문서함 문서를 HWPX로 변환 (공문서 프리셋 4종)</div>
-    </div>
-    <div class="fig-node box fnb" id="f-parse" style="left:440px;top:516px;width:320px;height:76px">
-      <div class="top"><span class="path mono">/api/parse</span><span class="tag hyp">v2 추가</span></div>
-      <div class="ds">HWP, HWPX, PDF, DOCX 본문 읽기</div>
-    </div>
-    <div class="fig-node box fnb" id="f-workspace" style="left:440px;top:608px;width:320px;height:76px">
-      <div class="top"><span class="path mono">/api/workspace</span><span class="tag hyp">v2 추가</span></div>
-      <div class="ds">문서, 시트, 설문, 설문 응답 저장과 조회</div>
-    </div>
-
-    <!-- 정적 배포 -->
-    <div class="fig-node box" id="v-static" style="left:440px;top:816px;width:320px;height:76px;background:var(--pri-wash);border-color:var(--pri-line)">
-      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg>Vercel 정적 배포</div><div class="ds">Vite 빌드 결과(dist), 도식 정적본 /diagrams/</div>
-    </div>
-
-    <!-- 외부 -->
-    <div class="fig-node box ext-b" id="x-portal" style="left:912px;top:60px;width:352px;height:164px">
-      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M4 21V8l8-4 8 4v13"/><path d="M4 21h16M9 21v-6h6v6"/></svg>공공데이터포털 <span class="mono" style="font-size:12px;font-weight:600;color:var(--meta)">apis.data.go.kr</span></div>
-      <div class="api"><b>산불위험예보정보</b><i>산림청 국립산림과학원</i><b>민방위대피시설</b><i>행정안전부</i><b>장기요양기관 검색</b><i>국민건강보험공단</i><b>응급환자이송업</b><i>행정안전부</i><b class="plan">기상청 단기예보</b><i>활용 신청 필요</i></div>
-    </div>
-    <div class="fig-node box ext-b" id="x-gemini" style="left:912px;top:240px;width:352px;height:76px">
-      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></svg>Gemini 2.5 Flash <span class="tag off">키 미설정</span></div><div class="ds">멀티모달 서류 읽기. 키가 없으면 함수가 503 반환</div>
-    </div>
-    <div class="fig-node box ext-b" id="x-law" style="left:912px;top:332px;width:352px;height:76px">
-      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v18M6 21h12M4.5 7.5h15"/><path d="M4.5 7.5L2.5 13a2.6 2.6 0 0 0 4 0zM19.5 7.5L17.5 13a2.6 2.6 0 0 0 4 0z"/></svg>korean-law-mcp 공개 서버</div><div class="ds"><span class="mono">mcp.gomdori.app/law</span>, 법제처 데이터</div>
-    </div>
-    <div class="fig-node box ext-b" id="x-kordoc" style="left:912px;top:424px;width:352px;height:168px">
-      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg>kordoc</div>
-      <div class="ds">npm 라이브러리. 서버 함수 안에서 실행</div>
-      <div class="sub" style="margin-top:8px"><div class="sd"><b class="mono" style="color:var(--ink)">markdownToHwpx</b>: HWPX 생성<br><b class="mono" style="color:var(--ink)">parse</b>: HWP, HWPX, PDF, DOCX 읽기</div></div>
-    </div>
-    <div class="fig-node box ext-b" id="x-redis" style="left:912px;top:608px;width:352px;height:76px">
-      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>Upstash Redis</div><div class="ds">문서함 저장소 (Vercel 연동). 미설정 시 메모리 방식</div>
-    </div>
-    <div class="fig-node box ext-b" id="x-ofm" style="left:912px;top:724px;width:352px;height:76px">
-      <div class="nh"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>OpenFreeMap</div><div class="ds">지도 바탕 타일. 키 불필요</div>
-    </div>
-    <div class="fig-node note" id="x-note" style="left:912px;top:820px;width:352px;height:72px"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>외부 호출은 모두 서버 함수를 거칩니다. 지도 타일만 브라우저가 직접 요청합니다.</span></div>
-
-    <!-- 연결: 브라우저 → 함수 -->
-    <div class="fig-edge" id="e-c-open" data-from="b-console" data-to="f-opendata" data-anchor-from="1,0.152" data-anchor-to="0,0.5" data-color="#2563EB" data-width="2" data-arrow="both" data-label="kind 요청"></div>
-    <div class="fig-edge" id="e-c-intake" data-from="b-console" data-to="f-intake" data-anchor-from="1,0.404" data-anchor-to="0,0.5" data-color="#2563EB" data-width="2" data-arrow="both" data-label="서류 이미지"></div>
-    <div class="fig-edge" id="e-c-law" data-from="b-console" data-to="f-law" data-anchor-from="1,0.574" data-anchor-to="0,0.5" data-color="#2563EB" data-width="2" data-arrow="both" data-label="법령 인용"></div>
-    <div class="fig-edge" id="e-c-hwpx" data-from="b-console" data-to="f-hwpx" data-anchor-from="1,0.744" data-anchor-to="0,0.5" data-color="#2563EB" data-width="2" data-arrow="both" data-label="문서 본문"></div>
-    <div class="fig-edge" id="e-c-parse" data-from="b-console" data-to="f-parse" data-anchor-from="1,0.915" data-anchor-to="0,0.5" data-color="#2563EB" data-width="2" data-arrow="both" data-label="업로드 파일"></div>
-    <div class="fig-edge" id="e-c-ws" data-from="b-console" data-to="f-workspace" data-anchor-from="1,0.985" data-anchor-to="0,0.22" data-color="#2563EB" data-width="2" data-arrow="both"></div>
-    <div class="fig-edge" id="e-form-ws" data-from="b-form" data-to="f-workspace" data-anchor-from="1,0.5" data-anchor-to="0,0.66" data-color="#2563EB" data-width="2" data-arrow="end" data-label="설문 응답"></div>
-    <div class="fig-edge" id="e-map" data-from="b-map" data-to="x-ofm" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-style="dashed" data-color="#2563EB" data-width="2" data-arrow="both" data-label="지도 타일 직접 요청"></div>
-    <div class="fig-edge" id="e-static" data-from="v-static" data-to="p-browser" data-anchor-from="0,0.5" data-anchor-to="1,0.94" data-style="dashed" data-color="#72767E" data-width="1.8" data-arrow="end" data-label="앱 번들"></div>
-
-    <!-- 연결: 함수 → 외부 -->
-    <div class="fig-edge" id="e-open-portal" data-from="f-opendata" data-to="x-portal" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-color="#505358" data-width="2" data-arrow="both" data-label="동해시 조회"></div>
-    <div class="fig-edge" id="e-intake-gem" data-from="f-intake" data-to="x-gemini" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-color="#505358" data-width="2" data-arrow="both" data-label="이미지, 지시문"></div>
-    <div class="fig-edge" id="e-law-mcp" data-from="f-law" data-to="x-law" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-color="#505358" data-width="2" data-arrow="both" data-label="조문 확인"></div>
-    <div class="fig-edge" id="e-hwpx-kd" data-from="f-hwpx" data-to="x-kordoc" data-anchor-from="1,0.5" data-anchor-to="0,0.226" data-color="#505358" data-width="2" data-arrow="both" data-label="HWPX 생성"></div>
-    <div class="fig-edge" id="e-parse-kd" data-from="f-parse" data-to="x-kordoc" data-anchor-from="1,0.5" data-anchor-to="0,0.774" data-color="#505358" data-width="2" data-arrow="both" data-label="본문 읽기"></div>
-    <div class="fig-edge" id="e-ws-redis" data-from="f-workspace" data-to="x-redis" data-anchor-from="1,0.5" data-anchor-to="0,0.5" data-color="#505358" data-width="2" data-arrow="both" data-label="키값 저장"></div>
-  </div>
-
-  <div class="foot">
-    <span>근거: client/api/opendata.js, client/api/intake.js, client/package.json, docs/PRD-v2.md 1.3절과 F4~F6. v2 추가 함수는 PRD v2 작업 범위</span>
-    <span>작성 2026. 10. 6.</span>
-  </div>
 
   <!-- ======== FIG:CONTENT END ======== -->
 

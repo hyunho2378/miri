@@ -3,8 +3,8 @@
 // 갱신 원칙: 작업 단위가 끝날 때마다 이 파일을 고치고 VERSION 과 변경 이력(10장)을 늘린 뒤 커밋한다.
 // 앱에서는 문서함 맨 위 고정 문서로 보이고(읽기 전용, 통지 양식: 장 1. 2., 항목 가. 나.), 한글(HWPX)과 PDF 로 내보낼 수 있다.
 
-export const HANDOVER_VERSION = '2026.10.18-1'
-export const HANDOVER_UPDATED = '2026. 10. 18. 04:20'
+export const HANDOVER_VERSION = '2026.10.20-1'
+export const HANDOVER_UPDATED = '2026. 10. 20. 23:10'
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
 const H = (t) => `<h2>${t}</h2>`
@@ -94,7 +94,7 @@ const html = [
     ['문서함 저장', 'Upstash Redis(서버), 연결 실패 시 이 창 메모리']
   ]),
   L(2, '빌드: client 폴더에서 npx vite build --minify false(압축 빌드 시 rolldown 오류)'),
-  L(2, '시험: node tests/logic.test.mjs'),
+  L(2, '시험: client 폴더에서 npm test(logic, fixes, fixes2, fixes3)'),
   L(2, '개발 서버: npx vite --port 5179, 문서 함수(hwpx, lint, law)는 개발 서버 안에서 바로 실행'),
   L(2, '자료 굽기: scripts/bake-hwp-metrics.mjs(양식 실측), scripts/bake-law-core.mjs(법령 내장본), tools/bake-buildings(건물), tools/bake-basemap(바탕 지도)'),
 
@@ -102,7 +102,11 @@ const html = [
   T(['이름', '용도', '보관'], [
     ['KV_REST_API_URL, KV_REST_API_TOKEN', '문서함 저장(Upstash)', 'Vercel 프로젝트 환경변수'],
     ['DATA_GO_KR_KEY', '공공데이터포털', 'Vercel 프로젝트 환경변수'],
-    ['GEMINI_API_KEY', '서류 읽기, 현장 소식(api/intake.js, api/note.js 가 같은 키 사용)', 'Vercel 프로젝트 환경변수'],
+    ['NCP_OCR_INVOKE_URL, NCP_OCR_SECRET', '서류 읽기 글자 인식(CLOVA OCR, API Gateway 호출 주소)', 'Vercel 프로젝트 환경변수'],
+    ['NCP_CLOVASTUDIO_KEY', '서류 읽기와 현장 소식 문구 분류(HyperCLOVA X HCX-005)', 'Vercel 프로젝트 환경변수'],
+    ['NCP_CSR_CLIENT_ID, NCP_CSR_CLIENT_SECRET', '현장 소식 음성 받아쓰기(CLOVA Speech)', 'Vercel 프로젝트 환경변수'],
+    ['MIRI_DEMO_CODE, MIRI_SESSION_SECRET', '시연 세션(서명 쿠키) 발급과 확인', 'Vercel 프로젝트 환경변수'],
+    ['UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN', 'AI 호출 횟수 공유 계수(없으면 KV_REST_API_* 사용). 연결이 없으면 AI 호출 503', 'Vercel 프로젝트 환경변수'],
     ['LAW_OC', '법제처 인증키(없으면 공용 한도)', '미설정[확인 필요]'],
     ['GitHub 푸시', '작업마다 임시 토큰 발급 후 즉시 삭제', '저장하지 않음']
   ]),
@@ -139,6 +143,8 @@ const html = [
 
   H('변경 이력'),
   T(['판', '날짜', '내용'], [
+    ['2026.10.20-1', '2026. 10. 20.', '서류 읽기와 현장 소식을 해외 Gemini에서 네이버 클라우드 국내 AI(CLOVA OCR, HyperCLOVA X HCX-005, CLOVA Speech)로 이전(67aa51c). 서버 함수 실행 지역 서울(icn1). GPT 코드 검토 지적 수정(49fc741, 68dbc52, fa2d24d): 시연 세션 서명 쿠키, AI 호출 상한, 개인정보 가림 뒤 잔존 검사, 대피소 정원과 회차 목적지, 불가 응답 도우미 제외, 빈 판독 결과 422. 도식 5종 갱신(서비스 블루프린트, 시스템 구성도, 데이터 흐름도, 국내 AI 서류 읽기 과정, 부족분 계산과 배정 규칙). 비밀값 표를 NCP 환경변수로 교체.'],
+    ['2026.10.19-1', '2026. 10. 19.', '예선 심사기준 대응 문서와 플랫폼 데이터 및 서비스 API 조사표를 추가. 합성 현장 소식 평가기로 긴급 누락률, 상태 분류 정확도, 원문 근거 일치율을 계산. 모든 합성 결과에 시연용 표시. 플랫폼 승인, 인터뷰, Gemini 연결은 미완료로 기록. 시험 1건 추가, 결과 15건 통과.'],
     ['2026.10.18-1', '2026. 10. 18.', '현장 소식 화면(서류 읽기 아래 탭) 추가: 글 붙여 넣기와 음성 파일로 거동 변화를 읽어 명부 변경 후보와 근거 문구를 만들고 담당자가 반영, 수정 후 반영, 반영 안 함을 고름. 서버 api/note.js, 규칙 lib/notes.js, 화면 NotesPage 와 NoteReview. 등급을 낮추는 제안은 일치도를 한 단계 내림. 근거 문구가 소식에 없으면 요약을 숨기고 확인 필요 표시. 샘플 5종과 처음 화면 대기 3건은 모의 응답이며 화면에 표시함. 시험 5건 추가(14건 통과). 서류 읽기도 서버 키가 없어 배포본에서는 샘플만 동작함(503 확인). 설계 문서 docs/FIELD_NOTES_UX.md'],
     ['2026.10.07-1', '2026. 10. 7.', '인수인계서 첫 판 작성'],
     ['2026.10.07-7', '2026. 10. 7.', '운영 쟁점 4가지(개인정보, AI 판독 책임, 설치, 기존 시스템 겹침) 법령 검토서 docs/LEGAL_REVIEW.md 추가. 재난안전법 제74조의3제10항(예방, 대비 요청은 긴급한 때로 한정)과 제74조의2(재난관리정보 정의) 원문 재확인 결과 평시 명부 근거에서 빼고 README 와 상세기획서 v2 정정. 평시 명부는 본인 별도 동의(개인정보 보호법 제23조제1항제1호), 발령 시 제공은 제18조제2항제3호, 제10호, 정식 운영 전 동해시 조례 신설 건의. 해외 배포(Vercel)는 실제 명부 운영 불가, 분리형 설치안'],
