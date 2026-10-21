@@ -168,17 +168,17 @@ export function buildSeed() {
   const vehicles = [
     ...[1, 2, 3, 4, 5, 6].map((i) => ({
       code: `V-0${i}`, type: 'ambulance', owner: 'fire', baseDong: ['CG', 'BP', 'MH', 'CG', 'BP', 'SH'][i - 1],
-      available: i <= 3, note: i <= 3 ? '' : '응급 출동 대기'
+      available: i <= 3, note: i <= 3 ? '' : '응급 출동 대기', commitment: 'fire'
     })),
-    { code: 'V-07', type: 'bedVan', owner: 'facility', baseDong: 'BG', available: true, note: '노인요양시설 차량(가정)' },
-    { code: 'V-08', type: 'bedVan', owner: 'facility', baseDong: 'BP', available: true, note: '노인요양시설 차량(가정)' },
-    ...lift.map((dong, k) => ({ code: `V-${String(9 + k).padStart(2, '0')}`, type: 'liftVan', owner: 'facility', baseDong: dong, available: true, note: '주야간보호기관 차량(가정)', dayCare: true })),
-    { code: 'V-18', type: 'liftVan', owner: 'city', baseDong: 'CG', available: true, note: '' },
+    { code: 'V-07', type: 'bedVan', owner: 'facility', baseDong: 'BG', available: true, note: '노인요양시설 차량(가정)', commitment: 'unconfirmed' },
+    { code: 'V-08', type: 'bedVan', owner: 'facility', baseDong: 'BP', available: true, note: '노인요양시설 차량(가정)', commitment: 'unconfirmed' },
+    ...lift.map((dong, k) => ({ code: `V-${String(9 + k).padStart(2, '0')}`, type: 'liftVan', owner: 'facility', baseDong: dong, available: true, note: '주야간보호기관 차량(가정)', dayCare: true, commitment: 'unconfirmed' })),
+    { code: 'V-18', type: 'liftVan', owner: 'city', baseDong: 'CG', available: true, note: '', commitment: 'agreed' },
     ...carBase.map((dong, k) => ({
       code: `V-${19 + k}`, type: 'car', owner: 'contract', baseDong: dong,
-      available: true, contractUntil: k === 2 ? contract(18) : contract(120 + k * 9), note: ''
+      available: true, contractUntil: k === 2 ? contract(18) : contract(120 + k * 9), note: '', commitment: 'agreed'
     })),
-    ...['CG', 'BS', 'BP', 'MH', 'MS', 'SH'].map((dong, k) => ({ code: `V-${37 + k}`, type: 'bus', owner: 'city', baseDong: dong, available: true, note: '' }))
+    ...['CG', 'BS', 'BP', 'MH', 'MS', 'SH'].map((dong, k) => ({ code: `V-${37 + k}`, type: 'bus', owner: 'city', baseDong: dong, available: true, note: '', commitment: 'agreed' }))
   ]
 
   // 도우미(가정). 마을 대상자 30명당 1명, 마을마다 1명 이상
@@ -192,7 +192,12 @@ export function buildSeed() {
     const extra = VILLAGES[(i * 7 + 3) % VILLAGES.length].code
     const list = r() < 0.3 && !vs.includes(extra) ? [...vs, extra] : vs
     const grades = i % 4 === 0 ? ['wheelchair', 'assist', 'walk'] : i % 3 === 0 ? ['assist', 'walk'] : ['wheelchair', 'assist', 'walk']
-    helpers.push({ code: `H-${String(i + 1).padStart(3, '0')}`, villages: list, grades, channel: 'sms', active: true })
+    // 회신 R12, R06, R24: 사전 동의한 사람만 배정 후보. 역할(차량 동행 등), 기본소생술 교육, 봉사 상해보험은 가상 값
+    helpers.push({
+      code: `H-${String(i + 1).padStart(3, '0')}`, villages: list, grades, channel: 'sms', active: true,
+      consent: true, consentAt: TODAY - (30 + (i % 60)) * DAY,
+      roles: i % 5 === 0 ? ['ride', 'contact'] : ['ride', 'walk'], bls: i % 3 !== 1, insured: i % 7 !== 3
+    })
   })
 
   const scenarios = [

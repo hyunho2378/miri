@@ -76,7 +76,7 @@ export function computeVars(data, scenario) {
     unserved: result.total, unservedOpt: opt, shortVillages: short.length,
     extraVehicles: extra.reduce((a, x) => a + x.count, 0),
     vehicles: vehicles.length, vehiclesAvail: vehicles.filter((v) => v.available !== false).length,
-    helpers: helpers.filter((h) => h.active !== false).length,
+    helpers: helpers.filter((h) => h.active !== false && h.consent !== false).length,
     shelters: TEMP_SHELTERS.length, shelterCapacity: TEMP_SHELTERS.reduce((a, s) => a + s.capacity, 0)
   }
   vals.tableShortage = short.length

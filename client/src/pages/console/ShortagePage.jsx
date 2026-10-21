@@ -17,7 +17,7 @@ import NumberStepper from '../../components/ui/NumberStepper.jsx'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
-import { EXTRA_TYPE, GRADES, typeOf } from '../../lib/shortage.js'
+import { EXTRA_TYPE, GRADES, commitmentOf, typeOf } from '../../lib/shortage.js'
 import { TIME_BANDS, bandOf, computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import { DISABLED_NOTE } from '../../lib/rosterCount.js'
 import { fireScenario } from '../../lib/scenario.js'
@@ -69,6 +69,11 @@ export default function ShortagePage() {
   const bandCompare = useMemo(() => TIME_BANDS.map((b) => ({ b, r: computeShortage({ ...input, scenario: { ...draft, timeBand: b.value } }) })), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
   const boardingNow = settings.boardingMinutes ?? 20
   const boardingCompare = useMemo(() => [...new Set([...BOARDING_STEPS, boardingNow])].sort((a, b) => a - b).map((m) => ({ m, r: computeShortage({ ...input, settings: { ...settings, boardingMinutes: m } }) })), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 차량 가용 확실성(회신 R01): 약속된 차량만 쓸 때의 결과를 나란히 본다
+  const agreedCompare = useMemo(() => {
+    const agreed = vehicles.filter((v) => commitmentOf(v) !== 'unconfirmed')
+    return { all: result.total, agreed: computeShortage({ ...input, vehicles: agreed }).total, unconfirmed: vehicles.length - agreed.length }
+  }, [result, persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
   const dirty = JSON.stringify(draft) !== JSON.stringify(base)
 
   const set = (patch) => setDraft((d) => ({ ...d, ...patch }))
@@ -273,6 +278,20 @@ export default function ShortagePage() {
                   </div>
                 </dl>
                 <p className="mt-2 type-meta leading-5 text-text-meta">근거가 한 곳뿐이라 가정값은 바꾸지 않았습니다. 도우미 수와 지원 등급도 차량과 함께 계산 조건이며, 함께 탈 도우미가 모자란 대상자는 '도우미 부족'으로 미이송 예상에 들어갑니다. 발령 배정도 같은 조건을 씁니다.</p>
+              </section>
+              <section aria-labelledby="chk-commit" className="min-w-0">
+                <h3 id="chk-commit" className="type-h3 text-text-pri">차량 가용 확실성</h3>
+                <ul className="mt-2 grid gap-2">
+                  <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">
+                    <span className="type-body-sm text-text-sec">가용 차량 전체(지금 조건)</span>
+                    <span className="type-strong text-text-pri tabular-nums">미이송 예상 {agreedCompare.all}명</span>
+                  </li>
+                  <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">
+                    <span className="type-body-sm text-text-sec tabular-nums">약속된 차량만(미확인 {agreedCompare.unconfirmed}대 제외)</span>
+                    <span className="type-strong text-text-pri tabular-nums">미이송 예상 {agreedCompare.agreed}명</span>
+                  </li>
+                </ul>
+                <p className="mt-2 type-meta leading-5 text-text-meta">재난안전 자문: 소방 구급차는 지자체 가용 차량과 따로 봄. 요양시설과 주야간보호기관 차량은 협약 전까지 미확인으로 두고, 협약을 맺으면 차량 관리에서 약속됨으로 바꿈.</p>
               </section>
             </div>
             <p className="mt-4 rounded-md bg-page px-3 py-2 type-meta leading-5 text-text-sec">{DISABLED_NOTE}</p>

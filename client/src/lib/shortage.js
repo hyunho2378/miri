@@ -28,6 +28,13 @@ export const EXTRA_TYPE = { bed: 'bedVan', wheelchair: 'liftVan', assist: 'car',
 
 export const OWNERS = { fire: '소방', city: '시청', facility: '요양시설', contract: '민간 협약' }
 
+// 차량 가용 확실성(회신 R01): 소방 구급차는 지자체 가용 차량과 따로 보고, 협약이나 소유로 약속된 차량과 아직 확인하지 않은 차량을 나눈다
+export const COMMITMENTS = { agreed: '약속됨', unconfirmed: '미확인', fire: '소방 별도' }
+export const commitmentOf = (v) => v?.commitment || (v?.owner === 'fire' ? 'fire' : v?.owner === 'facility' ? 'unconfirmed' : 'agreed')
+
+// 도우미 역할(회신 R12)
+export const HELPER_ROLES = { ride: '차량 동행', walk: '도보 지원', contact: '연락 지원', supply: '물품 전달' }
+
 // 원문 공식(SOURCE B). 왕복 가능 횟수는 소수 버림
 export function tripsPossible(availableMinutes, roundTripMinutes) {
   if (!roundTripMinutes || roundTripMinutes <= 0) return 0

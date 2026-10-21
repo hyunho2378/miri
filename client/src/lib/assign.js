@@ -60,7 +60,7 @@ export function buildContext({
     vmap, deadlines, qmap, queues, preUnserved, dest,
     vehicles: vehicles.filter((v) => v.available !== false).sort((a, b) => a.code.localeCompare(b.code)),
     // helpers 를 넘기면 도우미 수와 지원 등급을 회차의 실행 조건으로 쓴다(GPT 검토 S2). 넘기지 않으면 차량만 본다
-    helpers: Array.isArray(helpers) ? helpers.filter((h) => h.active !== false).sort((a, b) => a.code.localeCompare(b.code)) : [],
+    helpers: Array.isArray(helpers) ? helpers.filter(crewEligible).sort((a, b) => a.code.localeCompare(b.code)) : [],
     crewModel: Array.isArray(helpers),
     t0,
     start: t0 + prepMinutes * MIN
@@ -264,7 +264,7 @@ export function bundle(ctx, plan) {
     const grades = [...new Set(a.trips.map((tr) => tr.grade))]
     const score = (h) => (h.villages.some((v) => villages.has(v)) ? 2 : 0) + (grades.every((g) => h.grades.includes(g)) ? 1 : 0)
     const cands = ctx.helpers
-      .filter((h) => h.active !== false && !used.has(h.code) && grades.some((g) => h.grades.includes(g)))
+      .filter((h) => crewEligible(h) && !used.has(h.code) && grades.some((g) => h.grades.includes(g)))
       .sort((x, y) => score(y) - score(x) || x.code.localeCompare(y.code))
     a.helperCodes = cands.slice(0, need).map((h) => h.code)
     a.helperCodes.forEach((c) => used.add(c))
@@ -318,7 +318,13 @@ export function planDispatch(input, opts) {
 
 // 도우미 자격(최초 배정, 교체, 재배정 공통. GPT 재검토 R7): 활성 상태이고 그 차량 회차의 모든 등급을 지원
 export function helperQualifies(h, grades) {
-  return Boolean(h) && h.active !== false && Array.isArray(h.grades) && grades.every((g) => h.grades.includes(g))
+  return crewEligible(h) && Array.isArray(h.grades) && grades.every((g) => h.grades.includes(g))
+}
+
+// 동승 후보(회신 R12): 활동 중이고, 동의를 철회하지 않았고, 역할을 정했다면 '차량 동행'을 고른 사람만. 역할 칸이 없는 옛 자료는 그대로 후보
+export function crewEligible(h) {
+  if (!h || h.active === false || h.consent === false) return false
+  return !Array.isArray(h.roles) || h.roles.length === 0 || h.roles.includes('ride')
 }
 
 export const UNSERVED_REASON = { capacity: '차량 부족', noCompatibleVehicle: '호환 차량 없음', noHelper: '도우미 부족', noShelter: '안전한 대피소 없음', noShelterRoom: '대피소 자리 부족' }

@@ -14,7 +14,7 @@ import Drawer from '../../components/ui/Drawer.jsx'
 import Tabs from '../../components/ui/Tabs.jsx'
 import Toggle from '../../components/ui/Toggle.jsx'
 import useToast from '../../hooks/useToast.js'
-import { GRADES, OWNERS, VEHICLE_TYPES, gradeOf, typeOf } from '../../lib/shortage.js'
+import { COMMITMENTS, GRADES, HELPER_ROLES, OWNERS, VEHICLE_TYPES, commitmentOf, gradeOf, typeOf } from '../../lib/shortage.js'
 import { fmtDate } from '../../lib/time.js'
 import { fmtKDate } from '../../components/miri/BasisLine.jsx'
 import useAuthStore from '../../store/useAuthStore.js'
@@ -58,6 +58,7 @@ export default function ResourcesPage() {
     { key: 'owner', label: '소속', kind: 'select', required: true, options: Object.entries(OWNERS).map(([value, label]) => ({ value, label })) },
     { key: 'baseDong', label: '대기 동', kind: 'select', required: true, options: dongs.map((d) => ({ value: d.code, label: d.name })) },
     { key: 'contractUntil', label: '협약 만료일', kind: 'date', hint: '민간 협약 차량에만 고릅니다.' },
+    { key: 'commitment', label: '가용 확실성', kind: 'select', options: Object.entries(COMMITMENTS).map(([value, label]) => ({ value, label })), hint: '협약이나 소유로 약속된 차량과 아직 확인하지 않은 차량을 나눕니다.' },
     { key: 'note', label: '비고', kind: 'text' },
     { key: 'available', label: '대피 이송 가용', kind: 'toggle' }
   ]
@@ -65,6 +66,10 @@ export default function ResourcesPage() {
     { key: 'code', label: '도우미 코드', kind: 'text', required: true, disabled: form?.mode === 'edit', placeholder: 'H-029' },
     { key: 'villages', label: '담당 마을', kind: 'multiselect', required: true, options: villages.map((v) => ({ value: v.code, label: v.label })) },
     { key: 'grades', label: '지원 가능 등급', kind: 'multiselect', required: true, options: GRADE_OPTIONS.filter((g) => g.value !== 'bed') },
+    { key: 'roles', label: '역할', kind: 'multiselect', options: Object.entries(HELPER_ROLES).map(([value, label]) => ({ value, label })), hint: '차량 동행을 고른 사람만 차량 배정 후보입니다.' },
+    { key: 'consent', label: '사전 동의', kind: 'toggle', hint: '동의를 철회하면 배정 후보에서 빠집니다. 호출을 거절해도 불이익 없음.' },
+    { key: 'bls', label: '기본소생술 교육 이수', kind: 'toggle' },
+    { key: 'insured', label: '봉사 상해보험 적용 확인', kind: 'toggle' },
     { key: 'active', label: '활동 중', kind: 'toggle' }
   ]
   const fields = form?.kind === 'helper' ? helperFields : vehicleFields
@@ -101,6 +106,7 @@ export default function ResourcesPage() {
       ) : <span className="text-text-meta">해당 없음</span>)
     },
     { key: 'baseDong', label: '대기 동', hideBelow: 'lg', render: (v) => dongName(v.baseDong) },
+    { key: 'commitment', label: '가용 확실성', sortable: true, sortValue: (v) => commitmentOf(v), hideBelow: 'md', render: (v) => <span className="type-body-sm text-text-sec">{COMMITMENTS[commitmentOf(v)]}</span> },
     {
       key: 'available', label: '가용',
       render: (v) => (canVehicle
@@ -114,6 +120,16 @@ export default function ResourcesPage() {
     { key: 'villages', label: '담당 마을', render: (h) => <span className="type-body-sm">{h.villages.map(vlabel).join(', ')}</span> },
     { key: 'grades', label: '지원 등급', hideBelow: 'md', render: (h) => <span className="flex flex-wrap gap-1">{GRADES.filter((g) => h.grades.includes(g.key)).map((g) => <GradeChip key={g.key} grade={g.key} size="sm" />)}</span> },
     { key: 'channel', label: '연락 수단', hideBelow: 'lg', render: () => '문자' },
+    {
+      key: 'consent', label: '동의와 교육', hideBelow: 'md',
+      render: (h) => (
+        <span className="type-body-sm text-text-sec">
+          {h.consent === false ? '동의 철회' : h.consentAt ? '동의' : '동의 기록 없음'}
+          {Array.isArray(h.roles) && h.roles.length ? `, ${h.roles.map((r) => HELPER_ROLES[r] || r).join(', ')}` : ''}
+          {h.bls ? ', 기본소생술 이수' : ''}{h.insured ? ', 상해보험 확인' : ''}
+        </span>
+      )
+    },
     { key: 'active', label: '상태', render: (h) => <StatusPill status={h.active !== false ? 'accept' : 'unavailable'} label={h.active !== false ? '활동 중' : '휴면'} /> },
     { key: 'edit', label: '편집', render: (h) => <EditPencil resource="helpers" label={`${h.code} 수정`} onClick={() => openHelper(h)} /> }
   ]
@@ -129,13 +145,13 @@ export default function ResourcesPage() {
       {tab === 'vehicles' ? (
         <TableCard
           key="vehicles" title="차량" count={`가용 ${usable} / 전체 ${vehicles.length}대`} desc={`협약 만료는 ${fmtKDate(today)} 기준으로 판정합니다. 차종별 회차당 정원은 협의 전 가정값입니다.`}
-          actions={<InlineEditBar resource="vehicles" addLabel="차량 추가" onAdd={() => { setErrors({}); setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'contract', baseDong: 'MS', available: true, contractUntil: '', note: '' } }) }} />}
+          actions={<InlineEditBar resource="vehicles" addLabel="차량 추가" onAdd={() => { setErrors({}); setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'contract', baseDong: 'MS', available: true, contractUntil: '', note: '', commitment: 'unconfirmed' } }) }} />}
           columns={vehicleColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={vehicles} rowKey={(v) => v.code} caption="차량 목록"
         />
       ) : (
         <TableCard
           key="helpers" title="도우미" count={`활동 중 ${helpers.filter((h) => h.active !== false).length} / 전체 ${helpers.length}명`}
-          actions={<InlineEditBar resource="helpers" addLabel="도우미 추가" onAdd={() => { setErrors({}); setForm({ kind: 'helper', mode: 'add', value: { code: '', villages: [], grades: ['assist', 'walk'], active: true } }) }} />}
+          actions={<InlineEditBar resource="helpers" addLabel="도우미 추가" onAdd={() => { setErrors({}); setForm({ kind: 'helper', mode: 'add', value: { code: '', villages: [], grades: ['assist', 'walk'], roles: ['ride'], consent: true, consentAt: Date.now(), bls: false, insured: false, active: true } }) }} />}
           columns={helperColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={helpers} rowKey={(h) => h.code} caption="도우미 목록"
         />
       )}
