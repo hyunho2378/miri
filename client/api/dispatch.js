@@ -196,9 +196,15 @@ async function handle(req, res) {
     return fail(res, 405, 'METHOD', '허용되지 않는 요청입니다')
   }
 
-  if (!(await guard(req, res, { requireSession: true }))) return
+  // 담당자 쪽은 시연 코드 세션(full)과 훈련 발령 전용 세션(drill) 모두 받는다. 발령은 세션마다 따로 저장된다
+  if (!(await guard(req, res, { requireSession: true, allowDrill: true }))) return
   if (!r) return fail(res, 503, 'NO_STORE', '발령 저장소에 연결되지 않았습니다. 이 브라우저 안에서만 진행합니다')
   const sid = req.miriSession.id
+  // 코드 없이 받은 훈련 전용 세션은 저장 횟수를 세션마다 분당 60회로 묶는다(저장소 남용 방지)
+  if (req.miriSession.scope === 'drill' && req.method === 'POST' && (await incr(`dsp:save:${sid}`, 60)) > 60) {
+    res.setHeader('Retry-After', '60')
+    return fail(res, 429, 'RATE_LIMIT', '저장이 너무 잦습니다. 잠시 뒤 다시 저장합니다')
+  }
 
   if (req.method === 'GET' && action === 'state') {
     // 도우미 동의 상태는 진행 중인 발령이 없어도 돌려준다(발령 종료 뒤 새로고침 복원)

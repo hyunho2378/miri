@@ -18,9 +18,16 @@ export const sessionConfigured = () => Boolean(process.env.MIRI_DEMO_CODE && sec
 
 const sign = (payload) => createHmac('sha256', secret()).update(payload).digest('base64url')
 
-export function issueToken(now = Date.now()) {
+// 세션 범위
+//   full: 시연 코드로 받은 세션. AI 판독, 문서함 서버 저장, 발령 저장 모두
+//   drill: 코드 없이 받는 훈련 발령 전용 세션. 콘솔과 휴대폰 현장 화면이 같은 브라우저에서 같은 훈련 발령을 보게 한다.
+//          AI 호출과 문서함은 열지 않는다. 범위 표시(nonce 앞 drill-)는 서명 안에 있어 바꿀 수 없다
+const DRILL = 'drill-'
+export function issueToken(now = Date.now(), scope = 'full') {
   const exp = Math.floor(now / 1000) + TTL_SEC
-  const payload = `${exp}.${randomBytes(9).toString('base64url')}`
+  let nonce = scope === 'drill' ? `${DRILL}${randomBytes(9).toString('hex')}` : randomBytes(9).toString('base64url')
+  while (scope !== 'drill' && nonce.startsWith(DRILL)) nonce = randomBytes(9).toString('base64url')
+  const payload = `${exp}.${nonce}`
   return `${payload}.${sign(payload)}`
 }
 
@@ -36,7 +43,7 @@ export function verifyToken(token, now = Date.now()) {
   const [exp, nonce, mac] = parts
   if (!/^\d{9,12}$/.test(exp) || !safeEq(mac, sign(`${exp}.${nonce}`))) return null
   if (Number(exp) * 1000 < now) return null
-  return { id: nonce, exp: Number(exp) }
+  return { id: nonce, exp: Number(exp), scope: nonce.startsWith(DRILL) ? 'drill' : 'full' }
 }
 
 export const checkCode = (code) => sessionConfigured() && typeof code === 'string' && safeEq(code.trim(), process.env.MIRI_DEMO_CODE)
@@ -152,13 +159,14 @@ export async function aiBudget(req, name, sid) {
 
 const deny = (res, status, code, message) => { res.status(status).json({ error: { code, message } }); return false }
 
-// requireSession: 서명 쿠키 필요. ai: AI 호출 이름(횟수 상한 적용)
-export async function guard(req, res, { requireSession = true, ai = null } = {}) {
+// requireSession: 서명 쿠키 필요. allowDrill: 훈련 발령 전용 세션도 받음(발령 저장만). ai: AI 호출 이름(횟수 상한 적용)
+export async function guard(req, res, { requireSession = true, allowDrill = false, ai = null } = {}) {
   if (!sameSite(req)) return deny(res, 403, 'FORBIDDEN', '미리 화면에서 보낸 요청만 처리합니다')
   if (requireSession) {
     if (!sessionConfigured()) return deny(res, 503, 'NO_SESSION_CONFIG', '시연 코드 설정이 없어 이 기능을 닫아 두었습니다')
     const s = sessionOf(req)
-    if (!s) return deny(res, 401, 'NEED_SESSION', '시연 코드가 필요합니다. 로그인 화면에서 시연 코드를 입력해 주십시오')
+    if (!s) return deny(res, 401, 'NEED_SESSION', allowDrill ? '시연 세션이 없습니다. 계정을 다시 골라 주십시오' : '시연 코드가 필요합니다. 콘솔 로그인 화면에서 시연 코드를 입력해 주십시오')
+    if (s.scope === 'drill' && (!allowDrill || ai)) return deny(res, 401, 'NEED_SESSION', '시연 코드가 필요합니다. 콘솔 로그인 화면에서 시연 코드를 입력해 주십시오')
     req.miriSession = s
   }
   let within = true

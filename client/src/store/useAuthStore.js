@@ -2,6 +2,12 @@
 // 데모(mock)는 시 관리자로 시작하고 로그인 화면에서 역할을 바꿀 수 있다.
 import { create } from 'zustand'
 import { USE_MOCK } from '../lib/api.js'
+import { ensureDemoSession } from '../lib/demoSession.js'
+import { setSessionRecover } from '../lib/dispatchSync.js'
+
+// 시연 모드: 서버 발령 요청이 세션 없음(401)이면 훈련 발령 전용 세션을 받아 한 번 다시 보낸다.
+// 콘솔에서 시작한 훈련 발령과 휴대폰 현장 화면이 같은 서버 발령을 본다(같은 브라우저)
+if (USE_MOCK) setSessionRecover(() => ensureDemoSession())
 
 export const DEMO_USERS = {
   city: { id: 'U-1', name: '시 재난부서 관리자', role: 'city', dong: null },
@@ -28,7 +34,7 @@ export const useAuthStore = create((set, get) => ({
   // 담당자가 직접 계정을 골랐는지. 실서버는 세션 사용자가 있으면 참
   signedIn: USE_MOCK ? !!initialRole : false,
   ready: true,
-  setDemoUser: (role) => { writeSigned(role); set({ user: DEMO_USERS[role], signedIn: true }) },
+  setDemoUser: (role) => { writeSigned(role); set({ user: DEMO_USERS[role], signedIn: true }); if (USE_MOCK) ensureDemoSession() },
   logout: () => { writeSigned(null); set({ user: USE_MOCK ? DEMO_USERS.city : null, signedIn: false }) },
   // 편집 권한. 비권한이면 편집 UI 를 렌더하지 않는다(dah EditControls 원칙)
   canEdit: (resource) => {
