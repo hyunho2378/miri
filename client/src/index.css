@@ -1,3 +1,4 @@
+@import './mobile/tokens.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -28,7 +29,7 @@
   /* 시스템 UI 금지: 운영체제 기본 모양이 나오는 입력 요소를 모두 디자인 시스템 모양으로 그린다 */
   input[type='checkbox'], input[type='radio'] {
     appearance: none; -webkit-appearance: none; margin: 0; flex-shrink: 0; cursor: pointer;
-    width: 20px; height: 20px; background: #fff; border: 1.5px solid theme('colors.line.strong');
+    width: 20px; height: 20px; background: var(--m-page); border: 1.5px solid theme('colors.line.strong');
     display: inline-grid; place-content: center; transition: background-color var(--dur-fast), border-color var(--dur-fast);
   }
   input[type='checkbox'] { border-radius: 4px; }
@@ -42,15 +43,15 @@
   input[type='range'] { appearance: none; -webkit-appearance: none; background: transparent; height: 20px; cursor: pointer; }
   input[type='range']::-webkit-slider-runnable-track { height: 4px; border-radius: 9999px; background: theme('colors.line.def'); }
   input[type='range']::-moz-range-track { height: 4px; border-radius: 9999px; background: theme('colors.line.def'); }
-  input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6px; border-radius: 9999px; background: #fff; border: 2px solid theme('colors.primary.DEFAULT'); box-shadow: 0 1px 3px rgba(20,23,46,.2); }
-  input[type='range']::-moz-range-thumb { width: 12px; height: 12px; border-radius: 9999px; background: #fff; border: 2px solid theme('colors.primary.DEFAULT'); }
+  input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6px; border-radius: 9999px; background: var(--m-page); border: 2px solid theme('colors.primary.DEFAULT'); box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  input[type='range']::-moz-range-thumb { width: 12px; height: 12px; border-radius: 9999px; background: var(--m-page); border: 2px solid theme('colors.primary.DEFAULT'); }
   input[type='range']::-moz-range-progress { height: 4px; border-radius: 9999px; background: theme('colors.primary.DEFAULT'); }
 
   input[type='number'] { -moz-appearance: textfield; appearance: textfield; }
   input[type='number']::-webkit-inner-spin-button, input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   input[type='search']::-webkit-search-cancel-button, input[type='search']::-webkit-search-decoration { -webkit-appearance: none; }
   input::-webkit-calendar-picker-indicator, input::-webkit-list-button { display: none !important; }
-  input:-webkit-autofill { -webkit-box-shadow: 0 0 0 40px #fff inset; -webkit-text-fill-color: theme('colors.text.pri'); }
+  input:-webkit-autofill { -webkit-box-shadow: 0 0 0 40px var(--m-page) inset; -webkit-text-fill-color: theme('colors.text.pri'); }
   ::selection { background: theme('colors.primary.soft'); color: theme('colors.text.pri'); }
 
   /* 스크롤바: 얇은 회색 막대(운영체제 기본 굵은 막대 대신) */
@@ -171,5 +172,5 @@ html[lang='ja'] .break-keep, html[lang='zh'] .break-keep { word-break: normal; l
 
 /* 담당자 화면 면 규칙(2026-10-06, 사용자 지향 레퍼런스 IMG_1531).
    흰 본문 위에 회색 면 카드를 놓고 그림자와 보더를 쓰지 않는다. 카드 안의 입력과 표만 흰 면으로 떠 보인다 */
-.admin-surface .bg-page.shadow-card { background-color: #f4f5f6; box-shadow: none; }
-.admin-surface .bg-page.shadow-card:hover { box-shadow: none; background-color: #eef0f2; }
+.admin-surface .bg-page.shadow-card { background-color: var(--m-canvas); box-shadow: none; }
+.admin-surface .bg-page.shadow-card:hover { box-shadow: none; background-color: var(--m-canvas); }

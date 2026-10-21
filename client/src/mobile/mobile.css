@@ -4,24 +4,6 @@
 
 .mob-root {
   /* 공통: 미리 tokens.js 값 */
-  --m-blue: #256ef4;
-  --m-blue-strong: #0b50d0;
-  --m-blue-soft: #d8e5fd;
-  --m-blue-ink: #083891;
-  --m-red: #d63d4a;
-  --m-red-strong: #ab2b36;
-  --m-red-soft: #fbeff0;
-  --m-ink: #131416;
-  --m-ink-2: #464c53;
-  --m-ink-3: #58616a;
-  --m-ink-disabled: #58636d; /* GPT 8차 M6: #e6e8ea 위 5.0:1 */
-  --m-page: #ffffff;
-  --m-canvas: #f4f5f6;
-  --m-fill: #e6e8ea;
-  --m-sep: #e6e8ea;
-  --m-shadow-1: 0 2px 10px rgba(20, 23, 46, 0.07);
-  --m-shadow-2: 0 8px 28px rgba(20, 23, 46, 0.12);
-  --m-shadow-3: 0 16px 48px rgba(20, 23, 46, 0.18);
   --m-r-xs: 6px;
   --m-r-sm: 10px;
   --m-r-md: 12px;
@@ -56,15 +38,14 @@
   --m-dialog-w: 300px;
   --m-toast-r: var(--m-r-lg);
   --m-seg-h: 32px;
-  --t-display: 34px; --l-display: 41px; --w-display: 700;
-  --t-title: 22px; --l-title: 28px; --w-title: 700;
+  --t-display: 34px; --l-display: 41px; --w-display: 400;
+  --t-title: 22px; --l-title: 28px; --w-title: 400;
   --t-headline: 17px; --l-headline: 22px; --w-headline: 600;
   --t-body: 17px; --l-body: 22px;
   --t-callout: 16px; --l-callout: 21px;
   --t-sub: 15px; --l-sub: 20px;
   --t-foot: 13px; --l-foot: 18px;
   --t-label: 12px; --l-label: 16px; --w-label: 500;
-  --m-press: rgba(19, 20, 22, 0.08);
 }
 
 /* Material 3 키트 값(2장): Body Large 16/24, Title Large 22/28, 목록 56과 72, 버튼 터치 48, 앱 바 64, 내비게이션 바 80 */
@@ -85,20 +66,19 @@
   --m-toast-r: var(--m-r-xs);
   --m-seg-h: 40px;
   --t-display: 28px; --l-display: 36px; --w-display: 400;
-  --t-title: 22px; --l-title: 28px; --w-title: 500;
+  --t-title: 22px; --l-title: 28px; --w-title: 400;
   --t-headline: 16px; --l-headline: 24px; --w-headline: 500;
   --t-body: 16px; --l-body: 24px;
   --t-callout: 16px; --l-callout: 24px;
   --t-sub: 14px; --l-sub: 20px;
   --t-foot: 14px; --l-foot: 20px;
   --t-label: 12px; --l-label: 16px; --w-label: 500;
-  --m-press: rgba(37, 110, 244, 0.12);
   /* M3 색 역할(미리 파랑 씨앗) */
   --m3-primary: var(--m-blue);
-  --m3-on-primary: #ffffff;
+  --m3-on-primary: var(--m-inverse);
   --m3-primary-container: var(--m-blue-soft);
   --m3-on-primary-container: var(--m-blue-ink);
-  --m3-surface: #ffffff;
+  --m3-surface: var(--m-inverse);
   --m3-surface-container: var(--m-canvas);
   --m3-surface-container-high: var(--m-fill);
 }
@@ -150,12 +130,12 @@
 .mob-btn.size-sm::after { content: ''; position: absolute; inset: calc((var(--m-touch) - var(--m-btn-sm-h)) / -2) 0; }
 /* GPT 8차 M5: 작은 버튼은 실제 누르는 영역을 터치 최소값으로 두고 보이는 면만 작게(overflow 로 잘리지 않게) */
 .mob-btn.size-sm { min-height: var(--m-touch); background-clip: content-box; padding-top: calc((var(--m-touch) - var(--m-btn-sm-h)) / 2); padding-bottom: calc((var(--m-touch) - var(--m-btn-sm-h)) / 2); overflow: visible; }
-.mob-btn.v-filled { background: var(--m-blue); color: #fff; }
+.mob-btn.v-filled { background: var(--m-blue); color: var(--m-on-primary); }
 .mob-btn.v-filled:active { background: var(--m-blue-strong); }
 .mob-btn.v-tonal { background: var(--m-blue-soft); color: var(--m-blue-ink); }
 .mob-btn.v-gray { background: var(--m-fill); color: var(--m-ink); }
 .mob-btn.v-plain { background: transparent; color: var(--m-blue-strong); padding: 0 12px; }
-.mob-btn.v-danger { background: var(--m-red); color: #fff; }
+.mob-btn.v-danger { background: var(--m-red); color: var(--m-on-danger); }
 .mob-btn.v-danger-tonal { background: var(--m-red-soft); color: var(--m-red-strong); }
 .mob-btn[disabled] { background: var(--m-fill); color: var(--m-ink-disabled); cursor: not-allowed; transform: none; }
 .mob-root.platform-android .mob-btn { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.01em; padding: 0 24px; }
@@ -199,7 +179,7 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-root.platform-android .mob-seg button:last-child { border-radius: 0 var(--m-r-full) var(--m-r-full) 0; }
 .mob-root.platform-android .mob-seg button[aria-checked='true'] { background: var(--m3-primary-container); color: var(--m3-on-primary-container); box-shadow: none; border-radius: 0; }
 .mob-toggle { appearance: none; border: 0; width: 64px; height: 28px; border-radius: var(--m-r-full); background: var(--m-ink-disabled); position: relative; cursor: pointer; flex: none; transition: background-color 160ms ease; }
-.mob-toggle::before { content: ''; position: absolute; top: 2px; left: 2px; width: 36px; height: 24px; border-radius: var(--m-r-full); background: #fff; box-shadow: var(--m-shadow-1); transition: transform 160ms ease; }
+.mob-toggle::before { content: ''; position: absolute; top: 2px; left: 2px; width: 36px; height: 24px; border-radius: var(--m-r-full); background: var(--m-inverse); box-shadow: var(--m-shadow-1); transition: transform 160ms ease; }
 .mob-toggle::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-toggle[aria-checked='true'] { background: var(--m-blue); }
 .mob-toggle[aria-checked='true']::before { transform: translateX(24px); }
@@ -216,7 +196,7 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 @keyframes mob-spin { to { transform: rotate(360deg); } }
 
 /* 하단 이동(탭 바, 내비게이션 바) */
-.mob-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--m-page); box-shadow: 0 -2px 10px rgba(20, 23, 46, 0.07); padding-bottom: var(--m-safe-bottom); }
+.mob-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--m-page); box-shadow: 0 -2px 10px rgba(0,0,0,0.07); padding-bottom: var(--m-safe-bottom); }
 .mob-nav-inner { max-width: 480px; margin: 0 auto; height: var(--m-nav-h); display: flex; }
 .mob-nav a, .mob-nav button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--m-ink-3); text-decoration: none; font-size: 10px; font-weight: 600; border: 0; background: transparent; font-family: inherit; cursor: pointer; min-height: var(--m-touch); }
 .mob-nav [aria-current='page'] { color: var(--m-blue-strong); }
@@ -225,10 +205,10 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-nav-pill { width: 56px; height: 32px; border-radius: var(--m-r-full); display: flex; align-items: center; justify-content: center; }
 .mob-root.platform-android .mob-nav [aria-current='page'] .mob-nav-pill { background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
 .mob-root.platform-ios .mob-nav-pill { width: auto; height: auto; }
-.mob-nav-badge { min-width: 16px; height: 16px; padding: 0 4px; border-radius: var(--m-r-full); background: var(--m-red); color: #fff; font-size: 11px; line-height: 16px; font-weight: 700; position: absolute; transform: translate(12px, -10px); }
+.mob-nav-badge { min-width: 16px; height: 16px; padding: 0 4px; border-radius: var(--m-r-full); background: var(--m-red); color: var(--m-on-danger); font-size: 11px; line-height: 16px; font-weight: 700; position: absolute; transform: translate(12px, -10px); }
 
 /* 시트, 대화상자, 덮개 */
-.mob-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(19, 20, 22, 0.4); display: flex; animation: mob-fade 160ms ease; }
+.mob-scrim { position: fixed; inset: 0; z-index: 60; background: var(--m-scrim); display: flex; animation: mob-fade 160ms ease; }
 @keyframes mob-fade { from { opacity: 0; } }
 .mob-sheet { margin-top: auto; width: 100%; max-width: 480px; margin-left: auto; margin-right: auto; background: var(--m-page); border-radius: var(--m-sheet-r) var(--m-sheet-r) 0 0; box-shadow: var(--m-shadow-3); padding: 8px var(--m-margin) calc(var(--m-safe-bottom) + 16px); max-height: 90dvh; overflow: auto; animation: mob-up 220ms cubic-bezier(0.2, 0, 0, 1); }
 @keyframes mob-up { from { transform: translateY(100%); } }
@@ -248,9 +228,9 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-toast-wrap { position: fixed; left: 0; right: 0; z-index: 70; display: flex; justify-content: center; pointer-events: none; padding: 0 var(--m-margin); }
 .mob-root.platform-ios .mob-toast-wrap { top: calc(var(--m-safe-top) + 8px); }
 .mob-root.platform-android .mob-toast-wrap { bottom: calc(var(--m-nav-h) + var(--m-safe-bottom) + 12px); }
-.mob-toast { pointer-events: auto; min-height: 48px; max-width: 344px; width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--m-toast-r); background: var(--m-ink); color: #fff; font-size: 15px; line-height: 20px; box-shadow: var(--m-shadow-2); animation: mob-fade 160ms ease; }
-.mob-root.platform-ios .mob-toast { background: rgba(255, 255, 255, 0.96); color: var(--m-ink); }
-.mob-toast .mob-btn.v-plain { color: #86aff9; min-height: 40px; padding: 0 8px; }
+.mob-toast { pointer-events: auto; min-height: 48px; max-width: 344px; width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--m-toast-r); background: var(--m-ink); color: var(--m-inverse); font-size: 15px; line-height: 20px; box-shadow: var(--m-shadow-2); animation: mob-fade 160ms ease; }
+.mob-root.platform-ios .mob-toast { background: var(--m-page); color: var(--m-ink); }
+.mob-toast .mob-btn.v-plain { color: var(--m-inverse); min-height: 40px; padding: 0 8px; }
 .mob-root.platform-ios .mob-toast .mob-btn.v-plain { color: var(--m-blue-strong); }
 
 /* 상태 띠와 빈 상태 */
@@ -269,9 +249,9 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 }
 
 /* 부품 견본(/m/kit): 390 폭 프레임 안에 고정 요소를 가둔다 */
-.mob-kit-page { min-height: 100dvh; background: #cdd1d5; display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; padding: 24px; }
-.mob-kit-page.single { padding: 0; gap: 0; background: var(--m-canvas, #f4f5f6); }
-.mob-frame { width: 390px; height: 844px; position: relative; overflow: hidden; border-radius: 20px; box-shadow: 0 16px 48px rgba(20, 23, 46, 0.18); flex: none; }
+.mob-kit-page { min-height: 100dvh; background: var(--m-fill); display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; padding: 24px; }
+.mob-kit-page.single { padding: 0; gap: 0; background: var(--m-canvas, var(--m-canvas)); }
+.mob-frame { width: 390px; height: 844px; position: relative; overflow: hidden; border-radius: 20px; box-shadow: 0 16px 48px rgba(0,0,0,0.18); flex: none; }
 .mob-kit-page.single .mob-frame { border-radius: 0; box-shadow: none; }
 .mob-frame > .mob-root { height: 100%; overflow: auto; }
 .mob-frame .mob-nav, .mob-frame .mob-toast-wrap, .mob-frame .mob-scrim { position: absolute; }
@@ -307,3 +287,16 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 
 /* 화면 낭독기 전용 글자 */
 .mob-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* 共通キット入力と画面配置。画面側は色と寸法を定義しない。 */
+.mob-flex-1 { flex: 1; }
+.mob-inline-actions { display:inline-flex; gap:8px; }
+.mob-break { overflow-wrap:anywhere; word-break:break-all; }
+.mob-stack-8 { display:grid; gap:8px; }
+.mob-top-16 { margin-top:16px; }
+.mob-check-row { cursor:pointer; min-height:var(--m-touch); }
+.mob-filled-input { appearance:none; font:inherit; width:100%; min-height:var(--m-touch); padding:12px; color:var(--m-ink); background:var(--m-fill); border:0; border-radius:var(--m-r-md); }
+.mob-sheet > h2 { margin-bottom:12px; }
+.mob-grabber { width:60px; height:4px; }
+.mob-root.platform-android .mob-grabber { width:32px; }
+.mob-root.platform-android .mob-btn:focus-visible { background-image:linear-gradient(var(--m-press),var(--m-press)); }

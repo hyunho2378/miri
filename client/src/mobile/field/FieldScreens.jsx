@@ -1,3 +1,4 @@
+import { FilledInput, FilledTextarea, IconButton, BottomActions } from '../ui.jsx'
 // 현장 담당자 휴대폰 화면 F0~F7(docs/MOBILE_UI.md 4장). 콘솔과 같은 store를 쓰고 플랫폼 모양은 공용 부품이 나눈다.
 // F0 평시, F1 발령 상태, F2 마을별 진행(목록, 상세), F3 도우미 응답, F4 미배정과 소방 지원 요청, F5 대상자 확인, F6 서류 판독, F7 현장 소식
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -108,7 +109,7 @@ export function FieldStatusPage() {
         )}
         {s.counts.unassigned > 0 && (
           <Banner tone="red" icon={<Siren size={20} aria-hidden="true" />}>
-            <span style={{ flex: 1 }}>소방 지원 요청 대상 {s.counts.unassigned}명</span>
+            <span className="mob-flex-1">소방 지원 요청 대상 {s.counts.unassigned}명</span>
             <Button size="sm" variant="danger" onClick={() => navigate('/m/f/fire')}>요청 화면</Button>
           </Banner>
         )}
@@ -266,7 +267,7 @@ export function FieldHelpersPage() {
           <List label="도우미 목록">
             {rows.map((h) => (
               <ListRow key={h.code} title={h.code} subtitle={`차량 ${h.vehicle}, ${h.trips}회차${h.reason ? `, 사유 ${DECLINE_REASONS[h.reason] || h.reason}` : ''}${h.memo ? `, 메모 ${h.memo}` : ''}`} meta={h.at ? `${hm(h.at)} 응답` : `문자 ${h.sms}회 발송`}
-                trailing={<span style={{ display: 'inline-flex', gap: 8 }}>
+                trailing={<span className="mob-inline-actions">
                   <Button size="sm" variant="plain" aria-label={`${h.code} 배정 링크`} onClick={() => setLinkOf(h)}>링크</Button>
                   {tab === 'accept' ? null : <Button size="sm" variant="tonal" onClick={() => setConfirm(h)}>{tab === 'decline' ? '교체' : '교체 요청'}</Button>}
                 </span>} />
@@ -276,8 +277,8 @@ export function FieldHelpersPage() {
       </main>
       <Sheet open={!!linkOf} onClose={() => setLinkOf(null)} title={`${linkOf?.code || ''} 배정 링크`}>
         <p className="mob-t-foot mob-pad">본인 배정만 조회, 12시간 뒤 만료. 문자 {linkOf?.sms ?? 0}회 발송</p>
-        <p className="mob-t-body mob-pad" style={{ wordBreak: 'break-all' }}>{linkOf ? (linkFor(linkOf.code) || '서버 저장 전이라 링크 없음') : ''}</p>
-        <div className="mob-pad" style={{ display: 'grid', gap: 8 }}>
+        <p className="mob-t-body mob-pad mob-break">{linkOf ? (linkFor(linkOf.code) || '서버 저장 전이라 링크 없음') : ''}</p>
+        <div className="mob-pad mob-stack-8">
           <Button block variant="tonal" disabled={!linkOf || !linkFor(linkOf.code)} onClick={() => copy(linkOf.code)}>링크 복사</Button>
           <Button block onClick={() => { const ok = resendLink?.(linkOf.code); toast(ok ? `${linkOf.code} 문자 재발송 기록` : '재발송 실패'); setLinkOf(null) }}>문자 재발송</Button>
         </div>
@@ -358,7 +359,7 @@ export function FieldPeoplePage() {
       <main id="main" className="mob-content">
         <label className="mob-search">
           <Search size={20} aria-hidden="true" />
-          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="대상자 번호 또는 마을" aria-label="대상자 번호 또는 마을 검색" />
+          <FilledInput type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="대상자 번호 또는 마을" aria-label="대상자 번호 또는 마을 검색" />
         </label>
         <p className="mob-t-foot mob-pad">{q ? `검색 결과 ${list.length}명` : '처음 50명'}, 이름은 화면에 두지 않음</p>
         {!list.length ? <EmptyState title="검색 결과 없음" body="번호 앞자리 또는 마을 이름으로 다시 검색" /> : (
@@ -463,7 +464,7 @@ export function FieldIntakePage() {
           <VillagePicker villages={data.villages} value={villageCode} onChange={setVillageCode} />
           {/* 행 전체가 체크 영역(GPT 9차 M5): label 로 감싸 최소 터치 높이 이상, 글자를 눌러도 체크 */}
           <li>
-            <label className="mob-row tall" style={{ cursor: 'pointer', minHeight: 'var(--m-touch, 48px)' }}>
+            <label className="mob-row tall mob-check-row">
               <span className="mob-row-main">
                 <span className="mob-t-body">가상 자료만 올림</span>
                 <span className="mob-t-sub">실제 주민 서류 업로드 금지</span>
@@ -543,12 +544,12 @@ export function FieldNotePage() {
       <main id="main" className="mob-content">
         <List label="대상자">
           <ListRow title="대상자 번호" subtitle={person ? `${villageName(data.villages, person.villageCode)}, 현재 ${gradeOf(person.grade)?.label || '등급 확인'}` : '예: MS-04-014'}
-            trailing={<input className="mob-input" value={code} onChange={(e) => setCode(e.target.value)} disabled={state.phase === 'loading'} aria-label="대상자 번호" placeholder="번호" autoCapitalize="characters" />} />
+            trailing={<FilledInput className="mob-input" value={code} onChange={(e) => setCode(e.target.value)} disabled={state.phase === 'loading'} aria-label="대상자 번호" placeholder="번호" autoCapitalize="characters" />} />
         </List>
         <div className="mob-pad"><Segmented label="보내는 방식" value={mode} onChange={setMode} options={[{ value: 'text', label: '글' }, { value: 'voice', label: '음성 메모' }]} /></div>
         {mode === 'text' ? (
           <div className="mob-pad mob-stack">
-            <textarea className="mob-textarea" rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder="예: 지난주부터 보행기 없이 걷기 어려움" aria-label="현장 소식" />
+            <FilledTextarea className="mob-textarea" rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder="예: 지난주부터 보행기 없이 걷기 어려움" aria-label="현장 소식" />
             <Button block disabled={!person || !text.trim() || state.phase === 'loading'} onClick={() => send(null)}><Send size={20} aria-hidden="true" />판독 요청</Button>
           </div>
         ) : (
@@ -569,7 +570,7 @@ export function FieldNotePage() {
               <ListRow title="등급" subtitle={r.diff?.gradeChanged ? `${gradeOf(state.req?.current?.grade)?.label} → ${gradeOf(r.diff.next.grade)?.label}` : '등급 변경 없음'} />
               <ListRow title="근거" subtitle={r.quote || '없음'} meta={r.quoteMatched ? '원문 대조 통과' : '원문 불일치, 직접 확인'} />
             </List>
-            <div className="mob-row-buttons" style={{ marginTop: 16 }}>
+            <div className="mob-row-buttons mob-top-16">
               <Button variant="gray" onClick={() => setSheet(false)}>닫기</Button>
               <Button onClick={keep}>확인 대기로 저장</Button>
             </div>

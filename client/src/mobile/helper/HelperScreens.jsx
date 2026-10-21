@@ -1,3 +1,4 @@
+import { FilledInput, FilledTextarea, IconButton, BottomActions } from '../ui.jsx'
 // 도우미 모바일 화면 H0~H9(docs/MOBILE_UI.md 4-2). 같은 화면 구조를 iOS와 Material 3 부품(ui.jsx)으로 그린다.
 // iOS: 큰 제목, 그룹 inset 목록, 하단 고정 버튼, 시트와 alert. Android: top app bar, list item, filled와 tonal 버튼, bottom sheet, snackbar.
 import { useEffect, useState } from 'react'
@@ -13,7 +14,7 @@ import './helper.css'
 const readConsent = (k) => { try { return localStorage.getItem(CONSENT_KEY + k) === '1' } catch { return false } }
 const writeConsent = (k) => { try { localStorage.setItem(CONSENT_KEY + k, '1') } catch { /* 저장 불가 브라우저는 이번 화면에서만 */ } }
 
-function Bottom({ children }) { return <div className="mob-h-bottom">{children}</div> }
+const Bottom = BottomActions
 
 function KV({ rows }) {
   return (
@@ -115,7 +116,7 @@ function H2({ m, onBack }) {
           {Object.entries(DECLINE_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)} {...radioProps(Object.keys(DECLINE_REASONS_M), reason, setReason, k)}>{v}</Chip>)}
         </div>
         <label className="mob-h-field"><span className="mob-t-label">메모(선택)</span>
-          <textarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="담당자에게 전할 말" />
+          <FilledTextarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="담당자에게 전할 말" />
         </label>
       </main>
       <Bottom><Button block variant="danger" disabled={!reason} onClick={() => m.ack('decline', reason, memo)}>불가 전송</Button></Bottom>
@@ -128,7 +129,7 @@ function H3({ m, steps, go }) {
   const p = progressOf(m.codes, steps)
   return (
     <>
-      <AppBar title="이송 목록" large trailing={<button type="button" className="mob-icon-btn" aria-label="연락" onClick={() => go({ name: 'H7' })}><Phone size={22} aria-hidden="true" /></button>} />
+      <AppBar title="이송 목록" large trailing={<IconButton label="연락" onClick={() => go({ name: 'H7' })}><Phone size={22} aria-hidden="true" /></IconButton>} />
       <main id="main" className="mob-content no-nav">
         <Deadline m={m} />
         <div className="mob-h-progress">
@@ -209,7 +210,7 @@ function H5({ m, code, steps, go, onBack }) {
   }
   return (
     <>
-      <AppBar title={`${code} 보고`} onBack={onBack} trailing={<button type="button" className="mob-icon-btn" aria-label="대상자 상세" onClick={() => go({ name: 'H4', code })}><Users size={22} aria-hidden="true" /></button>} />
+      <AppBar title={`${code} 보고`} onBack={onBack} trailing={<IconButton label="대상자 상세" onClick={() => go({ name: 'H4', code })}><Users size={22} aria-hidden="true" /></IconButton>} />
       <main id="main" className="mob-content no-nav">
         <ol className="mob-h-steps" aria-label="이송 단계">
           {STEP_ORDER.slice(1).map((s, i) => (
@@ -232,9 +233,9 @@ function H5({ m, code, steps, go, onBack }) {
         {next?.step === 'handover' && (
           <div className="mob-h-care">
             <p className="mob-t-label">인계 기록(선택, 소방과 대피소에 전달)</p>
-            <label className="mob-h-field"><span className="mob-t-label">증상 시각</span><input type="time" value={care.symptomAt} onChange={(e) => setCare({ ...care, symptomAt: e.target.value })} /></label>
-            <label className="mob-h-field"><span className="mob-t-label">관찰 내용</span><textarea rows={2} maxLength={200} value={care.observation} onChange={(e) => setCare({ ...care, observation: e.target.value })} /></label>
-            <label className="mob-h-field"><span className="mob-t-label">수행한 조치</span><textarea rows={2} maxLength={200} value={care.action} onChange={(e) => setCare({ ...care, action: e.target.value })} /></label>
+            <label className="mob-h-field"><span className="mob-t-label">증상 시각</span><FilledInput type="time" value={care.symptomAt} onChange={(e) => setCare({ ...care, symptomAt: e.target.value })} /></label>
+            <label className="mob-h-field"><span className="mob-t-label">관찰 내용</span><FilledTextarea rows={2} maxLength={200} value={care.observation} onChange={(e) => setCare({ ...care, observation: e.target.value })} /></label>
+            <label className="mob-h-field"><span className="mob-t-label">수행한 조치</span><FilledTextarea rows={2} maxLength={200} value={care.action} onChange={(e) => setCare({ ...care, action: e.target.value })} /></label>
           </div>
         )}
         <div className="mob-h-sheet-actions">
@@ -260,7 +261,7 @@ function H6({ m, code, onBack, onDone }) {
         <div className="mob-h-chips" role="radiogroup" aria-label="실패 사유">
           {Object.entries(FAIL_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)} {...radioProps(Object.keys(FAIL_REASONS_M), reason, setReason, k)}>{v}</Chip>)}
         </div>
-        <label className="mob-h-field"><span className="mob-t-label">메모(선택)</span><textarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="현장 상황" /></label>
+        <label className="mob-h-field"><span className="mob-t-label">메모(선택)</span><FilledTextarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="현장 상황" /></label>
       </main>
       <Bottom><Button block variant="danger" disabled={!reason} onClick={() => setAsk(true)}>실패 보고</Button></Bottom>
       <Dialog open={ask} onClose={() => setAsk(false)} title="이송 실패로 보고할까요?" body={`${code}, ${FAIL_REASONS_M[reason] || ''}. 다음 대상자로 넘어가요.`} actions={

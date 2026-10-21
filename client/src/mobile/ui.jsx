@@ -4,6 +4,7 @@
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react'
 import { ChevronLeft, ArrowLeft, ChevronRight, WifiOff, Inbox } from 'lucide-react'
 import { usePlatform } from './usePlatform.js'
+import './tokens.css'
 import './mobile.css'
 
 // 셸 바깥 껍데기. 플랫폼과 큰 글자 클래스를 이 요소에 붙여 토큰을 고정한다.
@@ -329,3 +330,8 @@ export function DisplaySettings() {
     </List>
   )
 }
+
+// iOS text field / M3 filled text field. Native OS time picker is not invoked.
+export const FilledInput = ({className='', type='text', ...props}) => <input {...props} type={type === 'time' ? 'text' : type} inputMode={type === 'time' ? 'numeric' : props.inputMode} className={`mob-filled-input ${className}`} />
+export const FilledTextarea = ({className='', ...props}) => <textarea {...props} className={`mob-filled-input ${className}`} />
+export function BottomActions({children}) { return <div className="mob-h-bottom">{children}</div> }
