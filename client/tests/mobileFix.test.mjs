@@ -99,7 +99,10 @@ await t('M5, M7, M8, M9, H3 코드 확인: 터치 영역, 사유 radio, 큰 글�
   const hs = r('../src/mobile/helper/HelperScreens.jsx'); const fsx = r('../src/mobile/field/FieldScreens.jsx')
   assert.match(css, /\.mob-btn\.size-sm \{ min-height: var\(--m-touch\)/)
   assert.match(css, /platform-android \.mob-seg \{[^}]*overflow: visible/)
-  assert.equal((hs.match(/role="radio" aria-checked=/g) || []).length, 2)
+  // 사유 고르기는 칩 대신 SelectRow(라디오 행, ui.jsx)로. 불가와 실패 사유 화면이 같은 radiogroup 화면(ReasonScreen)을 쓴다
+  assert.match(hs, /<div role="radiogroup" aria-label=\{`\$\{title\} 사유`\}>/)
+  assert.equal((hs.match(/reasons=\{(DECLINE|FAIL)_REASONS_M\}/g) || []).length, 2)
+  assert.match(r('../src/mobile/ui.jsx'), /role=\{multiple \? 'checkbox' : 'radio'\} aria-checked=\{!!selected\}/)
   assert.match(hs, /aria-live="polite"/)
   assert.match(hcss, /font-size: max\(16px, var\(--t-body\)\)/)
   assert.match(fsx, /d\.kind !== 'drill' \? '실제 발령' : '훈련'/)

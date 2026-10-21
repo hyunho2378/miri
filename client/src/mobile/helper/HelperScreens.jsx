@@ -1,344 +1,362 @@
-import { FilledInput, FilledTextarea, IconButton, BottomActions, SafetyGuidance, HelperConsent, keepCodes } from '../ui.jsx'
-// 도우미 모바일 화면 H0~H9(docs/MOBILE_UI.md 4-2). 같은 화면 구조를 iOS와 Material 3 부품(ui.jsx)으로 그린다.
-// iOS: 큰 제목, 그룹 inset 목록, 하단 고정 버튼, 시트와 alert. Android: top app bar, list item, filled와 tonal 버튼, bottom sheet, snackbar.
-import { useEffect, useState } from 'react'
+// 도우미 휴대폰 화면(docs/MOBILE_UI.md 4-2). 재구성 2a(공모전/모바일UI/퍼소나_사용성진단_20261022.md 도우미 절, 벤치마크_20261022.md 공통 규칙 8개).
+// 화면 하나에 할 일 하나, 주 버튼 하나(아래 전체 폭), 문단 없이 큰 값 하나와 한 줄 몇 개. 긴 설명은 한 줄 행 뒤 시트(InfoSheet),
+// 응급 대응은 늘 같은 자리의 작은 빨간 버튼(EmergencyButton) 뒤 시트. 부품은 부품표(kitParts.js)의 키트 부품만 쓴다.
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { AlertTriangle, CheckCircle2, CircleX, Clock, CloudOff, HandHeart, Link2Off, MapPin, Phone, RefreshCw, Send, ShieldCheck, User, Users } from 'lucide-react'
-import { radioProps, useLayout, TwoPane, AppBar, Banner, Button, Card, Chip, Dialog, EmptyState, List, ListRow, Progress, Sheet, Spinner, Toggle, DisplaySettings, useMobileToast } from '../ui.jsx'
+import { CheckCircle2, CircleX, Clock, CloudOff, HandHeart, Link2Off, Phone, RefreshCw, Send, User, Users } from 'lucide-react'
+import { AppBar, BottomAction, Button, Dialog, DisplaySettings, EmergencyButton, EmptyState, Figure, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, SelectRow, Sheet, Spinner, TwoPane, useLayout, useMobileToast } from '../ui.jsx'
 import { usePlatform } from '../usePlatform.js'
 import { fmtHM } from '../../lib/time.js'
-import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, STEP_LABEL, STEP_ORDER, helperPaneOf, lastAck, progressOf, remainText, screenOf, stepsByPerson, telOf } from './flow.js'
+import { ROLE_OPTIONS } from '../../lib/helperConsent.js'
+import { AVOID_PHRASES, EMERGENCY, HELPER_PHRASES, PREDEPARTURE } from '../../lib/helperGuidance.js'
+import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, PREDEPARTURE_ITEMS, STEP_ACTION, STEP_LABEL, STEP_NOW, UNDO_MS, helperPaneOf, lastAck, nextPlaceOf, progressOf, remainText, screenOf, sentencesOf, stepIndexOf, stepsByPerson, telOf, tripWord, withPending } from './flow.js'
 import { startDemoDispatch, useDemoModel, useRemoteModel } from './useHelperModel.js'
 import './helper.css'
 
-const readConsent = (k) => { try { return localStorage.getItem(CONSENT_KEY + k) === '1' } catch { return false } }
-const writeConsent = (k) => { try { localStorage.setItem(CONSENT_KEY + k, '1') } catch { /* 저장 불가 브라우저는 이번 화면에서만 */ } }
+// 수락 안내 한 문장(멘토링 녹취의 수락 필요, 한림봉사센터 회신 R12 196행의 거절 불이익 없음)
+const ACK_NOTE = '수락해야 배정이 확정됩니다. 거절해도 불이익은 없습니다. 불가를 누르면 다른 도우미에게 넘어갑니다.'
+const ROLES_KEY = 'miri.m.roles.'
+const PREDEP_KEY = 'miri.m.predep.'
+const store = {
+  get: (k) => { try { return localStorage.getItem(k) } catch { return null } },
+  set: (k, v) => { try { localStorage.setItem(k, v) } catch { /* 저장 불가 브라우저는 이번 화면에서만 */ } },
+  del: (k) => { try { localStorage.removeItem(k) } catch { /* 저장 불가 */ } }
+}
+const readConsent = (k) => store.get(CONSENT_KEY + k) === '1'
+const writeConsent = (k, roles) => { store.set(CONSENT_KEY + k, '1'); store.set(ROLES_KEY + k, JSON.stringify(roles)) }
+const readRoles = (k) => { try { const r = JSON.parse(store.get(ROLES_KEY + k) || '[]'); return Array.isArray(r) ? r.filter((x) => x in ROLE_OPTIONS) : [] } catch { return [] } }
+const roleText = (roles) => roles.map((r) => ROLE_OPTIONS[r]).filter(Boolean).join(', ')
 
-const Bottom = BottomActions
-
-function KV({ rows }) {
-  return (
-    <List>
-      {rows.filter(Boolean).map((r) => <ListRow key={r.label} className="kv" title={r.label} trailing={<span className="mob-h-kv">{keepCodes(r.value)}</span>} />)}
-    </List>
-  )
+function Kv({ label, value }) {
+  return <ListRow className="kv" title={label} trailing={<span className="mob-h-kv">{value}</span>} />
 }
 
 function Deadline({ m }) {
   const r = remainText(m.completeBy, m.now)
+  const caption = [m.drill ? '훈련' : '', '이송 완료 기한', r?.text].filter(Boolean).join(', ')
   return (
-    <Card filled className="mob-h-deadline">
-      <p className="mob-t-label">이송 완료 기한</p>
-      <p className="mob-h-time">{m.completeBy ? `${fmtHM(m.completeBy)}까지` : '담당자 확인'}</p>
-      {r && <p className={`mob-t-sub ${r.over ? 'mob-h-over' : ''}`} role="timer">{r.text}</p>}
+    <>
+      <Figure value={m.completeBy ? `${fmtHM(m.completeBy)}까지` : '담당자 확인'} caption={caption} live tone={r?.over ? 'red' : undefined} />
       {/* 매 분 낭독하지 않고 의미 있는 전환(30분 이내, 기한 지남)만 알림 */}
       <p className="mob-sr" aria-live="polite">{r ? (r.over ? '이송 완료 기한 지남' : r.min <= 30 ? '이송 완료 기한 30분 이내' : '') : ''}</p>
-    </Card>
+    </>
   )
 }
 
-// H0 첫 사용 안내와 동의
-function H0({ m, onDone }) {
-  const [role, setRole] = useState(false)
-  const [cpr, setCpr] = useState(false)
+function PrivacySheet() {
+  return (
+    <InfoSheet title="개인정보와 그만두는 방법" summary="배정된 분 정보만, 발령이 끝나면 삭제">
+      <List label="개인정보와 그만두는 방법">
+        <ListRow title="문자 링크로 열어요" subtitle="앱 설치와 로그인 없음" />
+        <ListRow title="배정된 대상자만 보여요" subtitle="다른 대상자와 명부 전체는 보이지 않음" />
+        <ListRow title="발령이 끝나면 지워요" subtitle="배정 정보와 연락처 삭제" />
+        <ListRow title="보고는 담당자에게만 가요" subtitle="출발, 도착, 탑승, 인계, 실패 기록" />
+        <ListRow title="언제든 그만둘 수 있어요" subtitle="연락 화면의 참여 그만두기, 불이익 없음" />
+        <ListRow title="안전교육과 보험" subtitle="이수 여부는 담당자가 확인, 모르면 담당자에게 문의" />
+      </List>
+    </InfoSheet>
+  )
+}
+
+// 참여 동의(처음 한 번). 질문 하나, 역할 고르기, 불이익 없음 한 줄, 주 버튼 하나
+export function ConsentScreen({ initialRoles = ['ride'], onBack, onDone }) {
+  const [roles, setRoles] = useState(initialRoles.length ? initialRoles : ['ride'])
+  const toggle = (r) => setRoles((x) => (x.includes(r) ? x.filter((y) => y !== r) : [...x, r]))
+  return (
+    <>
+      <AppBar title="참여 동의" large={!onBack} onBack={onBack} />
+      <main id="main" className="mob-content no-nav">
+        <p className="mob-t-body mob-h-lead">재난 때 이웃의 대피를 도울 수 있나요? 할 수 있는 일을 골라 주세요.</p>
+        <List label="할 수 있는 일">
+          {Object.entries(ROLE_OPTIONS).map(([k, v]) => <SelectRow key={k} multiple title={v} subtitle={k === 'ride' ? '차량 배정 후보가 돼요' : undefined} selected={roles.includes(k)} onSelect={() => toggle(k)} />)}
+        </List>
+        <p className="mob-t-callout mob-h-lead">거절하거나 나중에 그만둬도 불이익은 없어요.</p>
+        <List label="안내"><PrivacySheet /></List>
+      </main>
+      <BottomAction primary={{ label: '동의하고 시작', disabled: !roles.length, onClick: () => onDone(roles) }} />
+    </>
+  )
+}
+
+// 평시 첫 화면(시연 주소). 누구용인지 한 줄, 내 상태, 할 일 하나. 시연 배정은 아래 약한 글자 버튼
+function IdleHome({ consentKey, onStart }) {
+  const [consented, setConsented] = useState(() => readConsent(consentKey))
+  const [roles, setRoles] = useState(() => readRoles(consentKey))
+  const [editing, setEditing] = useState(false)
+  if (editing) {
+    return <ConsentScreen initialRoles={roles} onBack={() => setEditing(false)} onDone={(r) => { writeConsent(consentKey, r); store.set(`${ROLES_KEY}${consentKey}.pending`, '1'); setRoles(r); setConsented(true); setEditing(false) }} />
+  }
   return (
     <>
       <AppBar title="미리 도우미" large />
       <main id="main" className="mob-content no-nav">
-        <Banner tone="blue" icon={<ShieldCheck size={20} aria-hidden="true" />}>문자 링크로 열린 화면. 앱 설치와 로그인 없음</Banner>
-        <p className="mob-t-body mob-h-lead">혼자 대피하기 어려운 이웃을 대피소까지 함께 옮기는 배정이에요. {m.drill ? '이번 배정은 훈련이에요.' : ''}</p>
-        <p className="mob-t-label mob-section-title">이 화면에서 보는 정보</p>
-        <List>
-          <ListRow title="배정된 대상자만" subtitle="다른 대상자와 명부 전체는 보이지 않음" />
-          <ListRow title="발령 종료 뒤 삭제" subtitle="배정 정보와 연락처는 발령이 끝나면 지움" />
-          <ListRow title="보고는 담당자에게만" subtitle="출발, 도착, 탑승, 인계, 실패 기록" />
+        <List label="이 화면"><ListRow lead={<HandHeart size={22} />} title="이웃 대피를 돕는 화면" subtitle="혼자 대피하기 어려운 이웃을 대피소까지 함께 옮겨요" /></List>
+        <List label="내 상태">
+          <ListRow className="kv" title="참여 동의" trailing={<span className="mob-h-kv">{consented ? '동의함' : '아직'}</span>} onClick={consented ? () => setEditing(true) : undefined} chevron={consented} />
+          {consented && <Kv label="역할" value={roleText(roles) || '-'} />}
+          <Kv label="배정" value="아직 요청이 없어요" />
         </List>
-        <HelperConsent onChange={(consent,roles)=>{m.preference(consent,roles);setRole(consent)}} />
-        <p className="mob-t-label mob-section-title">확인</p>
-        <List>
-          <ListRow title="차량 동행 역할 확인" subtitle="차량 동행을 선택한 사람만 차량 배정 후보입니다. 위 참여 동의에서 역할을 선택해 주세요." />
-          <ListRow title="기본소생술 교육과 상해보험" subtitle="모르면 담당자에게 문의" trailing={<Toggle label="기본소생술 교육과 상해보험 확인" checked={cpr} onChange={setCpr} />} />
-        </List>
-        <p className="mob-t-label mob-section-title">화면 설정</p>
-        <DisplaySettings />
+        <p className="mob-t-callout mob-h-lead">배정이 오면 문자로 링크를 보내 드려요.</p>
       </main>
-      <Bottom><Button block disabled={!role} onClick={onDone}>확인하고 배정 보기</Button></Bottom>
+      <BottomAction primary={consented ? null : { label: '참여 동의하기', onClick: () => setEditing(true) }} secondary={{ label: '시연 배정 받기', onClick: onStart }} />
     </>
   )
 }
 
-// H1 배정 알림
-function H1({ m, onDecline }) {
+// 배정 알림: 큰 기한 하나, 어디서와 몇 명, 수락 하나. 차량과 동승, 확인할 점은 자세히 시트
+function AlertScreen({ m, onDecline }) {
   const toast = useMobileToast()
+  const first = m.trips[0]
   return (
     <>
       <AppBar title="배정 알림" large />
       <main id="main" className="mob-content no-nav">
-        <div className="mob-h-chips">
-          <Chip tone="red">{m.disaster} 대피 이송</Chip>
-          {m.drill && <Chip>훈련</Chip>}
-          <Chip>도우미 {m.helper}</Chip>
-        </div>
-        <Banner tone="blue">수락해야 배정이 확정됩니다. 거절해도 불이익은 없습니다. 불가를 누르면 다른 도우미에게 넘어갑니다.</Banner>
         <Deadline m={m} />
-        <KV rows={[
-          { label: '마을', value: m.villages.join(', ') || '-' },
-          { label: '만나는 곳', value: m.meetPlace },
-          { label: '차량', value: m.vehicle },
-          { label: '동승 도우미', value: m.coHelpers.length ? m.coHelpers.join(', ') : '없음' },
-          { label: '대상', value: `${m.codes.length}명, ${m.trips.length}회차` },
-          { label: '첫 출발', value: m.trips[0]?.departAt ? fmtHM(m.trips[0].departAt) : '-' }
-        ]} />
-        {m.notes.length > 0 && (
-          <>
-            <p className="mob-t-label mob-section-title">확인할 점</p>
-            <List>{m.notes.map((n) => <ListRow key={n} lead={<AlertTriangle size={20} />} title={n} />)}</List>
-          </>
-        )}
+        <List label="배정 요약">
+          <Kv label="마을" value={m.villages.join(', ') || '-'} />
+          <Kv label="만나는 곳" value={m.meetPlace} />
+          <Kv label="대상" value={`${m.codes.length}명, ${m.trips.length}번 이동`} />
+          <InfoSheet title="자세히" summary={`차량, 함께 가는 도우미${m.notes.length ? `, 확인할 점 ${m.notes.length}개` : ''}`} sheetTitle="배정 자세히">
+            <List label="배정 자세히">
+              <Kv label="차량" value={m.vehicle} />
+              <Kv label="함께 가는 도우미" value={m.coHelpers.length ? m.coHelpers.join(', ') : '없음'} />
+              <Kv label="첫 출발" value={first?.departAt ? fmtHM(first.departAt) : '-'} />
+              <Kv label="도우미 번호" value={m.helper || '-'} />
+            </List>
+            {m.notes.length > 0 && <List label="확인할 점">{m.notes.map((n) => <ListRow key={n} title={n} />)}</List>}
+          </InfoSheet>
+        </List>
+        <p className="mob-t-callout mob-h-lead">{ACK_NOTE}</p>
       </main>
-      <Bottom>
-        <Button block onClick={() => { m.ack('accept'); toast('수락했어요. 첫 대상자부터 진행해요.') }}>수락</Button>
-        <Button block variant="gray" onClick={onDecline}>불가</Button>
-      </Bottom>
+      <BottomAction primary={{ label: '수락', onClick: () => { m.ack('accept'); toast('수락했어요. 첫 대상자부터 진행해요.') } }} secondary={{ label: '불가', onClick: onDecline }} />
     </>
   )
 }
 
-// H2 불가 사유
-function H2({ m, onBack }) {
+// 사유 고르기 한 화면(불가, 실패 공용). 사유 목록 한 줄씩, 메모 한 줄(선택), 주 버튼 하나
+function ReasonScreen({ title, lead, reasons, label, danger, onBack, onSend }) {
   const [reason, setReason] = useState(null)
   const [memo, setMemo] = useState('')
   return (
     <>
-      <AppBar title="불가 사유" onBack={onBack} />
+      <AppBar title={title} onBack={onBack} />
       <main id="main" className="mob-content no-nav">
-        <p className="mob-t-sub mob-h-lead">사유를 고르면 담당자가 다른 도우미를 배정해요.</p>
-        <div className="mob-h-chips" role="radiogroup" aria-label="불가 사유">
-          {Object.entries(DECLINE_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)} {...radioProps(Object.keys(DECLINE_REASONS_M), reason, setReason, k)}>{v}</Chip>)}
+        <p className="mob-t-callout mob-h-lead">{lead}</p>
+        <div role="radiogroup" aria-label={`${title} 사유`}>
+          <List label="사유">{Object.entries(reasons).map(([k, v]) => <SelectRow key={k} title={v} selected={reason === k} onSelect={() => setReason(k)} />)}</List>
         </div>
-        <label className="mob-h-field"><span className="mob-t-label">메모(선택)</span>
-          <FilledTextarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="담당자에게 전할 말" />
+        <label className="mob-h-field"><span className="mob-sr-only">메모(선택)</span>
+          <FilledInput maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="메모(선택)" aria-label="메모(선택)" />
         </label>
       </main>
-      <Bottom><Button block variant="danger" disabled={!reason} onClick={() => m.ack('decline', reason, memo)}>불가 전송</Button></Bottom>
+      <BottomAction primary={{ label, disabled: !reason, onClick: () => onSend(reason, memo), danger }} />
     </>
   )
 }
 
-// H3 이송 목록(홈)
-function H3({ m, steps, go, selected = null, inPane = false }) {
-  const p = progressOf(m.codes, steps)
+// 상태가 나빠졌을 때 시트. 첫 장: 한 줄 안내, 119 전화(주 버튼), 실패 보고, 담당자 전화, 응급 대응 안내, 말할 때 쓰는 문구
+// 긴 안전 문단(EMERGENCY)은 이 시트 안 '응급 대응 안내'에서 문장 하나씩(helperGuidance.js 원문 그대로)
+function EmergencySheet({ open, onClose, m, onFail }) {
+  const [page, setPage] = useState('main')
+  useEffect(() => { if (!open) setPage('main') }, [open])
+  const officerTel = telOf(m.officerContact)
+  const title = page === 'guide' ? '응급 대응 안내' : page === 'phrases' ? '말할 때 쓰는 문구' : '상태가 나빠졌어요'
   return (
-    <>
-      <AppBar title="이송 목록" large trailing={<Button variant="plain" size="sm" onClick={() => go({ name: 'H7' })}>담당자 전화</Button>} />
-      <main id="main" className="mob-content no-nav">
-        <Deadline m={m} />
-        <div className="mob-h-progress">
-          <span className="mob-t-label">완료 {p.done}명, 실패 {p.failed}명, 전체 {p.total}명</span>
-          <Progress value={p.total ? ((p.done + p.failed) / p.total) * 100 : 0} label="이송 진행" />
+    <Sheet open={open} onClose={onClose} title={title}>
+      {page === 'main' && (
+        <div className="mob-h-sheet-body">
+          <p className="mob-t-body mob-h-lead">안전한 곳에서 이동을 멈추고 119에 알려 주세요.</p>
+          <Button block variant="danger" onClick={() => { window.location.href = 'tel:119' }}><Phone size={20} aria-hidden="true" />119에 전화</Button>
+          <List label="다음 할 일">
+            {onFail && <ListRow title="이송할 수 없어요" subtitle="실패로 보고하면 담당자가 소방 지원을 요청해요" chevron onClick={() => { onClose(); onFail() }} />}
+            <ListRow title="담당자 전화" subtitle={m.officerContact} href={officerTel || undefined} chevron={!!officerTel} />
+            <ListRow title="응급 대응 안내" subtitle="의식과 호흡 확인, 하지 말아야 할 것" chevron onClick={() => setPage('guide')} />
+            <ListRow title="말할 때 쓰는 문구" subtitle={`권장 문구 ${HELPER_PHRASES.length}개와 피할 표현`} chevron onClick={() => setPage('phrases')} />
+          </List>
         </div>
-        {m.pending > 0 && <Button variant="tonal" block onClick={() => go({ name: 'H8' })}><CloudOff size={18} aria-hidden="true" />전송 대기 {m.pending}건</Button>}
-        {m.trips.map((t) => (
-          <section key={t.index}>
-            <p className="mob-t-label mob-section-title">{t.index}회차, {t.village}, 출발 {fmtHM(t.departAt)}</p>
-            <List>
-              {t.personCodes.map((c, i) => {
-                const st = steps[c] || 'wait'
-                const isCurrent = c === p.current
-                return (
-                  <ListRow key={c} onClick={() => go({ name: isCurrent ? 'H5' : 'H4', code: c })} chevron aria-current={selected === c ? 'true' : undefined} className={selected === c ? 'mob-row selected' : undefined}
-                    lead={<span className={`mob-h-order ${isCurrent ? 'now' : ''}`}>{i + 1}</span>}
-                    title={c}
-                    subtitle={isCurrent ? `지금 차례, ${STEP_LABEL[st]}` : STEP_LABEL[st]}
-                    meta={t.routeCheck ? '경로 확인 필요(직선 기준, 도로 경로 아님)' : undefined}
-                    trailing={st === 'handover' ? <CheckCircle2 size={20} aria-label="인계 완료" /> : st === 'fail' ? <CircleX size={20} aria-label="이송 실패" /> : null} />
-                )
-              })}
-            </List>
-          </section>
-        ))}
-      </main>
-      {p.current && !inPane && <Bottom><Button block onClick={() => go({ name: 'H5', code: p.current })}>{p.current} {NEXT_STEP[steps[p.current] || 'wait']?.label || '보고'}</Button></Bottom>}
-    </>
+      )}
+      {page === 'guide' && (
+        <List label="응급 대응 안내">{sentencesOf(EMERGENCY).map((s, i) => <ListRow key={s} lead={<span className="mob-h-order">{i + 1}</span>} title={s} />)}</List>
+      )}
+      {page === 'phrases' && (
+        <List label="말할 때 쓰는 문구">
+          {HELPER_PHRASES.map(([t, s]) => <ListRow key={t} title={t} subtitle={s} />)}
+          <ListRow title="피할 표현" subtitle={AVOID_PHRASES.join(', ')} />
+          <ListRow title="전달 방법" subtitle="천천히 말하고 한 번에 한 가지 정보만 전달해 주세요." />
+        </List>
+      )}
+      <Button block variant="plain" onClick={page === 'main' ? onClose : () => setPage('main')}>{page === 'main' ? '닫기' : '뒤로'}</Button>
+    </Sheet>
   )
 }
 
-// H4 대상자 상세
-function H4({ m, code, steps, go, onBack }) {
-  const d = m.detail(code)
-  const st = steps[code] || 'wait'
-  return (
-    <>
-      <AppBar title={code} onBack={onBack} />
-      <main id="main" className="mob-content no-nav">
-        <div className="mob-h-chips"><Chip>{STEP_LABEL[st]}</Chip>{d?.grade && <Chip tone="blue">{d.grade}</Chip>}</div>
-        {!d && <Banner tone="gray" icon={<ShieldCheck size={20} aria-hidden="true" />}>이름, 주소, 건강 정보는 휴대폰으로 보내지 않음. 담당자 문자와 현장에서 확인</Banner>}
-        {d && (
-          <>
-            {d.routeCheck && <Banner tone="red" icon={<MapPin size={20} aria-hidden="true" />}>경로 확인 필요. 마을과 대피소를 잇는 직선이 산불 영향 범위를 지남(도로 경로 아님)</Banner>}
-            <p className="mob-t-label mob-section-title">동행과 소통</p>
-            <KV rows={[
-              { label: '평소 돌봄 담당자', value: d.care.caregiverType },
-              { label: '연락', value: d.care.reachableLabel },
-              { label: '의사소통', value: d.care.comm.length ? d.care.comm.join(', ') : '특이 없음' },
-              { label: '보조기구', value: d.care.aids.length ? d.care.aids.join(', ') : '없음' }
-            ]} />
-            {d.care.companionCall && <Banner tone="blue" icon={<Phone size={20} aria-hidden="true" />}>출발 전에 평소 돌봄 담당자에게 연락</Banner>}
-            <p className="mob-t-label mob-section-title">대피소</p>
-            <KV rows={[{ label: '도착', value: d.shelter }, { label: '리프트 차량 진입', value: d.lift }, { label: '야간과 휴일 개방', value: d.night }]} />
-          </>
-        )}
-      </main>
-      {!['handover', 'fail', 'handedToFire'].includes(st) && <Bottom><Button block onClick={() => go({ name: 'H5', code })}>단계 보고</Button></Bottom>}
-    </>
-  )
-}
-
-// H5 단계 보고
-function H5({ m, code, steps, go, onBack }) {
-  const toast = useMobileToast()
+// 이송(지금 대상자 한 명). 진행 n/4 한 줄, 다음 장소 큰 값, 주 버튼 하나(이름이 단계), 실패는 약한 버튼
+function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane = false }) {
   const st = steps[code] || 'wait'
   const next = NEXT_STEP[st]
-  const [confirm, setConfirm] = useState(false)
+  const d = m.detail(code)
+  const trip = m.trips.find((t) => t.personCodes.includes(code))
+  const p = progressOf(m.codes, steps)
+  const [sos, setSos] = useState(false)
+  const [predep, setPredep] = useState(false)
   const [care, setCare] = useState({ symptomAt: '', observation: '', action: '' })
-  const idx = STEP_ORDER.indexOf(st)
-  const submit = () => {
+  const [careOpen, setCareOpen] = useState(false)
+  const order = m.codes.indexOf(code) + 1
+  const press = () => {
+    if (!next) return
+    if (next.step === 'depart' && store.get(PREDEP_KEY + predepKey) !== '1') { setPredep(true); return }
     const hasCare = care.observation || care.action || care.symptomAt
-    m.step(code, next.step, hasCare && next.step === 'handover' ? { care } : {})
-    setConfirm(false)
-    toast(`${code} ${next.label} 보고`)
-    if (next.step === 'handover') onBack()
+    report(code, next.step, hasCare && next.step === 'handover' ? { care } : {})
   }
+  const village = d?.village || trip?.village || ''
+  const place = next ? nextPlaceOf(st, { village, shelter: d?.shelter }) : STEP_LABEL[st]
   return (
     <>
-      <AppBar title={`${code} 보고`} onBack={onBack} trailing={<IconButton label="대상자 상세" onClick={() => go({ name: 'H4', code })}><User size={22} aria-hidden="true" /></IconButton>} />
+      <AppBar title={code === p.current ? '지금 차례' : `${order}번째 분`} onBack={onBack} trailing={<EmergencyButton onClick={() => setSos(true)} />} />
       <main id="main" className="mob-content no-nav">
-        <SafetyGuidance beforeDeparture={st === 'wait'} />
-        <ol className="mob-h-steps" aria-label="이송 단계">
-          {STEP_ORDER.slice(1).map((s, i) => (
-            <li key={s} className={i + 1 <= idx ? 'done' : i + 1 === idx + 1 ? 'next' : ''}>
-              <span className="mob-h-dot" aria-hidden="true">{i + 1 <= idx ? <CheckCircle2 size={18} /> : i + 1}</span>
-              <span className="mob-t-body">{STEP_LABEL[s] === '인계 완료' ? '대피소 인계' : STEP_LABEL[s]}</span>
-            </li>
-          ))}
-        </ol>
+        <div className="mob-h-progress">
+          <span className="mob-t-callout">{next ? `${stepIndexOf(st)}/4 ${STEP_NOW[st]}` : STEP_LABEL[st]}</span>
+          <Progress value={next ? (stepIndexOf(st) / 4) * 100 : 100} label="이 대상자 이송 단계" />
+        </div>
+        <Figure value={place} caption={[code, d?.grade, trip ? `${tripWord(trip.index)}${st === 'wait' && trip.departAt ? ` ${fmtHM(trip.departAt)} 출발` : ''}` : ''].filter(Boolean).join(', ')} />
+        <List label="이 대상자">
+          {d?.care?.companionCall && <ListRow lead={<Phone size={20} />} title="평소 돌봄 담당자에게 연락" subtitle={d.care.caregiverType} href={d.guardianPhone ? `tel:${d.guardianPhone}` : undefined} chevron={!!d.guardianPhone} />}
+          {(d?.routeCheck || trip?.routeCheck) && <ListRow title="경로 확인 필요" subtitle="직선 기준, 도로 경로 아님" />}
+          <InfoSheet lead={<User size={20} />} title="대상자 정보" summary={d ? '돌봄 담당자, 보조기구, 대피소' : '이름과 주소는 휴대폰으로 보내지 않음'}>
+            {d ? (
+              <List label="대상자 정보">
+                <Kv label="평소 돌봄 담당자" value={d.care.caregiverType} />
+                <Kv label="연락" value={d.care.reachableLabel} />
+                <Kv label="의사소통" value={d.care.comm.length ? d.care.comm.join(', ') : '특이 없음'} />
+                <Kv label="보조기구" value={d.care.aids.length ? d.care.aids.join(', ') : '없음'} />
+                <Kv label="도착 대피소" value={d.shelter} />
+                <Kv label="리프트 차량 진입" value={d.lift} />
+                <Kv label="야간과 휴일 개방" value={d.night} />
+              </List>
+            ) : <List label="대상자 정보"><ListRow title="담당자 문자와 현장에서 확인" subtitle="이름, 주소, 건강 정보는 휴대폰으로 보내지 않음" /></List>}
+          </InfoSheet>
+          {next?.step === 'handover' && <ListRow title="인계 기록(선택)" subtitle={care.observation || care.action || care.symptomAt ? '적어 둠, 인계 때 함께 보냄' : '증상 시각, 관찰, 조치'} chevron onClick={() => setCareOpen(true)} />}
+          {!inPane && <ListRow lead={<Users size={20} />} title={`전체 ${p.total}명`} subtitle={`완료 ${p.done}명, 실패 ${p.failed}명`} chevron onClick={() => go({ name: 'list' })} />}
+        </List>
         {!next && <EmptyState icon={<CheckCircle2 size={28} />} title="이 대상자 보고 끝" body={STEP_LABEL[st]} />}
       </main>
-      {next && (
-        <Bottom>
-          <Button block className="mob-h-big" onClick={() => setConfirm(true)}>{next.label}</Button>
-          <Button block variant="danger-tonal" onClick={() => go({ name: 'H6', code })}>이송 실패 보고</Button>
-        </Bottom>
-      )}
-      <Sheet open={confirm} onClose={() => setConfirm(false)} title={`${next?.label || ''} 보고`}>
-        <p className="mob-t-sub">{code} 대상자를 {next?.label} 처리해요. 연결이 끊기면 휴대폰에 보관했다가 다시 보내요.</p>
-        {next?.step === 'handover' && (
-          <div className="mob-h-care">
-            <p className="mob-t-label">인계 기록(선택, 소방과 대피소에 전달)</p>
-            <label className="mob-h-field"><span className="mob-t-label">증상 시각</span><FilledInput type="time" value={care.symptomAt} onChange={(e) => setCare({ ...care, symptomAt: e.target.value })} /></label>
-            <label className="mob-h-field"><span className="mob-t-label">관찰 내용</span><FilledTextarea rows={2} maxLength={200} value={care.observation} onChange={(e) => setCare({ ...care, observation: e.target.value })} /></label>
-            <label className="mob-h-field"><span className="mob-t-label">수행한 조치</span><FilledTextarea rows={2} maxLength={200} value={care.action} onChange={(e) => setCare({ ...care, action: e.target.value })} /></label>
-          </div>
-        )}
+      {next && <BottomAction primary={{ label: STEP_ACTION[st], onClick: press }} secondary={{ label: '이송할 수 없어요', onClick: () => go({ name: 'H6', code }) }} />}
+      <EmergencySheet open={sos} onClose={() => setSos(false)} m={m} onFail={next ? () => go({ name: 'H6', code }) : null} />
+      <Sheet open={predep} onClose={() => setPredep(false)} title="출발 전 확인">
+        <List label="출발 전 확인">{PREDEPARTURE_ITEMS.map((x) => <ListRow key={x} title={x} />)}</List>
+        <p className="mob-t-callout mob-h-sheet-note">{sentencesOf(PREDEPARTURE)[1]}</p>
         <div className="mob-h-sheet-actions">
-          <Button block onClick={submit}>{next?.label} 보고</Button>
-          <Button block variant="plain" onClick={() => setConfirm(false)}>취소</Button>
+          <Button block onClick={() => { store.set(PREDEP_KEY + predepKey, '1'); setPredep(false); report(code, 'depart', {}) }}>확인했어요, 출발</Button>
+          <Button block variant="plain" onClick={() => setPredep(false)}>닫기</Button>
         </div>
+      </Sheet>
+      <Sheet open={careOpen} onClose={() => setCareOpen(false)} title="인계 기록(선택)">
+        <div className="mob-h-care">
+          <label className="mob-h-field"><span className="mob-t-callout">증상 시각</span><FilledInput type="time" value={care.symptomAt} onChange={(e) => setCare({ ...care, symptomAt: e.target.value })} /></label>
+          <label className="mob-h-field"><span className="mob-t-callout">관찰 내용</span><FilledTextarea rows={2} maxLength={200} value={care.observation} onChange={(e) => setCare({ ...care, observation: e.target.value })} /></label>
+          <label className="mob-h-field"><span className="mob-t-callout">수행한 조치</span><FilledTextarea rows={2} maxLength={200} value={care.action} onChange={(e) => setCare({ ...care, action: e.target.value })} /></label>
+        </div>
+        <div className="mob-h-sheet-actions"><Button block onClick={() => setCareOpen(false)}>저장</Button></div>
       </Sheet>
     </>
   )
 }
 
-// H6 실패 보고
-function H6({ m, code, onBack, onDone }) {
-  const toast = useMobileToast()
-  const [reason, setReason] = useState(null)
-  const [memo, setMemo] = useState('')
-  const [ask, setAsk] = useState(false)
+// 전체 목록(이동별, 사람 한 줄). 두 단에서는 왼쪽 단
+function PeopleList({ m, steps, go, onBack, selected = null, inPane = false }) {
+  const p = progressOf(m.codes, steps)
   return (
     <>
-      <AppBar title="이송 실패 보고" onBack={onBack} />
+      <AppBar title={inPane ? '이송 목록' : `전체 ${p.total}명`} large={inPane} onBack={inPane ? undefined : onBack} trailing={<Button variant="plain" size="sm" onClick={() => go({ name: 'H7' })}>연락</Button>} />
       <main id="main" className="mob-content no-nav">
-        <SafetyGuidance />
-        <p className="mob-t-sub mob-h-lead">{code} 대상자. 실패로 보고하면 담당자 휴대폰의 소방 지원 요청 화면에 실패 대상자로 올라가요.</p>
-        <div className="mob-h-chips" role="radiogroup" aria-label="실패 사유">
-          {Object.entries(FAIL_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)} {...radioProps(Object.keys(FAIL_REASONS_M), reason, setReason, k)}>{v}</Chip>)}
+        <div className="mob-h-progress">
+          <span className="mob-t-callout">완료 {p.done}명, 실패 {p.failed}명, 전체 {p.total}명</span>
+          <Progress value={p.total ? ((p.done + p.failed) / p.total) * 100 : 0} label="이송 진행" />
         </div>
-        <label className="mob-h-field"><span className="mob-t-label">메모(선택)</span><FilledTextarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="현장 상황" /></label>
+        {m.pending > 0 && <List label="전송 대기"><ListRow lead={<CloudOff size={20} />} title={`전송 대기 ${m.pending}건`} subtitle="연결되면 자동 전송" chevron onClick={() => go({ name: 'H8' })} /></List>}
+        {m.trips.map((t) => (
+          <List key={t.index} label={`${tripWord(t.index)}, ${t.village}`}>
+            {t.personCodes.map((c, i) => {
+              const st = steps[c] || 'wait'
+              const isCurrent = c === p.current
+              return (
+                <ListRow key={c} onClick={() => go({ name: 'H5', code: c })} chevron aria-current={selected === c ? 'true' : undefined} className={selected === c ? 'mob-row selected' : undefined}
+                  lead={<span className={`mob-h-order ${isCurrent ? 'now' : ''}`}>{m.codes.indexOf(c) + 1}</span>}
+                  title={`${t.village} ${i + 1}번째 집`}
+                  subtitle={`${c}, ${isCurrent && st === 'wait' ? '지금 차례' : STEP_LABEL[st]}`}
+                  trailing={st === 'handover' ? <CheckCircle2 size={20} aria-label="인계 완료" /> : st === 'fail' ? <CircleX size={20} aria-label="이송 실패" /> : null} />
+              )
+            })}
+          </List>
+        ))}
       </main>
-      <Bottom><Button block variant="danger" disabled={!reason} onClick={() => setAsk(true)}>실패 보고</Button></Bottom>
-      <Dialog open={ask} onClose={() => setAsk(false)} title="이송 실패로 보고할까요?" body={`${code}, ${FAIL_REASONS_M[reason] || ''}. 다음 대상자로 넘어가요.`} actions={
+    </>
+  )
+}
+
+// 연락: 119, 담당자, 함께 가는 도우미, 평소 돌봄 담당자(시연), 참여 그만두기
+function ContactScreen({ m, onBack }) {
+  const toast = useMobileToast()
+  const [ask, setAsk] = useState(false)
+  const officerTel = telOf(m.officerContact)
+  const g = m.demo ? m.codes.map((c) => ({ c, d: m.detail(c) })).filter((x) => x.d?.care?.companionCall && x.d.guardianPhone) : []
+  return (
+    <>
+      <AppBar title="연락" onBack={onBack} />
+      <main id="main" className="mob-content no-nav">
+        <List label="연락">
+          <ListRow lead={<Phone size={20} />} title="119" subtitle="생명이 위급할 때" href="tel:119" chevron />
+          <ListRow lead={<Phone size={20} />} title="발령 담당자" subtitle={m.officerContact} href={officerTel || undefined} chevron={!!officerTel} />
+          {m.coHelpers.map((h) => <ListRow key={h} lead={<Users size={20} />} title={`함께 가는 도우미 ${h}`} subtitle="번호는 담당자 문자로 안내" />)}
+          {g.map(({ c, d }) => <ListRow key={c} lead={<Phone size={20} />} title={`${c} 평소 돌봄 담당자`} subtitle={d.care.caregiverType} href={`tel:${d.guardianPhone}`} chevron />)}
+        </List>
+        <List label="참여"><ListRow title="참여 그만두기" subtitle="다음 배정부터 빠짐, 불이익 없음" chevron onClick={() => setAsk(true)} /></List>
+        <List label="화면 설정"><DisplaySettings /></List>
+      </main>
+      <Dialog open={ask} onClose={() => setAsk(false)} title="참여를 그만둘까요?" body="지금 배정은 담당자에게 연락해 조정해 주세요." actions={
         <>
           <Button variant="plain" onClick={() => setAsk(false)}>취소</Button>
-          <Button variant="plain" className="mob-h-danger-text" onClick={() => { m.step(code, 'fail', { reason, memo }); setAsk(false); toast(`${code} 실패 보고`); onDone() }}>보고</Button>
+          <Button variant="plain" className="mob-h-danger-text" onClick={() => { m.preference(false, []); setAsk(false); toast('그만두기 요청을 보냈어요') }}>그만두기</Button>
         </>
       } />
     </>
   )
 }
 
-// H7 연락
-function H7({ m, onBack }) {
-  const officerTel = telOf(m.officerContact)
-  return (
-    <>
-      <AppBar title="연락" onBack={onBack} />
-      <main id="main" className="mob-content no-nav">
-        <HelperConsent withdraw onChange={m.preference} />
-        <List>
-          <ListRow lead={<Phone size={20} />} title="119" subtitle="생명이 위급할 때" href="tel:119" chevron />
-          <ListRow lead={<Phone size={20} />} title="발령 담당자" subtitle={m.officerContact} href={officerTel || undefined} chevron={!!officerTel}
-            trailing={officerTel ? null : <span className="mob-t-foot">번호 없음, 문자로 회신</span>} />
-          {m.coHelpers.map((h) => <ListRow key={h} lead={<Users size={20} />} title={`동승 도우미 ${h}`} subtitle="차량에서 만남, 번호는 담당자 문자로 안내" />)}
-        </List>
-        {m.demo && (() => {
-          const g = m.codes.map((c) => ({ c, d: m.detail(c) })).filter((x) => x.d?.care?.companionCall && x.d.guardianPhone)
-          return g.length > 0 && (
-            <>
-              <p className="mob-t-label mob-section-title">평소 돌봄 담당자(연락 가능)</p>
-              <List>{g.map(({ c, d }) => <ListRow key={c} lead={<Phone size={20} />} title={c} subtitle={d.care.caregiverType} href={`tel:${d.guardianPhone}`} chevron />)}</List>
-            </>
-          )
-        })()}
-      </main>
-    </>
-  )
-}
-
-// H8 전송 대기
-function H8({ m, onBack }) {
+// 전송 대기
+function QueueScreen({ m, onBack }) {
   const toast = useMobileToast()
   const [busy, setBusy] = useState(false)
+  const name = (q) => (q.type === 'preference' ? (q.consent ? '참여 동의와 역할' : '참여 그만두기') : q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${q.personCode} ${STEP_LABEL[q.step] || q.step}`)
   return (
     <>
       <AppBar title="전송 대기" onBack={onBack} />
       <main id="main" className="mob-content no-nav">
-        <p className="mob-t-sub mob-h-lead">{m.lastOk ? `마지막 연결 ${fmtHM(m.lastOk)}` : '아직 연결 기록 없음'}</p>
+        <p className="mob-t-callout mob-h-lead">{m.lastOk ? `마지막 연결 ${fmtHM(m.lastOk)}` : '아직 연결 기록 없음'}</p>
         {m.queue.length === 0 ? <EmptyState icon={<Send size={28} />} title="보낼 보고 없음" body="모든 보고를 담당자에게 보냈어요." /> : (
-          <List>{m.queue.map((q) => <ListRow key={q.key} lead={<Clock size={20} />} title={q.type === 'preference' ? (q.consent ? '참여 동의와 역할 선택' : '등록 동의 철회 요청') : q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${q.personCode} ${STEP_LABEL[q.step] || q.step}`} subtitle="전송 대기" />)}</List>
+          <List label="전송 대기">{m.queue.map((q) => <ListRow key={q.key} lead={<Clock size={20} />} title={name(q)} subtitle="전송 대기" />)}</List>
         )}
         {/* 서버가 받지 않은 보고는 지우지 않고 사유와 함께 남김. 담당자에게 전화로 알림 */}
-        {m.rejected?.length > 0 && (
-          <List label="보내지 못한 보고">{m.rejected.map((q) => <ListRow key={q.key} lead={<CircleX size={20} />} title={q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${q.personCode} ${STEP_LABEL[q.step] || q.step}`} subtitle={`보내지 못함: ${q.rejected}. 담당자에게 전화로 알림`} />)}</List>
-        )}
+        {m.rejected?.length > 0 && <List label="보내지 못한 보고">{m.rejected.map((q) => <ListRow key={q.key} lead={<CircleX size={20} />} title={name(q)} subtitle={`보내지 못함: ${q.rejected}. 담당자에게 전화로 알림`} />)}</List>}
       </main>
-      {m.queue.length > 0 && <Bottom><Button block disabled={busy} onClick={async () => { setBusy(true); const r = await m.resend(); setBusy(false); toast(r.left ? `아직 ${r.left}건 대기, 연결되면 자동 전송` : '모두 보냈어요') }}><RefreshCw size={18} aria-hidden="true" />다시 보내기</Button></Bottom>}
+      {m.queue.length > 0 && <BottomAction primary={{ label: busy ? '보내는 중' : '다시 보내기', disabled: busy, onClick: async () => { setBusy(true); const r = await m.resend(); setBusy(false); toast(r.left ? `아직 ${r.left}건 대기, 연결되면 자동 전송` : '모두 보냈어요') } }} />}
     </>
   )
 }
 
-// H9 끝과 기록
-function H9({ m, steps, declined }) {
+// 끝
+function EndScreen({ m, steps, declined }) {
   const p = progressOf(m.codes, steps)
   const ackR = lastAck(m.reports)
   const done = m.reports.filter((r) => r.type === 'step' && (r.step === 'handover' || r.step === 'fail')).sort((a, b) => (a.at || 0) - (b.at || 0))
+  const pending = m.pending > 0 && <List label="전송 대기"><ListRow lead={<CloudOff size={20} />} title={`전송 대기 ${m.pending}건`} subtitle="연결되면 자동 전송" /></List>
   if (declined) {
     return (
       <>
         <AppBar title="불가 응답" large />
         <main id="main" className="mob-content no-nav">
           <EmptyState icon={<CircleX size={28} />} title="불가 응답을 보냈어요" body={`사유: ${DECLINE_REASONS_M[ackR?.reason] || '기타'}. 담당자가 다른 도우미를 배정해요.`} />
-          {m.pending > 0 && <Banner tone="red" icon={<CloudOff size={20} aria-hidden="true" />}>전송 대기 {m.pending}건. 연결되면 자동 전송</Banner>}
+          {pending}
         </main>
       </>
     )
@@ -347,14 +365,9 @@ function H9({ m, steps, declined }) {
     <>
       <AppBar title="이송 끝" large />
       <main id="main" className="mob-content no-nav">
-        <Card filled className="mob-h-deadline">
-          <p className="mob-t-label">결과</p>
-          <p className="mob-h-time">완료 {p.done}명, 실패 {p.failed}명</p>
-          <p className="mob-t-sub">대피소에서 대기하며 담당자 안내를 확인해 주세요.</p>
-        </Card>
-        <p className="mob-t-label mob-section-title">기록</p>
-        <List>{done.map((r) => <ListRow key={`${r.personCode}${r.step}`} title={r.personCode} subtitle={STEP_LABEL[r.step]} trailing={<span className="mob-h-kv">{r.at ? fmtHM(r.at) : ''}</span>} />)}</List>
-        {m.pending > 0 && <Banner tone="red" icon={<CloudOff size={20} aria-hidden="true" />}>전송 대기 {m.pending}건. 연결되면 자동 전송</Banner>}
+        <Figure value={`완료 ${p.done}명`} caption={`실패 ${p.failed}명, 대피소에서 담당자 안내를 기다려 주세요`} />
+        <List label="기록">{done.map((r) => <ListRow key={`${r.personCode}${r.step}`} className="kv" title={r.personCode} trailing={<span className="mob-h-kv">{STEP_LABEL[r.step]} {r.at ? fmtHM(r.at) : ''}</span>} />)}</List>
+        {pending}
       </main>
     </>
   )
@@ -364,53 +377,88 @@ function Notice({ icon, title, body, action }) {
   return <main id="main" className="mob-content no-nav mob-h-notice"><EmptyState icon={icon} title={title} body={body} action={action} /></main>
 }
 
+// 보고 되돌리기: 누르면 바로 보내지 않고 몇 초 기다리며 '되돌리기'를 띄운다(매 단계 확인 창 대신). 시간이 지나거나 다른 보고를 누르거나 화면을 떠나면 보낸다
+function usePendingReport(m) {
+  const toast = useMobileToast()
+  const [pending, setPending] = useState(null)
+  const ref = useRef(null)
+  const timer = useRef(null)
+  const commit = () => {
+    const p = ref.current
+    if (!p) return
+    clearTimeout(timer.current); ref.current = null; setPending(null)
+    m.step(p.code, p.step, p.extra)
+  }
+  useEffect(() => () => commit(), []) // eslint-disable-line react-hooks/exhaustive-deps
+  const report = (code, step, extra = {}) => {
+    commit()
+    const p = { code, step, extra }
+    ref.current = p; setPending(p)
+    timer.current = setTimeout(commit, UNDO_MS)
+    const what = step === 'fail' ? '이송 실패' : STEP_LABEL[step]
+    toast(`${code} ${what} 보고`, { label: '되돌리기', onClick: () => { clearTimeout(timer.current); ref.current = null; setPending(null) } })
+  }
+  return { pending, report }
+}
+
 function Flow({ m, consentKey }) {
   const { twoPane } = useLayout()
   const [consented, setConsented] = useState(() => readConsent(consentKey))
   const [declining, setDeclining] = useState(false)
   const [stack, setStack] = useState([])
-  const steps = stepsByPerson(m.codes, m.reports)
+  const { pending, report } = usePendingReport(m)
+  const steps = withPending(stepsByPerson(m.codes, m.reports), pending)
   const ackR = lastAck(m.reports)
-  const finished = progressOf(m.codes, steps).finished
-  const base = screenOf({ consented, ack: ackR, finished, declining })
+  const base = screenOf({ consented, ack: ackR, finished: progressOf(m.codes, steps).finished, declining })
   const view = base === 'H3' ? stack[stack.length - 1] : null
   const go = (v) => setStack((s) => [...s, v])
   const back = () => setStack((s) => s.slice(0, -1))
+  const current = progressOf(m.codes, steps).current
   useEffect(() => { if (ackR) setDeclining(false) }, [ackR])
-  useEffect(() => { window.scrollTo(0, 0) }, [base, view?.name, view?.code])
+  useEffect(() => { window.scrollTo(0, 0) }, [base, view?.name, view?.code, current])
+  const predepKey = `${consentKey}.${m.helper || ''}`
 
-  if (base === 'H0') return <H0 m={m} onDone={() => { writeConsent(consentKey); setConsented(true) }} />
-  if (base === 'H1') return <H1 m={m} onDecline={() => setDeclining(true)} />
-  if (base === 'H2') return <H2 m={m} onBack={() => setDeclining(false)} />
-  if (base === 'H9') return <H9 m={m} steps={steps} declined={ackR?.answer === 'decline'} />
-  const detailOf = (v, goTo) => {
-    if (v?.name === 'H4') return <H4 m={m} code={v.code} steps={steps} go={goTo} onBack={back} />
-    if (v?.name === 'H5') return <H5 m={m} code={v.code} steps={steps} go={goTo} onBack={back} />
-    if (v?.name === 'H6') return <H6 m={m} code={v.code} onBack={back} onDone={() => setStack((s) => s.filter((x) => x.code !== v.code))} />
-    if (v?.name === 'H7') return <H7 m={m} onBack={back} />
-    if (v?.name === 'H8') return <H8 m={m} onBack={back} />
+  if (base === 'H0') return <ConsentScreen initialRoles={readRoles(consentKey)} onDone={(roles) => { m.preference(true, roles); writeConsent(consentKey, roles); setConsented(true) }} />
+  if (base === 'H1') return <AlertScreen m={m} onDecline={() => setDeclining(true)} />
+  if (base === 'H2') return <ReasonScreen title="불가 사유" lead="사유를 고르면 담당자가 다른 도우미를 배정해요." reasons={DECLINE_REASONS_M} label="불가 보내기" onBack={() => setDeclining(false)} onSend={(reason, memo) => m.ack('decline', reason, memo)} />
+  if (base === 'H9') return <EndScreen m={m} steps={steps} declined={ackR?.answer === 'decline'} />
+  const detailOf = (v, goTo, onBackTo, inPane) => {
+    if (v?.name === 'list') return <PeopleList m={m} steps={steps} go={goTo} onBack={onBackTo} />
+    if (v?.name === 'H5' || v?.name === 'H4') return <TransportScreen m={m} code={v.code} steps={steps} go={goTo} onBack={onBackTo} report={report} predepKey={predepKey} inPane={inPane} />
+    if (v?.name === 'H6') return <ReasonScreen title="이송할 수 없어요" lead={`${v.code}, 이유를 골라 주세요. 담당자가 소방 지원을 요청해요.`} reasons={FAIL_REASONS_M} label="실패로 보고" danger onBack={onBackTo} onSend={(reason, memo) => { report(v.code, 'fail', { reason, memo }); setStack((s) => s.filter((x) => x.code !== v.code)) }} />
+    if (v?.name === 'H7') return <ContactScreen m={m} onBack={onBackTo} />
+    if (v?.name === 'H8') return <QueueScreen m={m} onBack={onBackTo} />
     return null
   }
   if (twoPane) {
-    // 두 단: 목록에서 고르면 오른쪽만 바뀐다(쌓지 않고 바꿈). 오른쪽 안 이동은 쌓아서 뒤로 돌아올 수 있게 둔다.
+    // 두 단: 왼쪽 이송 목록, 오른쪽 고른 대상자 이송(없으면 지금 차례). 목록에서 고르면 오른쪽만 바뀐다(쌓지 않고 바꿈)
     const pick = (v) => setStack([v])
-    const pane = helperPaneOf({ twoPane, base, view, currentCode: progressOf(m.codes, steps).current })
+    const pane = helperPaneOf({ twoPane, base, view, currentCode: current })
     return (
       <TwoPane
-        list={<H3 m={m} steps={steps} go={pick} selected={pane.detail?.code || null} inPane />}
-        detail={detailOf(pane.detail, go)}
+        list={<PeopleList m={m} steps={steps} go={pick} selected={pane.detail?.code || null} inPane />}
+        detail={detailOf(pane.detail, go, stack.length > 1 ? back : undefined, true)}
         emptyDetail={<Notice icon={<CheckCircle2 size={28} />} title="모든 대상자 보고 끝" body="목록에서 대상자를 고르면 기록이 보여요." />}
       />
     )
   }
-  return detailOf(view, go) || <H3 m={m} steps={steps} go={go} />
+  // 한 단: 기본 화면은 지금 차례 대상자 이송. 목록은 '전체 n명' 행 뒤
+  if (view) return detailOf(view, go, back, false)
+  if (current) return <TransportScreen m={m} code={current} steps={steps} go={go} report={report} predepKey={predepKey} />
+  return <Notice icon={<CheckCircle2 size={28} />} title="보고를 보내는 중" body="잠시 뒤 결과가 보여요." />
 }
 
 function DemoHelper() {
   const m = useDemoModel()
   useEffect(() => { document.title = '도우미 배정 | 미리' }, [])
-  const start = <Button block onClick={startDemoDispatch}>시연 발령 시작</Button>
-  if (m.phase === 'idle') return <Notice icon={<HandHeart size={28} />} title="배정 대기 중" body="발령이 내려지면 문자와 이 화면으로 알려 드려요." action={start} />
+  // 평시에 고른 동의와 역할은 시연 배정이 오면 이 도우미 기록에 한 번 반영한다
+  useEffect(() => {
+    if (m.phase !== 'ready' || store.get(`${ROLES_KEY}demo.pending`) !== '1') return
+    store.del(`${ROLES_KEY}demo.pending`)
+    m.preference(true, readRoles('demo'))
+  }, [m.phase]) // eslint-disable-line react-hooks/exhaustive-deps
+  const start = <Button block variant="tonal" onClick={startDemoDispatch}>시연 배정 다시 받기</Button>
+  if (m.phase === 'idle') return <IdleHome consentKey="demo" onStart={startDemoDispatch} />
   if (m.phase === 'preparing') return <Notice icon={<Spinner />} title="배정 준비 중" body="배정이 전송되면 이 화면에 표시돼요." />
   if (m.phase === 'closed') return <Notice icon={<CheckCircle2 size={28} />} title="발령이 끝났어요" body="배정 정보와 연락처를 지웠어요." action={start} />
   if (m.phase === 'none') return <Notice icon={<CircleX size={28} />} title="이번 발령에 배정 없음" body="담당자 연락을 기다려 주세요." />
@@ -425,7 +473,7 @@ function RemoteHelperM({ token }) {
     const s = screenOf({ error: m.error })
     if (s === 'closed') return <Notice icon={<CheckCircle2 size={28} />} title="발령이 끝났어요" body="배정 정보와 연락처를 지웠어요." />
     if (s === 'expired') return <Notice icon={<Link2Off size={28} />} title="열 수 없는 링크" body="링크가 만료되었거나 다른 도우미로 바뀌었어요. 담당자에게 새 링크를 요청해 주세요." />
-    return <Notice icon={<CloudOff size={28} />} title="연결할 수 없음" body="잠시 뒤 다시 시도해 주세요." action={<Button block onClick={() => window.location.reload()}>다시 시도</Button>} />
+    return <Notice icon={<CloudOff size={28} />} title="연결할 수 없음" body="잠시 뒤 다시 시도해 주세요." action={<Button block onClick={() => window.location.reload()}><RefreshCw size={18} aria-hidden="true" />다시 시도</Button>} />
   }
   return <Flow m={m} consentKey={String(token).split('.').slice(0, 2).join('.')} />
 }

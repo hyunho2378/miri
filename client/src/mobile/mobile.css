@@ -629,3 +629,18 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 .mob-field-figure { display: flex; flex-direction: column; gap: 6px; padding: 0 4px; }
 .mob-field-figure .mob-t-display .mob-t-body { margin-left: 4px; color: var(--m-ink-2); font-weight: 400; }
 .mob-field-figure .mob-progress { margin: 4px 0; }
+
+/* 도우미 재구성 2a: 큰 값(Figure)과 고르기 행(SelectRow). 테두리 없이 면 색으로 구분 */
+.mob-figure { display: flex; flex-direction: column; gap: 4px; padding: 16px var(--m-row-pad-x, 16px); background: var(--m-page); border-radius: var(--m-card-r); box-shadow: var(--m-shadow-1); }
+.mob-root.platform-android .mob-figure { background: var(--m3-surface); border-radius: var(--m-r-md); box-shadow: none; }
+.mob-figure-value { margin: 0; color: var(--m-ink); font-variant-numeric: tabular-nums; }
+.mob-figure-caption { margin: 0; }
+.mob-figure.tone-red .mob-figure-caption { color: var(--m-red-strong); }
+.mob-select { cursor: pointer; }
+.mob-select:disabled { cursor: default; opacity: 0.5; }
+.mob-select-check { color: var(--m-blue-strong, var(--m-blue)); }
+.mob-select-empty { display: inline-block; width: 22px; height: 22px; }
+.mob-select-mark { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin: 12px; background: var(--m-fill); color: var(--m-on-primary); }   /* 무테두리 규칙: M3 라디오와 체크 상자의 선 대신 채움 면 */
+.mob-select-mark.radio { border-radius: var(--m-r-full); }
+.mob-select-mark.box { border-radius: 6px; }
+.mob-select-mark.on { background: var(--m-blue); }

@@ -3,7 +3,7 @@ import { ROLE_OPTIONS } from '../lib/helperConsent.js'
 // 모양 차이는 mobile.css 의 .mob-root.platform-ios / .platform-android 토큰이 맡고,
 // 구조 차이(앱 바 큰 제목, 대화상자 버튼 배치, 토스트 위치, 물결)는 여기서 나눈다.
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react'
-import { ChevronLeft, ArrowLeft, ChevronRight, WifiOff, Inbox } from 'lucide-react'
+import { ChevronLeft, ArrowLeft, ChevronRight, WifiOff, Inbox, Check } from 'lucide-react'
 import { usePlatform } from './usePlatform.js'
 import { layoutFor } from './layout.js'
 import { HELPER_PHRASES, AVOID_PHRASES, EMERGENCY, PREDEPARTURE } from '../lib/helperGuidance.js'
@@ -544,7 +544,7 @@ export function HelperConsent({onChange,withdraw=false}) {
 export function BottomAction({ primary, secondary }) {
   return (
     <div className="mob-h-bottom mob-bottom-action">
-      {primary && <Button block onClick={primary.onClick} disabled={primary.disabled} aria-describedby={primary.describedBy}>{primary.label}</Button>}
+      {primary && <Button block variant={primary.danger ? 'danger' : 'filled'} onClick={primary.onClick} disabled={primary.disabled} aria-describedby={primary.describedBy}>{primary.label}</Button>}
       {secondary && <Button block variant={secondary.danger ? 'danger-tonal' : 'plain'} onClick={secondary.onClick} disabled={secondary.disabled}>{secondary.label}</Button>}
     </div>
   )
@@ -567,5 +567,38 @@ export function InfoSheet({ lead, title, summary, sheetTitle, children, closeLab
         <Button block variant="plain" onClick={() => setOpen(false)}>{closeLabel}</Button>
       </Sheet>
     </>
+  )
+}
+
+// ===== 도우미 화면 재구성(2a)에서 더한 키트 조합 부품 =====
+// 큰 값 하나(기한, 다음 장소, 결과). iOS: Large Title 글자 역할(Text Styles 0:2194, 34/41 w700)을 묶음 목록 면(Lists 507:24675) 위에.
+// Android: Headline Medium(Styles 49823:12141, 28/36)을 List 면(59106:13028) 위에. 위계 세 층(큰 값, 보조 한 줄, 주 버튼, 벤치마크 규칙 4)
+export function Figure({ value, caption, live, tone }) {
+  return (
+    <div className={`mob-figure ${tone ? `tone-${tone}` : ''}`}>
+      <p className="mob-t-display mob-figure-value">{keepCodes(value)}</p>
+      {caption && <p className="mob-t-callout mob-figure-caption" role={live ? 'timer' : undefined}>{keepCodes(caption)}</p>}
+    </div>
+  )
+}
+
+// 고르기 행. iOS: Row 550:50430 + 끝 보조 표시 Checkmark(_Trailing 212:117586), Android: List item 59106:13183 + Trailing element Radio 59106:13365 또는 Checkbox 59106:13362.
+// 칩 대신 쓴다(iOS 키트에 칩 없음). multiple 이면 체크 상자, 아니면 라디오.
+export function SelectRow({ title, subtitle, selected, multiple = false, onSelect, disabled }) {
+  const ref = useRef(null)
+  const platform = useRootPlatform(ref)
+  const mark = platform === 'android'
+    ? <span className={`mob-select-mark ${multiple ? 'box' : 'radio'} ${selected ? 'on' : ''}`} aria-hidden="true">{selected ? <Check size={16} strokeWidth={3} /> : null}</span>
+    : (selected ? <Check size={22} strokeWidth={2.6} className="mob-select-check" aria-hidden="true" /> : <span className="mob-select-empty" aria-hidden="true" />)
+  return (
+    <li>
+      <button ref={ref} type="button" role={multiple ? 'checkbox' : 'radio'} aria-checked={!!selected} disabled={disabled} className={`mob-row mob-select ${selected ? 'selected' : ''}`} onClick={onSelect}>
+        <span className="mob-row-main">
+          <span className="mob-t-body">{title}</span>
+          {subtitle && <span className="mob-t-callout">{subtitle}</span>}
+        </span>
+        <span className="mob-row-trail">{mark}</span>
+      </button>
+    </li>
   )
 }

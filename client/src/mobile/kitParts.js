@@ -25,6 +25,8 @@ export const KIT_PARTS = {
   InfoSheet: { use: '긴 설명을 한 줄 행 뒤 시트로', ios: ['550:50430 Row', '10525:1632 Sheet - iPhone'], android: ['59106:13183 List item', '51827:5859 Bottom sheet'], status: 'combo' },
   DisplaySettings: { use: '큰 글자 설정', ios: ['550:50430 Row', '507:24690 Toggles'], android: ['59106:13183 List item', '54446:25289 Switch'], status: 'combo' },
   OfflineBanner: { use: '연결 끊김 알림 한 줄', ios: ['550:50430 Row'], android: ['59106:13183 List item'], status: 'combo' },
+  Figure: { use: '큰 값 하나(기한, 다음 장소, 결과)와 보조 한 줄', ios: ['0:2194 Text Styles Large Title 34/41', '507:24675 Lists 면'], android: ['49823:12141 Styles Headline Medium 28/36', '59106:13028 List 면'], status: 'combo', note: '키트에 숫자 강조 부품이 없어 글자 역할과 목록 면을 조합(도우미 재구성 2a)' },
+  SelectRow: { use: '하나 또는 여러 개 고르기(역할, 불가 사유, 실패 사유)', ios: ['550:50430 Row', '212:117586 _Trailing Checkmark'], android: ['59106:13183 List item', '59106:13365 Trailing element Radio', '59106:13362 Trailing element Checkbox'], status: 'combo', note: 'Chip 대신. iOS 는 끝 체크 표시, Android 는 끝 라디오와 체크 상자' },
   // 아래는 키트에 대응 부품이 없다. 다음 화면 재구성에서 위 부품으로 바꾸고 화면에서 뺀다.
   Chip: { use: '역할과 사유 고르기', ios: [], android: ['53923:28270 Filter chip', '53923:28089 Assistive chip'], status: 'replace', note: 'iOS 키트에 칩 없음. iOS 는 Row 체크 표시 또는 Segmented 로 바꿈' },
   Card: { use: '덩어리 묶기', ios: [], android: ['52350:27728 Card states/Filled'], status: 'replace', note: 'iOS 키트에 카드 없음. 묶음 목록(List)으로 바꿈' },

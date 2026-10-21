@@ -109,7 +109,8 @@ test('아이콘 교체: 기한은 시계, 소방 요청은 전화 발신, 대상
   const f = read('../src/mobile/field/FieldScreens.jsx'), h = read('../src/mobile/helper/HelperScreens.jsx')
   assert.match(f, /<ListRow key=\{v\.code\} lead=\{<Clock size=\{22\} \/>\}/)
   assert.match(f, /<ListRow lead=\{<PhoneOutgoing size=\{22\} \/>\} title="소방 지원 요청"/)
-  assert.match(h, /label="대상자 상세"[\s\S]{0,60}<User size/)
-  assert.match(h, /<Notice icon=\{<HandHeart size=\{28\} \/>\}/)
-  assert.match(h, />담당자 전화<\/Button>/)
+  // 도우미(재구성 2a): 대상자 정보 행은 사람 하나, 평시 첫 화면 설명 행은 손과 하트, 목록 위 글자 버튼 '연락'
+  assert.match(h, /<InfoSheet lead=\{<User size=\{20\} \/>\} title="대상자 정보"/)
+  assert.match(h, /<ListRow lead=\{<HandHeart size=\{22\} \/>\} title="이웃 대피를 돕는 화면"/)
+  assert.match(h, /<Button variant="plain" size="sm" onClick=\{\(\) => go\(\{ name: 'H7' \}\)\}>연락<\/Button>/)
 })

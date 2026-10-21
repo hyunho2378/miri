@@ -1,32 +1,38 @@
-/* 도우미 화면 전용 배치. 토큰은 mobile.css(--m-*) 만 쓴다. 테두리와 옆 강조선 없이 면 색과 그림자로 구분 */
+/* 도우미 화면 전용 배치(재구성 2a). 토큰은 mobile.css(--m-*) 만 쓴다. 테두리와 옆 강조선 없이 면 색과 그림자로 구분 */
 .mob-h-bottom { position: sticky; bottom: 0; z-index: 25; display: flex; flex-direction: column; gap: 8px; padding: 12px var(--m-margin) calc(var(--m-safe-bottom) + 12px); background: var(--m-canvas); box-shadow: var(--m-shadow-1); }
-.mob-root.platform-android .mob-h-bottom { flex-direction: row-reverse; }
-.mob-root.platform-android .mob-h-bottom > .mob-btn { flex: 1; }
-.mob-h-lead { margin: 0; }
-.mob-h-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.mob-h-lead { margin: 0; padding: 0 4px; }
 .mob-h-kv { color: var(--m-ink); text-align: right; overflow-wrap: anywhere; word-break: keep-all; }
-.mob-h-deadline { display: flex; flex-direction: column; gap: 4px; }
-.mob-h-time { color: var(--m-ink); font-variant-numeric: tabular-nums; margin: 0; }
-.mob-h-over { color: var(--m-red-strong); font-weight: 600; }
-.mob-h-progress { display: flex; flex-direction: column; gap: 8px; }
+.mob-h-progress { display: flex; flex-direction: column; gap: 8px; padding: 0 4px; }
 .mob-h-wrap { display: flex; flex-direction: column; flex: 1; word-break: keep-all; overflow-wrap: anywhere; }
 .mob-root.platform-android .mob-h-wrap .mob-bar-row > .mob-bar-slot:first-child:empty { display: none; }
 .mob-root.platform-android .mob-h-wrap .mob-bar-row > .mob-bar-slot:first-child:empty + .mob-bar-title { padding-left: 4px; }
-.mob-h-order { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: var(--m-r-full); background: transparent; color: var(--m-ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.mob-h-order { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: var(--m-r-full); background: var(--m-fill); color: var(--m-ink); font-size: var(--t-callout); font-weight: 400; font-variant-numeric: tabular-nums; }
 .mob-h-order.now { background: var(--m-blue); color: var(--m-on-primary); }
-.mob-h-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.mob-h-steps li { display: flex; align-items: center; gap: 12px; min-height: var(--m-touch); padding: 8px 16px; border-radius: var(--m-card-r); background: var(--m-page); box-shadow: var(--m-shadow-1); color: var(--m-ink-2); }
-.mob-h-steps li.done { color: var(--m-ink); }
-.mob-h-steps li.next { background: var(--m-blue-soft); color: var(--m-blue-ink); font-weight: 700; }
-.mob-h-dot { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: var(--m-r-full); background: var(--m-fill); font-weight: 700; }
-.mob-h-steps li.done .mob-h-dot { background: var(--m-blue); color: var(--m-on-primary); }
-.mob-h-steps li.next .mob-h-dot { background: var(--m-blue); color: var(--m-on-primary); }
-.mob-h-big { min-height: 64px; }
 .mob-h-field { display: flex; flex-direction: column; gap: 6px; }
-.mob-h-field input, .mob-h-field textarea { font: inherit; font-size: max(16px, var(--t-body)); line-height: var(--t-body-lh, 1.4); color: var(--m-ink); background: var(--m-fill); border: 0; border-radius: var(--m-r-md); padding: 12px; min-height: var(--m-touch); resize: vertical; }
+.mob-h-field input, .mob-h-field textarea { font: inherit; font-size: max(16px, var(--t-body)); line-height: var(--l-body); color: var(--m-ink); background: var(--m-fill); border: 0; border-radius: var(--m-r-md); padding: 12px; min-height: var(--m-touch); resize: vertical; }
 .mob-h-field input:focus-visible, .mob-h-field textarea:focus-visible { outline: 2px solid var(--m-blue); outline-offset: 2px; }
-.mob-h-care { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.mob-h-care { display: flex; flex-direction: column; gap: 12px; }
+.mob-h-sheet-body { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+.mob-h-sheet-note { margin: 12px 4px 0; }
 .mob-h-sheet-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
 .mob-h-danger-text { color: var(--m-red-strong) !important; }
 .mob-h-notice { justify-content: center; min-height: 70dvh; }
+/* 긴급 버튼은 앱 바 끝 글자 버튼(iOS Toolbar 17/590, M3 버튼 14/500)과 같은 글자 단계 */
+.mob-root.platform-ios .mob-h-wrap .mob-emergency { font-size: var(--t-headline); }
+.mob-root.platform-android .mob-h-wrap .mob-emergency { font-size: 14px; }
+.mob-h-wrap .mob-bar-slot:last-child { flex: none; }
 @media (prefers-reduced-motion: reduce) { .mob-h-bottom { transition: none; } }
+/* 알림(스낵바)은 화면 아래 주 동작을 가리지 않게 그 위에 띄운다(M3 Snackbar 53977:33575 는 아래 막대 위, iOS 는 키트에 토스트 없음) */
+.mob-root:has(.mob-h-wrap .mob-bottom-action) .mob-toast-wrap { bottom: calc(var(--m-safe-bottom) + 136px + 8px); }
+.mob-root:has(.mob-h-wrap .mob-bottom-action > .mob-btn:only-child) .mob-toast-wrap { bottom: calc(var(--m-safe-bottom) + 80px + 8px); }
+.mob-root.platform-ios:has(.mob-h-wrap .mob-bottom-action) .mob-toast-wrap { bottom: calc(var(--m-safe-bottom) + 140px + 8px); }
+.mob-root.platform-ios:has(.mob-h-wrap .mob-bottom-action > .mob-btn:only-child) .mob-toast-wrap { bottom: calc(var(--m-safe-bottom) + 84px + 8px); }
+.mob-h-wrap .mob-select.selected { background: transparent; }
+.mob-root.platform-ios .mob-h-wrap .mob-emergency { font-weight: 590; }
+/* iOS 키트에 토스트 부품이 없어 목록 행 보조 글(Callout 16/21)과 같은 단계로 둔다. 되돌리기 누름 영역 44 */
+.mob-root.platform-ios:has(.mob-h-wrap) .mob-toast { font-size: var(--t-callout); line-height: var(--l-callout); }
+.mob-root:has(.mob-h-wrap) .mob-toast .mob-btn.v-plain { min-height: 44px; }
+/* 시트와 대화상자가 열려 있으면 알림이 그 위를 가리지 않게 숨긴다(되돌리기는 시트를 닫으면 다시 보임) */
+.mob-root:has(.mob-h-wrap):has(.mob-scrim) .mob-toast-wrap { visibility: hidden; }
+/* 값 글자는 키트 Row Detail(SF Pro 17/22 w400, M3 Trailing text 400)과 같은 굵기. 색은 옅은 색 금지 규칙으로 기본 글자색 */
+.mob-h-wrap .mob-h-kv { font-weight: 400; }
