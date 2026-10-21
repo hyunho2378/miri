@@ -97,6 +97,9 @@ const NAME_AGE = /(^|[^가-힣])([가-힣]{2,3})\s*\(\s*(\d{2,3})\s*(세)?\s*\)/
 const ADDR_LOT = /([가-힣0-9]+(동|리|읍|면|가)\s*)?\d{1,5}\s*(-\s*\d{1,5}\s*)?번지/g
 const ADDR_LOT2 = /([가-힣]+(동|리))\s+\d{1,5}(\s*-\s*\d{1,5})?(?![\d가-힣])/g
 const APT = /\d{1,4}\s*동\s*\d{1,4}\s*호/g
+// 가린 주소 뒤에 남는 건물 이름과 호수, 건물 이름 뒤 호수(홀드아웃2 결과 뒤 수정)
+const ADDR_TAIL = /\[주소 가림\](\s*[가-힣A-Za-z0-9]{1,12}?)?\s*\d{1,4}(\s*호)?(?=에|의|로|에서|[^\d가-힣]|$)/g
+const UNIT = /([가-힣A-Za-z]*(아파트|빌라|주택|맨션|타운|하우스|오피스텔|빌딩|연립|원룸)\s*)?\d{1,4}\s*호(?=에|의|로|에서|[^가-힣]|$)/g
 // 년생, 짧은 날짜
 const BORN = /((19|20)?\d{2})\s*년\s*생/g
 const DATE2 = /(^|\D)\d{2}\s*[.]\s*\d{1,2}\s*[.]\s*\d{1,2}(?!\d)/g
@@ -114,7 +117,7 @@ export function maskLines(lines) {
   const out = lines.map((line) => {
     let s = line.replace(RRN, '[주민번호 가림]').replace(RRN13, '$1[번호 가림]').replace(PHONE, '[연락처 가림]').replace(DATE, '[날짜 가림]')
       .replace(BORN, '[날짜 가림]').replace(DATE2, '$1[날짜 가림]')
-      .replace(ADDR, '[주소 가림]').replace(APT, '[주소 가림]').replace(ADDR_LOT, '[주소 가림]').replace(ADDR_LOT2, '[주소 가림]')
+      .replace(ADDR, '[주소 가림]').replace(APT, '[주소 가림]').replace(ADDR_TAIL, '[주소 가림]').replace(UNIT, '[주소 가림]').replace(ADDR_LOT, '[주소 가림]').replace(ADDR_LOT2, '[주소 가림]')
       .replace(NAMED, '$1[이름 가림] $3')
       .replace(NAMED_HON, (all, pre, name, hon) => (ROLE.test(name) ? all : `${pre}[이름 가림]${hon}`))
     s = maskNamesFree(s)
@@ -138,7 +141,7 @@ const RESIDUAL = [
   [/(^|\D)\d{10,11}(?!\d)/, '긴 번호'],
   [/(성\s*명|이\s*름|연\s*락\s*처|주\s*소|생\s*년\s*월\s*일|주\s*민\s*번\s*호)\s*[:：]\s*(?!\[)[^\s[]/, '항목 값'],
   [/@[A-Za-z0-9-]+\.[A-Za-z]{2,}/, '전자우편 주소'],
-  [/\d{1,5}\s*번지|\d{1,4}\s*동\s*\d{1,4}\s*호/, '지번이나 동호수'],
+  [/\d{1,5}\s*번지|\d{1,4}\s*동\s*\d{1,4}\s*호|\d{1,4}\s*호(?=에|의|로|[^가-힣]|$)/, '지번이나 동호수'],
   [/(19|20)\d{2}\s*[.\-/년]\s*\d{1,2}\s*[.\-/월]\s*\d{1,2}|\d{2}\s*년\s*생/, '날짜'],
   [/[가-힣]+(로|길)\s*\d+(\s*-\s*\d+)?/, '도로명 주소']
 ]

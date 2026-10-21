@@ -54,4 +54,8 @@ await t('보조 단서가 있는 도보 판정은 확인 필요(휠체어로 계
   assert.deepEqual(planningGrade({ grade: 'walk', confidence: 'high', quote: '혼자 걸음', context: '혼자 걸음 가능, 보행기 사용' }), { grade: 'wheelchair', uncertain: true })
   assert.deepEqual(planningGrade({ grade: 'walk', confidence: 'high', quote: '혼자 걸음 가능' }), { grade: 'walk', uncertain: false })
 })
+await t('가린 주소 뒤 건물 이름과 호수, 줄이 나뉜 호수도 가린다(홀드아웃2 뒤 수정)', () => {
+  const out = maskLines(['강원특별자치도 동해시 은물결로 336 가상주택 106', '호', '사는 곳: 강원특별자치도 동해시 달모래길 322 가상주택 104호 전화는', '해솔빌라 203호'])
+  assert.ok(out.every((l) => !/\d{3}/.test(l)), out.join(' | '))
+})
 console.log(`${n}개 시험 통과`)
