@@ -69,4 +69,25 @@ await ok('H: 현장 화면의 상태, 도우미, 소방, 더보기 화면이 같
   assert.ok(src.includes('시 관리자 계정에서 시 전체 미배정 인원으로 보냄'))
 })
 
+await ok('재확인: 동의 상태 조회(hgetall) 예외도 503', async () => {
+  setStoreForTest(fakeRedis({ hgetall: true }))
+  const res = await call({ method: 'GET', query: { action: 'state' }, headers: { cookie: `${COOKIE}=${issueToken()}` } })
+  assert.equal(res.code, 503)
+})
+
+await ok('재확인: 여러 마을 차량은 담당 동 회차만, 소방 요청 기록도 담당 동 인원만', async () => {
+  const d2 = { ...d, fireRequests: [{ at: 1, count: 3, villages: { A1: 1, B1: 2 } }, { at: 2, count: 1, villages: { B1: 1 } }],
+    result: { ...d.result, assignments: [{ vehicleCode: 'V-3', helperCodes: ['H-3'], trips: [{ village: 'A1', personCodes: ['P1'] }, { village: 'B1', personCodes: ['P3'] }] }] } }
+  const sc = scopeDispatch(d2, persons, new Set(['A1']))
+  assert.equal(sc.d.result.assignments[0].trips.length, 1)
+  assert.deepEqual(sc.d.fireRequests, [{ at: 1, count: 1, villages: { A1: 1 } }])
+})
+
+await ok('재확인: 서류 판독 마을 선택과 소식 대상자 조회도 담당 범위', async () => {
+  const src = readFileSync(new URL('../src/mobile/field/FieldScreens.jsx', import.meta.url), 'utf8')
+  assert.ok(src.includes('villages={data.villages.filter((v) => scope.inScope(v.code))}'))
+  assert.ok(src.includes('scope.inScope(p.villageCode))\n') || src.includes('&& scope.inScope(p.villageCode))'))
+  assert.ok(src.includes('sc.d.fireRequests.map'))
+})
+
 console.log(`review13 ${n}개 통과`)

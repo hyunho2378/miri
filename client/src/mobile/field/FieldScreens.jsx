@@ -368,9 +368,9 @@ export function FieldFirePage() {
               )}
             </Section>
             <Section title="요청 기록">
-              {!d.fireRequests?.length ? <p className="mob-t-sub mob-pad">요청 기록 없음</p> : (
+              {!sc.d.fireRequests?.length ? <p className="mob-t-sub mob-pad">요청 기록 없음</p> : (
                 <List label="요청 기록">
-                  {d.fireRequests.map((q, i) => (
+                  {sc.d.fireRequests.map((q, i) => (
                     <ListRow key={i} title={`${hm(q.at)} 요청 ${q.count}명`} subtitle={Object.entries(q.villages).map(([c, n]) => `${villageName(data.villages, c)} ${n}`).join(', ')} />
                   ))}
                 </List>
@@ -467,6 +467,7 @@ function VillagePicker({ villages, value, onChange }) {
 }
 
 export function FieldIntakePage() {
+  const scope = useFieldScope()
   const navigate = useNavigate()
   const data = useMiriStore()
   const addIntakeDoc = useMiriStore((s) => s.addIntakeDoc)
@@ -503,7 +504,7 @@ export function FieldIntakePage() {
       <AppBar title="서류 판독" onBack={() => navigate('/m/f/more')} backLabel="더보기" />
       <main id="main" className="mob-content">
         <List label="판독 전 확인">
-          <VillagePicker villages={data.villages} value={villageCode} onChange={setVillageCode} />
+          <VillagePicker villages={data.villages.filter((v) => scope.inScope(v.code))} value={villageCode} onChange={setVillageCode} />
           {/* 행 전체가 체크 영역(GPT 9차 M5): label 로 감싸 최소 터치 높이 이상, 글자를 눌러도 체크 */}
           <li>
             <label className="mob-row tall mob-check-row">
@@ -555,7 +556,8 @@ export function FieldNotePage() {
   const [sheet, setSheet] = useState(false)
   const [state, setState] = useState({ phase: 'idle' })
   const fileRef = useRef(null)
-  const person = data.persons.find((p) => p.code === code.trim().toUpperCase())
+  const scope = useFieldScope()
+  const person = data.persons.find((p) => p.code === code.trim().toUpperCase() && scope.inScope(p.villageCode))
   const reqSeq = useRef(0)
   const send = async (file) => {
     if (!person) { toast('대상자 번호 확인 필요'); return }

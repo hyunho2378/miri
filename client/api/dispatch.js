@@ -202,8 +202,8 @@ async function handle(req, res) {
 
   if (req.method === 'GET' && action === 'state') {
     // 도우미 동의 상태는 진행 중인 발령이 없어도 돌려준다(발령 종료 뒤 새로고침 복원, GPT 12차)
-    let prefs = {}
-    try { prefs = parsePrefs(await r.hgetall(K.pref(sid))) } catch { prefs = {} }
+    // 동의 상태 조회 실패도 빈 값으로 넘기지 않고 503(화면은 이전 값 유지 뒤 재시도, GPT 13차 재확인)
+    const prefs = parsePrefs(await r.hgetall(K.pref(sid)))
     const own = await r.get(K.owner(sid))
     if (!own || !validDispatchId(own) || (await r.get(K.closed(own)))) return res.status(200).json({ state: null, prefs })
     const saved = await r.get(K.state(own))

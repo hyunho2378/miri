@@ -129,9 +129,17 @@ export function scopeDispatch(d, persons, codes) {
   const villageOf = Object.fromEntries(persons.map((p) => [p.code, p.villageCode]))
   const result = {
     ...d.result,
-    assignments: d.result.assignments.filter((a) => a.trips.some((tr) => codes.has(tr.village))),
+    // 여러 마을을 도는 차량은 담당 동 회차만 남긴다(회차 수가 범위 밖 정보를 담지 않게)
+    assignments: d.result.assignments
+      .map((a) => ({ ...a, trips: a.trips.filter((tr) => codes.has(tr.village)) }))
+      .filter((a) => a.trips.length),
     unassigned: d.result.unassigned.filter((u) => codes.has(villageOf[u.personCode]))
   }
   const arrivals = Object.fromEntries(Object.entries(d.arrivals || {}).filter(([c]) => codes.has(c)))
-  return { d: { ...d, result, arrivals }, persons: persons.filter((p) => codes.has(p.villageCode)) }
+  // 소방 요청 기록은 담당 동 마을 인원만 남긴다
+  const fireRequests = (d.fireRequests || []).map((q) => {
+    const villages = Object.fromEntries(Object.entries(q.villages || {}).filter(([c]) => codes.has(c)))
+    return { ...q, villages, count: Object.values(villages).reduce((a, b) => a + b, 0) }
+  }).filter((q) => q.count > 0)
+  return { d: { ...d, result, arrivals, fireRequests }, persons: persons.filter((p) => codes.has(p.villageCode)) }
 }
