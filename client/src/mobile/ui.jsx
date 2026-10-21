@@ -44,7 +44,7 @@ export function AppBar({ title, large = false, onBack, backLabel = '뒤로', tra
   return (
     <header ref={ref} className={`mob-bar ${scrolled ? 'scrolled' : ''}`}>
       <div className="mob-bar-row">
-        <div className="mob-bar-slot">
+        <div className={`mob-bar-slot ${onBack ? '' : 'empty'}`}>
           {onBack && <button type="button" className="mob-icon-btn" onClick={onBack} aria-label={backLabel}><BackIcon size={24} aria-hidden="true" /></button>}
         </div>
         <h1 className="mob-bar-title" aria-hidden={showLarge && platform === 'ios' ? 'true' : undefined} style={showLarge && platform === 'ios' ? { opacity: 0 } : undefined}>{title}</h1>

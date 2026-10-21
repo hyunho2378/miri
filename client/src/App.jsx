@@ -43,10 +43,17 @@ const MobileHelperShell = lazy(() => mobileShells().then((m) => ({ default: m.He
 const MobileHelperHome = lazy(() => mobileShells().then((m) => ({ default: m.HelperHomeSlot })))
 const MobileHelperPage = lazy(() => import('./mobile/helper/HelperScreens.jsx'))
 const MobileFieldShell = lazy(() => mobileShells().then((m) => ({ default: m.FieldShell })))
-const MobileFieldStatus = lazy(() => mobileShells().then((m) => ({ default: m.FieldStatusSlot })))
-const MobileFieldVillages = lazy(() => mobileShells().then((m) => ({ default: m.FieldVillagesSlot })))
-const MobileFieldHelpers = lazy(() => mobileShells().then((m) => ({ default: m.FieldHelpersSlot })))
-const MobileFieldMore = lazy(() => mobileShells().then((m) => ({ default: m.FieldMoreSlot })))
+const fieldScreens = () => import('./mobile/field/FieldScreens.jsx')
+const MobileFieldStatus = lazy(() => fieldScreens().then((m) => ({ default: m.FieldStatusPage })))
+const MobileFieldVillages = lazy(() => fieldScreens().then((m) => ({ default: m.FieldVillagesPage })))
+const MobileFieldVillage = lazy(() => fieldScreens().then((m) => ({ default: m.FieldVillageDetailPage })))
+const MobileFieldHelpers = lazy(() => fieldScreens().then((m) => ({ default: m.FieldHelpersPage })))
+const MobileFieldFire = lazy(() => fieldScreens().then((m) => ({ default: m.FieldFirePage })))
+const MobileFieldPeople = lazy(() => fieldScreens().then((m) => ({ default: m.FieldPeoplePage })))
+const MobileFieldPerson = lazy(() => fieldScreens().then((m) => ({ default: m.FieldPersonPage })))
+const MobileFieldIntake = lazy(() => fieldScreens().then((m) => ({ default: m.FieldIntakePage })))
+const MobileFieldNote = lazy(() => fieldScreens().then((m) => ({ default: m.FieldNotePage })))
+const MobileFieldMore = lazy(() => fieldScreens().then((m) => ({ default: m.FieldMorePage })))
 const MobileKitPage = lazy(() => import('./mobile/KitPage.jsx'))
 const LoginPage = lazy(() => import('./pages/console/LoginPage.jsx'))
 const OverviewPage = lazy(loaders.Overview)
@@ -135,8 +142,14 @@ export default function App() {
               <Route path="f" element={<MobileFieldShell />}>
                 <Route index element={<MobileFieldStatus />} />
                 <Route path="villages" element={<MobileFieldVillages />} />
+                <Route path="villages/:code" element={<MobileFieldVillage />} />
                 <Route path="helpers" element={<MobileFieldHelpers />} />
                 <Route path="more" element={<MobileFieldMore />} />
+                <Route path="fire" element={<MobileFieldFire />} />
+                <Route path="people" element={<MobileFieldPeople />} />
+                <Route path="people/:code" element={<MobileFieldPerson />} />
+                <Route path="intake" element={<MobileFieldIntake />} />
+                <Route path="note" element={<MobileFieldNote />} />
               </Route>
             </Route>
             <Route element={<PublicLayout />}>
