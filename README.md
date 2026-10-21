@@ -50,7 +50,7 @@
 - **발령과 배정**: 차량, 도우미, 대상자 묶음 배정표 생성, 도우미 수와 지원 등급 조건 적용, 대피소 정원과 회차별 목적지 적용
 - **재배정**: 불가 응답 도우미와 해당 차량 제외, 발령 조건 재확인
 - **소방 인계**: 기한 초과 대상자 목록과 동해 응급실 가용병상 참고 정보
-- **문서함**: 공문, 보고서, 계획서 서식 21종 자동 숫자 입력과 한글(HWPX) 저장
+- **문서함**: 공문, 보고서, 계획서 서식 24종(도우미 운영 기준, 도우미 교육 시나리오, 가족 안내 문자 포함) 자동 숫자 입력과 한글(HWPX) 저장
 - **개방 API**: 마을별 부족분, 대피소 수용 현황, 시나리오 조회
 
 ---
@@ -523,6 +523,7 @@ server/            백엔드 확장 자리(계약 docs/API_CONTRACT.md)
 | 법령 검토 | [docs/LEGAL_REVIEW.md](docs/LEGAL_REVIEW.md) |
 | API 계약 | [docs/API_CONTRACT.md](docs/API_CONTRACT.md) |
 | 현장 관찰 기록 | [docs/FIELD_NOTES_UX.md](docs/FIELD_NOTES_UX.md) |
+| 기여 안내와 이슈 양식 | [CONTRIBUTING.md](CONTRIBUTING.md), [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE) |
 
 ---
 
