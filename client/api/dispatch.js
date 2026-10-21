@@ -25,6 +25,7 @@ const K = {
   idOwner: (d) => `miri:dsp:i:${d}`,
   closed: (d) => `miri:dsp:c:${d}`, // 종료 표시. 늦게 도착한 저장 요청을 거부(GPT 5차 H4)
   reports: (d) => `miri:dsp:r:${d}`,
+  members: (d) => `miri:dsp:m:${d}`, // 도우미별 현재 배정 대상자(",P-1,P-2,"). 보고 저장 Lua 가 같은 원자 실행 안에서 확인(GPT 6차 H3 경합)
   key: (d, h, k) => `miri:dsp:k:${d}:${h}:${k}`
 }
 
@@ -39,8 +40,14 @@ export function cleanCare(care) {
 }
 
 // GPT 5차 H2: 중복 확인과 보고 추가를 한 번의 원자 연산으로. 같은 key 에 다른 내용이면 충돌로 알린다.
-// 반환 [1, 목록 길이] 새로 저장, [0, 기존 해시] 이미 저장
+// GPT 6차 H3: 권한 검사와 저장 사이에 도우미 교체가 끼어들 수 있어, 종료 표시와 현재 배정(도우미, 대상자)을 같은 원자 실행 안에서 다시 확인한다.
+// KEYS 1 중복키, 2 보고 목록, 3 현재 배정 대상자 해시, 4 종료 표시. ARGV 1 보고, 2 해시, 3 TTL, 4 최대 길이, 5 도우미 코드, 6 대상자 코드(수락과 불가는 빈 값)
+// 반환 [1, 목록 길이] 새로 저장, [0, 기존 해시] 이미 저장, [0, 'closed'] 종료, [0, 'gone'] 현재 배정에 없음
 export const APPEND_LUA = `
+if redis.call('EXISTS', KEYS[4]) == 1 then return {0, 'closed'} end
+local m = redis.call('HGET', KEYS[3], ARGV[5])
+if not m then return {0, 'gone'} end
+if ARGV[6] ~= '' and not string.find(m, ',' .. ARGV[6] .. ',', 1, true) then return {0, 'gone'} end
 if redis.call('SET', KEYS[1], ARGV[2], 'NX', 'EX', ARGV[3]) then
   local n = redis.call('RPUSH', KEYS[2], ARGV[1])
   if n == 1 then redis.call('EXPIRE', KEYS[2], ARGV[3]) end
@@ -49,6 +56,7 @@ if redis.call('SET', KEYS[1], ARGV[2], 'NX', 'EX', ARGV[3]) then
 end
 return {0, redis.call('GET', KEYS[1])}`
 // GPT 5차 H4: 종료 표시, 발령 ID 소유 세션, 저장 순번을 한 번에 검사하고 저장. 반환 [1, 'ok'] 또는 [0, 사유]
+// KEYS 7 현재 배정 대상자 해시를 통째로 바꾼다(ARGV 7부터 도우미 코드, ',대상자,' 쌍)
 export const SAVE_LUA = `
 if redis.call('EXISTS', KEYS[1]) == 1 then return {0, 'closed'} end
 local o = redis.call('GET', KEYS[2])
@@ -60,7 +68,11 @@ redis.call('SET', KEYS[3], ARGV[2], 'EX', ARGV[6])
 redis.call('SET', KEYS[4], ARGV[3], 'EX', ARGV[6])
 redis.call('SET', KEYS[5], ARGV[4], 'EX', ARGV[6])
 redis.call('SET', KEYS[6], ARGV[5], 'EX', ARGV[6])
+redis.call('DEL', KEYS[7])
+for i = 7, #ARGV - 1, 2 do redis.call('HSET', KEYS[7], ARGV[i], ARGV[i + 1]) end
+if #ARGV >= 8 then redis.call('EXPIRE', KEYS[7], ARGV[6]) end
 return {1, 'ok'}`
+export const memberValue = (b) => `,${(Array.isArray(b?.personCodes) ? b.personCodes : []).map(String).filter((c) => !c.includes(',')).join(',')},`
 const hashOf = (rep) => `h:${createHash('sha256').update(JSON.stringify(rep)).digest('hex').slice(0, 32)}`
 const asPair = (v) => (Array.isArray(v) ? [Number(v[0]), v[1]] : [0, null])
 
@@ -116,12 +128,15 @@ export default async function handler(req, res) {
       const h = hashOf(rep)
       let out
       try {
-        out = asPair(await r.eval(APPEND_LUA, [K.key(tk.d, tk.h, rep.key), K.reports(tk.d)], [JSON.stringify(rep), h, String(HELPER_TTL_SEC), String(MAX_REPORTS)]))
+        out = asPair(await r.eval(APPEND_LUA, [K.key(tk.d, tk.h, rep.key), K.reports(tk.d), K.members(tk.d), K.closed(tk.d)],
+          [JSON.stringify(rep), h, String(HELPER_TTL_SEC), String(MAX_REPORTS), tk.h, rep.type === 'step' ? rep.personCode : '']))
       } catch {
         // 저장 실패는 성공으로 돌려주지 않는다. 휴대폰 대기열에 남아 다시 보냄
         return fail(res, 503, 'STORE_ERROR', '보고를 저장하지 못했습니다. 연결되면 다시 보냅니다')
       }
       if (out[0] === 1) return res.status(200).json({ ok: true, duplicate: false, key: rep.key })
+      if (out[1] === 'closed') return fail(res, 404, 'CLOSED', '종료된 배정입니다')
+      if (out[1] === 'gone') return fail(res, 404, 'NO_ASSIGNMENT', '이 링크의 배정이 종료되었거나 다른 도우미로 바뀌었습니다')
       if (out[1] !== h) return fail(res, 409, 'KEY_CONFLICT', '같은 보고 번호로 다른 내용이 이미 저장되어 있습니다')
       return res.status(200).json({ ok: true, duplicate: true, key: rep.key })
     }
@@ -159,8 +174,9 @@ export default async function handler(req, res) {
     }
     let out
     try {
-      out = asPair(await r.eval(SAVE_LUA, [K.closed(id), K.idOwner(id), K.rev(id), K.state(id), K.assign(id), K.owner(sid)],
-        [sid, String(rev), JSON.stringify(state), JSON.stringify({ rev, briefs }), id, String(HELPER_TTL_SEC)]))
+      const members = Object.entries(briefs).flatMap(([h, b]) => [h, memberValue(b)])
+      out = asPair(await r.eval(SAVE_LUA, [K.closed(id), K.idOwner(id), K.rev(id), K.state(id), K.assign(id), K.owner(sid), K.members(id)],
+        [sid, String(rev), JSON.stringify(state), JSON.stringify({ rev, briefs }), id, String(HELPER_TTL_SEC), ...members]))
     } catch {
       return fail(res, 503, 'STORE_ERROR', '발령 상태를 저장하지 못했습니다. 이 브라우저 안에서 계속 진행합니다')
     }
@@ -180,7 +196,7 @@ export default async function handler(req, res) {
       if (o && String(o) !== sid) return fail(res, 403, 'OWNER', '다른 세션의 발령입니다')
       // 종료 표시를 먼저 남겨 진행 중이던 저장 요청이 늦게 와도 되살리지 못하게 함(GPT 5차 H4)
       await r.set(K.closed(id), 1, { ex: HELPER_TTL_SEC })
-      await r.del(K.state(id), K.assign(id), K.reports(id), K.rev(id))
+      await r.del(K.state(id), K.assign(id), K.members(id), K.reports(id), K.rev(id))
       if (own === id) await r.del(K.owner(sid))
     }
     return res.status(200).json({ ok: true })

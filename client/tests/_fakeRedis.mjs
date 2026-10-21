@@ -1,5 +1,6 @@
 // 시험용 Upstash 대신 메모리 저장소. api/dispatch.js 의 Lua 스크립트 두 개(APPEND_LUA, SAVE_LUA)는 같은 동작을 JS 로 한 번에 실행해
 // 원자 처리를 흉내 낸다(JS 는 한 스레드라 중간에 다른 요청이 끼지 않음). fail 옵션으로 장애를 재현한다.
+// fail.beforeAppend 는 Lua 실행 직전에 멈추는 지점으로, 실제 Redis 에서 스크립트가 늦게 도착한 경우를 흉내 낸다(GPT 6차 H3 경합 재현).
 import { APPEND_LUA, SAVE_LUA } from '../api/dispatch.js'
 
 export function fakeRedis(fail = {}) {
@@ -17,18 +18,24 @@ export function fakeRedis(fail = {}) {
     async eval(script, keys, args) {
       if (fail.eval) throw new Error('eval 실패')
       if (script === APPEND_LUA) {
+        if (fail.beforeAppend) await fail.beforeAppend()
+        if (kv.has(keys[3])) return [0, 'closed']
+        const m = (kv.get(keys[2]) || new Map()).get(args[4])
+        if (m == null) return [0, 'gone']
+        if (args[5] !== '' && !m.includes(`,${args[5]},`)) return [0, 'gone']
         if (kv.has(keys[0])) return [0, kv.get(keys[0])]
         kv.set(keys[0], args[1])
         const l = lists.get(keys[1]) || []; l.push(args[0]); lists.set(keys[1], l)
         return [1, l.length]
       }
       if (script === SAVE_LUA) {
-        const [closed, idOwner, rev, state, assign, owner] = keys
+        const [closed, idOwner, rev, state, assign, owner, members] = keys
         const [sid, r, st, as, id] = args
         if (kv.has(closed)) return [0, 'closed']
         if (kv.has(idOwner) && kv.get(idOwner) !== sid) return [0, 'owner']
         if (kv.has(rev) && Number(kv.get(rev)) >= Number(r)) return [0, 'stale']
         kv.set(idOwner, sid); kv.set(rev, r); kv.set(state, st); kv.set(assign, as); kv.set(owner, id)
+        if (members) { const mm = new Map(); for (let i = 6; i + 1 < args.length; i += 2) mm.set(args[i], args[i + 1]); kv.set(members, mm) }
         return [1, 'ok']
       }
       throw new Error('알 수 없는 스크립트')
