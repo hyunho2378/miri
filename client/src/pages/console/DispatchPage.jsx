@@ -271,7 +271,9 @@ function AssignedPanel({ meta }) {
 // 서버 저장 상태와 도우미별 서명 링크(회신 R34)
 function RemoteStatus() {
   const remote = useDispatchStore((s) => s.remote)
-  const helpers = useDispatchStore((s) => (s.result ? [...new Set(s.result.assignments.flatMap((a) => a.helperCodes))] : []))
+  const result = useDispatchStore((s) => s.result)
+  // 선택자에서 새 배열을 만들면 렌더가 반복되므로 결과만 고르고 여기서 계산한다
+  const helpers = useMemo(() => (result ? [...new Set(result.assignments.flatMap((a) => a.helperCodes))] : []), [result])
   const toast = useToast()
   const saved = remote.state === 'saved'
   const tokens = Object.entries(remote.tokens || {}).filter(([h, t]) => t && helpers.includes(h))
