@@ -7,12 +7,15 @@ import { calcTiming, calcVehicles, scenarioArrivals, scopeInput } from '../lib/s
 import { dispatchSms, helperBrief, indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
 import { HAZARD_KINDS } from '../lib/scenario.js'
 import { MIN } from '../lib/time.js'
+import { clearRemote, loadRemote, restoreSnapshot, saveRemote, snapshotOf } from '../lib/dispatchSync.js'
+import { mergeReports } from '../lib/reportQueue.js'
 import { activeScenario, useMiriStore } from './useMiriStore.js'
 
 const EMPTY = {
   status: 'idle', kind: 'drill', speed: 60, realStart: 0, vStart: 0, arrivals: {},
   result: null, confirmedAt: null, sentAt: null, ackPlan: {}, ackOverride: {}, failPlan: {}, events: {},
-  handovers: [], manualHelper: null, smsLog: [], closedRecordId: null, scopeCodes: [], blocked: null
+  handovers: [], manualHelper: null, smsLog: [], closedRecordId: null, scopeCodes: [], blocked: null,
+  fireRequests: [], remote: { state: 'local', dispatchId: null, tokens: {}, reason: null, savedAt: null, polledAt: null }
 }
 
 export const useDispatchStore = create((set, get) => ({
@@ -197,6 +200,76 @@ export const useDispatchStore = create((set, get) => ({
     return best.a.vehicleCode
   },
 
+
+  // 서버 저장(회신 R34). 실패하면 이 브라우저 안에서만 진행하고 사유를 남긴다
+  syncSave: async () => {
+    const d = get()
+    if (d.kind !== 'drill' || !['standby', 'assigned', 'sent'].includes(d.status)) return null
+    const data = useMiriStore.getState()
+    try {
+      const r = await saveRemote(d, { scenario: activeScenario(data), villages: data.villages })
+      set((s) => ({ remote: { ...s.remote, state: 'saved', dispatchId: r.dispatchId, tokens: { ...s.remote.tokens, ...r.tokens }, reason: null, savedAt: Date.now() } }))
+      return r
+    } catch (e) {
+      set((s) => ({ remote: { ...s.remote, state: 'error', reason: e.message } }))
+      return null
+    }
+  },
+  // 새로고침 뒤 복원. 평시 상태일 때만 서버의 발령을 불러온다
+  restoreRemote: async () => {
+    if (get().status !== 'idle') return false
+    try {
+      const r = await loadRemote()
+      if (!r?.state || get().status !== 'idle') return false
+      const st = restoreSnapshot(r.state)
+      const merged = mergeReports(st, r.reports)
+      set({ ...EMPTY, ...st, ...merged, remote: { ...EMPTY.remote, state: 'saved', dispatchId: r.dispatchId, savedAt: Date.now(), polledAt: Date.now() } })
+      return true
+    } catch (e) {
+      set((s) => ({ remote: { ...s.remote, state: 'error', reason: e.message } }))
+      return false
+    }
+  },
+  // 도우미 보고 주기 조회(담당자 화면 10초)
+  pollReports: async () => {
+    const d = get()
+    if (d.status !== 'sent' || d.remote.state !== 'saved') return 0
+    try {
+      const r = await loadRemote()
+      if (!r || r.dispatchId !== d.remote.dispatchId) return 0
+      const merged = mergeReports(get(), r.reports)
+      set((s) => ({ ...merged, remote: { ...s.remote, polledAt: Date.now() } }))
+      return (r.reports || []).length
+    } catch (e) {
+      set((s) => ({ remote: { ...s.remote, reason: e.message } }))
+      return 0
+    }
+  },
+  // 차량 부족, 도우미 부족, 대피소 정원 부족 미배정자를 기한까지 기다리지 않고 소방에 지원 요청(회신 R34)
+  requestFireSupport: () => {
+    const d = get()
+    if (!d.result) return null
+    const done = new Set(Object.entries(d.events).filter(([, e]) => e.step === 'handedToFire').map(([c]) => c))
+    const rows = d.result.unassigned.filter((u) => !done.has(u.personCode))
+    if (!rows.length) return null
+    const data = useMiriStore.getState()
+    const pmap = new Map(data.persons.map((p) => [p.code, p]))
+    const reasons = {}
+    const villages = {}
+    for (const u of rows) {
+      reasons[u.reason] = (reasons[u.reason] || 0) + 1
+      const v = pmap.get(u.personCode)?.villageCode
+      if (v) villages[v] = (villages[v] || 0) + 1
+    }
+    const vnow = vnowOf(d)
+    const codes = rows.map((u) => u.personCode)
+    const events = { ...d.events }
+    for (const u of rows) events[u.personCode] = { step: 'handedToFire', reason: u.reason, at: vnow }
+    const req = { at: vnow, count: codes.length, reasons, villages, codes }
+    set({ events, fireRequests: [...d.fireRequests, req], handovers: [...d.handovers, { at: vnow, codes, receiver: '동해소방서 지원 요청(미배정)', kind: 'support', reasons }] })
+    return req
+  },
+
   handover: (codes) => {
     const d = get()
     const vnow = vnowOf(d)
@@ -231,9 +304,23 @@ export const useDispatchStore = create((set, get) => ({
       metrics: d.result?.metrics, initialMetrics: d.result?.initialMetrics, baseline: d.result?.baseline?.metrics, handovers: d.handovers, targets: scope.size,
       helpers: d.result ? d.result.assignments.flatMap((a) => a.helperCodes).length : 0
     })
+    clearRemote().catch(() => {})
     set({ ...EMPTY, status: 'closed', closedRecordId: id })
   },
   reset: () => set({ ...EMPTY })
 }))
 
+// 발령 상태가 바뀌면 1.5초 뒤 서버에 저장(브라우저에서만)
+if (typeof window !== 'undefined') {
+  let timer = null
+  const WATCH = ['status', 'result', 'confirmedAt', 'ackOverride', 'events', 'handovers', 'arrivals']
+  useDispatchStore.subscribe((s, prev) => {
+    if (!WATCH.some((k) => s[k] !== prev[k])) return
+    if (s.kind !== 'drill' || !['standby', 'assigned', 'sent'].includes(s.status)) return
+    clearTimeout(timer)
+    timer = setTimeout(() => { useDispatchStore.getState().syncSave() }, 1500)
+  })
+}
+
+export { snapshotOf }
 export default useDispatchStore

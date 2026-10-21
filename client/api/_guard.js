@@ -82,6 +82,8 @@ function store() {
   if (!redis || redisKey !== `${url}|${token}`) { redis = new Redis({ url, token }); redisKey = `${url}|${token}` }
   return redis
 }
+// 발령 저장(api/dispatch.js)이 같은 저장소를 쓴다
+export const sharedStore = () => store()
 const mem = new Map()
 export function memIncr(key, ttlSec, now = Date.now()) {
   for (const [k, v] of mem) if (v.until < now) mem.delete(k) // 오래된 키 정리

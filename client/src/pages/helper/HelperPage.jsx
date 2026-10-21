@@ -19,6 +19,7 @@ import { HAZARD_KINDS } from '../../lib/scenario.js'
 import { typeOf } from '../../lib/shortage.js'
 import { fmtHM } from '../../lib/time.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
+import RemoteHelper from './RemoteHelper.jsx'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 
 const NEXT = {
@@ -47,7 +48,7 @@ function startDemo() {
   useDispatchStore.getState().confirmAndSend()
 }
 
-export default function HelperPage() {
+function DemoHelperPage() {
   useEffect(() => { document.title = '도우미 배정 | 미리' }, [])
   const { token } = useParams()
   const d = useDispatchStore()
@@ -232,4 +233,10 @@ export default function HelperPage() {
       />
     </div>
   )
+}
+
+// /h/demo 는 이 브라우저 안 시연, 그 밖의 토큰은 서버 서명 링크(회신 R34)
+export default function HelperPage() {
+  const { token } = useParams()
+  return token === 'demo' ? <DemoHelperPage /> : <RemoteHelper token={token} />
 }

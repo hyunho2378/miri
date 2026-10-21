@@ -1,7 +1,7 @@
 // 발령 운영(IA 4.6). 핵심 기능 2(마을별 도달 시계)와 3(배정표), 추천 배정 계산.
 // 평시 → 실행대기 발령 → 배정 검토 → 이송 진행 → 종료. 단계 표시줄 아래에는 현재 단계의 할 일 하나만 크게 둔다(PRD v2 F2).
-import { useMemo, useState } from 'react'
-import { ExternalLink, MessageSquareText, Minus, Plus, Route, Siren, UserRoundCheck } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { CloudCheck, CloudOff, ExternalLink, LifeBuoy, MessageSquareText, Minus, Plus, Route, Siren, UserRoundCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
 import BasisLine from '../../components/miri/BasisLine.jsx'
@@ -253,6 +253,43 @@ function AssignedPanel({ meta }) {
   )
 }
 
+// 서버 저장 상태와 도우미별 서명 링크(회신 R34)
+function RemoteStatus() {
+  const remote = useDispatchStore((s) => s.remote)
+  const helpers = useDispatchStore((s) => (s.result ? [...new Set(s.result.assignments.flatMap((a) => a.helperCodes))] : []))
+  const toast = useToast()
+  const saved = remote.state === 'saved'
+  const tokens = Object.entries(remote.tokens || {}).filter(([h, t]) => t && helpers.includes(h))
+  return (
+    <Card as="section" aria-label="발령 저장 상태" padding="sm">
+      <div className="flex flex-wrap items-center gap-3">
+        {saved ? <CloudCheck size={20} aria-hidden="true" className="text-primary-text" /> : <CloudOff size={20} aria-hidden="true" className="text-text-meta" />}
+        <p className="min-w-0 flex-1 type-body-sm text-text-sec">
+          {saved
+            ? <>서버 저장 {remote.savedAt ? fmtHM(remote.savedAt) : ''}{remote.polledAt ? `, 도우미 보고 조회 ${fmtHM(remote.polledAt)}(10초 주기)` : ''}. 새로고침 뒤에도 발령 상태 유지.</>
+            : <>이 브라우저 안에서만 진행{remote.reason ? `(${remote.reason})` : ''}. 서버 저장은 시연 코드 로그인 뒤 사용.</>}
+        </p>
+      </div>
+      {tokens.length > 0 && (
+        <Disclosure summary={`도우미별 링크 ${tokens.length}개(본인 배정만 조회, 12시간 뒤 만료)`}>
+          <ul className="divide-y divide-line-sub">
+            {tokens.map(([h, t]) => {
+              const url = `${window.location.origin}/h/${t}`
+              return (
+                <li key={h} className="flex flex-wrap items-center gap-3 py-2">
+                  <span className="type-strong text-text-pri tabular-nums">{h}</span>
+                  <a href={`/h/${t}`} target="_blank" rel="noreferrer" className="inline-flex min-h-11 md:min-h-0 items-center gap-1 type-body-sm text-primary-text underline underline-offset-2">링크 열기<ExternalLink size={14} aria-hidden="true" /></a>
+                  <Button size="sm" variant="secondary" onClick={() => { navigator.clipboard?.writeText(url); toast(`${h} 링크 복사`) }}>링크 복사</Button>
+                </li>
+              )
+            })}
+          </ul>
+        </Disclosure>
+      )}
+    </Card>
+  )
+}
+
 // 이송 진행: 실시간 현황, 도우미 응답, 실패 대응, 마을별 시계
 function SentPanel({ now, meta }) {
   const scenario = useMiriStore(activeScenario)
@@ -263,6 +300,13 @@ function SentPanel({ now, meta }) {
   const toast = useToast()
   const [filter, setFilter] = useState('all')
   const [confirmClose, setConfirmClose] = useState(false)
+  const pollReports = useDispatchStore((s) => s.pollReports)
+  // 도우미 보고 10초 주기 조회(회신 R34)
+  useEffect(() => {
+    pollReports()
+    const t = setInterval(pollReports, 10_000)
+    return () => clearInterval(t)
+  }, [pollReports])
 
   const stops = useMemo(() => indexStops(d.result), [d.result])
   const unassignedMap = useMemo(() => Object.fromEntries(d.result.unassigned.map((u) => [u.personCode, u])), [d.result])
@@ -347,6 +391,28 @@ function SentPanel({ now, meta }) {
           ))}
         </ul>
       </TaskCard>
+
+      <RemoteStatus />
+
+      {(() => {
+        const waiting = d.result.unassigned.filter((u) => d.events[u.personCode]?.step !== 'handedToFire')
+        if (!waiting.length) return null
+        const byReason = waiting.reduce((m, u) => ({ ...m, [u.reason]: (m[u.reason] || 0) + 1 }), {})
+        return (
+          <Card as="section" aria-label="미배정 소방 지원 요청" tone="danger" padding="sm" bodyClassName="flex flex-wrap items-center gap-3">
+            <LifeBuoy size={20} aria-hidden="true" className="text-danger-text" />
+            <p className="min-w-0 flex-1 type-body-sm text-text-pri">
+              <strong className="tabular-nums">미배정 {waiting.length}명</strong>
+              <span className="text-text-sec"> ({Object.entries(byReason).map(([r, n]) => `${UNSERVED_REASON[r] || r} ${n}명`).join(', ')}). 이송 기한까지 기다리지 않고 소방 지원 요청 대상.</span>
+            </p>
+            {role === 'city' && (
+              <Button size="sm" variant="danger" onClick={() => { const q = d.requestFireSupport(); toast(q ? `소방 지원 요청: 미배정 ${q.count}명, 동해소방서` : '요청할 미배정자가 없습니다.', q ? 'primary' : 'danger') }}>
+                소방 지원 요청
+              </Button>
+            )}
+          </Card>
+        )
+      })()}
 
       {fails.length > 0 && (
         <section aria-label="이송 실패" className="space-y-2">
@@ -441,6 +507,9 @@ function SentPanel({ now, meta }) {
 }
 
 export default function DispatchPage() {
+  const restoreRemote = useDispatchStore((s) => s.restoreRemote)
+  // 새로고침 뒤 서버에 저장한 발령 복원(회신 R34)
+  useEffect(() => { restoreRemote() }, [restoreRemote])
   const status = useDispatchStore((s) => s.status)
   const hasResult = useDispatchStore((s) => !!s.result)
   const now = useNow()
