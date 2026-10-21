@@ -22,7 +22,7 @@ function KitBody({ platform }) {
       <main className="mob-content">
         <Banner tone="blue">이송 완료 기한 16:14까지, 남은 시간 2시간 10분</Banner>
         <Card>
-          <p className="mob-t-label" style={{ color: 'var(--m-ink-3)' }}>배정 차량 V-09</p>
+          <p className="mob-t-label mob-ink-3">배정 차량 V-09</p>
           <p className="mob-t-title" style={{ margin: '4px 0 8px' }}>괴란동, 묵호진동 4명</p>
           <Progress value={50} label="이송 진행 2명 중 4명" />
           <p className="mob-t-foot" style={{ marginTop: 8 }}>이송 2명 완료, 2명 남음</p>

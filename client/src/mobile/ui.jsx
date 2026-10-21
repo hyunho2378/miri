@@ -341,14 +341,87 @@ export function FilledInput({className='', type='text', ...props}) {
 }
 
 // App-owned sheet, never input[type=time] or a native select.
-export function TimePicker({ value='', onChange, disabled, ...props }) {
- const ref = useRef(null); const platform = useRootPlatform(ref)
- const [open,setOpen]=useState(false)
- const [hour,setHour]=useState('00');const [minute,setMinute]=useState('00')
- const choose=()=>{const [h,m]=(validTime(value)?value:'00:00').split(':');setHour(h);setMinute(m);setOpen(true)}
- const result=timeValue(hour,minute)
-
- return <span ref={ref} className="mob-time-control"><Button variant="gray" block disabled={disabled} onClick={choose} aria-label="증상 시각 선택">{validTime(value)?value:'시각 선택'}</Button><Sheet open={open} onClose={()=>setOpen(false)} title="시각 선택"><div className="mob-time-digital"><label>시<input {...props} className="mob-filled-input" inputMode="numeric" maxLength={2} value={hour} onChange={e=>setHour(e.target.value.replace(/\D/g,''))} /></label><span>:</span><label>분<input className="mob-filled-input" inputMode="numeric" maxLength={2} value={minute} onChange={e=>setMinute(e.target.value.replace(/\D/g,''))} /></label></div>{!validTime(result)&&<p role="alert" className="mob-t-sub">시는 00부터 23, 분은 00부터 59까지 입력해 주세요.</p>}<div className="mob-h-sheet-actions"><Button block disabled={!validTime(result)} onClick={()=>{onChange?.({target:{value:result}});setOpen(false)}}>확인</Button><Button variant="plain" block onClick={()=>setOpen(false)}>취소</Button></div></Sheet></span>
+// iOS: 키트 'Date and time - Collapsed'(30:53803) 알약을 누르면 'Date and time - Pickers' Inline(51:56014) 카드가 시트로 열린다. 휠 없음.
+// Android: M3 키트 'Keyboard picker'(52949:28053) 24시간 입력형.
+const WEEK = ['일', '월', '화', '수', '목', '금', '토']
+function IosInlineCalendar({ day, onDay }) {
+  const [view, setView] = useState(() => new Date(day.getFullYear(), day.getMonth(), 1))
+  const today = new Date()
+  const first = view.getDay()
+  const last = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate()
+  const cells = Array.from({ length: first + last }, (_, n) => (n < first ? null : n - first + 1))
+  const same = (a, d) => a.getFullYear() === view.getFullYear() && a.getMonth() === view.getMonth() && a.getDate() === d
+  const move = (k) => setView(new Date(view.getFullYear(), view.getMonth() + k, 1))
+  return (
+    <div className="mob-ios-cal">
+      <div className="mob-ios-cal-head">
+        <p className="mob-ios-cal-month">{view.getFullYear()}년 {view.getMonth() + 1}월<span className="mob-ios-cal-disc" aria-hidden="true"><ChevronRight size={13} strokeWidth={3} /></span></p>
+        <span className="mob-ios-cal-arrows">
+          <button type="button" className="mob-ios-cal-arrow" aria-label="이전 달" onClick={() => move(-1)}><ChevronLeft size={20} /></button>
+          <button type="button" className="mob-ios-cal-arrow" aria-label="다음 달" onClick={() => move(1)}><ChevronRight size={20} /></button>
+        </span>
+      </div>
+      <div className="mob-ios-cal-week" aria-hidden="true">{WEEK.map((w) => <span key={w}>{w}</span>)}</div>
+      <div className="mob-ios-cal-grid" role="grid" aria-label="날짜">
+        {cells.map((d, n) => d === null ? <span key={'e' + n} /> : (
+          <button key={d} type="button" role="gridcell" aria-selected={same(day, d)} className={`mob-ios-day ${same(today, d) ? 'is-today' : ''} ${same(day, d) ? 'is-selected' : ''}`} onClick={() => onDay(new Date(view.getFullYear(), view.getMonth(), d))}>{d}</button>
+        ))}
+      </div>
+    </div>
+  )
+}
+function DigitPair({ hour, minute, setHour, setMinute, inputProps, className }) {
+  return (
+    <span className={className}>
+      <input {...inputProps} aria-label="시" inputMode="numeric" maxLength={2} value={hour} onChange={(e) => setHour(e.target.value.replace(/\D/g, ''))} />
+      <span aria-hidden="true">:</span>
+      <input aria-label="분" inputMode="numeric" maxLength={2} value={minute} onChange={(e) => setMinute(e.target.value.replace(/\D/g, ''))} />
+    </span>
+  )
+}
+export function TimePicker({ value = '', onChange, disabled, label = '시각', ...props }) {
+  const { platform } = usePlatform()
+  const [open, setOpen] = useState(false)
+  const [hour, setHour] = useState('00')
+  const [minute, setMinute] = useState('00')
+  const [day, setDay] = useState(() => new Date())
+  const choose = () => { const [h, m] = (validTime(value) ? value : timeValue(new Date().getHours(), new Date().getMinutes())).split(':'); setHour(h); setMinute(m); setOpen(true) }
+  const result = timeValue(hour, minute)
+  const ok = validTime(result)
+  const commit = () => { onChange?.({ target: { value: result } }); setOpen(false) }
+  const hint = !ok && <p role="alert" className="mob-t-sub">시는 00부터 23, 분은 00부터 59까지 입력해 주세요.</p>
+  if (platform === 'android') {
+    return (
+      <span className="mob-time-control">
+        <Button variant="gray" block disabled={disabled} onClick={choose} aria-label={`${label} 선택`}>{validTime(value) ? value : `${label} 선택`}</Button>
+        <Sheet open={open} onClose={() => setOpen(false)} title={`${label} 입력`}>
+          <div className="mob-m3-timepicker">
+            <p className="mob-m3-tp-title">시각 입력</p>
+            <DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={props} className="mob-m3-tp-digits" />
+            <span className="mob-m3-tp-caption" aria-hidden="true"><span>시</span><span>분</span></span>
+            {hint}
+            <div className="mob-m3-tp-actions"><Button variant="plain" onClick={() => setOpen(false)}>취소</Button><Button variant="plain" disabled={!ok} onClick={commit}>확인</Button></div>
+          </div>
+        </Sheet>
+      </span>
+    )
+  }
+  return (
+    <span className="mob-time-control">
+      <span className="mob-ios-collapsed">
+        <button type="button" className={`mob-ios-pill ${open ? 'is-selected' : ''}`} disabled={disabled} onClick={choose} aria-label={`${label} 날짜 선택`}>{day.getMonth() + 1}월 {day.getDate()}일</button>
+        <button type="button" className={`mob-ios-pill ${open ? 'is-selected' : ''}`} disabled={disabled} onClick={choose} aria-label={`${label} 선택`}>{validTime(value) ? value : '선택'}</button>
+      </span>
+      <Sheet open={open} onClose={() => setOpen(false)} title={label}>
+        <div className="mob-ios-inline">
+          <IosInlineCalendar day={day} onDay={setDay} />
+          <div className="mob-ios-inline-time"><span className="mob-t-body">시간</span><DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={props} className="mob-ios-pill mob-ios-pill-input" /></div>
+        </div>
+        {hint}
+        <div className="mob-h-sheet-actions"><Button block disabled={!ok} onClick={commit}>완료</Button><Button variant="plain" block onClick={() => setOpen(false)}>취소</Button></div>
+      </Sheet>
+    </span>
+  )
 }
 export const FilledTextarea = ({className='', ...props}) => <textarea {...props} className={`mob-filled-input ${className}`} />
 export function BottomActions({children}) { return <div className="mob-h-bottom">{children}</div> }

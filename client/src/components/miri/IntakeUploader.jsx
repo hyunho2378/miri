@@ -60,7 +60,7 @@ export default function IntakeUploader({ villages, onFile, onSample, busy }) {
         <p className={clsx('mt-2', drag ? 'type-strong text-primary-text' : 'type-body-sm text-text-sec')}>{drag ? '놓으면 서류 읽기를 시작합니다.' : '사진이나 스캔 이미지를 끌어다 놓습니다.'}</p>
         <p className="mt-1 type-meta text-text-meta">6MB 이하의 이미지 파일을 올려 주십시오.</p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <label htmlFor={inputId} aria-disabled={busy || !virtualOk} className={clsx('pressable inline-flex items-center gap-2 h-10 min-h-11 md:min-h-0 px-4 rounded-md bg-page text-text-pri shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-mute type-strong cursor-pointer', (busy || !virtualOk) && 'pointer-events-none opacity-40')}>
+          <label htmlFor={inputId} aria-disabled={busy || !virtualOk} className={clsx('pressable inline-flex items-center gap-2 h-10 min-h-11 md:min-h-0 px-4 rounded-md bg-page text-text-pri shadow-sm hover:bg-mute type-strong cursor-pointer', (busy || !virtualOk) && 'pointer-events-none opacity-40')}>
             <FileUp size={16} aria-hidden="true" />파일 선택
           </label>
           <input id={inputId} ref={fileRef} type="file" accept="image/png,image/jpeg,image/tiff,application/pdf" className="sr-only" disabled={busy || !virtualOk}

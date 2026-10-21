@@ -251,7 +251,7 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 /* 부품 견본(/m/kit): 390 폭 프레임 안에 고정 요소를 가둔다 */
 .mob-kit-page { min-height: 100dvh; background: var(--m-fill); display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; padding: 24px; }
 .mob-kit-page.single { padding: 0; gap: 0; background: var(--m-canvas, var(--m-canvas)); }
-.mob-frame { width: 390px; height: 844px; position: relative; overflow: hidden; border-radius: 20px; box-shadow: 0 16px 48px rgba(0,0,0,0.18); flex: none; }
+.mob-frame { width: 390px; height: 844px; position: relative; overflow: hidden; border-radius: 20px; box-shadow: var(--m-shadow-3); flex: none; }
 .mob-kit-page.single .mob-frame { border-radius: 0; box-shadow: none; }
 .mob-frame > .mob-root { height: 100%; overflow: auto; }
 .mob-frame .mob-nav, .mob-frame .mob-toast-wrap, .mob-frame .mob-scrim { position: absolute; }
@@ -302,14 +302,37 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-root.platform-android .mob-btn:focus-visible { background-image:linear-gradient(var(--m-press),var(--m-press)); }
 
 .mob-time-control { display:block; }
-.mob-time-wheels,.mob-time-digital { display:flex; align-items:center; justify-content:center; gap:16px; margin:16px 0; }
-.mob-time-wheel { max-height:220px; overflow-y:auto; scroll-snap-type:y mandatory; flex:1; background:var(--m-fill); border-radius:var(--m-r-md); }
-.mob-time-wheel button { display:block; width:100%; min-height:var(--m-touch); border:0; background:transparent; color:var(--m-ink); font:inherit; scroll-snap-align:center; }
-.mob-time-wheel [aria-selected=true] { background:var(--m-blue); color:var(--m-on-primary); }
-.mob-time-digital label { max-width:96px; }
-.mob-time-digital input { font-size:var(--t-display); text-align:center; }
 /* Figma 52949:28053 keyboard picker 24-hour. Radius maps to shared 20 scale by project rule. */
-.mob-root.platform-android .mob-time-digital { width:264px; min-height:144px; margin:16px auto; }
-.mob-root.platform-android .mob-time-digital input { width:96px; height:95px; font-size:57px; font-weight:400; line-height:64px; }
-.mob-root.platform-android .mob-time-digital > span { width:24px; font-size:57px; text-align:center; }
-.mob-root.platform-ios .mob-time-control > .mob-btn { border-radius:var(--m-r-full); }
+.mob-root.platform-android .mob-root.platform-android .mob-root.platform-android .mob-root.platform-ios .mob-time-control > .mob-btn { border-radius:var(--m-r-full); }
+.mob-ink-3 { color: var(--m-ink-3); }
+
+/* iOS 키트 Date and time - Collapsed(30:53803), Pickers Inline(51:56014) */
+.mob-ios-collapsed { display:flex; gap:8px; }
+.mob-ios-pill { min-height:34px; padding:6px 11px; border:0; border-radius:6px; background:var(--m-fill); color:var(--m-ink); font:inherit; font-size:17px; line-height:22px; cursor:pointer; }
+.mob-ios-pill.is-selected { color:var(--m-blue); }
+.mob-ios-collapsed .mob-ios-pill { min-height:var(--m-touch); }
+.mob-ios-inline { background:var(--m-page); border-radius:13px; padding:12px; box-shadow:var(--m-shadow-1); margin:8px 0 12px; }
+.mob-ios-cal-head { display:flex; align-items:center; justify-content:space-between; height:40px; }
+.mob-ios-cal-month { display:flex; align-items:center; gap:4px; font-size:17px; line-height:22px; font-weight:590; color:var(--m-ink); margin:0; }
+.mob-ios-cal-disc { color:var(--m-blue); display:inline-flex; }
+.mob-ios-cal-arrows { display:flex; gap:4px; }
+.mob-ios-cal-arrow { width:var(--m-touch); height:var(--m-touch); display:inline-flex; align-items:center; justify-content:center; border:0; background:transparent; color:var(--m-blue); cursor:pointer; }
+.mob-ios-cal-week, .mob-ios-cal-grid { display:grid; grid-template-columns:repeat(7, 1fr); justify-items:center; }
+.mob-ios-cal-week span { font-size:13px; line-height:18px; font-weight:590; color:var(--m-ink-4, rgba(60,60,67,0.3)); height:20px; }
+.mob-ios-cal-grid { row-gap:6px; margin-top:6px; }
+.mob-ios-day { width:44px; height:44px; border:0; border-radius:9999px; background:transparent; color:var(--m-ink); font:inherit; font-size:20px; line-height:24px; font-weight:400; cursor:pointer; }
+.mob-ios-day.is-today { color:var(--m-blue); }
+.mob-ios-day.is-selected { background:var(--m-blue); color:var(--m-on-primary); font-weight:590; }
+.mob-ios-inline-time { display:flex; align-items:center; justify-content:space-between; margin-top:12px; min-height:var(--m-touch); }
+.mob-ios-pill-input { display:inline-flex; align-items:center; gap:2px; }
+.mob-ios-pill-input input { width:2.2ch; border:0; background:transparent; color:inherit; font:inherit; font-size:17px; text-align:center; min-height:var(--m-touch); }
+/* M3 키트 Keyboard picker(52949:28053) 24시간 */
+.mob-m3-timepicker { width:264px; margin:8px auto; padding:24px 24px 12px; border-radius:28px; background:var(--m-fill); box-sizing:content-box; }
+.mob-m3-tp-title { margin:0 0 20px; font-size:12px; line-height:16px; font-weight:500; letter-spacing:.5px; color:var(--m-ink-3); }
+.mob-m3-tp-digits { display:flex; align-items:center; gap:0; }
+.mob-m3-tp-digits input { width:96px; height:72px; border:0; border-radius:8px; background:var(--m-page); color:var(--m-ink); font:inherit; font-size:57px; line-height:64px; font-weight:400; text-align:center; }
+.mob-m3-tp-digits input:focus { outline:2px solid var(--m-blue); background:var(--m-blue-container, var(--m-page)); }
+.mob-m3-tp-digits > span { width:24px; font-size:57px; line-height:64px; text-align:center; color:var(--m-ink); }
+.mob-m3-tp-caption { display:flex; gap:24px; margin-top:7px; font-size:12px; line-height:16px; color:var(--m-ink-3); }
+.mob-m3-tp-caption span { width:96px; }
+.mob-m3-tp-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; min-height:48px; }

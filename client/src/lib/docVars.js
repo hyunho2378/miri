@@ -45,8 +45,8 @@ export const VAR_DEFS = [
 ]
 export const VAR_BY_KEY = Object.fromEntries(VAR_DEFS.map((d) => [d.key, d]))
 
-const TD = 'border:1px solid #33363d;padding:4px 6px;text-align:center'
-const TH = `${TD};background:#e6e8ea;font-weight:700`
+const TD = 'border:1px solid #1C1C1E;padding:4px 6px;text-align:center'
+const TH = `${TD};background:#E5E5EA;font-weight:700`
 const table = (head, rows) => `<table class="dv-table" style="border-collapse:collapse;width:100%;margin:6px 0"><thead><tr>${head.map((h) => `<th style="${TH}">${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td style="${TD}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`
 
 // 값 계산. data 는 useMiriStore 상태, scenario 는 활성 시나리오

@@ -31,8 +31,8 @@ const lawCache = new Map()
 const LAW_TONE = { exists: ['success', '실존'], not_found: ['danger', '없음'], unknown: ['warning', '확인 불가'] }
 const MM = 96 / 25.4
 const exec = (cmd, arg) => document.execCommand(cmd, false, arg)
-const COLORS = ['#000000', '#33363d', '#58616a', '#8a949e', '#256ef4', '#083891', '#d63d4a', '#ab2b36']
-const MARKS = ['#fff3a3', '#d8e5fd', '#f5d6d9', '#e6e8ea']
+const COLORS = ['#000000', '#48484A', '#8E8E93', '#1E6EF4', '#E9152D']
+const MARKS = ['#FFCC00', '#E5E5EA']
 const SYMBOLS = ['「', '」', '『', '』', '·', 'ㆍ', '∼', '○', '●', '□', '■', '◇', '◆', '△', '▲', '※', '☞', '→', '←', '↑', '↓', '①', '②', '③', '④', '⑤', '㉮', '㉯', '㉰', '℃', '㎞', '㎡', '㎏', '%', '∨', '≒', '±', '×', '÷', 'Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ']
 const today = () => { const d = new Date(); return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.` }
 
@@ -617,7 +617,7 @@ export default function DocEditor() {
       <nav aria-label="메뉴" className="no-scrollbar flex h-8 shrink-0 items-end gap-0.5 overflow-x-auto bg-page px-2">
         {MENUS.map(([k, l]) => (
           <button key={k} type="button" onClick={() => setMenu(k)} aria-pressed={menu === k}
-            className={clsx('h-7 shrink-0 whitespace-nowrap rounded-t-xs px-3 text-[13px]', menu === k ? 'bg-subtle font-bold text-primary-text shadow-[inset_0_-2px_0_#256ef4]' : 'text-text-sec hover:text-text-pri')}>{l}</button>
+            className={clsx('h-7 shrink-0 whitespace-nowrap rounded-t-xs px-3 text-[13px]', menu === k ? 'bg-subtle font-bold text-primary-text shadow-[inset_0_-2px_0_#1E6EF4]' : 'text-text-sec hover:text-text-pri')}>{l}</button>
         ))}
       </nav>
       {/* 기능 상자 */}
@@ -654,13 +654,13 @@ export default function DocEditor() {
         <div className="flex min-w-0 flex-1 flex-col">
           {/* 미리보기 중에도 편집 본문은 남겨 둔다(내보내기가 본문을 읽음) */}
           <>
-            <div className={clsx('min-h-0 flex-1 overflow-auto bg-[#e9ebee]', view !== 'edit' && 'hidden')} onMouseDown={(e) => { if (pop && pop !== 'find' && !e.target.closest('.z-dropdown')) setPop(null) }}>
-              {ruler && <div className="sticky top-0 z-raised hidden bg-[#e9ebee] pt-1 pl-[18px] md:block"><HRuler page={page} zoom={z} /></div>}
+            <div className={clsx('min-h-0 flex-1 overflow-auto bg-[#E5E5EA]', view !== 'edit' && 'hidden')} onMouseDown={(e) => { if (pop && pop !== 'find' && !e.target.closest('.z-dropdown')) setPop(null) }}>
+              {ruler && <div className="sticky top-0 z-raised hidden bg-[#E5E5EA] pt-1 pl-[18px] md:block"><HRuler page={page} zoom={z} /></div>}
               <div className="flex w-max min-w-full justify-center px-3 pb-10 pt-3 md:px-6">
                 {ruler && <div className="mr-1 hidden pt-0 md:block"><VRuler page={page} zoom={z} pages={stats.pages} /></div>}
                 <div style={{ zoom: z }}>
-                  <div ref={pageRef} className="hwp-page relative shadow-[0_1px_4px_rgba(0,0,0,.25)]"
-                    style={{ backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent calc(${page.height}mm - 1px), #b1b8be calc(${page.height}mm - 1px), #b1b8be ${page.height}mm)` }}>
+                  <div ref={pageRef} className="hwp-page relative shadow-[0_1px_4px_rgba(0,0,0,0.18)]"
+                    style={{ backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent calc(${page.height}mm - 1px), #AEAEB2 calc(${page.height}mm - 1px), #AEAEB2 ${page.height}mm)` }}>
                     <div className="hwp-frame" contentEditable={false} dangerouslySetInnerHTML={{ __html: headHtml({ ...meta, preset: presetKey }) }} />
                     <div ref={bodyRef} className="hwp-body" contentEditable={!locked} suppressContentEditableWarning spellCheck={false}
                       onInput={onInput} onKeyDown={onKeyDown} onPaste={onPaste}
@@ -715,7 +715,7 @@ export default function DocEditor() {
                       <dt>장평</dt><dd className="flex gap-1">{[90, 95, 100, 105].map((v) => <button key={v} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => setRatio(v)} className="h-7 flex-1 rounded-xs bg-subtle hover:bg-mute">{v}%</button>)}</dd>
                       <dt>자간</dt><dd className="flex gap-1">{[-10, -5, 0, 5].map((v) => <button key={v} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => setSpacing(v)} className="h-7 flex-1 rounded-xs bg-subtle hover:bg-mute">{v}%</button>)}</dd>
                       <dt>글자 색</dt><dd className="flex flex-wrap gap-1">{COLORS.map((c) => <button key={c} type="button" aria-label={`글자 색 ${c}`} onMouseDown={(e) => e.preventDefault()} onClick={() => setColor(c)} className="h-6 w-6 rounded-xs ring-1 ring-line-def" style={{ background: c }} />)}</dd>
-                      <dt>형광펜</dt><dd className="flex gap-1">{[...MARKS, 'transparent'].map((c) => <button key={c} type="button" aria-label={c === 'transparent' ? '형광펜 지우기' : `형광펜 ${c}`} onMouseDown={(e) => e.preventDefault()} onClick={() => setMark(c)} className="h-6 w-6 rounded-xs ring-1 ring-line-def" style={{ background: c === 'transparent' ? 'repeating-linear-gradient(45deg,#fff 0 3px,#cdd1d5 3px 4px)' : c }} />)}</dd>
+                      <dt>형광펜</dt><dd className="flex gap-1">{[...MARKS, 'transparent'].map((c) => <button key={c} type="button" aria-label={c === 'transparent' ? '형광펜 지우기' : `형광펜 ${c}`} onMouseDown={(e) => e.preventDefault()} onClick={() => setMark(c)} className="h-6 w-6 rounded-xs ring-1 ring-line-def" style={{ background: c === 'transparent' ? 'repeating-linear-gradient(45deg,#FFFFFF 0 3px,#C7C7CC 3px 4px)' : c }} />)}</dd>
                     </dl>
                   </section>
                   <section>
@@ -810,7 +810,7 @@ export default function DocEditor() {
 function Swatches({ list, onPick }) {
   return (
     <div className="absolute left-0 top-8 z-dropdown flex w-max gap-1 rounded-md bg-page p-2 shadow-float ring-1 ring-line-sub" onMouseDown={(e) => e.preventDefault()}>
-      {list.map((c) => <button key={c} type="button" aria-label={c} onClick={() => onPick(c)} className="h-6 w-6 rounded-xs ring-1 ring-line-def" style={{ background: c === 'transparent' ? 'repeating-linear-gradient(45deg,#fff 0 3px,#cdd1d5 3px 4px)' : c }} />)}
+      {list.map((c) => <button key={c} type="button" aria-label={c} onClick={() => onPick(c)} className="h-6 w-6 rounded-xs ring-1 ring-line-def" style={{ background: c === 'transparent' ? 'repeating-linear-gradient(45deg,#FFFFFF 0 3px,#C7C7CC 3px 4px)' : c }} />)}
     </div>
   )
 }
@@ -832,7 +832,7 @@ function PreviewPane({ preview, zoom, onBack, onRetry, onSave, onPrint, onPdf })
     svg.style.margin = '0 auto'
   }, [preview, zoom])
   return (
-    <div className="min-h-0 flex-1 overflow-auto bg-[#d9dce1]">
+    <div className="min-h-0 flex-1 overflow-auto bg-[#D1D1D6]">
       <div className="sticky left-0 top-0 z-raised flex items-center gap-2 border-b border-line-def bg-page px-3 py-1.5 type-meta text-text-sec">
         <Eye size={14} className="shrink-0" aria-hidden="true" />
         <span className="min-w-0 flex-1 truncate" title="내보낼 HWPX 파일을 서버에서 실제로 만들어 kordoc 조판 엔진으로 그린 모양입니다">
@@ -850,7 +850,7 @@ function PreviewPane({ preview, zoom, onBack, onRetry, onSave, onPrint, onPdf })
       {preview?.state === 'loading' && <p className="p-10 text-center type-body-sm text-text-meta">한글 문서를 만들고 쪽을 그리는 중입니다.</p>}
       {preview?.state === 'error' && <p className="p-10 text-center type-body-sm text-danger-text">{preview.message}</p>}
       <style>{'.hwp-preview svg text{white-space:pre}'}</style>
-      <div ref={ref} className="hwp-preview w-max min-w-full px-3 py-6 [&_svg]:shadow-[0_1px_4px_rgba(0,0,0,.25)]" />
+      <div ref={ref} className="hwp-preview w-max min-w-full px-3 py-6 [&_svg]:shadow-[0_1px_4px_rgba(0,0,0,0.18)]" />
     </div>
   )
 }

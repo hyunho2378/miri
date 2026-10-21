@@ -2,8 +2,8 @@
 // 본문에서 법령 인용을 찾는 함수를 모아 둔다. 브라우저 DOM 을 쓴다.
 // .doc-page 스타일은 index.css 에 있어 표는 인라인 스타일로 그린다.
 
-const TD = 'border:1px solid #9ca3af;padding:6px 8px;vertical-align:top'
-const TH = `${TD};background:#f3f4f6;font-weight:700`
+const TD = 'border:1px solid #AEAEB2;padding:6px 8px;vertical-align:top'
+const TH = `${TD};background:#F2F2F7;font-weight:700`
 const TABLE = 'border-collapse:collapse;width:100%;margin:12px 0;font-size:14px'
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
