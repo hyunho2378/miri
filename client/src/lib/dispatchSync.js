@@ -4,7 +4,7 @@ import { helperBrief } from './dispatchSim.js'
 import { HAZARD_KINDS } from './scenario.js'
 
 const API = '/api/dispatch'
-const KEYS = ['status', 'kind', 'speed', 'realStart', 'vStart', 'arrivals', 'result', 'confirmedAt', 'sentAt', 'ackPlan', 'ackOverride', 'failPlan', 'events', 'handovers', 'manualHelper', 'smsLog', 'scopeCodes', 'fireRequests']
+const KEYS = ['status', 'kind', 'speed', 'realStart', 'vStart', 'issuedAt', 'arrivals', 'result', 'confirmedAt', 'sentAt', 'ackPlan', 'ackOverride', 'failPlan', 'events', 'handovers', 'manualHelper', 'smsLog', 'scopeCodes', 'fireRequests']
 
 // JSON 으로 옮길 수 있는 값만. Infinity(무응답 계획)는 null 로 바뀌므로 복원 때 되돌린다
 export function snapshotOf(d) {
