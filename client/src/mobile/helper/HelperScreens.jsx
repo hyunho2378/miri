@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, CircleX, Clock, CloudOff, Link2Off, MapPin, Phone, RefreshCw, Send, ShieldCheck, Truck, Users } from 'lucide-react'
-import { AppBar, Banner, Button, Card, Chip, Dialog, EmptyState, List, ListRow, Progress, Sheet, Spinner, Toggle, DisplaySettings, useMobileToast } from '../ui.jsx'
+import { radioProps, AppBar, Banner, Button, Card, Chip, Dialog, EmptyState, List, ListRow, Progress, Sheet, Spinner, Toggle, DisplaySettings, useMobileToast } from '../ui.jsx'
 import { usePlatform } from '../usePlatform.js'
 import { fmtHM } from '../../lib/time.js'
 import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, STEP_LABEL, STEP_ORDER, lastAck, progressOf, remainText, screenOf, stepsByPerson, telOf } from './flow.js'
@@ -111,7 +111,7 @@ function H2({ m, onBack }) {
       <main id="main" className="mob-content no-nav">
         <p className="mob-t-sub mob-h-lead">사유를 고르면 담당자가 다른 도우미를 배정해요.</p>
         <div className="mob-h-chips" role="radiogroup" aria-label="불가 사유">
-          {Object.entries(DECLINE_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)}>{v}</Chip>)}
+          {Object.entries(DECLINE_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)} {...radioProps(Object.keys(DECLINE_REASONS_M), reason, setReason, k)}>{v}</Chip>)}
         </div>
         <label className="mob-h-field"><span className="mob-t-label">메모(선택)</span>
           <textarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="담당자에게 전할 말" />
@@ -257,7 +257,7 @@ function H6({ m, code, onBack, onDone }) {
       <main id="main" className="mob-content no-nav">
         <p className="mob-t-sub mob-h-lead">{code} 대상자. 실패로 보고하면 담당자 휴대폰의 소방 지원 요청 화면에 실패 대상자로 올라가요.</p>
         <div className="mob-h-chips" role="radiogroup" aria-label="실패 사유">
-          {Object.entries(FAIL_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)}>{v}</Chip>)}
+          {Object.entries(FAIL_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)} {...radioProps(Object.keys(FAIL_REASONS_M), reason, setReason, k)}>{v}</Chip>)}
         </div>
         <label className="mob-h-field"><span className="mob-t-label">메모(선택)</span><textarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="현장 상황" /></label>
       </main>

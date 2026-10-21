@@ -116,11 +116,33 @@ export function Chip({ selected, tone, onClick, children, ...rest }) {
 }
 
 // 세그먼트(iOS segmented, M3 segmented button). 단일 선택 radiogroup.
+// radio 묶음 방향키 이동과 roving tabindex(GPT 9차 M7). 선택된 항목만 Tab 으로 들어가고 화살표로 옮기며 바로 고른다
+export function radioProps(values, current, onChange, value) {
+  const sel = values.includes(current) ? current : values[0]
+  return {
+    tabIndex: value === sel ? 0 : -1,
+    onKeyDown: (e) => {
+      const i = values.indexOf(value)
+      let j = null
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') j = (i + 1) % values.length
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') j = (i - 1 + values.length) % values.length
+      else if (e.key === 'Home') j = 0
+      else if (e.key === 'End') j = values.length - 1
+      if (j == null) return
+      e.preventDefault()
+      onChange(values[j])
+      const group = e.currentTarget.closest('[role="radiogroup"]')
+      const items = group ? group.querySelectorAll('[role="radio"]') : []
+      items[j]?.focus()
+    }
+  }
+}
+
 export function Segmented({ label, options, value, onChange }) {
   return (
     <div className="mob-seg" role="radiogroup" aria-label={label}>
       {options.map((o) => (
-        <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}>{o.label}</button>
+        <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)} {...radioProps(options.map((x) => x.value), value, onChange, o.value)}>{o.label}</button>
       ))}
     </div>
   )

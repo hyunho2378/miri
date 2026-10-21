@@ -451,7 +451,16 @@ export function FieldIntakePage() {
       <main id="main" className="mob-content">
         <List label="판독 전 확인">
           <VillagePicker villages={data.villages} value={villageCode} onChange={setVillageCode} />
-          <ListRow title="가상 자료만 올림" subtitle="실제 주민 서류 업로드 금지" trailing={<input type="checkbox" className="mob-check" checked={agree} onChange={(e) => setAgree(e.target.checked)} aria-label="가상 자료만 올림" />} />
+          {/* 행 전체가 체크 영역(GPT 9차 M5): label 로 감싸 최소 터치 높이 이상, 글자를 눌러도 체크 */}
+          <li>
+            <label className="mob-row tall" style={{ cursor: 'pointer', minHeight: 'var(--m-touch, 48px)' }}>
+              <span className="mob-row-main">
+                <span className="mob-t-body">가상 자료만 올림</span>
+                <span className="mob-t-sub">실제 주민 서류 업로드 금지</span>
+              </span>
+              <span className="mob-row-trail"><input type="checkbox" className="mob-check" checked={agree} onChange={(e) => setAgree(e.target.checked)} /></span>
+            </label>
+          </li>
           <ListRow title="처리 위치" subtitle="국내 CLOVA OCR 글자 읽기, 이름과 연락처 가림 뒤 HyperCLOVA X 등급 초안, 서울 처리" />
         </List>
         <input ref={fileRef} type="file" accept="image/png,image/jpeg,application/pdf" capture="environment" hidden onChange={(e) => { run(e.target.files?.[0]); e.target.value = '' }} />
