@@ -3,6 +3,7 @@
 import { Route, Truck, Users } from 'lucide-react'
 import { capOf, typeOf } from '../../lib/shortage.js'
 import { fmtHM } from '../../lib/time.js'
+import { tripCheckNotes } from '../../lib/tripChecks.js'
 import Card from '../ui/Card.jsx'
 import Disclosure from '../ui/Disclosure.jsx'
 import Select from '../ui/Select.jsx'
@@ -23,16 +24,7 @@ export function moveOptions(assignments, vehicles, code, fromTrip) {
 }
 
 // 회차 확인 표시 문구. checks 는 tripChecks() 결과
-export function tripCheckNotes(checks) {
-  if (!checks) return []
-  const notes = []
-  if (checks.companionCall.length) notes.push({ tone: 'primary', text: `동행 연락 필요 ${checks.companionCall.length}명(평소 돌봄 담당자)` })
-  if (checks.caregiverUnreachable.length) notes.push({ tone: 'warning', text: `돌봄 담당자 연락 불가 ${checks.caregiverUnreachable.length}명` })
-  if (checks.commCaution.length) notes.push({ tone: 'primary', text: `의사소통 유의 ${checks.commCaution.length}명` })
-  if (checks.liftUnchecked.length) notes.push({ tone: 'warning', text: `리프트 차량 진입 확인 필요: ${checks.liftUnchecked.join(', ')}` })
-  if (checks.routeCheck) notes.push({ tone: 'warning', text: '경로 확인 필요(직선 기준, 도로 경로 아님)' })
-  return notes
-}
+export { tripCheckNotes }
 
 export default function AssignmentBundle({ assignment, vehicle, villageLabel = (c) => c, assignments, vehicles, onMove, editable = false, checkTrip, careOf }) {
   const type = typeOf(vehicle?.type)

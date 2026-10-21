@@ -1,13 +1,15 @@
 // dispatchSim.js 발령 진행 상태 계산. 가상 시계 기준으로 이송 단계를 결정한다.
 // 수동 도우미(도우미 화면을 쓰는 사람)의 대상자는 자동 진행 없이 보고로만 바뀐다.
 import { MIN, fmtHM } from './time.js'
+import { vnowOfState } from './clock.js'
 
 export const STEPS = ['wait', 'depart', 'arrive', 'board', 'handover']
 export const STEP_LABEL = { wait: '대기', depart: '출발', arrive: '도착', board: '탑승', handover: '인계 완료', fail: '실패', handedToFire: '소방 인계' }
 export const FAIL_REASONS = { absent: '부재', refuse: '이송 거부', blocked: '진입 불가', worse: '상태 악화', etc: '기타' }
 export const DECLINE_REASONS = { far: '거리 멀음', health: '건강 문제', etc: '기타' }
 
-export const vnowOf = (d, real = Date.now()) => (d.realStart ? d.vStart + (real - d.realStart) * d.speed : real)
+// 입력은 실제 시각만(clock.js)
+export const vnowOf = (d, real = Date.now()) => vnowOfState(d, real)
 
 // 대상자 -> 소속 차량과 회차
 export function indexStops(result) {

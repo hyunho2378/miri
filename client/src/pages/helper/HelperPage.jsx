@@ -23,7 +23,7 @@ import RemoteHelper from './RemoteHelper.jsx'
 import { mobilePathFor } from '../../mobile/helper/flow.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { tripChecks } from '../../lib/tripChecks.js'
-import { tripCheckNotes } from '../../components/miri/AssignmentBundle.jsx'
+import { tripCheckNotes } from '../../lib/tripChecks.js'
 
 const NEXT = {
   wait: { step: 'depart', label: '출발' },

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Camera, Flame, Send, Siren, Truck, UserCheck, FileText, MessageSquare, Search } from 'lucide-react'
-import useNow from '../../hooks/useNow.js'
+import { useRealNow } from '../../hooks/useNow.js'
 import useOpenData from '../../hooks/useOpenData.js'
 import { useDispatchStore } from '../../store/useDispatchStore.js'
 import { activeScenario, useMiriStore } from '../../store/useMiriStore.js'
@@ -30,7 +30,8 @@ function useDispatchLive() {
     const t = setInterval(() => pollReports?.(), 10_000)
     return () => clearInterval(t)
   }, [d.status, pollReports])
-  const now = useNow(5000)
+  // 실제 시각을 받아 한 번만 가상 시각으로 바꾼다(배속 이중 적용으로 경과 시간이 커지던 문제)
+  const now = useRealNow(5000)
   return { d, vnow: d.realStart ? vnowOf(d, now) : now, now }
 }
 
@@ -228,9 +229,18 @@ export function FieldVillageDetailPage() {
 export function FieldHelpersPage() {
   const { d, vnow } = useDispatchLive()
   const replaceHelper = useDispatchStore((s) => s.replaceHelper)
+  const resendLink = useDispatchStore((s) => s.resendLink)
   const toast = useMobileToast()
   const [tab, setTab] = useState('none')
   const [confirm, setConfirm] = useState(null)
+  const [linkOf, setLinkOf] = useState(null)
+  const tokens = d.remote?.tokens || {}
+  const linkFor = (h) => (tokens[h] ? `${window.location.origin}/h/${tokens[h]}` : null)
+  const copy = async (h) => {
+    const url = linkFor(h)
+    if (!url) { toast('서버 저장 전이라 링크 없음'); return }
+    try { await navigator.clipboard.writeText(url); toast(`${h} 링크 복사`) } catch { toast('복사 실패, 링크를 길게 눌러 복사') }
+  }
   if (!ACTIVE.has(d.status) || !d.result) return <NoDispatch title="도우미 응답" body="배정 계산 뒤 도우미 응답 표시" />
   const g = helperResponses(d, vnow)
   const rows = g[tab]
@@ -246,11 +256,22 @@ export function FieldHelpersPage() {
           <List label="도우미 목록">
             {rows.map((h) => (
               <ListRow key={h.code} title={h.code} subtitle={`차량 ${h.vehicle}, ${h.trips}회차${h.reason ? `, 사유 ${DECLINE_REASONS[h.reason] || h.reason}` : ''}${h.memo ? `, 메모 ${h.memo}` : ''}`} meta={h.at ? `${hm(h.at)} 응답` : `문자 ${h.sms}회 발송`}
-                trailing={tab === 'accept' ? null : <Button size="sm" variant="tonal" onClick={() => setConfirm(h)}>{tab === 'decline' ? '교체' : '교체 요청'}</Button>} />
+                trailing={<span style={{ display: 'inline-flex', gap: 8 }}>
+                  <Button size="sm" variant="plain" aria-label={`${h.code} 배정 링크`} onClick={() => setLinkOf(h)}>링크</Button>
+                  {tab === 'accept' ? null : <Button size="sm" variant="tonal" onClick={() => setConfirm(h)}>{tab === 'decline' ? '교체' : '교체 요청'}</Button>}
+                </span>} />
             ))}
           </List>
         )}
       </main>
+      <Sheet open={!!linkOf} onClose={() => setLinkOf(null)} title={`${linkOf?.code || ''} 배정 링크`}>
+        <p className="mob-t-foot mob-pad">본인 배정만 조회, 12시간 뒤 만료. 문자 {linkOf?.sms ?? 0}회 발송</p>
+        <p className="mob-t-body mob-pad" style={{ wordBreak: 'break-all' }}>{linkOf ? (linkFor(linkOf.code) || '서버 저장 전이라 링크 없음') : ''}</p>
+        <div className="mob-pad" style={{ display: 'grid', gap: 8 }}>
+          <Button block variant="tonal" disabled={!linkOf || !linkFor(linkOf.code)} onClick={() => copy(linkOf.code)}>링크 복사</Button>
+          <Button block onClick={() => { const ok = resendLink?.(linkOf.code); toast(ok ? `${linkOf.code} 문자 재발송 기록` : '재발송 실패'); setLinkOf(null) }}>문자 재발송</Button>
+        </div>
+      </Sheet>
       <Dialog open={!!confirm} onClose={() => setConfirm(null)} title={`${confirm?.code} 교체`} body="같은 등급을 지원하는 대기 도우미로 바꾸고 새 배정 문자를 보냄"
         actions={<><Button variant="plain" onClick={() => setConfirm(null)}>취소</Button><Button onClick={() => { const r = replaceHelper?.(confirm.code); toast(r ? `${confirm.code} 교체 완료` : '교체할 도우미 없음'); setConfirm(null) }}>교체</Button></>} />
     </>
@@ -259,7 +280,7 @@ export function FieldHelpersPage() {
 
 // F4 미배정과 소방 지원 요청
 export function FieldFirePage() {
-  const { d } = useDispatchLive()
+  const { d, vnow } = useDispatchLive()
   const data = useMiriStore()
   const navigate = useNavigate()
   const requestFireSupport = useDispatchStore((s) => s.requestFireSupport)
@@ -268,7 +289,7 @@ export function FieldFirePage() {
   const [open, setOpen] = useState(false)
   const [openFail, setOpenFail] = useState(false)
   const u = unservedByReason(d)
-  const failed = failedPending(d)
+  const failed = failedPending(d, data.persons, vnow)
   return (
     <>
       <AppBar title="소방 지원 요청" onBack={() => navigate('/m/f/more')} backLabel="더보기" />

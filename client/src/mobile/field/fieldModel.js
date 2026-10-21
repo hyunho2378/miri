@@ -1,6 +1,7 @@
 // fieldModel.js 현장 담당자 휴대폰 화면(F1~F7)의 파생 값. 순수 함수. 콘솔과 같은 store 값을 같은 함수로 센다.
 import { STEP_LABEL, ackOf, indexStops, stepOf } from '../../lib/dispatchSim.js'
 import { UNSERVED_REASON } from '../../lib/assign.js'
+import { elapsedMinOf } from '../../lib/clock.js'
 
 export const ACTIVE = new Set(['standby', 'assigned', 'sent'])
 export const STATUS_LABEL = { idle: '평시', standby: '발령 개시, 배정 전', assigned: '배정 계산 완료, 전송 전', sent: '배정 전송, 이송 진행', closed: '발령 종료' }
@@ -37,7 +38,7 @@ export function fieldSummary(d, persons, villages, vnow) {
     else counts[r.step] += 1
   }
   const total = rows.length
-  const elapsedMin = d.issuedAt ? Math.max(0, Math.round((vnow - d.issuedAt) / 60000)) : 0
+  const elapsedMin = elapsedMinOf(d, vnow)
   const upcoming = Object.entries(d.arrivals || {})
     .map(([code, at]) => ({ code, name: villageName(villages, code), at, left: rows.filter((r) => r.person.villageCode === code && !DONE.has(r.step) && r.step !== 'handedToFire').length }))
     .filter((x) => x.at > vnow && x.left > 0)
@@ -92,9 +93,15 @@ export function unservedByReason(d) {
 }
 
 // GPT 8차 M3: 배정됐지만 실패로 보고된 대상자(아직 소방 인계 전). 미배정 요청과 따로 묶는다
-export function failedPending(d) {
+// F1 과 같은 기준: 보고된 실패와 훈련 진행상 실패(failPlan)를 모두 센다(persons, vnow 를 주면 F1 집계와 같은 함수)
+export function failedPending(d, persons = null, vnow = null) {
   const ev = d?.events || {}
-  return Object.entries(ev).filter(([, e]) => e?.step === 'fail').map(([code, e]) => ({ code, reason: e.reason || null, memo: e.memo || null, at: e.at || null }))
+  if (!persons) return Object.entries(ev).filter(([, e]) => e?.step === 'fail').map(([code, e]) => ({ code, reason: e.reason || null, memo: e.memo || null, at: e.at || null }))
+  return personSteps(d, persons, vnow).filter((r) => r.step === 'fail').map((r) => {
+    const e = ev[r.person.code] || {}
+    const p = d.failPlan?.[r.person.code] || {}
+    return { code: r.person.code, reason: e.reason || p.reason || null, memo: e.memo || null, at: e.at || p.at || null }
+  })
 }
 
 // F5 대상자 검색. 이름은 없으므로 대상자 번호와 마을 이름으로 찾는다

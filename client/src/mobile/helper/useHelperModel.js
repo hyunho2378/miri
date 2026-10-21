@@ -1,7 +1,7 @@
 // 도우미 모바일 화면의 자료 모델. 시연(/m/h/demo)은 이 브라우저의 발령 상태, 실제 링크(/m/h/:token)는 서버 api 와 전송 대기열을 그대로 쓴다.
 // 두 경로가 같은 모양(model)을 돌려주므로 화면은 한 벌로 iOS와 Android 를 함께 그린다.
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import useNow from '../../hooks/useNow.js'
+import useNow, { useRealNow } from '../../hooks/useNow.js'
 import { clockNow, helperGet, helperSendResult } from '../../lib/dispatchSync.js'
 import { clearScope, enqueue, flush, moveToRejected, readQueue, readRejected } from '../../lib/reportQueue.js'
 import { ackOf, helperBrief, indexStops, stepOf } from '../../lib/dispatchSim.js'
@@ -9,7 +9,7 @@ import { personDest } from '../../lib/assign.js'
 import { HAZARD_KINDS } from '../../lib/scenario.js'
 import { gradeOf, typeOf } from '../../lib/shortage.js'
 import { personCare, shelterAccess, tripChecks } from '../../lib/tripChecks.js'
-import { tripCheckNotes } from '../../components/miri/AssignmentBundle.jsx'
+import { tripCheckNotes } from '../../lib/tripChecks.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { errorCodeOf } from './flow.js'
@@ -102,7 +102,8 @@ export function useRemoteModel(token) {
   const [error, setError] = useState(null)
   const [queue, setQueue] = useState(() => readQueue(scope))
   const [lastOk, setLastOk] = useState(null)
-  const now = useNow()
+  // 실제 시각을 받아 배정 요약의 발령 시계(brief.clock)로 한 번만 바꾼다. 이 브라우저의 담당자 발령 상태와 섞지 않는다
+  const now = useRealNow(1000)
 
   const load = useCallback(async () => {
     try { const r = await helperGet(token); setRes(r); setError(null); setLastOk(Date.now()) } catch (e) {
@@ -116,7 +117,7 @@ export function useRemoteModel(token) {
     // 그 밖의 영구 거부(400, 409)는 지우지 않고 '보내지 못한 보고'로 옮겨 사유를 보여 줌
     const r = await flush(scope, async (it) => {
       const res = await helperSendResult(token, it)
-      if (res.kind === 'ok') return true
+      if (res.kind === 'ok') { setLastOk(Date.now()); return true }
       if (res.kind === 'retry') return false
       const code = errorCodeOf({ status: res.status, code: res.code })
       if (code === 'CLOSED' || code === 'NO_ASSIGNMENT' || code === 'EXPIRED' || code === 'BAD_TOKEN') { setError({ code, message: res.message }); return false }
@@ -143,18 +144,18 @@ export function useRemoteModel(token) {
     if (error && error.code !== 'NETWORK') return { phase: 'error', error }
     if (!res) return error ? { phase: 'error', error } : { phase: 'loading' }
     const b = res.brief || {}
-    const vclock = Math.round(clockNow(b.clock))
+    const vclock = Math.round(clockNow(b.clock, now))
     const push = (item) => {
       enqueue(scope, { ...item, at: Math.round(clockNow(b.clock)) })
       setQueue(readQueue(scope))
       return send()
     }
-    const trips = (b.trips || []).map((t) => ({ index: t.index, village: t.village, departAt: t.departAt, finishAt: t.finishAt, personCodes: t.personCodes || [], routeCheck: false }))
+    const trips = (b.trips || []).map((t) => ({ index: t.index, village: t.village, departAt: t.departAt, finishAt: t.finishAt, personCodes: t.personCodes || [], routeCheck: !!t.routeCheck }))
     return {
       phase: 'ready', demo: false, helper: res.helper, drill: !!b.drill, now: vclock || now,
       disaster: b.disaster || '산불', completeBy: b.completeBy ?? null, villages: b.villages || [],
       meetPlace: `${b.meetVillage || '-'} 첫 대상자 댁`, vehicle: b.vehicleCode || '-', coHelpers: b.coHelpers || [],
-      officerContact: b.officerContact || '발령 담당자, 문자 회신', notes: [], trips,
+      officerContact: b.officerContact || '발령 담당자, 문자 회신', notes: Array.isArray(b.notes) ? b.notes.filter((x) => typeof x === 'string').slice(0, 8) : [], trips,
       codes: b.personCodes || trips.flatMap((t) => t.personCodes),
       // 실제 링크는 이름, 주소, 건강 정보를 휴대폰으로 보내지 않는다. 상세는 담당자 문자와 현장 확인
       detail: () => null, expiresAt: res.expiresAt,

@@ -2,6 +2,8 @@
 // 서버(api/dispatch)는 시연 세션이 있을 때만 쓴다. 세션이나 저장소가 없으면 이 브라우저 안에서만 진행하고 사유를 상태로 남긴다.
 import { helperBrief } from './dispatchSim.js'
 import { HAZARD_KINDS } from './scenario.js'
+import { virtualAt } from './clock.js'
+import { mergeChecks, tripCheckNotes, tripChecks } from './tripChecks.js'
 
 const API = '/api/dispatch'
 const KEYS = ['status', 'kind', 'speed', 'realStart', 'vStart', 'issuedAt', 'arrivals', 'result', 'confirmedAt', 'sentAt', 'ackPlan', 'ackOverride', 'failPlan', 'events', 'handovers', 'manualHelper', 'smsLog', 'scopeCodes', 'fireRequests']
@@ -21,7 +23,7 @@ export function restoreSnapshot(s) {
 }
 
 // 도우미마다 서버에 둘 배정 요약. 대상자 코드와 회차만(가상 시연 명부 코드), 이름과 주소는 넣지 않는다
-export function briefsOf(d, { scenario, villages = [], officerContact = '' } = {}) {
+export function briefsOf(d, { scenario, villages = [], officerContact = '', persons = null, shelters = null } = {}) {
   if (!d.result) return {}
   const hz = HAZARD_KINDS[scenario?.kind]?.label
   const out = {}
@@ -29,14 +31,23 @@ export function briefsOf(d, { scenario, villages = [], officerContact = '' } = {
   for (const h of helpers) {
     const a = d.result.assignments.find((x) => x.helperCodes.includes(h))
     const label = (c) => d.result?.ctx?.vmap?.[c]?.label || villages.find((v) => v.code === c)?.label || c
+    // 확인할 점(동행 연락, 리프트, 경로): 인원 수와 시설명만 담는다. 이름, 주소, 건강 정보는 넣지 않는다(실서버 흐름 확인 5번)
+    let checks = null
+    if (persons && shelters) {
+      const pBy = Object.fromEntries(persons.map((p) => [p.code, p]))
+      const sBy = Object.fromEntries(shelters.map((x) => [x.code, x]))
+      const vShelter = (c) => villages.find((v) => v.code === c)?.shelterCode
+      checks = Object.fromEntries(a.trips.map((t) => [t.index, tripChecks({ trip: t, persons: pBy, shelters: sBy, villages, scenario, villageShelter: vShelter })]))
+    }
     out[h] = {
       ...helperBrief({ result: d.result, me: h, scenario, villages, hazardLabel: hz }),
+      notes: checks ? tripCheckNotes(mergeChecks(Object.values(checks))).map((n) => n.text) : [],
       drill: d.kind === 'drill', officerContact: officerContact || '발령 담당자, 문자 회신',
       // 도우미 보고 시각을 발령 가상 시계로 맞추기 위한 기준(GPT 5차 M1). 배속을 바꾸면 다시 저장된다
       clock: { realStart: d.realStart, vStart: d.vStart, speed: d.speed },
       trips: [...a.trips].sort((x, y) => x.index - y.index).map((t) => ({
         index: t.index, village: label(t.village), grade: t.grade, personCodes: t.personCodes,
-        departAt: t.departAt, finishAt: t.finishAt, shelters: t.shelters || []
+        departAt: t.departAt, finishAt: t.finishAt, shelters: t.shelters || [], routeCheck: !!checks?.[t.index]?.routeCheck
       })),
       personCodes: a.trips.flatMap((t) => t.personCodes)
     }
@@ -62,7 +73,7 @@ export const clearRemote = (dispatchId) => call('DELETE', '', null, dispatchId ?
 // 발령 ID 는 화면이 정한다(GPT 5차 H4). 서버 형식 /^D[0-9a-z]{6,20}$/
 export const newDispatchId = (now = Date.now()) => `D${now.toString(36)}${Math.random().toString(16).slice(2, 8).padEnd(6, '0')}`
 // 도우미 화면의 보고 시각. 발령 가상 시계 기준(담당자 화면의 보고와 같은 시간 축)
-export const clockNow = (clock, real = Date.now()) => (clock && clock.realStart ? clock.vStart + (real - clock.realStart) * (clock.speed || 1) : real)
+export const clockNow = (clock, real = Date.now()) => virtualAt(clock, real)
 
 // 도우미 링크 쪽
 export async function helperGet(token) {

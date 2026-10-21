@@ -103,3 +103,23 @@ export function tripChecks({ trip, persons = {}, shelters = {}, villages = [], s
 export function withShelterChecks(list) {
   return list.map((s) => ({ ...s, liftAccess: s.liftAccess ?? null, nightOpen: s.nightOpen ?? null }))
 }
+
+// 회차 확인 결과를 화면 문구로(담당자 배정표, 도우미 화면, 서버 배정 요약 공통). 인원 수와 시설명만, 개인정보 없음
+export function tripCheckNotes(checks) {
+  if (!checks) return []
+  const notes = []
+  if (checks.companionCall.length) notes.push({ tone: 'primary', text: `동행 연락 필요 ${checks.companionCall.length}명(평소 돌봄 담당자)` })
+  if (checks.caregiverUnreachable.length) notes.push({ tone: 'warning', text: `돌봄 담당자 연락 불가 ${checks.caregiverUnreachable.length}명` })
+  if (checks.commCaution.length) notes.push({ tone: 'primary', text: `의사소통 유의 ${checks.commCaution.length}명` })
+  if (checks.liftUnchecked.length) notes.push({ tone: 'warning', text: `리프트 차량 진입 확인 필요: ${checks.liftUnchecked.join(', ')}` })
+  if (checks.routeCheck) notes.push({ tone: 'warning', text: '경로 확인 필요(직선 기준, 도로 경로 아님)' })
+  return notes
+}
+
+// 여러 회차 확인 결과 합치기
+export function mergeChecks(list) {
+  return list.reduce((m, c) => ({
+    companionCall: [...m.companionCall, ...c.companionCall], caregiverUnreachable: [...m.caregiverUnreachable, ...c.caregiverUnreachable],
+    commCaution: [...m.commCaution, ...c.commCaution], liftUnchecked: [...new Set([...m.liftUnchecked, ...c.liftUnchecked])], routeCheck: m.routeCheck || c.routeCheck
+  }), { companionCall: [], caregiverUnreachable: [], commCaution: [], liftUnchecked: [], routeCheck: false })
+}

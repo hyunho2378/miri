@@ -144,6 +144,15 @@ export const useDispatchStore = create((set, get) => ({
     return next.code
   },
 
+  // 도우미 링크 문자 재발송(현장 휴대폰 F3). 시연은 발송 기록만 남긴다
+  resendLink: (helper) => {
+    const d = get()
+    if (!d.result || !d.result.assignments.some((a) => a.helperCodes.includes(helper))) return false
+    const vnow = vnowOf(d)
+    set({ smsLog: [...d.smsLog, { helper, at: vnow, resend: true, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 배정 링크 재발송(${helper}). 링크에서 수락 또는 불가 응답` }] })
+    return true
+  },
+
   // 실패 대상자 재배정: 지금 이후 가장 빨리 비는 호환 차량에 새 회차 추가
   // 발령 때 확정한 계산 문맥(시나리오 대피소와 왕복 시간, 시간대 차량, 완료 기한)을 그대로 쓰고 도우미까지 다시 확인한다(GPT 검토 S4)
   reassign: (code) => {
@@ -215,7 +224,7 @@ export const useDispatchStore = create((set, get) => ({
     set((s) => ({ remote: { ...s.remote, dispatchId, rev } }))
     const same = () => get().remote.dispatchId === dispatchId && ['standby', 'assigned', 'sent'].includes(get().status)
     try {
-      const r = await saveRemote(get(), { scenario: activeScenario(data), villages: data.villages, officerContact: data.settings?.officerContact }, { dispatchId, rev })
+      const r = await saveRemote(get(), { scenario: activeScenario(data), villages: data.villages, officerContact: data.settings?.officerContact, persons: data.persons, shelters: data.shelters }, { dispatchId, rev })
       if (!same()) return null // 응답이 오기 전에 종료했거나 다른 발령으로 바뀜
       set((s) => ({ remote: { ...s.remote, state: 'saved', dispatchId: r.dispatchId, tokens: { ...s.remote.tokens, ...r.tokens }, reason: null, savedAt: Date.now() } }))
       return r
@@ -287,7 +296,7 @@ export const useDispatchStore = create((set, get) => ({
     const d = get()
     const vnow = vnowOf(d)
     const events = { ...d.events }
-    codes.forEach((c) => { events[c] = { step: 'handedToFire', reason: d.events[c]?.reason || d.failPlan[c]?.reason || 'capacity', at: vnow } })
+    codes.forEach((c) => { const prev = d.events[c] || {}; events[c] = { step: 'handedToFire', reason: prev.reason || d.failPlan[c]?.reason || 'capacity', ...(prev.memo ? { memo: prev.memo } : {}), ...(prev.care ? { care: prev.care } : {}), at: vnow } })
     set({ events, handovers: [...d.handovers, { at: vnow, codes, receiver: '동해소방서' }] })
   },
 
@@ -335,12 +344,15 @@ export const useDispatchStore = create((set, get) => ({
 
 // 발령 상태가 바뀌면 1.5초 뒤 서버에 저장하고, 앱을 처음 열 때 어느 화면이든 서버의 발령을 복원(브라우저에서만, 도우미 링크 화면 제외)
 if (typeof window !== 'undefined') {
-  if (!window.location.pathname.startsWith('/h/')) setTimeout(() => { useDispatchStore.getState().restoreRemote() }, 0)
+  // 도우미 링크 화면(/h/, /m/h/)은 담당자 발령을 불러오거나 저장하지 않는다(같은 브라우저에서 두 화면을 열면 시계와 배정이 섞이던 문제)
+  const helperPage = () => /^\/(m\/)?h\//.test(window.location.pathname)
+  if (!helperPage()) setTimeout(() => { useDispatchStore.getState().restoreRemote() }, 0)
   let timer = null
   const WATCH = ['status', 'result', 'confirmedAt', 'ackOverride', 'events', 'handovers', 'arrivals', 'speed', 'realStart', 'vStart', 'fireRequests']
   useDispatchStore.subscribe((s, prev) => {
     if (!WATCH.some((k) => s[k] !== prev[k])) return
     if (s.kind !== 'drill' || !['standby', 'assigned', 'sent'].includes(s.status)) return
+    if (helperPage() && !s.remote?.dispatchId) return
     clearTimeout(timer)
     timer = setTimeout(() => { useDispatchStore.getState().syncSave() }, 1500)
   })

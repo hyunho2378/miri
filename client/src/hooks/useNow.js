@@ -3,6 +3,16 @@ import { useEffect, useState } from 'react'
 import { vnowOf } from '../lib/dispatchSim.js'
 import useDispatchStore from '../store/useDispatchStore.js'
 
+// 실제 시각 틱(가상 시각 계산은 clock.js 로 따로 한다)
+export function useRealNow(intervalMs = 1000) {
+  const [t, setT] = useState(Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setT(Date.now()), intervalMs)
+    return () => clearInterval(id)
+  }, [intervalMs])
+  return t
+}
+
 export default function useNow(intervalMs = 1000) {
   const [, setTick] = useState(0)
   useEffect(() => {
