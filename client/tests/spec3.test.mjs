@@ -12,7 +12,7 @@ assert.match(tail, /\.mob-m3-tp-digits input \{[^}]*height: 72px[^}]*background:
 assert.match(tail, /\.mob-m3-tp-actions \{[^}]*padding: 0 24px 20px 12px; height: 68px/)
 assert.match(tail, /\.mob-kit-page\.single \.mob-frame \{ width: 100vw; height: 100dvh; \}/)
 assert.match(tail, /\.mob-row:not\(\.kv\) \{ flex-wrap: wrap; \}/)
-assert.match(tail, /\.mob-row:not\(\.kv\) \.mob-row-main \{ flex: 1 1 8em; \}/)
+assert.match(tail, /\.mob-row:not\(\.kv\) \.mob-row-main \{ flex: 1 1 6em; \}/)
 assert.match(tail, /word-break: keep-all/)
 assert.match(ui, /className="mob-m3-tp-sel"/)
 // 40 + 20 + 95 + 20 + 68 = 243 (키트 Format=24 hour 264x243)

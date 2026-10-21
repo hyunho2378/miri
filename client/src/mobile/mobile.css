@@ -598,7 +598,7 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 
 /* 목록 행: 제목이 한 글자씩 꺾이지 않게 제목 칸 최소 폭을 두고, 뒤쪽 부품이 안 들어가면 다음 줄로 내린다 */
 .mob-row:not(.kv) { flex-wrap: wrap; }
-.mob-row:not(.kv) .mob-row-main { flex: 1 1 8em; }
+.mob-row:not(.kv) .mob-row-main { flex: 1 1 6em; }   /* 6em: Duo 안쪽 두 단(334)에서 번호와 칩, 화살표가 한 줄에 들어가는 폭 */
 .mob-row-main, .mob-row-main * { word-break: keep-all; overflow-wrap: break-word; }
 .mob-row:not(.kv) .mob-row-trail { margin-left: auto; max-width: 100%; }
 
