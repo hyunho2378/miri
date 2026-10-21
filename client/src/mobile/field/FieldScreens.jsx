@@ -220,6 +220,9 @@ export function FieldVillageDetailPage() {
   const v = scope.inScope(code) ? villageProgress(d, data.persons, data.villages, vnow).find((x) => x.code === code) : null
   const village = data.villages.find((x) => x.code === code)
   const vehicles = v ? v.vehicles.map((vc) => data.vehicles.find((x) => x.code === vc) || { code: vc }) : []
+  // 도우미별 탑승 차량(같은 마을 회차 기준)
+  const rideOf = {}
+  for (const r of v?.people || []) if (r.stop) for (const h of r.stop.helperCodes) (rideOf[h] ||= new Set()).add(r.stop.vehicleCode)
   return (
     <>
       <AppBar title={villageName(data.villages, code)} onBack={() => navigate('/m/f/villages')} backLabel="마을" />
@@ -244,7 +247,7 @@ export function FieldVillageDetailPage() {
             <Section title={`도우미 ${v.helpers.length}명`}>
               {!v.helpers.length ? <EmptyState title="배정 도우미 없음" /> : (
                 <List label="배정 도우미">
-                  {v.helpers.map((h) => <ListRow key={h} title={h} />)}
+                  {v.helpers.map((h) => <ListRow key={h} title={h} subtitle={rideOf[h] ? `${[...rideOf[h]].join(', ')} 동승` : undefined} />)}
                 </List>
               )}
             </Section>

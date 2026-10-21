@@ -15,11 +15,11 @@ export function sizeClassOf(width) {
 }
 
 // 갤럭시 Z 폴드와 일반 갤럭시 시험 크기(CSS px). 삼성 공식 사양의 물리 해상도를 기본 배율로 나눈 추정값이다.
-// 삼성은 dp 값을 공개하지 않으므로 공모전/모바일UI/규격서_iOS27_M3_20261021.md 9장에 사양 출처와 배율 가정을 함께 적었다.
+// 삼성은 dp 값을 공개하지 않으므로 공모전/모바일UI/규격서_iOS27_M3_20261021.md 7장에 사양 출처와 배율 가정을 함께 적었다.
 // - Z Fold8 Ultra(2026), Z Fold7(2025) 바깥 1080x2520 / 2.625 = 412x960
 // - Z Fold7 안쪽 1968x2184 / 2.625 = 750x832, 가로 832x750 (medium)
 // - Z Fold8(2026) 바깥 1248x1972 / 3 = 416x657, 안쪽 1848x2448 가로 / 3 = 816x616 (medium)
-// - Galaxy S26 1080x2340 / 3 = 360x780 (compact)
+// - Galaxy S26 1080x2340(FHD+ 가정, 사양 미확인) / 3 = 360x780 (compact)
 export const GALAXY_SIZES = {
   foldCover: { width: 412, height: 960 },
   fold8Cover: { width: 416, height: 657 },
