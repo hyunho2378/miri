@@ -1,6 +1,6 @@
 // 산불위험지수 한 줄. 산림청 국립산림과학원 산불위험예보정보(공공데이터포털, 민관협력 지원 플랫폼 데이터 카탈로그 수록)를
 // /api/opendata?kind=fire 로 받아 동해시 값을 보인다. 실패하면 사유를 그대로 적는다(빈 값으로 숨기지 않음).
-import { useEffect, useState } from 'react'
+import useOpenData from '../../hooks/useOpenData.js'
 import clsx from 'clsx'
 import { Flame } from 'lucide-react'
 import FreshnessNote from './FreshnessNote.jsx'
@@ -25,22 +25,7 @@ export const fmtAt = (s) => {
   return m ? `${m[1]}. ${Number(m[2])}. ${Number(m[3])}. ${m[4]}시 분석` : s
 }
 
-function useOpenData(kind) {
-  const [state, setState] = useState({ loading: true })
-  useEffect(() => {
-    let alive = true
-    fetch(`/api/opendata?kind=${kind}`)
-      .then(async (r) => {
-        const j = await r.json().catch(() => null)
-        if (!r.ok || !j || j.error) throw new Error(j?.error?.code || `HTTP ${r.status}`)
-        return j
-      })
-      .then((data) => alive && setState({ data }))
-      .catch((e) => alive && setState({ error: e.message }))
-    return () => { alive = false }
-  }, [kind])
-  return state
-}
+// 공통 조회 훅(자료 종류별 보관 기한과 다시 읽기, GPT 5차 M3)
 export const useFireRisk = () => useOpenData('fire')
 export const useWarning = () => useOpenData('warning')
 export const useWind = () => useOpenData('wind')

@@ -32,9 +32,18 @@ export function freshness(kind, data, now = Date.now()) {
   if (data.empty) return { state: 'empty', label: `응답 0건(누락 가능), 조회 ${fmtKst(data.fetchedAt)}` }
   if (STATIC_KINDS.has(kind)) return { state: 'static', label: `조회 ${fmtKst(data.fetchedAt)}` }
   const rule = MAX_LAG_MIN[kind]
+  if (!rule) return { state: 'ok', label: asOfText ? `${basis} ${asOfText}` : '' }
   const t = Date.parse(data.asOf || '')
-  if (!rule || Number.isNaN(t)) return { state: 'ok', label: asOfText ? `${basis} ${asOfText}` : '' }
+  // GPT 5차 M2: 기준 시각이 없거나 미래 시각이면 정상으로 보지 않는다
+  if (Number.isNaN(t)) return { state: 'unknown', label: `자료 기준 시각 없음, 조회 ${fmtKst(data.fetchedAt)}` }
+  if (t > now + 10 * 60000) return { state: 'unknown', label: `기준 시각 확인 필요(${asOfText}, 조회 시각보다 늦음)` }
   const lagMin = Math.max(0, Math.round((now - t) / 60000))
+  // 응급실: 병원별로 판정해 지연 기관 수를 함께 보인다
+  if (kind === 'er' && Array.isArray(data.list)) {
+    const late = data.list.filter((x) => { const u = Date.parse(x.asOf || ''); return Number.isNaN(u) || (now - u) / 60000 > rule.min }).length
+    if (late) return { state: 'stale', lagMin, limitMin: rule.min, late, label: `갱신 지연: ${data.list.length}곳 중 ${late}곳 병원 입력 ${fmtLag(rule.min)} 초과 또는 시각 없음(가장 오래된 입력 ${asOfText}, ${rule.basis})` }
+    return { state: 'ok', lagMin, limitMin: rule.min, label: `${basis} ${asOfText}` }
+  }
   if (lagMin > rule.min) return { state: 'stale', lagMin, limitMin: rule.min, label: `갱신 지연: ${basis} ${asOfText}, ${fmtLag(lagMin)} 경과(허용 ${fmtLag(rule.min)}, ${rule.basis})` }
   return { state: 'ok', lagMin, limitMin: rule.min, label: `${basis} ${asOfText}` }
 }

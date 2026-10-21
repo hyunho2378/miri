@@ -32,6 +32,8 @@ export function briefsOf(d, { scenario, villages = [], officerContact = '' } = {
     out[h] = {
       ...helperBrief({ result: d.result, me: h, scenario, villages, hazardLabel: hz }),
       drill: d.kind === 'drill', officerContact: officerContact || '발령 담당자, 문자 회신',
+      // 도우미 보고 시각을 발령 가상 시계로 맞추기 위한 기준(GPT 5차 M1). 배속을 바꾸면 다시 저장된다
+      clock: { realStart: d.realStart, vStart: d.vStart, speed: d.speed },
       trips: [...a.trips].sort((x, y) => x.index - y.index).map((t) => ({
         index: t.index, village: label(t.village), grade: t.grade, personCodes: t.personCodes,
         departAt: t.departAt, finishAt: t.finishAt, shelters: t.shelters || []
@@ -42,8 +44,9 @@ export function briefsOf(d, { scenario, villages = [], officerContact = '' } = {
   return out
 }
 
-async function call(method, action, body) {
-  const r = await fetch(`${API}${action ? `?action=${action}` : ''}`, {
+async function call(method, action, body, query = {}) {
+  const qs = new URLSearchParams({ ...(action ? { action } : {}), ...query }).toString()
+  const r = await fetch(`${API}${qs ? `?${qs}` : ''}`, {
     method, credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined
   })
@@ -52,9 +55,14 @@ async function call(method, action, body) {
   return j
 }
 
-export const saveRemote = (d, ctx) => call('POST', 'save', { dispatchId: d.remote?.dispatchId, state: snapshotOf(d), briefs: briefsOf(d, ctx) })
+export const saveRemote = (d, ctx, meta = {}) => call('POST', 'save', { dispatchId: meta.dispatchId ?? d.remote?.dispatchId, rev: meta.rev, state: snapshotOf(d), briefs: briefsOf(d, ctx) })
 export const loadRemote = () => call('GET', 'state')
-export const clearRemote = () => call('DELETE', '')
+export const clearRemote = (dispatchId) => call('DELETE', '', null, dispatchId ? { dispatchId } : {})
+
+// 발령 ID 는 화면이 정한다(GPT 5차 H4). 서버 형식 /^D[0-9a-z]{6,20}$/
+export const newDispatchId = (now = Date.now()) => `D${now.toString(36)}${Math.random().toString(16).slice(2, 8).padEnd(6, '0')}`
+// 도우미 화면의 보고 시각. 발령 가상 시계 기준(담당자 화면의 보고와 같은 시간 축)
+export const clockNow = (clock, real = Date.now()) => (clock && clock.realStart ? clock.vStart + (real - clock.realStart) * (clock.speed || 1) : real)
 
 // 도우미 링크 쪽
 export async function helperGet(token) {
@@ -67,6 +75,6 @@ export async function helperSend(token, item) {
   const r = await fetch(`${API}?action=report&t=${encodeURIComponent(token)}`, {
     method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item)
   })
-  if (r.status === 400 || r.status === 401 || r.status === 404) return true // 다시 보내도 받지 않는 보고는 대기열에서 뺀다
+  if ([400, 401, 404, 409].includes(r.status)) return true // 다시 보내도 받지 않는 보고는 대기열에서 뺀다. 503(저장 실패)과 429 는 남겨 다시 보냄
   return r.ok
 }

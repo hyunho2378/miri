@@ -16,7 +16,7 @@ await t('응급실 응답에 기관 입력 시각이 asOf 로 붙는다', async 
   const res = await call('er', async () => textRes('<response><header><resultCode>00</resultCode></header><body><items><item><dutyName>동해병원</dutyName><hvec>5</hvec><hvidate>20261021113000</hvidate></item></items></body></response>'))
   assert.equal(res.code, 200)
   assert.equal(res.body.asOf, '2026-10-21T02:30:00.000Z')
-  assert.equal(res.body.asOfBasis, '기관 입력 시각')
+  assert.equal(res.body.asOfBasis, '가장 오래된 기관 입력 시각')
   assert.equal(res.body.empty, false)
 })
 

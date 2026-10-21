@@ -11,20 +11,8 @@ const { restoreSnapshot, snapshotOf } = await import('../src/lib/dispatchSync.js
 let n = 0
 const t = async (name, fn) => { await fn(); n += 1; console.log('ok', name) }
 
-// Upstash 대신 쓰는 메모리 저장소(get, set nx, rpush, lrange, expire, ltrim, del, incr)
-function fakeRedis() {
-  const kv = new Map(); const lists = new Map()
-  return {
-    async get(k) { return kv.has(k) ? kv.get(k) : null },
-    async set(k, v, o = {}) { if (o.nx && kv.has(k)) return null; kv.set(k, v); return 'OK' },
-    async rpush(k, v) { const l = lists.get(k) || []; l.push(v); lists.set(k, l); return l.length },
-    async lrange(k) { return [...(lists.get(k) || [])] },
-    async ltrim() { return 'OK' },
-    async expire() { return 1 },
-    async del(...ks) { ks.forEach((k) => { kv.delete(k); lists.delete(k) }); return ks.length },
-    async incr(k) { const v = (kv.get(k) || 0) + 1; kv.set(k, v); return v }
-  }
-}
+// Upstash 대신 쓰는 메모리 저장소(Lua 원자 처리 흉내 포함, GPT 5차 H2와 H4 반영 뒤 공용)
+const { fakeRedis } = await import('./_fakeRedis.mjs')
 const mkRes = () => { const r = { code: 0, body: null, headers: {} }; r.status = (c) => { r.code = c; return r }; r.json = (b) => { r.body = b; return r }; r.setHeader = (k, v) => { r.headers[k] = v }; return r }
 const call = async (req) => { const res = mkRes(); await handler({ headers: { host: 'miri.test', ...(req.headers || {}) }, ...req }, res); return res }
 

@@ -7,7 +7,7 @@
 //   GET  ?action=helper&t=  본인 배정만 조회
 //   POST ?action=report&t=  { key, type: ack|step, ... } 수락, 불가, 단계 보고. key 로 중복 저장 방지
 // 훈련 발령만 저장한다(GPT 검토 S5 유지). 저장소(Upstash)가 없으면 503.
-import { randomBytes } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import { guard, incr, sameSite, sharedStore } from './_guard.js'
 import { HELPER_TTL_SEC, signHelperToken, validDispatchId, validHelperCode, verifyHelperToken } from './_helperToken.js'
 
@@ -20,9 +20,12 @@ const parse = (b) => { if (typeof b === 'string') { try { return JSON.parse(b) }
 const K = {
   owner: (sid) => `miri:dsp:o:${sid}`,
   state: (d) => `miri:dsp:s:${d}`,
-  brief: (d, h) => `miri:dsp:b:${d}:${h}`,
+  assign: (d) => `miri:dsp:a:${d}`, // 현재 배정 전체(도우미별 요약). 저장 때 통째로 바꿔 빠진 도우미의 권한이 남지 않게 함(GPT 5차 H3)
+  rev: (d) => `miri:dsp:v:${d}`,
+  idOwner: (d) => `miri:dsp:i:${d}`,
+  closed: (d) => `miri:dsp:c:${d}`, // 종료 표시. 늦게 도착한 저장 요청을 거부(GPT 5차 H4)
   reports: (d) => `miri:dsp:r:${d}`,
-  key: (d, k) => `miri:dsp:k:${d}:${k}`
+  key: (d, h, k) => `miri:dsp:k:${d}:${h}:${k}`
 }
 
 // 인계 기록(회신 R06): 상태 변화 발생 시각, 관찰 내용, 수행한 조치. 소방과 의료진 인계용으로 글자 수를 제한해 받는다
@@ -34,6 +37,32 @@ export function cleanCare(care) {
   if (!t && !observation && !action) return null
   return { symptomAt: t, observation: observation || undefined, action: action || undefined }
 }
+
+// GPT 5차 H2: 중복 확인과 보고 추가를 한 번의 원자 연산으로. 같은 key 에 다른 내용이면 충돌로 알린다.
+// 반환 [1, 목록 길이] 새로 저장, [0, 기존 해시] 이미 저장
+export const APPEND_LUA = `
+if redis.call('SET', KEYS[1], ARGV[2], 'NX', 'EX', ARGV[3]) then
+  local n = redis.call('RPUSH', KEYS[2], ARGV[1])
+  if n == 1 then redis.call('EXPIRE', KEYS[2], ARGV[3]) end
+  if n > tonumber(ARGV[4]) then redis.call('LTRIM', KEYS[2], -tonumber(ARGV[4]), -1) end
+  return {1, n}
+end
+return {0, redis.call('GET', KEYS[1])}`
+// GPT 5차 H4: 종료 표시, 발령 ID 소유 세션, 저장 순번을 한 번에 검사하고 저장. 반환 [1, 'ok'] 또는 [0, 사유]
+export const SAVE_LUA = `
+if redis.call('EXISTS', KEYS[1]) == 1 then return {0, 'closed'} end
+local o = redis.call('GET', KEYS[2])
+if o and o ~= ARGV[1] then return {0, 'owner'} end
+local cur = redis.call('GET', KEYS[3])
+if cur and tonumber(cur) >= tonumber(ARGV[2]) then return {0, 'stale'} end
+redis.call('SET', KEYS[2], ARGV[1], 'EX', ARGV[6])
+redis.call('SET', KEYS[3], ARGV[2], 'EX', ARGV[6])
+redis.call('SET', KEYS[4], ARGV[3], 'EX', ARGV[6])
+redis.call('SET', KEYS[5], ARGV[4], 'EX', ARGV[6])
+redis.call('SET', KEYS[6], ARGV[5], 'EX', ARGV[6])
+return {1, 'ok'}`
+const hashOf = (rep) => `h:${createHash('sha256').update(JSON.stringify(rep)).digest('hex').slice(0, 32)}`
+const asPair = (v) => (Array.isArray(v) ? [Number(v[0]), v[1]] : [0, null])
 
 // 도우미 보고 검사. 본인 배정 대상자만, 정해진 값만 받는다
 export function cleanReport(body, brief, h) {
@@ -71,23 +100,30 @@ export default async function handler(req, res) {
     if (!r) return fail(res, 503, 'NO_STORE', '보고 저장소에 연결되지 않았습니다. 잠시 뒤 다시 시도해 주십시오')
     const active = parse(await r.get(K.state(tk.d)))
     if (!active || active.status !== 'sent' || active.kind !== 'drill') return fail(res, 404, 'CLOSED', '종료되었거나 전송되지 않은 배정입니다')
-    const brief = parse(await r.get(K.brief(tk.d, tk.h)))
-    if (!brief) return fail(res, 404, 'NO_ASSIGNMENT', '이 링크의 배정이 종료되었거나 없습니다')
+    // 현재 배정 기준으로 다시 확인. 교체되어 빠진 도우미의 링크는 조회와 보고 모두 막힘(GPT 5차 H3)
+    const assign = parse(await r.get(K.assign(tk.d)))
+    const brief = assign?.briefs?.[tk.h]
+    if (!brief) return fail(res, 404, 'NO_ASSIGNMENT', '이 링크의 배정이 종료되었거나 다른 도우미로 바뀌었습니다')
     if (action === 'helper' && req.method === 'GET') {
       const all = (await r.lrange(K.reports(tk.d), 0, -1)) || []
       const mine = all.map(parse).filter((x) => x && x.helper === tk.h)
-      return res.status(200).json({ dispatchId: tk.d, helper: tk.h, brief, reports: mine, expiresAt: tk.exp * 1000 })
+      return res.status(200).json({ dispatchId: tk.d, helper: tk.h, brief, rev: assign.rev, reports: mine, expiresAt: tk.exp * 1000 })
     }
     if (action === 'report' && req.method === 'POST') {
       if ((await incr(`dsp:h:${tk.d}:${tk.h}`, 60)) > 60) return fail(res, 429, 'RATE_LIMIT', '보고가 너무 잦습니다. 잠시 뒤 다시 보내 주십시오')
       const rep = cleanReport(parse(req.body), brief, tk.h)
       if (!rep) return fail(res, 400, 'BAD_INPUT', '보고 형식이 맞지 않거나 본인 배정 대상자가 아닙니다')
-      const fresh = await r.set(K.key(tk.d, rep.key), 1, { nx: true, ex: HELPER_TTL_SEC })
-      if (fresh === null) return res.status(200).json({ ok: true, duplicate: true, key: rep.key })
-      const n = await r.rpush(K.reports(tk.d), JSON.stringify(rep))
-      if (n === 1) await r.expire(K.reports(tk.d), HELPER_TTL_SEC)
-      if (n > MAX_REPORTS) await r.ltrim(K.reports(tk.d), -MAX_REPORTS, -1)
-      return res.status(200).json({ ok: true, duplicate: false, key: rep.key })
+      const h = hashOf(rep)
+      let out
+      try {
+        out = asPair(await r.eval(APPEND_LUA, [K.key(tk.d, tk.h, rep.key), K.reports(tk.d)], [JSON.stringify(rep), h, String(HELPER_TTL_SEC), String(MAX_REPORTS)]))
+      } catch {
+        // 저장 실패는 성공으로 돌려주지 않는다. 휴대폰 대기열에 남아 다시 보냄
+        return fail(res, 503, 'STORE_ERROR', '보고를 저장하지 못했습니다. 연결되면 다시 보냅니다')
+      }
+      if (out[0] === 1) return res.status(200).json({ ok: true, duplicate: false, key: rep.key })
+      if (out[1] !== h) return fail(res, 409, 'KEY_CONFLICT', '같은 보고 번호로 다른 내용이 이미 저장되어 있습니다')
+      return res.status(200).json({ ok: true, duplicate: true, key: rep.key })
     }
     return fail(res, 405, 'METHOD', '허용되지 않는 요청입니다')
   }
@@ -98,10 +134,11 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET' && action === 'state') {
     const own = await r.get(K.owner(sid))
-    if (!own || !validDispatchId(own)) return res.status(200).json({ state: null })
+    if (!own || !validDispatchId(own) || (await r.get(K.closed(own)))) return res.status(200).json({ state: null })
     const saved = await r.get(K.state(own))
+    const rev = Number(await r.get(K.rev(own))) || 0
     const reports = ((await r.lrange(K.reports(own), 0, -1)) || []).map(parse).filter(Boolean)
-    return res.status(200).json({ dispatchId: own, state: saved ? parse(saved) : null, reports })
+    return res.status(200).json({ dispatchId: own, rev, state: saved ? parse(saved) : null, reports })
   }
 
   if (req.method === 'POST' && action === 'save') {
@@ -110,24 +147,42 @@ export default async function handler(req, res) {
     const body = parse(req.body)
     const state = body?.state
     if (!state || typeof state !== 'object' || state.kind !== 'drill') return fail(res, 400, 'BAD_INPUT', '훈련 발령 상태만 저장합니다')
-    let id = await r.get(K.owner(sid))
-    if (!validDispatchId(id) || (body.dispatchId && body.dispatchId !== id)) id = null
-    if (!id) id = `D${Date.now().toString(36)}${randomBytes(3).toString('hex')}`
-    await r.set(K.owner(sid), id, { ex: HELPER_TTL_SEC })
-    await r.set(K.state(id), JSON.stringify(state), { ex: HELPER_TTL_SEC })
-    const tokens = {}
-    const briefs = body.briefs && typeof body.briefs === 'object' ? body.briefs : {}
-    for (const [h, b] of Object.entries(briefs).slice(0, 300)) {
+    // 발령 ID 는 화면이 발령 개시 때 정한다(늦은 첫 저장이 새 발령을 만들지 않게). 없으면 서버가 만든다(이전 화면과 호환)
+    const id = validDispatchId(body.dispatchId) ? body.dispatchId : `D${Date.now().toString(36)}${randomBytes(3).toString('hex')}`
+    const rev = Number.isSafeInteger(body.rev) && body.rev > 0 ? body.rev : 1
+    const tokens = {}, briefs = {}
+    const src = body.briefs && typeof body.briefs === 'object' ? body.briefs : {}
+    for (const [h, b] of Object.entries(src).slice(0, 300)) {
       if (!validHelperCode(h) || !b || typeof b !== 'object') continue
-      await r.set(K.brief(id, h), JSON.stringify(b), { ex: HELPER_TTL_SEC })
+      briefs[h] = b
       tokens[h] = signHelperToken(id, h)
     }
-    return res.status(200).json({ dispatchId: id, tokens })
+    let out
+    try {
+      out = asPair(await r.eval(SAVE_LUA, [K.closed(id), K.idOwner(id), K.rev(id), K.state(id), K.assign(id), K.owner(sid)],
+        [sid, String(rev), JSON.stringify(state), JSON.stringify({ rev, briefs }), id, String(HELPER_TTL_SEC)]))
+    } catch {
+      return fail(res, 503, 'STORE_ERROR', '발령 상태를 저장하지 못했습니다. 이 브라우저 안에서 계속 진행합니다')
+    }
+    if (out[0] !== 1) {
+      const why = { closed: '이미 종료한 발령입니다', owner: '다른 세션의 발령 번호입니다', stale: '더 최근 저장이 이미 반영되었습니다' }[out[1]] || '저장이 거부되었습니다'
+      return fail(res, 409, String(out[1] || 'REJECTED').toUpperCase(), why)
+    }
+    return res.status(200).json({ dispatchId: id, rev, tokens })
   }
 
   if (req.method === 'DELETE') {
+    const q = String(req.query?.dispatchId || '')
     const own = await r.get(K.owner(sid))
-    if (validDispatchId(own)) await r.del(K.state(own), K.reports(own), K.owner(sid))
+    const id = validDispatchId(q) ? q : own
+    if (validDispatchId(id)) {
+      const o = await r.get(K.idOwner(id))
+      if (o && String(o) !== sid) return fail(res, 403, 'OWNER', '다른 세션의 발령입니다')
+      // 종료 표시를 먼저 남겨 진행 중이던 저장 요청이 늦게 와도 되살리지 못하게 함(GPT 5차 H4)
+      await r.set(K.closed(id), 1, { ex: HELPER_TTL_SEC })
+      await r.del(K.state(id), K.assign(id), K.reports(id), K.rev(id))
+      if (own === id) await r.del(K.owner(sid))
+    }
     return res.status(200).json({ ok: true })
   }
   return fail(res, 405, 'METHOD', '허용되지 않는 요청입니다')

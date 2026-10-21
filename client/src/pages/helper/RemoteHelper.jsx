@@ -6,7 +6,7 @@ import Button from '../../components/ui/Button.jsx'
 import Card from '../../components/ui/Card.jsx'
 import KeyValue from '../../components/ui/KeyValue.jsx'
 import useToast from '../../hooks/useToast.js'
-import { helperGet, helperSend } from '../../lib/dispatchSync.js'
+import { clockNow, helperGet, helperSend } from '../../lib/dispatchSync.js'
 import { enqueue, flush, readQueue } from '../../lib/reportQueue.js'
 import { fmtHM } from '../../lib/time.js'
 
@@ -41,7 +41,8 @@ export default function RemoteHelper({ token }) {
   }, [send, scope])
 
   const report = (item) => {
-    const it = enqueue(scope, item)
+    // 보고 시각은 발령 가상 시계 기준(담당자 화면 기록과 같은 시간 축, GPT 5차 M1)
+    const it = enqueue(scope, { ...item, at: Math.round(clockNow(data?.brief?.clock)) })
     setLocal((l) => [...l, it])
     setPending(readQueue(scope).length)
     send().then((r) => { if (r.left) toast(`연결 끊김: 전송 대기 ${r.left}건, 연결되면 다시 보냄`, 'danger') })

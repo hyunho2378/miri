@@ -163,43 +163,75 @@ export function kstIso(v) {
   return Number.isNaN(t) ? null : new Date(t).toISOString()
 }
 
-// 자료 기준 시각을 고른다. 실시간 자료는 기관 입력이나 발표 시각, 목록형 자료는 조회 시각
+// 자료 기준 시각을 고른다. 실시간 자료는 기관 입력이나 발표 시각, 목록형 자료는 조회 시각.
+// GPT 5차 M2: 실시간 자료에 기준 시각이 없으면 조회 시각으로 채우지 않고 비워 둔다(화면은 '기준 시각 없음'으로 표시).
+// 응급실은 병원마다 입력 시각이 달라 가장 오래된 입력을 대표 시각으로 쓰고 병원별 시각도 함께 둔다.
+const REALTIME = new Set(['fire', 'warning', 'wind', 'er', 'alerts'])
 function stamp(kind, d) {
   const fetchedAt = d.fetchedAt || new Date().toISOString()
-  let asOf = null, basis = '조회 시각'
+  let asOf = null, basis = '조회 시각', extra = {}
   if (kind === 'fire') { asOf = kstIso(d.analyzedAt); basis = '분석 시각' }
   else if (kind === 'warning') { asOf = kstIso(d.issuedAt); basis = '발표 시각' }
   else if (kind === 'wind') { asOf = kstIso(String(d.base || '').replace(' ', '')); basis = '예보 발표 시각' }
-  else if (kind === 'er') { const ts = (d.list || []).map((x) => kstIso(x.updatedAt)).filter(Boolean).sort(); asOf = ts.at(-1) || null; basis = '기관 입력 시각' }
-  else if (kind === 'alerts') { asOf = d.list?.[0]?.at || null; basis = '최근 문자 발송 시각' }
+  else if (kind === 'er') {
+    const list = (d.list || []).map((x) => ({ ...x, asOf: kstIso(x.updatedAt) }))
+    const ts = list.map((x) => x.asOf).filter(Boolean).sort()
+    asOf = ts[0] || null; basis = '가장 오래된 기관 입력 시각'
+    extra = { list, latestAt: ts.at(-1) || null, missingAsOf: list.filter((x) => !x.asOf).length }
+  } else if (kind === 'alerts') { asOf = d.list?.[0]?.at || null; basis = '최근 문자 발송 시각' }
   const empty = kind === 'alerts' ? false : kind === 'warning' ? !d.issuedAt : kind === 'wind' ? !(d.hours || []).length : Array.isArray(d.list) ? d.list.length === 0 : false
-  return { ...d, fetchedAt, asOf: asOf || (kind === 'alerts' ? null : fetchedAt), asOfBasis: asOf ? basis : (kind === 'alerts' ? basis : '조회 시각'), empty }
+  if (REALTIME.has(kind)) return { ...d, ...extra, fetchedAt, asOf, asOfBasis: basis, empty }
+  return { ...d, ...extra, fetchedAt, asOf: fetchedAt, asOfBasis: '조회 시각', empty }
 }
 
 // 행정안전부 긴급재난문자(재난안전데이터공유플랫폼 dataSn 228, 오픈API DSSP-IF-00247).
 // 출력 항목(공개 명세 기준, 승인 뒤 실제 응답으로 다시 확인): SN 일련번호, CRT_DT 생성일시, MSG_CN 내용,
 // RCPTN_RGN_NM 수신지역, EMRG_STEP_NM 긴급단계, DST_SE_NM 재해구분. 위험도는 판단하지 않고 공식 단계를 그대로 쓴다.
 export const ALERTS_APPLIED = '2026. 10. 20.'
-export function parseAlerts(rows, region = '동해시') {
+// GPT 5차 M4: 응답 구조가 다르면 '문자 없음'으로 숨기지 않고 오류로 알린다. 최근 7일 범위를 파서에서도 확인하고,
+// 발송 시각을 읽지 못한 문자는 맨 뒤에 두고 표시한다.
+export function alertRows(j) {
+  const cands = [j?.body, j?.body?.items?.item, j?.response?.body?.items?.item, j?.body?.item]
+  for (const c of cands) { if (Array.isArray(c)) return c; if (c && typeof c === 'object' && (c.SN ?? c.sn) != null) return [c] }
+  if (j?.body == null && j?.response == null) throw new Error('응답 구조 확인 필요(본문 없음)')
+  if (j?.body && typeof j.body === 'object' && Object.keys(j.body).length === 0) return []
+  throw new Error('응답 구조 확인 필요(행 배열 아님)')
+}
+export function parseAlerts(rows, region = '동해시', now = Date.now(), days = 7) {
   const seen = new Set(), out = []
-  for (const r of asList(rows)) {
+  const list = asList(rows)
+  let withId = 0
+  const from = now - days * 24 * 3600 * 1000
+  for (const r of list) {
     const id = String(r.SN ?? r.sn ?? r.MD101_SN ?? '')
+    if (id) withId += 1
     const regionText = String(r.RCPTN_RGN_NM ?? r.rcptnRgnNm ?? r.RCV_AREA_NM ?? '')
     if (!id || seen.has(id) || !regionText.includes(region)) continue
+    const at = kstIso(r.CRT_DT ?? r.crtDt ?? r.CREAT_DT)
+    const t = at ? Date.parse(at) : NaN
+    if (!Number.isNaN(t) && (t < from || t > now + 10 * 60 * 1000)) continue
     seen.add(id)
-    out.push({ id, at: kstIso(r.CRT_DT ?? r.crtDt ?? r.CREAT_DT), region: regionText, kind: String(r.DST_SE_NM ?? r.dstSeNm ?? '') || null, step: String(r.EMRG_STEP_NM ?? r.emrgStepNm ?? '') || null, text: String(r.MSG_CN ?? r.msgCn ?? '') })
+    out.push({ id, at, atUnknown: !at, region: regionText, kind: String(r.DST_SE_NM ?? r.dstSeNm ?? '') || null, step: String(r.EMRG_STEP_NM ?? r.emrgStepNm ?? '') || null, text: String(r.MSG_CN ?? r.msgCn ?? '') })
   }
-  return out.sort((a, b) => String(b.at).localeCompare(String(a.at)))
+  if (list.length && !withId) throw new Error('응답 항목 확인 필요(일련번호 없음)')
+  return out.sort((a, b) => (a.at && b.at ? b.at.localeCompare(a.at) : a.at ? -1 : b.at ? 1 : 0))
 }
 async function alerts() {
   const key = process.env.SAFETYDATA_KEY
   const source = '행정안전부 긴급재난문자(재난안전데이터공유플랫폼)'
   if (!key) return { source, status: 'pending', appliedAt: ALERTS_APPLIED, list: [], fetchedAt: new Date().toISOString() }
   const ymd = kst(-7 * 24 * 60).ymd
-  const j = await getJson(`https://www.safetydata.go.kr/V2/api/DSSP-IF-00247?serviceKey=${encodeURIComponent(key)}&returnType=json&pageNo=1&numOfRows=100&crtDt=${ymd}&rgnNm=${encodeURIComponent('동해시')}`)
-  const code = j?.header?.resultCode
-  if (code && !['00', '0', '0000'].includes(String(code))) throw new Error(`결과코드 ${code}`)
-  const list = parseAlerts(j?.body ?? j?.response?.body?.items?.item ?? [])
+  const rows = []
+  // 한 쪽 100행씩 최대 5쪽. 기간 검색 인자(crtDt)의 해석은 승인 뒤 실제 응답으로 확인
+  for (let page = 1; page <= 5; page++) {
+    const j = await getJson(`https://www.safetydata.go.kr/V2/api/DSSP-IF-00247?serviceKey=${encodeURIComponent(key)}&returnType=json&pageNo=${page}&numOfRows=100&crtDt=${ymd}&rgnNm=${encodeURIComponent('동해시')}`)
+    const code = j?.header?.resultCode
+    if (code && !['00', '0', '0000'].includes(String(code))) throw new Error(`결과코드 ${code}`)
+    const got = alertRows(j)
+    rows.push(...got)
+    if (got.length < 100) break
+  }
+  const list = parseAlerts(rows)
   return { source, status: 'ok', list: list.slice(0, 20), fetchedAt: new Date().toISOString() }
 }
 

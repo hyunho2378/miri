@@ -19,7 +19,7 @@ await t('응급실: 강원특별자치도로 비면 강원도로 다시 묻고 �
   })
   assert.equal(res.code, 200)
   assert.ok(seen[0].includes('STAGE1=강원특별자치도') && seen[1].includes('STAGE1=강원도'))
-  assert.deepEqual(res.body.list[0], { name: '동해병원', erBeds: 5, tel: null, updatedAt: '20261020213000' })
+  assert.deepEqual(res.body.list[0], { name: '동해병원', erBeds: 5, tel: null, updatedAt: '20261020213000', asOf: '2026-10-20T12:30:00.000Z' })
 })
 
 await t('응급실: 결과코드가 정상이 아니면 502 와 사유를 돌려준다(빈 성공으로 숨기지 않음)', async () => {

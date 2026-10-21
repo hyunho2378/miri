@@ -7,7 +7,7 @@ import { calcTiming, calcVehicles, scenarioArrivals, scopeInput } from '../lib/s
 import { dispatchSms, helperBrief, indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
 import { HAZARD_KINDS } from '../lib/scenario.js'
 import { MIN } from '../lib/time.js'
-import { clearRemote, loadRemote, restoreSnapshot, saveRemote, snapshotOf } from '../lib/dispatchSync.js'
+import { clearRemote, loadRemote, newDispatchId, restoreSnapshot, saveRemote, snapshotOf } from '../lib/dispatchSync.js'
 import { mergeReports } from '../lib/reportQueue.js'
 import { activeScenario, useMiriStore } from './useMiriStore.js'
 
@@ -15,7 +15,7 @@ const EMPTY = {
   status: 'idle', kind: 'drill', speed: 60, realStart: 0, vStart: 0, issuedAt: 0, arrivals: {},
   result: null, confirmedAt: null, sentAt: null, ackPlan: {}, ackOverride: {}, failPlan: {}, events: {},
   handovers: [], manualHelper: null, smsLog: [], closedRecordId: null, scopeCodes: [], blocked: null,
-  fireRequests: [], remote: { state: 'local', dispatchId: null, tokens: {}, reason: null, savedAt: null, polledAt: null }
+  fireRequests: [], remote: { state: 'local', dispatchId: null, rev: 0, tokens: {}, reason: null, savedAt: null, polledAt: null }
 }
 
 export const useDispatchStore = create((set, get) => ({
@@ -209,11 +209,19 @@ export const useDispatchStore = create((set, get) => ({
     const d = get()
     if (d.kind !== 'drill' || !['standby', 'assigned', 'sent'].includes(d.status)) return null
     const data = useMiriStore.getState()
+    // 발령 ID 와 저장 순번을 보내기 전에 확정한다(GPT 5차 H4). 늦게 도착한 옛 저장은 서버가 순번으로 거부
+    const dispatchId = d.remote.dispatchId || newDispatchId()
+    const rev = (d.remote.rev || 0) + 1
+    set((s) => ({ remote: { ...s.remote, dispatchId, rev } }))
+    const same = () => get().remote.dispatchId === dispatchId && ['standby', 'assigned', 'sent'].includes(get().status)
     try {
-      const r = await saveRemote(d, { scenario: activeScenario(data), villages: data.villages, officerContact: data.settings?.officerContact })
+      const r = await saveRemote(get(), { scenario: activeScenario(data), villages: data.villages, officerContact: data.settings?.officerContact }, { dispatchId, rev })
+      if (!same()) return null // 응답이 오기 전에 종료했거나 다른 발령으로 바뀜
       set((s) => ({ remote: { ...s.remote, state: 'saved', dispatchId: r.dispatchId, tokens: { ...s.remote.tokens, ...r.tokens }, reason: null, savedAt: Date.now() } }))
       return r
     } catch (e) {
+      if (!same()) return null
+      if (e.status === 409 && e.code === 'STALE') return null // 더 최근 저장이 이미 반영됨
       set((s) => ({ remote: { ...s.remote, state: 'error', reason: e.message } }))
       return null
     }
@@ -226,7 +234,7 @@ export const useDispatchStore = create((set, get) => ({
       if (!r?.state || get().status !== 'idle') return false
       const st = restoreSnapshot(r.state)
       const merged = mergeReports(st, r.reports)
-      set({ ...EMPTY, ...st, ...merged, remote: { ...EMPTY.remote, state: 'saved', dispatchId: r.dispatchId, savedAt: Date.now(), polledAt: Date.now() } })
+      set({ ...EMPTY, ...st, ...merged, remote: { ...EMPTY.remote, state: 'saved', dispatchId: r.dispatchId, rev: Number(r.rev) || 0, savedAt: Date.now(), polledAt: Date.now() } })
       return true
     } catch (e) {
       set((s) => ({ remote: { ...s.remote, state: 'error', reason: e.message } }))
@@ -239,8 +247,10 @@ export const useDispatchStore = create((set, get) => ({
     if (d.status !== 'sent' || d.remote.state !== 'saved') return 0
     try {
       const r = await loadRemote()
-      if (!r || r.dispatchId !== d.remote.dispatchId) return 0
-      const merged = mergeReports(get(), r.reports)
+      // 응답이 오는 사이 종료했거나 다른 발령으로 바뀌었으면 합치지 않는다(GPT 5차 M1)
+      const now = get()
+      if (!r || r.dispatchId !== d.remote.dispatchId || now.remote.dispatchId !== d.remote.dispatchId || now.status !== 'sent') return 0
+      const merged = mergeReports(now, r.reports)
       set((s) => ({ ...merged, remote: { ...s.remote, polledAt: Date.now() } }))
       return (r.reports || []).length
     } catch (e) {
@@ -307,8 +317,18 @@ export const useDispatchStore = create((set, get) => ({
       metrics: d.result?.metrics, initialMetrics: d.result?.initialMetrics, baseline: d.result?.baseline?.metrics, handovers: d.handovers, targets: scope.size,
       helpers: d.result ? d.result.assignments.flatMap((a) => a.helperCodes).length : 0
     })
-    clearRemote().catch(() => {})
+    // 서버 발령 기록 삭제. 실패하면 3번까지 다시 시도하고, 끝내 실패하면 종료 화면에 사유를 남긴다(GPT 5차 H4)
+    const dispatchId = d.remote.dispatchId
     set({ ...EMPTY, status: 'closed', closedRecordId: id })
+    if (dispatchId) {
+      const tryClear = async (left) => {
+        try { await clearRemote(dispatchId) } catch (e) {
+          if (left > 0) return setTimeout(() => tryClear(left - 1), 2000)
+          if (get().status === 'closed') set((s) => ({ remote: { ...s.remote, state: 'error', reason: `서버 발령 기록 삭제 실패(${e.message}). 도우미 링크는 12시간 뒤 만료` } }))
+        }
+      }
+      tryClear(3)
+    }
   },
   reset: () => set({ ...EMPTY })
 }))
@@ -317,7 +337,7 @@ export const useDispatchStore = create((set, get) => ({
 if (typeof window !== 'undefined') {
   if (!window.location.pathname.startsWith('/h/')) setTimeout(() => { useDispatchStore.getState().restoreRemote() }, 0)
   let timer = null
-  const WATCH = ['status', 'result', 'confirmedAt', 'ackOverride', 'events', 'handovers', 'arrivals']
+  const WATCH = ['status', 'result', 'confirmedAt', 'ackOverride', 'events', 'handovers', 'arrivals', 'speed', 'realStart', 'vStart', 'fireRequests']
   useDispatchStore.subscribe((s, prev) => {
     if (!WATCH.some((k) => s[k] !== prev[k])) return
     if (s.kind !== 'drill' || !['standby', 'assigned', 'sent'].includes(s.status)) return
