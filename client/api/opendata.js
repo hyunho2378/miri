@@ -1,5 +1,6 @@
 // api/opendata.js Vercel 서버리스 함수. 공공데이터포털 연계(동해시 한정).
-// GET ?kind=fire | shelters | ltc | ambulance | warning | wind | er | access
+// GET ?kind=fire | shelters | ltc | ambulance | warning | wind | er | access | alerts
+// 모든 응답에 fetchedAt(조회 시각), asOf(자료 기준 시각, ISO), empty(응답 0건 여부)를 붙인다. 지연 판정은 client/src/lib/freshness.js
 // DATA_GO_KR_KEY 는 서버 환경변수에만 두고 프론트에 노출하지 않는다. 없으면 503 NO_KEY.
 const BASE = 'https://apis.data.go.kr'
 const fail = (res, status, code, message) => res.status(status).json({ error: { code, message } })
@@ -152,16 +153,67 @@ async function access(key) {
   return { source: '한국사회보장정보원 장애인편의시설 현황', area: '강원특별자치도 동해시', count: total ?? list.length, listed: list.length, list, fetchedAt: new Date().toISOString() }
 }
 
-const KINDS = { fire, shelters, ltc, ambulance, warning, wind, er, access }
+// 'YYYYMMDDHHmm(ss)', 'YYYY-MM-DD HH(:mm)', 'YYYY/MM/DD HH:mm:ss' 를 한국 시간 ISO 로 바꾼다. 못 읽으면 null
+export function kstIso(v) {
+  const s = String(v ?? '').trim()
+  const m = s.match(/^(\d{4})[-/.]?(\d{2})[-/.]?(\d{2})[\sT]*(\d{2})?:?(\d{2})?:?(\d{2})?/)
+  if (!m) return null
+  const [, y, mo, d, h = '00', mi = '00', se = '00'] = m
+  const t = Date.parse(`${y}-${mo}-${d}T${h}:${mi}:${se}+09:00`)
+  return Number.isNaN(t) ? null : new Date(t).toISOString()
+}
+
+// 자료 기준 시각을 고른다. 실시간 자료는 기관 입력이나 발표 시각, 목록형 자료는 조회 시각
+function stamp(kind, d) {
+  const fetchedAt = d.fetchedAt || new Date().toISOString()
+  let asOf = null, basis = '조회 시각'
+  if (kind === 'fire') { asOf = kstIso(d.analyzedAt); basis = '분석 시각' }
+  else if (kind === 'warning') { asOf = kstIso(d.issuedAt); basis = '발표 시각' }
+  else if (kind === 'wind') { asOf = kstIso(String(d.base || '').replace(' ', '')); basis = '예보 발표 시각' }
+  else if (kind === 'er') { const ts = (d.list || []).map((x) => kstIso(x.updatedAt)).filter(Boolean).sort(); asOf = ts.at(-1) || null; basis = '기관 입력 시각' }
+  else if (kind === 'alerts') { asOf = d.list?.[0]?.at || null; basis = '최근 문자 발송 시각' }
+  const empty = kind === 'alerts' ? false : kind === 'warning' ? !d.issuedAt : kind === 'wind' ? !(d.hours || []).length : Array.isArray(d.list) ? d.list.length === 0 : false
+  return { ...d, fetchedAt, asOf: asOf || (kind === 'alerts' ? null : fetchedAt), asOfBasis: asOf ? basis : (kind === 'alerts' ? basis : '조회 시각'), empty }
+}
+
+// 행정안전부 긴급재난문자(재난안전데이터공유플랫폼 dataSn 228, 오픈API DSSP-IF-00247).
+// 출력 항목(공개 명세 기준, 승인 뒤 실제 응답으로 다시 확인): SN 일련번호, CRT_DT 생성일시, MSG_CN 내용,
+// RCPTN_RGN_NM 수신지역, EMRG_STEP_NM 긴급단계, DST_SE_NM 재해구분. 위험도는 판단하지 않고 공식 단계를 그대로 쓴다.
+export const ALERTS_APPLIED = '2026. 10. 20.'
+export function parseAlerts(rows, region = '동해시') {
+  const seen = new Set(), out = []
+  for (const r of asList(rows)) {
+    const id = String(r.SN ?? r.sn ?? r.MD101_SN ?? '')
+    const regionText = String(r.RCPTN_RGN_NM ?? r.rcptnRgnNm ?? r.RCV_AREA_NM ?? '')
+    if (!id || seen.has(id) || !regionText.includes(region)) continue
+    seen.add(id)
+    out.push({ id, at: kstIso(r.CRT_DT ?? r.crtDt ?? r.CREAT_DT), region: regionText, kind: String(r.DST_SE_NM ?? r.dstSeNm ?? '') || null, step: String(r.EMRG_STEP_NM ?? r.emrgStepNm ?? '') || null, text: String(r.MSG_CN ?? r.msgCn ?? '') })
+  }
+  return out.sort((a, b) => String(b.at).localeCompare(String(a.at)))
+}
+async function alerts() {
+  const key = process.env.SAFETYDATA_KEY
+  const source = '행정안전부 긴급재난문자(재난안전데이터공유플랫폼)'
+  if (!key) return { source, status: 'pending', appliedAt: ALERTS_APPLIED, list: [], fetchedAt: new Date().toISOString() }
+  const ymd = kst(-7 * 24 * 60).ymd
+  const j = await getJson(`https://www.safetydata.go.kr/V2/api/DSSP-IF-00247?serviceKey=${encodeURIComponent(key)}&returnType=json&pageNo=1&numOfRows=100&crtDt=${ymd}&rgnNm=${encodeURIComponent('동해시')}`)
+  const code = j?.header?.resultCode
+  if (code && !['00', '0', '0000'].includes(String(code))) throw new Error(`결과코드 ${code}`)
+  const list = parseAlerts(j?.body ?? j?.response?.body?.items?.item ?? [])
+  return { source, status: 'ok', list: list.slice(0, 20), fetchedAt: new Date().toISOString() }
+}
+
+const KINDS = { fire, shelters, ltc, ambulance, warning, wind, er, access, alerts }
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return fail(res, 405, 'METHOD', 'GET 만 허용')
+  const kind = req.query?.kind
+  const fn = KINDS[kind]
+  if (!fn) return fail(res, 400, 'KIND', 'kind 는 fire, shelters, ltc, ambulance, warning, wind, er, access, alerts 중 하나')
   const key = process.env.DATA_GO_KR_KEY
-  if (!key) return fail(res, 503, 'NO_KEY', '공공데이터포털 인증키 미설정')
-  const fn = KINDS[req.query?.kind]
-  if (!fn) return fail(res, 400, 'KIND', 'kind 는 fire, shelters, ltc, ambulance, warning, wind, er, access 중 하나')
+  if (!key && kind !== 'alerts') return fail(res, 503, 'NO_KEY', '공공데이터포털 인증키 미설정')
   try {
-    const data = await fn(key)
+    const data = stamp(kind, await fn(key))
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=3600')
     return res.status(200).json(data)
   } catch (e) {

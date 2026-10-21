@@ -3,6 +3,7 @@
 import { Ambulance, Accessibility, Flame } from 'lucide-react'
 import Card from '../ui/Card.jsx'
 import useOpenData from '../../hooks/useOpenData.js'
+import FreshnessNote from './FreshnessNote.jsx'
 import { FOREST_FIRE_ROWS, FOREST_FIRE_SOURCE } from '../../data/forestFireHistory.js'
 
 const fmtHvidate = (s) => (/^\d{14}$/.test(String(s || '')) ? `${s.slice(0, 4)}. ${s.slice(4, 6)}. ${s.slice(6, 8)}. ${s.slice(8, 10)}:${s.slice(10, 12)}` : s || '시각 없음')
@@ -31,12 +32,14 @@ export default function PublicFactsCard({ only = null, className = '' }) {
               </ul>
             ) : <p className="type-body-sm text-text-meta">동해시로 등록된 응급실 정보가 없습니다.</p>
           ) : <Status s={er} />}
+          <FreshnessNote kind="er" state={er} className="mt-1.5" />
         </section>}
         {show('access') && <section aria-label="동해 장애인편의시설">
           <p className="mb-2 inline-flex items-center gap-1.5 type-caption text-text-sec"><Accessibility size={16} aria-hidden="true" />동해 장애인편의시설 등록</p>
           {access.data ? (
             <p className="type-body-sm text-text-pri"><strong>{access.data.count.toLocaleString('ko-KR')}곳</strong> <span className="text-text-meta">(좌표 있는 곳 {access.data.list.filter((x) => x.lat && x.lon).length}곳)</span></p>
           ) : <Status s={access} />}
+          <FreshnessNote kind="access" state={access} className="mt-1.5" />
         </section>}
         {show('fires') && <section aria-label="동해 산불 이력">
           <p className="mb-2 inline-flex items-center gap-1.5 type-caption text-text-sec"><Flame size={16} aria-hidden="true" />동해 산불 이력</p>

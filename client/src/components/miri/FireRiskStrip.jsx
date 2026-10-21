@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { Flame } from 'lucide-react'
+import FreshnessNote from './FreshnessNote.jsx'
 
 // 산불위험지수 임계값 51, 66, 86. d2~d4 는 지수 51, 66, 86 이상인 면적 비율(%)이다
 // (국립산림과학원, 한국산림과학회지 114권 4호 504쪽, 2025. 12. 31.)
@@ -62,14 +63,17 @@ export function WeatherLine({ className }) {
   return (
     <p className={clsx('type-meta leading-5', hot ? 'text-warning-text' : 'text-text-sec', className)}>
       {parts.join(' / ')}<span className="text-text-meta">, 기상청{w.data?.issuedAt ? ` ${fmtTmFc(w.data.issuedAt)}` : ''}</span>
+      <FreshnessNote kind="warning" state={w} />
+      <FreshnessNote kind="wind" state={v} />
     </p>
   )
 }
 
 export default function FireRiskStrip({ className, compact = false }) {
-  const { loading, data, error } = useFireRisk()
+  const fr = useFireRisk()
+  const { loading, data, error } = fr
   if (loading) return <p className={clsx('type-meta text-text-meta', className)}>산불위험지수를 불러오는 중입니다.</p>
-  if (error) return <p className={clsx('type-meta text-text-meta', className)}>산불위험지수를 불러오지 못했습니다({error}).</p>
+  if (error) return <p className={clsx('type-meta text-text-meta', className)}>산불위험지수를 불러오지 못했습니다({error}).<FreshnessNote kind="fire" state={fr} /></p>
   const g = data.grades || {}
   const over51 = (g.d2 || 0) + (g.d3 || 0) + (g.d4 || 0)
   return (
@@ -78,6 +82,7 @@ export default function FireRiskStrip({ className, compact = false }) {
       <span>동해시 산불위험지수 평균 <strong className="tabular-nums">{data.mean}</strong>, 최고 <strong className="tabular-nums">{data.max}</strong></span>
       <span className={clsx('rounded-xs px-1.5 py-0.5 type-caption', toneOf(g))}>지수 51 이상 면적 {over51}%</span>
       <span className="type-meta text-text-meta">{compact ? fmtAt(data.analyzedAt) : `산림청 국립산림과학원, ${fmtAt(data.analyzedAt)}`}</span>
+      <FreshnessNote kind="fire" state={fr} />
     </p>
   )
 }

@@ -11,6 +11,8 @@ import Card from '../../components/ui/Card.jsx'
 import PageShell, { todayLabel } from '../../components/miri/PageShell.jsx'
 import { rosterBreakdown, rosterPartsText } from '../../lib/rosterCount.js'
 import PublicFactsCard from '../../components/miri/PublicFactsCard.jsx'
+import FreshnessNote from '../../components/miri/FreshnessNote.jsx'
+import DisasterAlertsCard from '../../components/miri/DisasterAlertsCard.jsx'
 import { useFireRisk, useWarning, useWind, dirName } from '../../components/miri/FireRiskStrip.jsx'
 import useAnomalies from '../../hooks/useAnomalies.js'
 import useNow from '../../hooks/useNow.js'
@@ -126,17 +128,20 @@ export default function OverviewPage() {
     {
       key: 'fire',
       title: fire.data ? `산불위험지수 평균 ${fire.data.mean}, 최고 ${fire.data.max}` : fire.error ? `산불위험지수를 불러오지 못했습니다(${fire.error}).` : '산불위험지수를 불러오는 중입니다.',
-      sub: fire.data ? `지수 51 이상 면적 ${over51}%, 산림청 국립산림과학원` : '산림청 국립산림과학원'
+      sub: fire.data ? `지수 51 이상 면적 ${over51}%, 산림청 국립산림과학원` : '산림청 국립산림과학원',
+      fresh: <FreshnessNote kind="fire" state={fire} />
     },
     {
       key: 'warning',
       title: warning.data ? (warning.data.active.length ? `동해 발효 특보 ${warning.data.active.join(', ')}` : '동해 발효 특보 없음') : warning.error ? `기상특보를 불러오지 못했습니다(${warning.error}).` : '기상특보를 불러오는 중입니다.',
-      sub: '기상청 기상특보 조회서비스'
+      sub: '기상청 기상특보 조회서비스',
+      fresh: <FreshnessNote kind="warning" state={warning} />
     },
     {
       key: 'wind',
       title: h0 ? `바람 ${dirName(h0.fromDeg)}풍 ${h0.speed}m/s, 습도 ${h0.humidity}%` : wind.error ? `단기예보를 불러오지 못했습니다(${wind.error}).` : '단기예보를 불러오는 중입니다.',
-      sub: '기상청 단기예보 조회서비스'
+      sub: '기상청 단기예보 조회서비스',
+      fresh: <FreshnessNote kind="wind" state={wind} />
     }
   ]
 
@@ -271,6 +276,7 @@ export default function OverviewPage() {
                 <span className="min-w-0">
                   <span className="block type-strong text-text-pri">{x.title}</span>
                   <span className="block type-meta text-text-meta">{x.sub}</span>
+                  {x.fresh}
                 </span>
               </li>
             ))}
@@ -297,6 +303,7 @@ export default function OverviewPage() {
           </Card>
         </div>
         <PublicFactsCard className="cq-md:col-span-6 cq-xl:col-span-12" />
+        <DisasterAlertsCard className="cq-md:col-span-6 cq-xl:col-span-12" />
       </div>
     </PageShell>
   )
