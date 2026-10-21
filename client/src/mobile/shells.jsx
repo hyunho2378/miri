@@ -87,7 +87,7 @@ export function HelperHomeSlot() {
 }
 
 const FIELD_TABS = [
-  { key: 'status', label: '상태', path: '/m/f', icon: Activity },
+  { key: 'status', label: '홈', path: '/m/f', icon: Home },
   { key: 'villages', label: '마을', path: '/m/f/villages', icon: MapPinned },
   { key: 'helpers', label: '도우미', path: '/m/f/helpers', icon: Users },
   { key: 'more', label: '더보기', path: '/m/f/more', icon: Menu }
@@ -104,16 +104,15 @@ export function FieldLogin() {
   return (
     <MobileRoot>
       <div className="mob-screen">
-        <AppBar title="담당자 로그인" large />
+        <AppBar title="계정 고르기" large />
         <main id="main" className="mob-content no-nav">
-          <p className="mob-t-body mob-pad">현장 담당자 화면은 차량, 도우미, 대상자 진행을 보여 주므로 담당 공무원 계정으로 엽니다. 시연에서는 아래 계정 중 하나를 고릅니다.</p>
-          <h2 className="mob-t-label mob-section-title">시연 계정</h2>
-          <List label="시연 계정">
+          <p className="mob-t-callout mob-pad">미리 현장 담당자 화면. 동 행정복지센터와 시 재난부서 공무원이 씁니다.</p>
+          <List label="시연 계정 고르기">
             {LOGIN_ROLES.map(({ role, icon: Icon, desc }) => (
               <ListRow key={role} lead={<Icon size={22} />} title={ROLE_LABEL[role]} subtitle={`${DEMO_USERS[role].name}, ${desc}`} chevron onClick={() => setDemoUser(role)} />
             ))}
           </List>
-          <p className="mob-t-sub mob-pad">마을과 시설은 실제 공개 자료, 대상자 개인은 가상입니다.</p>
+          <p className="mob-t-callout mob-pad">마을과 시설은 실제 공개 자료, 대상자 개인은 가상</p>
         </main>
       </div>
     </MobileRoot>
@@ -138,7 +137,7 @@ function FieldShellBody() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   // 더보기 아래 업무 화면(소방 요청, 대상자, 서류, 소식)은 더보기 탭으로 표시
-  const MORE_SUB = ['/m/f/fire', '/m/f/people', '/m/f/intake', '/m/f/note']
+  const MORE_SUB = ['/m/f/fire', '/m/f/people']
   const current = MORE_SUB.some((x) => pathname.startsWith(x)) ? FIELD_TABS[3]
     : FIELD_TABS.slice(1).find((t) => pathname === t.path || pathname.startsWith(`${t.path}/`)) || FIELD_TABS[0]
   return (

@@ -55,6 +55,10 @@ const MobileFieldPerson = lazy(() => fieldScreens().then((m) => ({ default: m.Fi
 const MobileFieldIntake = lazy(() => fieldScreens().then((m) => ({ default: m.FieldIntakePage })))
 const MobileFieldNote = lazy(() => fieldScreens().then((m) => ({ default: m.FieldNotePage })))
 const MobileFieldMore = lazy(() => fieldScreens().then((m) => ({ default: m.FieldMorePage })))
+const MobileFieldDocs = lazy(() => fieldScreens().then((m) => ({ default: m.FieldDocsPage })))
+const MobileFieldDoc = lazy(() => fieldScreens().then((m) => ({ default: m.FieldDocPage })))
+const MobileFieldNotes = lazy(() => fieldScreens().then((m) => ({ default: m.FieldNotesPage })))
+const MobileFieldNoteReview = lazy(() => fieldScreens().then((m) => ({ default: m.FieldNoteReviewPage })))
 const MobileKitPage = lazy(() => import('./mobile/KitPage.jsx'))
 const LoginPage = lazy(() => import('./pages/console/LoginPage.jsx'))
 const OverviewPage = lazy(loaders.Overview)
@@ -151,6 +155,10 @@ export default function App() {
                 <Route path="people/:code" element={<MobileFieldPerson />} />
                 <Route path="intake" element={<MobileFieldIntake />} />
                 <Route path="note" element={<MobileFieldNote />} />
+                <Route path="docs" element={<MobileFieldDocs />} />
+                <Route path="docs/:code" element={<MobileFieldDoc />} />
+                <Route path="notes" element={<MobileFieldNotes />} />
+                <Route path="notes/:id" element={<MobileFieldNoteReview />} />
               </Route>
             </Route>
             <Route element={<PublicLayout />}>
