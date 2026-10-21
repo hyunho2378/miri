@@ -128,6 +128,13 @@ export function List({ label, children }) {
   return <ul className="mob-list" aria-label={label}>{children}</ul>
 }
 
+// 번호(V-18, MS-04-001, H-079)는 붙임표 뒤에서 줄이 바뀌지 않게 한 덩어리로 묶는다(글자는 그대로 두어 복사와 읽기 값은 같음)
+const CODE_RE = /([A-Z]{1,3}(?:-\d+)+,?)/g
+export function keepCodes(text) {
+  if (typeof text !== 'string' || !/[A-Z]-\d/.test(text)) return text
+  return text.split(CODE_RE).map((part, i) => (i % 2 ? <span key={i} className="mob-nb">{part}</span> : part))
+}
+
 export function ListRow({ lead, title, subtitle, meta, trailing, onClick, href, chevron, tall, className = '', ...rest }) {
   const Tag = href ? 'a' : onClick ? 'button' : 'div'
   return (
@@ -135,9 +142,9 @@ export function ListRow({ lead, title, subtitle, meta, trailing, onClick, href, 
       <Tag className={`mob-row ${tall || meta ? 'tall' : ''} ${className.replace('mob-row', '').trim()}`.trim()} onClick={onClick} href={href} type={Tag === 'button' ? 'button' : undefined} {...rest}>
         {lead && <span className="mob-row-lead" aria-hidden="true">{lead}</span>}
         <span className="mob-row-main">
-          <span className="mob-t-body">{title}</span>
-          {subtitle && <span className="mob-t-sub">{subtitle}</span>}
-          {meta && <span className="mob-t-foot">{meta}</span>}
+          <span className="mob-t-body">{keepCodes(title)}</span>
+          {subtitle && <span className="mob-t-sub">{keepCodes(subtitle)}</span>}
+          {meta && <span className="mob-t-foot">{keepCodes(meta)}</span>}
         </span>
         {(trailing || chevron) && <span className="mob-row-trail">{trailing}{chevron && <ChevronRight size={20} aria-hidden="true" />}</span>}
       </Tag>
@@ -484,9 +491,11 @@ export function TimePicker({ value = '', onChange, disabled, label = '시각', .
         <Sheet open={open} onClose={() => setOpen(false)} title={`${label} 입력`} hideTitle center>
           <div className="mob-m3-timepicker">
             <p className="mob-m3-tp-title" aria-hidden="true">{label} 입력</p>
-            <DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={{ ...props, 'data-autofocus': true }} className="mob-m3-tp-digits" onEnter={() => ok && commit()} />
-            <span className="mob-m3-tp-caption" aria-hidden="true"><span>시</span><span>분</span></span>
-            {hint}
+            <div className="mob-m3-tp-sel">
+              <DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={{ ...props, 'data-autofocus': true }} className="mob-m3-tp-digits" onEnter={() => ok && commit()} />
+              <span className="mob-m3-tp-caption" aria-hidden="true"><span>시</span><span>분</span></span>
+              {hint}
+            </div>
             <div className="mob-m3-tp-actions"><Button variant="plain" onClick={() => setOpen(false)}>취소</Button><Button variant="plain" disabled={!ok} onClick={commit}>확인</Button></div>
           </div>
         </Sheet>

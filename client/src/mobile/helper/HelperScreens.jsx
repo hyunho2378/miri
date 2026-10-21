@@ -1,4 +1,4 @@
-import { FilledInput, FilledTextarea, IconButton, BottomActions, SafetyGuidance, HelperConsent } from '../ui.jsx'
+import { FilledInput, FilledTextarea, IconButton, BottomActions, SafetyGuidance, HelperConsent, keepCodes } from '../ui.jsx'
 // 도우미 모바일 화면 H0~H9(docs/MOBILE_UI.md 4-2). 같은 화면 구조를 iOS와 Material 3 부품(ui.jsx)으로 그린다.
 // iOS: 큰 제목, 그룹 inset 목록, 하단 고정 버튼, 시트와 alert. Android: top app bar, list item, filled와 tonal 버튼, bottom sheet, snackbar.
 import { useEffect, useState } from 'react'
@@ -19,7 +19,7 @@ const Bottom = BottomActions
 function KV({ rows }) {
   return (
     <List>
-      {rows.filter(Boolean).map((r) => <ListRow key={r.label} className="kv" title={r.label} trailing={<span className="mob-h-kv">{r.value}</span>} />)}
+      {rows.filter(Boolean).map((r) => <ListRow key={r.label} className="kv" title={r.label} trailing={<span className="mob-h-kv">{keepCodes(r.value)}</span>} />)}
     </List>
   )
 }
