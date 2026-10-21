@@ -41,6 +41,7 @@ const mobileShells = () => import('./mobile/shells.jsx')
 const MobileProviderLayout = lazy(() => mobileShells().then((m) => ({ default: m.MobileProviderLayout })))
 const MobileHelperShell = lazy(() => mobileShells().then((m) => ({ default: m.HelperShell })))
 const MobileHelperHome = lazy(() => mobileShells().then((m) => ({ default: m.HelperHomeSlot })))
+const MobileHelperPage = lazy(() => import('./mobile/helper/HelperScreens.jsx'))
 const MobileFieldShell = lazy(() => mobileShells().then((m) => ({ default: m.FieldShell })))
 const MobileFieldStatus = lazy(() => mobileShells().then((m) => ({ default: m.FieldStatusSlot })))
 const MobileFieldVillages = lazy(() => mobileShells().then((m) => ({ default: m.FieldVillagesSlot })))
@@ -129,7 +130,7 @@ export default function App() {
               <Route index element={<Navigate to="/m/kit" replace />} />
               <Route path="kit" element={<MobileKitPage />} />
               <Route path="h/:token" element={<MobileHelperShell />}>
-                <Route index element={<MobileHelperHome />} />
+                <Route index element={<MobileHelperPage />} />
               </Route>
               <Route path="f" element={<MobileFieldShell />}>
                 <Route index element={<MobileFieldStatus />} />

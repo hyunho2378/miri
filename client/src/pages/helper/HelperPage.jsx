@@ -2,7 +2,7 @@
 // 내 도우미 코드는 발령 전송 시 정해지는 manualHelper. 내 대상자는 자동 진행 없이 이 화면 보고로만 바뀐다.
 import { useEffect, useMemo, useState } from 'react'
 import { CircleCheck, CircleX, Clock, LinkIcon, Truck } from 'lucide-react'
-import { useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import FailReportSheet from '../../components/miri/FailReportSheet.jsx'
 import HelperAssignmentCard from '../../components/miri/HelperAssignmentCard.jsx'
 import HelperStepBar from '../../components/miri/HelperStepBar.jsx'
@@ -20,6 +20,7 @@ import { typeOf } from '../../lib/shortage.js'
 import { fmtHM } from '../../lib/time.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
 import RemoteHelper from './RemoteHelper.jsx'
+import { mobilePathFor } from '../../mobile/helper/flow.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { tripChecks } from '../../lib/tripChecks.js'
 import { tripCheckNotes } from '../../components/miri/AssignmentBundle.jsx'
@@ -254,5 +255,7 @@ function DemoHelperPage() {
 // /h/demo 는 이 브라우저 안 시연, 그 밖의 토큰은 서버 서명 링크(회신 R34)
 export default function HelperPage() {
   const { token } = useParams()
+  const to = typeof window !== 'undefined' ? mobilePathFor(token, { width: window.innerWidth, search: window.location.search }) : null
+  if (to) return <Navigate to={to} replace />
   return token === 'demo' ? <DemoHelperPage /> : <RemoteHelper token={token} />
 }
