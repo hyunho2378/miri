@@ -1,7 +1,7 @@
 // 시험용 Upstash 대신 메모리 저장소. api/dispatch.js 의 Lua 스크립트 두 개(APPEND_LUA, SAVE_LUA)는 같은 동작을 JS 로 한 번에 실행해
 // 원자 처리를 흉내 낸다(JS 는 한 스레드라 중간에 다른 요청이 끼지 않음). fail 옵션으로 장애를 재현한다.
 // fail.beforeAppend 는 Lua 실행 직전에 멈추는 지점으로, 실제 Redis 에서 스크립트가 늦게 도착한 경우를 흉내 낸다(GPT 6차 H3 경합 재현).
-import { APPEND_LUA, SAVE_LUA } from '../api/dispatch.js'
+import { APPEND_LUA, CLOSE_LUA, SAVE_LUA } from '../api/dispatch.js'
 
 export function fakeRedis(fail = {}) {
   const kv = new Map(); const lists = new Map()
@@ -14,6 +14,7 @@ export function fakeRedis(fail = {}) {
     async ltrim() { return 'OK' },
     async expire() { return 1 },
     async del(...ks) { ks.forEach((k) => { kv.delete(k); lists.delete(k) }); return ks.length },
+    async hgetall(k) { if (fail.hgetall) throw new Error('hgetall 실패'); const h = kv.get(k); return h instanceof Map ? Object.fromEntries(h) : null },
     async incr(k) { const v = (kv.get(k) || 0) + 1; kv.set(k, v); return v },
     async eval(script, keys, args) {
       if (fail.eval) throw new Error('eval 실패')
@@ -26,6 +27,10 @@ export function fakeRedis(fail = {}) {
         if (kv.has(keys[0])) return [0, kv.get(keys[0])]
         kv.set(keys[0], args[1])
         const l = lists.get(keys[1]) || []; l.push(args[0]); lists.set(keys[1], l)
+        if (args[6]) {
+          const seq = (kv.get(keys[5]) || 0) + 1; kv.set(keys[5], seq)
+          const h = kv.get(keys[4]) instanceof Map ? kv.get(keys[4]) : new Map(); h.set(args[4], `${seq}|${args[6]}`); kv.set(keys[4], h)
+        }
         return [1, l.length]
       }
       if (script === SAVE_LUA) {
@@ -37,6 +42,12 @@ export function fakeRedis(fail = {}) {
         kv.set(idOwner, sid); kv.set(rev, r); kv.set(state, st); kv.set(assign, as); kv.set(owner, id)
         if (members) { const mm = new Map(); for (let i = 6; i + 1 < args.length; i += 2) mm.set(args[i], args[i + 1]); kv.set(members, mm) }
         return [1, 'ok']
+      }
+      if (script === CLOSE_LUA) {
+        if (fail.close) throw new Error('close 실패')
+        kv.set(keys[0], 1)
+        for (const k of keys.slice(1)) { kv.delete(k); lists.delete(k) }
+        return 1
       }
       throw new Error('알 수 없는 스크립트')
     }
