@@ -346,3 +346,6 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-banner.has-title { align-items: flex-start; }
 .mob-banner-title { display: block; font-size: var(--t-headline); line-height: var(--l-headline); font-weight: 700; margin-bottom: 4px; }
 .mob-banner-body { display: block; color: var(--m-ink); font-weight: 400; }
+/* 누르는 영역: 스위치는 보이는 크기(iOS 64x28, Android 52x32)를 두고 위아래로 넓혀 44pt와 48dp 이상, iOS 시와 분 칸은 폭 44 이상 */
+.mob-toggle::after { content: ''; position: absolute; inset: -10px -4px; }
+.mob-ios-pill-input input { min-width: 44px; }
