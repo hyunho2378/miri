@@ -72,4 +72,5 @@ await ok('S3 store.setSpeed 는 실제 시각 하나로 기준점을 옮기고 �
   } finally { Date.now = realNow }
 })
 
+
 console.log(`\n${n}개 시험 통과`)

@@ -19,6 +19,8 @@ const EMPTY = {
   fireRequests: [], remote: { state: 'local', dispatchId: null, rev: 0, tokens: {}, reason: null, savedAt: null, polledAt: null }
 }
 
+// 서버에서 받은 값을 반영하는 동안에는 자동 저장을 걸지 않는다(복원, 주기 조회)
+let skipSave = false
 export const useDispatchStore = create((set, get) => ({
   ...EMPTY,
 
@@ -214,7 +216,7 @@ export const useDispatchStore = create((set, get) => ({
 
 
   // 서버 저장(회신 R34). 실패하면 이 브라우저 안에서만 진행하고 사유를 남긴다
-  syncSave: async () => {
+  syncSave: async (opts = {}) => {
     const d = get()
     if (d.kind !== 'drill' || !['standby', 'assigned', 'sent'].includes(d.status)) return null
     const data = useMiriStore.getState()
@@ -230,7 +232,16 @@ export const useDispatchStore = create((set, get) => ({
       return r
     } catch (e) {
       if (!same()) return null
-      if (e.status === 409 && e.code === 'STALE') return null // 더 최근 저장이 이미 반영됨
+      if (e.status === 409 && e.code === 'STALE') {
+        // 다른 화면(현장 휴대폰 등)이 같은 발령을 먼저 저장해 순번이 앞섬. 서버 순번을 받아 이 화면의 변경(배속 등)을 한 번 다시 저장(실서버 확인 2026. 10. 21.)
+        if (opts.retried) return null
+        try {
+          const cur = await loadRemote()
+          if (!same() || cur?.dispatchId !== dispatchId) return null
+          set((s) => ({ remote: { ...s.remote, rev: Number(cur.rev) || rev } }))
+          return get().syncSave({ retried: true })
+        } catch { return null }
+      }
       set((s) => ({ remote: { ...s.remote, state: 'error', reason: e.message } }))
       return null
     }
@@ -243,7 +254,9 @@ export const useDispatchStore = create((set, get) => ({
       if (!r?.state || get().status !== 'idle') return false
       const st = restoreSnapshot(r.state)
       const merged = mergeReports(st, r.reports)
+      skipSave = true // 서버에서 받은 상태를 그대로 다시 저장하지 않는다(다른 화면 순번 충돌 방지)
       set({ ...EMPTY, ...st, ...merged, remote: { ...EMPTY.remote, state: 'saved', dispatchId: r.dispatchId, rev: Number(r.rev) || 0, savedAt: Date.now(), polledAt: Date.now() } })
+      skipSave = false
       return true
     } catch (e) {
       set((s) => ({ remote: { ...s.remote, state: 'error', reason: e.message } }))
@@ -260,7 +273,9 @@ export const useDispatchStore = create((set, get) => ({
       const now = get()
       if (!r || r.dispatchId !== d.remote.dispatchId || now.remote.dispatchId !== d.remote.dispatchId || now.status !== 'sent') return 0
       const merged = mergeReports(now, r.reports)
+      skipSave = true // 도우미 보고는 서버에 따로 저장되어 있으므로 합친 결과를 다시 저장하지 않는다
       set((s) => ({ ...merged, remote: { ...s.remote, polledAt: Date.now() } }))
+      skipSave = false
       return (r.reports || []).length
     } catch (e) {
       set((s) => ({ remote: { ...s.remote, reason: e.message } }))
@@ -350,6 +365,7 @@ if (typeof window !== 'undefined') {
   let timer = null
   const WATCH = ['status', 'result', 'confirmedAt', 'ackOverride', 'events', 'handovers', 'arrivals', 'speed', 'realStart', 'vStart', 'fireRequests']
   useDispatchStore.subscribe((s, prev) => {
+    if (skipSave) return
     if (!WATCH.some((k) => s[k] !== prev[k])) return
     if (s.kind !== 'drill' || !['standby', 'assigned', 'sent'].includes(s.status)) return
     // 도우미 링크 화면(/h/, /m/h/)에서는 담당자 발령을 저장하지 않는다(GPT 10차: 같은 탭 이동, 예약 타이머 포함)
