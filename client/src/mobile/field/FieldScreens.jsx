@@ -88,7 +88,7 @@ export function FieldStatusPage() {
   const pct = s.total ? (s.counts.done / s.total) * 100 : 0
   return (
     <>
-      <AppBar title="발령 상태" large trailing={d.kind !== 'drill' ? <Chip tone="red">실제 발령</Chip> : <Chip tone="red">훈련</Chip>} />
+      <AppBar title="발령 상태" large trailing={d.kind !== 'drill' ? <Chip tone="red">실제 발령</Chip> : <Chip>훈련</Chip>} />
       <main id="main" className="mob-content">
         <Card filled className="mob-hero">
           <p className="mob-t-foot">{STATUS_LABEL[d.status]}</p>

@@ -5,7 +5,7 @@ import { Activity, MapPinned, Users, Menu, Car, Phone, Accessibility } from 'luc
 import { normalizePlatform } from './platform.js'
 import {
   MobileRoot, AppBar, Button, Card, List, ListRow, Chip, Segmented, Toggle, Progress, Spinner,
-  Sheet, Dialog, Banner, EmptyState, BottomNav, useMobileToast, DisplaySettings
+  Sheet, Dialog, Banner, EmptyState, BottomNav, useMobileToast, DisplaySettings, FilledInput
 } from './ui.jsx'
 
 function KitBody({ platform }) {
@@ -14,6 +14,7 @@ function KitBody({ platform }) {
   const [chip, setChip] = useState('wheel')
   const [sheet, setSheet] = useState(false)
   const [dialog, setDialog] = useState(false)
+  const [time, setTime] = useState('14:30')
   const toast = useMobileToast()
   const name = platform === 'android' ? '안드로이드' : '아이폰'
   return (
@@ -47,6 +48,7 @@ function KitBody({ platform }) {
           <Button variant="danger-tonal" size="sm">실패 보고</Button>
           <Spinner />
         </div>
+        <label className="mob-h-field"><span className="mob-t-label">증상 시각</span><FilledInput type="time" value={time} onChange={(e) => setTime(e.target.value)} /></label>
         <EmptyState title="전송 대기 없음" body="보낸 보고가 모두 서버에 저장됨" />
         <DisplaySettings />
       </main>
