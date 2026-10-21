@@ -58,6 +58,8 @@ export default async function handler(req, res) {
     const tk = verifyHelperToken(String(req.query?.t || ''))
     if (!tk) return fail(res, 401, 'BAD_LINK', '링크가 맞지 않거나 기한이 지났습니다. 담당자에게 새 링크를 요청해 주십시오')
     if (!r) return fail(res, 503, 'NO_STORE', '보고 저장소에 연결되지 않았습니다. 잠시 뒤 다시 시도해 주십시오')
+    const active = parse(await r.get(K.state(tk.d)))
+    if (!active || active.status !== 'sent' || active.kind !== 'drill') return fail(res, 404, 'CLOSED', '종료되었거나 전송되지 않은 배정입니다')
     const brief = parse(await r.get(K.brief(tk.d, tk.h)))
     if (!brief) return fail(res, 404, 'NO_ASSIGNMENT', '이 링크의 배정이 종료되었거나 없습니다')
     if (action === 'helper' && req.method === 'GET') {

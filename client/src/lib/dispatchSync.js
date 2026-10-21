@@ -21,7 +21,7 @@ export function restoreSnapshot(s) {
 }
 
 // 도우미마다 서버에 둘 배정 요약. 대상자 코드와 회차만(가상 시연 명부 코드), 이름과 주소는 넣지 않는다
-export function briefsOf(d, { scenario, villages = [] } = {}) {
+export function briefsOf(d, { scenario, villages = [], officerContact = '' } = {}) {
   if (!d.result) return {}
   const hz = HAZARD_KINDS[scenario?.kind]?.label
   const out = {}
@@ -31,7 +31,7 @@ export function briefsOf(d, { scenario, villages = [] } = {}) {
     const label = (c) => d.result?.ctx?.vmap?.[c]?.label || villages.find((v) => v.code === c)?.label || c
     out[h] = {
       ...helperBrief({ result: d.result, me: h, scenario, villages, hazardLabel: hz }),
-      drill: d.kind === 'drill',
+      drill: d.kind === 'drill', officerContact: officerContact || '발령 담당자, 문자 회신',
       trips: [...a.trips].sort((x, y) => x.index - y.index).map((t) => ({
         index: t.index, village: label(t.village), grade: t.grade, personCodes: t.personCodes,
         departAt: t.departAt, finishAt: t.finishAt, shelters: t.shelters || []

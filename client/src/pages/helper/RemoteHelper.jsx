@@ -83,6 +83,7 @@ export default function RemoteHelper({ token }) {
           { label: '마을', value: (b.villages || []).join(', ') },
           { label: '만나는 곳', value: `${b.meetVillage || '-'} 첫 대상자 댁, 차량 ${b.vehicleCode}` },
           { label: '동승 도우미', value: b.coHelpers?.length ? b.coHelpers.join(', ') : '없음' },
+          { label: '담당자 연락', value: b.officerContact || '발령 담당자, 문자 회신' },
           { label: '대상', value: `${b.persons}명` },
           { label: '링크 만료', value: fmtHM(data.expiresAt) }
         ]} />

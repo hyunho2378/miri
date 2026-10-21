@@ -210,7 +210,7 @@ export const useDispatchStore = create((set, get) => ({
     if (d.kind !== 'drill' || !['standby', 'assigned', 'sent'].includes(d.status)) return null
     const data = useMiriStore.getState()
     try {
-      const r = await saveRemote(d, { scenario: activeScenario(data), villages: data.villages })
+      const r = await saveRemote(d, { scenario: activeScenario(data), villages: data.villages, officerContact: data.settings?.officerContact })
       set((s) => ({ remote: { ...s.remote, state: 'saved', dispatchId: r.dispatchId, tokens: { ...s.remote.tokens, ...r.tokens }, reason: null, savedAt: Date.now() } }))
       return r
     } catch (e) {
