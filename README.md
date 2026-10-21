@@ -504,7 +504,7 @@ server/            백엔드 확장 자리(계약 docs/API_CONTRACT.md)
 | 문서 | 위치 |
 | --- | --- |
 | 개발보고서 | [docs/report](docs/report) |
-| 상세기획서 | [docs/contest/plan-v6](docs/contest/plan-v6) |
+| 상세기획서 | [docs/contest/plan-v7](docs/contest/plan-v7) |
 | 도식 5종(서비스 블루프린트, 시스템 구성도, 데이터 흐름도, AI 서류 판독 과정, 부족분 계산과 배정 규칙) | [docs/diagrams](docs/diagrams) |
 | 사용자 체험 자료 | [docs/usertest](docs/usertest) |
 | 법령 검토 | [docs/LEGAL_REVIEW.md](docs/LEGAL_REVIEW.md) |
