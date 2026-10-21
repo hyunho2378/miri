@@ -4,10 +4,10 @@ import { FilledInput, FilledTextarea, IconButton, BottomActions, SafetyGuidance,
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, CircleX, Clock, CloudOff, Link2Off, MapPin, Phone, RefreshCw, Send, ShieldCheck, Truck, Users } from 'lucide-react'
-import { radioProps, AppBar, Banner, Button, Card, Chip, Dialog, EmptyState, List, ListRow, Progress, Sheet, Spinner, Toggle, DisplaySettings, useMobileToast } from '../ui.jsx'
+import { radioProps, useLayout, TwoPane, AppBar, Banner, Button, Card, Chip, Dialog, EmptyState, List, ListRow, Progress, Sheet, Spinner, Toggle, DisplaySettings, useMobileToast } from '../ui.jsx'
 import { usePlatform } from '../usePlatform.js'
 import { fmtHM } from '../../lib/time.js'
-import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, STEP_LABEL, STEP_ORDER, lastAck, progressOf, remainText, screenOf, stepsByPerson, telOf } from './flow.js'
+import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, STEP_LABEL, STEP_ORDER, helperPaneOf, lastAck, progressOf, remainText, screenOf, stepsByPerson, telOf } from './flow.js'
 import { startDemoDispatch, useDemoModel, useRemoteModel } from './useHelperModel.js'
 import './helper.css'
 
@@ -126,7 +126,7 @@ function H2({ m, onBack }) {
 }
 
 // H3 이송 목록(홈)
-function H3({ m, steps, go }) {
+function H3({ m, steps, go, selected = null, inPane = false }) {
   const p = progressOf(m.codes, steps)
   return (
     <>
@@ -146,7 +146,7 @@ function H3({ m, steps, go }) {
                 const st = steps[c] || 'wait'
                 const isCurrent = c === p.current
                 return (
-                  <ListRow key={c} onClick={() => go({ name: isCurrent ? 'H5' : 'H4', code: c })} chevron
+                  <ListRow key={c} onClick={() => go({ name: isCurrent ? 'H5' : 'H4', code: c })} chevron aria-current={selected === c ? 'true' : undefined} className={selected === c ? 'mob-row selected' : undefined}
                     lead={<span className={`mob-h-order ${isCurrent ? 'now' : ''}`}>{i + 1}</span>}
                     title={c}
                     subtitle={isCurrent ? `지금 차례, ${STEP_LABEL[st]}` : STEP_LABEL[st]}
@@ -158,7 +158,7 @@ function H3({ m, steps, go }) {
           </section>
         ))}
       </main>
-      {p.current && <Bottom><Button block onClick={() => go({ name: 'H5', code: p.current })}>{p.current} {NEXT_STEP[steps[p.current] || 'wait']?.label || '보고'}</Button></Bottom>}
+      {p.current && !inPane && <Bottom><Button block onClick={() => go({ name: 'H5', code: p.current })}>{p.current} {NEXT_STEP[steps[p.current] || 'wait']?.label || '보고'}</Button></Bottom>}
     </>
   )
 }
@@ -365,6 +365,7 @@ function Notice({ icon, title, body, action }) {
 }
 
 function Flow({ m, consentKey }) {
+  const { twoPane } = useLayout()
   const [consented, setConsented] = useState(() => readConsent(consentKey))
   const [declining, setDeclining] = useState(false)
   const [stack, setStack] = useState([])
@@ -382,12 +383,27 @@ function Flow({ m, consentKey }) {
   if (base === 'H1') return <H1 m={m} onDecline={() => setDeclining(true)} />
   if (base === 'H2') return <H2 m={m} onBack={() => setDeclining(false)} />
   if (base === 'H9') return <H9 m={m} steps={steps} declined={ackR?.answer === 'decline'} />
-  if (view?.name === 'H4') return <H4 m={m} code={view.code} steps={steps} go={go} onBack={back} />
-  if (view?.name === 'H5') return <H5 m={m} code={view.code} steps={steps} go={go} onBack={back} />
-  if (view?.name === 'H6') return <H6 m={m} code={view.code} onBack={back} onDone={() => setStack((s) => s.filter((x) => x.code !== view.code))} />
-  if (view?.name === 'H7') return <H7 m={m} onBack={back} />
-  if (view?.name === 'H8') return <H8 m={m} onBack={back} />
-  return <H3 m={m} steps={steps} go={go} />
+  const detailOf = (v, goTo) => {
+    if (v?.name === 'H4') return <H4 m={m} code={v.code} steps={steps} go={goTo} onBack={back} />
+    if (v?.name === 'H5') return <H5 m={m} code={v.code} steps={steps} go={goTo} onBack={back} />
+    if (v?.name === 'H6') return <H6 m={m} code={v.code} onBack={back} onDone={() => setStack((s) => s.filter((x) => x.code !== v.code))} />
+    if (v?.name === 'H7') return <H7 m={m} onBack={back} />
+    if (v?.name === 'H8') return <H8 m={m} onBack={back} />
+    return null
+  }
+  if (twoPane) {
+    // 두 단: 목록에서 고르면 오른쪽만 바뀐다(쌓지 않고 바꿈). 오른쪽 안 이동은 쌓아서 뒤로 돌아올 수 있게 둔다.
+    const pick = (v) => setStack([v])
+    const pane = helperPaneOf({ twoPane, base, view, currentCode: progressOf(m.codes, steps).current })
+    return (
+      <TwoPane
+        list={<H3 m={m} steps={steps} go={pick} selected={pane.detail?.code || null} inPane />}
+        detail={detailOf(pane.detail, go)}
+        emptyDetail={<Notice icon={<CheckCircle2 size={28} />} title="모든 대상자 보고 끝" body="목록에서 대상자를 고르면 기록이 보여요." />}
+      />
+    )
+  }
+  return detailOf(view, go) || <H3 m={m} steps={steps} go={go} />
 }
 
 function DemoHelper() {

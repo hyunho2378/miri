@@ -128,11 +128,11 @@ export function List({ label, children }) {
   return <ul className="mob-list" aria-label={label}>{children}</ul>
 }
 
-export function ListRow({ lead, title, subtitle, meta, trailing, onClick, href, chevron, tall, ...rest }) {
+export function ListRow({ lead, title, subtitle, meta, trailing, onClick, href, chevron, tall, className = '', ...rest }) {
   const Tag = href ? 'a' : onClick ? 'button' : 'div'
   return (
     <li>
-      <Tag className={`mob-row ${tall || meta ? 'tall' : ''}`} onClick={onClick} href={href} type={Tag === 'button' ? 'button' : undefined} {...rest}>
+      <Tag className={`mob-row ${tall || meta ? 'tall' : ''} ${className.replace('mob-row', '').trim()}`.trim()} onClick={onClick} href={href} type={Tag === 'button' ? 'button' : undefined} {...rest}>
         {lead && <span className="mob-row-lead" aria-hidden="true">{lead}</span>}
         <span className="mob-row-main">
           <span className="mob-t-body">{title}</span>

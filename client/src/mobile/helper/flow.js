@@ -86,3 +86,12 @@ export function mobilePathFor(token, { width, search = '' } = {}) {
   return `/m/h/${encodeURIComponent(token)}${pf ? `?platform=${pf[1]}` : ''}`
 }
 
+
+// 두 단(medium 이상, iPhone Duo 안쪽): 왼쪽 이송 목록(H3), 오른쪽 선택한 화면.
+// 고른 것이 없으면 지금 차례 대상자의 단계 보고(H5), 모두 끝났으면 빈 안내. compact 는 쌓인 화면 하나만.
+export function helperPaneOf({ twoPane = false, base, view = null, currentCode = null } = {}) {
+  if (base !== 'H3') return { list: null, detail: null }
+  if (!twoPane) return { list: view ? null : 'H3', detail: view || null }
+  const detail = view || (currentCode ? { name: 'H5', code: currentCode } : null)
+  return { list: 'H3', detail }
+}

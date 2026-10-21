@@ -189,6 +189,8 @@
 .mob-row { min-height: var(--m-row); display: flex; align-items: center; gap: 12px; padding: 8px 16px; position: relative; background: transparent; width: 100%; text-align: left; border: 0; font: inherit; color: inherit; }
 button.mob-row, a.mob-row { cursor: pointer; }
 button.mob-row:active, a.mob-row:active { background: var(--m-press); }
+/* 두 단에서 오른쪽에 열린 행: iOS 목록 선택 회색(systemGray5), M3 는 옅은 색조 대신 같은 무채색 면(사용자 규칙) */
+.mob-row.selected { background: var(--m-fill); }
 .mob-row.tall { min-height: var(--m-row-tall); }
 .mob-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .mob-row-lead { width: 32px; height: 32px; border-radius: var(--m-r-sm); display: flex; align-items: center; justify-content: center; background: var(--m-blue-soft); color: var(--m-blue-ink); flex: none; }
