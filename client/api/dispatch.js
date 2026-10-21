@@ -25,6 +25,16 @@ const K = {
   key: (d, k) => `miri:dsp:k:${d}:${k}`
 }
 
+// 인계 기록(회신 R06): 상태 변화 발생 시각, 관찰 내용, 수행한 조치. 소방과 의료진 인계용으로 글자 수를 제한해 받는다
+export function cleanCare(care) {
+  if (!care || typeof care !== 'object') return null
+  const t = typeof care.symptomAt === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(care.symptomAt) ? care.symptomAt : undefined
+  const observation = typeof care.observation === 'string' ? care.observation.trim().slice(0, 200) : ''
+  const action = typeof care.action === 'string' ? care.action.trim().slice(0, 200) : ''
+  if (!t && !observation && !action) return null
+  return { symptomAt: t, observation: observation || undefined, action: action || undefined }
+}
+
 // 도우미 보고 검사. 본인 배정 대상자만, 정해진 값만 받는다
 export function cleanReport(body, brief, h) {
   if (!body || typeof body !== 'object') return null
@@ -42,7 +52,8 @@ export function cleanReport(body, brief, h) {
     if (!allowed.has(body.personCode)) return null
     const reason = typeof body.reason === 'string' ? body.reason.slice(0, 40) : undefined
     const memo = typeof body.memo === 'string' ? body.memo.slice(0, 200) : undefined
-    return { key, type: 'step', helper: h, personCode: body.personCode, step: body.step, reason, memo, at }
+    const care = cleanCare(body.care)
+    return { key, type: 'step', helper: h, personCode: body.personCode, step: body.step, reason, memo, ...(care ? { care } : {}), at }
   }
   return null
 }

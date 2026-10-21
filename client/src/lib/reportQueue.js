@@ -49,7 +49,7 @@ export function mergeReports(state, reports = []) {
     if (r.type === 'step' && r.personCode) {
       const cur = events[r.personCode]
       if (cur?.step === 'handedToFire') continue
-      if (!cur || !(cur.at > r.at)) events[r.personCode] = { step: r.step, reason: r.reason, memo: r.memo, at: r.at, remote: true }
+      if (!cur || !(cur.at > r.at)) events[r.personCode] = { step: r.step, reason: r.reason, memo: r.memo, ...(r.care ? { care: r.care } : {}), at: r.at, remote: true }
     }
   }
   return { ackOverride, events }

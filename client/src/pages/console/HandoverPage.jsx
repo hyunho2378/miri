@@ -53,7 +53,7 @@ export default function HandoverPage() {
       out.push({
         code, grade: p.grade, dong: dname(v?.dongCode), village: v?.label || p.villageCode,
         tags: (p.tags || []).map((t) => TAGS[t] || t).join(' '), reason: REASON[reasonKey] || '미상', status,
-        at: d.events[code]?.at
+        at: d.events[code]?.at, care: d.events[code]?.care || null
       })
     }
     for (const [code, ev] of Object.entries(d.events)) if (ev.step === 'handedToFire') push(code, ev.reason, 'handedToFire')
@@ -92,12 +92,20 @@ export default function HandoverPage() {
     { key: 'grade', label: '등급', render: (r) => <GradeChip grade={r.grade} size="sm" />, sortValue: (r) => gradeOf(r.grade)?.weight * -1 },
     { key: 'tags', label: '특이사항', render: (r) => r.tags || '-', hideBelow: 'md' },
     { key: 'reason', label: '사유' },
+    {
+      key: 'care', label: '증상 시각, 관찰, 조치', hideBelow: 'lg',
+      render: (r) => (r.care ? <span className="type-body-sm text-text-sec">{[r.care.symptomAt && `${r.care.symptomAt} 발생`, r.care.observation, r.care.action && `조치: ${r.care.action}`].filter(Boolean).join(', ')}</span> : '-')
+    },
     { key: 'status', label: '상태', render: (r) => <StatusPill status={r.status} label={r.status === 'handedToFire' ? `소방 인계 ${fmtHM(r.at)}` : undefined} /> }
   ]
   const csvCols = [
     { key: 'code', label: '대상자 코드' }, { key: 'dong', label: '동' }, { key: 'village', label: '마을' },
     { key: 'grade', label: '등급', value: (r) => gradeOf(r.grade)?.label }, { key: 'tags', label: '특이사항' },
-    { key: 'reason', label: '미이송 사유' }, { key: 'status', label: '상태', value: (r) => (r.status === 'handedToFire' ? '소방 인계' : r.status === 'fail' ? '이송 실패' : '미배정') }
+    { key: 'reason', label: '미이송 사유' },
+    { key: 'symptomAt', label: '증상 발생 시각', value: (r) => r.care?.symptomAt || '' },
+    { key: 'observation', label: '관찰 내용', value: (r) => r.care?.observation || '' },
+    { key: 'action', label: '수행한 조치', value: (r) => r.care?.action || '' },
+    { key: 'status', label: '상태', value: (r) => (r.status === 'handedToFire' ? '소방 인계' : r.status === 'fail' ? '이송 실패' : '미배정') }
   ]
 
   const live = ['assigned', 'sent'].includes(d.status) && d.result
