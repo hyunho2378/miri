@@ -1,3 +1,4 @@
+import { preferencePatch } from '../lib/helperConsent.js'
 // useDispatchStore.js 발령 상태 머신. 평시 → 실행대기 발령 → 배정 → 전송 → 종료.
 // 가상 시계: 훈련 발령은 배속으로 진행해 8시간 창을 몇 분 안에 시연한다.
 import { create } from 'zustand'
@@ -296,6 +297,11 @@ export const useDispatchStore = create((set, get) => ({
       // 응답이 오는 사이 종료했거나 다른 발령으로 바뀌었으면 합치지 않는다(GPT 5차 M1)
       const now = get()
       if (!r || r.dispatchId !== d.remote.dispatchId || now.remote.dispatchId !== d.remote.dispatchId || now.status !== 'sent') return 0
+      for (const rep of [...(r.reports || [])].filter(x=>x.type === 'preference').sort((a,b)=>a.at-b.at)) {
+        const patch=preferencePatch(rep,rep.at)
+        const helper=useMiriStore.getState().helpers.find(h=>h.code===rep.helper)
+        if(patch&&helper)useMiriStore.getState().upsertHelper({code:rep.helper,...patch})
+      }
       const merged = mergeReports(now, r.reports)
       skipSave = true // 도우미 보고는 서버에 따로 저장되어 있으므로 합친 결과를 다시 저장하지 않는다
       set((s) => ({ ...merged, remote: { ...s.remote, polledAt: Date.now() } }))

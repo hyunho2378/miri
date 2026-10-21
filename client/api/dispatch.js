@@ -1,3 +1,4 @@
+import { cleanPreference } from '../src/lib/helperConsent.js'
 // api/dispatch.js 발령 상태 서버 저장과 도우미 보고(회신 R34: 데이터 저장과 재전송, 도우미별 접근 권한).
 // 담당자(시연 세션 필요)
 //   POST ?action=save    { state, briefs }  발령 상태 저장, 도우미별 서명 링크 발급
@@ -82,6 +83,10 @@ export function cleanReport(body, brief, h) {
   const key = typeof body.key === 'string' && /^[A-Za-z0-9_-]{8,64}$/.test(body.key) ? body.key : null
   if (!key) return null
   const at = Number.isFinite(Number(body.at)) ? Number(body.at) : Date.now()
+  if (body.type === 'preference') {
+    const value = cleanPreference(body)
+    return value ? { key, type: 'preference', helper: h, ...value, at } : null
+  }
   if (body.type === 'ack') {
     if (!ANSWERS.has(body.answer)) return null
     const reason = typeof body.reason === 'string' ? body.reason.slice(0, 40) : undefined

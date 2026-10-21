@@ -1,8 +1,10 @@
 // 단일 색상 원본. iOS 시스템 색상과 M3 HCT 씨앗 #007AFF.
 // 생성: @material/material-color-utilities themeFromSourceColor. 흐린 유채색 container는 사용하지 않는다.
 export const ios = {
-  "blue": "#007AFF",
-  "red": "#FF3B30",
+  "blue": "#0088FF",
+  "blueAccessible": "#1E6EF4",
+  "redAccessible": "#E9152D",
+  "red": "#FF383C",
   "green": "#34C759",
   "orange": "#FF9500",
   "purple": "#AF52DE",

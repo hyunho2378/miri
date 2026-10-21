@@ -1,3 +1,4 @@
+import { HELPER_PHRASES, AVOID_PHRASES } from './helperGuidance.js'
 // docTemplates.js 문서함 공공기관 서식. 「행정업무의 운영 및 혁신에 관한 규정」과 같은 시행규칙(별지 제1호서식 기안문, 제2조 항목 표시),
 // 행정안전부 「행정업무운영 편람」을 따르는 kordoc 공문서 엔진 프리셋(preset)과 짝을 이룬다.
 // 본문 항목은 <p class="gm" data-lv="단계"> 로 쓰고, 화면은 CSS 가, 한글 파일은 kordoc 이 항목 기호(1. 가. 1) 가) … 또는 □ ○ - ·)를 붙인다.
@@ -379,6 +380,8 @@ export const DOC_TEMPLATES = [
     preset: '계획서', numbering: 'report',
     html: join(
       '<h1>이송 도우미 교육 시나리오</h1>',
+      T(['상황', '권장 안내 문구'], HELPER_PHRASES),
+      L(2, `피할 표현: ${AVOID_PHRASES.join(', ')}`),
       L(1, '상황 1. 대피 거부 설득'),
       L(2, '문자 먼저, 익숙한 담당자가 전화로 이해했는지 확인, 그다음 도우미 방문'),
       L(2, '짧고 분명한 안내, 가져갈 물건 확인'),

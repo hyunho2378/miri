@@ -1,4 +1,4 @@
-import { FilledInput, FilledTextarea, IconButton, BottomActions } from '../ui.jsx'
+import { FilledInput, FilledTextarea, IconButton, BottomActions, SafetyGuidance, HelperConsent } from '../ui.jsx'
 // 도우미 모바일 화면 H0~H9(docs/MOBILE_UI.md 4-2). 같은 화면 구조를 iOS와 Material 3 부품(ui.jsx)으로 그린다.
 // iOS: 큰 제목, 그룹 inset 목록, 하단 고정 버튼, 시트와 alert. Android: top app bar, list item, filled와 tonal 버튼, bottom sheet, snackbar.
 import { useEffect, useState } from 'react'
@@ -53,9 +53,10 @@ function H0({ m, onDone }) {
           <ListRow title="발령 종료 뒤 삭제" subtitle="배정 정보와 연락처는 발령이 끝나면 지움" />
           <ListRow title="보고는 담당자에게만" subtitle="출발, 도착, 탑승, 인계, 실패 기록" />
         </List>
+        <HelperConsent onChange={(consent,roles)=>{m.preference(consent,roles);setRole(consent)}} />
         <p className="mob-t-label mob-section-title">확인</p>
         <List>
-          <ListRow title="차량 동행 역할 확인" subtitle="대상자와 같은 차량으로 이동" trailing={<Toggle label="차량 동행 역할 확인" checked={role} onChange={setRole} />} />
+          <ListRow title="차량 동행 역할 확인" subtitle="차량 동행을 선택한 사람만 차량 배정 후보입니다. 위 참여 동의에서 역할을 선택해 주세요." />
           <ListRow title="기본소생술 교육과 상해보험" subtitle="모르면 담당자에게 문의" trailing={<Toggle label="기본소생술 교육과 상해보험 확인" checked={cpr} onChange={setCpr} />} />
         </List>
         <p className="mob-t-label mob-section-title">화면 설정</p>
@@ -212,6 +213,7 @@ function H5({ m, code, steps, go, onBack }) {
     <>
       <AppBar title={`${code} 보고`} onBack={onBack} trailing={<IconButton label="대상자 상세" onClick={() => go({ name: 'H4', code })}><Users size={22} aria-hidden="true" /></IconButton>} />
       <main id="main" className="mob-content no-nav">
+        <SafetyGuidance beforeDeparture={st === 'wait'} />
         <ol className="mob-h-steps" aria-label="이송 단계">
           {STEP_ORDER.slice(1).map((s, i) => (
             <li key={s} className={i + 1 <= idx ? 'done' : i + 1 === idx + 1 ? 'next' : ''}>
@@ -257,6 +259,7 @@ function H6({ m, code, onBack, onDone }) {
     <>
       <AppBar title="이송 실패 보고" onBack={onBack} />
       <main id="main" className="mob-content no-nav">
+        <SafetyGuidance />
         <p className="mob-t-sub mob-h-lead">{code} 대상자. 실패로 보고하면 담당자 휴대폰의 소방 지원 요청 화면에 실패 대상자로 올라가요.</p>
         <div className="mob-h-chips" role="radiogroup" aria-label="실패 사유">
           {Object.entries(FAIL_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)} {...radioProps(Object.keys(FAIL_REASONS_M), reason, setReason, k)}>{v}</Chip>)}
@@ -281,6 +284,7 @@ function H7({ m, onBack }) {
     <>
       <AppBar title="연락" onBack={onBack} />
       <main id="main" className="mob-content no-nav">
+        <HelperConsent withdraw onChange={m.preference} />
         <List>
           <ListRow lead={<Phone size={20} />} title="119" subtitle="생명이 위급할 때" href="tel:119" chevron />
           <ListRow lead={<Phone size={20} />} title="발령 담당자" subtitle={m.officerContact} href={officerTel || undefined} chevron={!!officerTel}
@@ -311,7 +315,7 @@ function H8({ m, onBack }) {
       <main id="main" className="mob-content no-nav">
         <p className="mob-t-sub mob-h-lead">{m.lastOk ? `마지막 연결 ${fmtHM(m.lastOk)}` : '아직 연결 기록 없음'}</p>
         {m.queue.length === 0 ? <EmptyState icon={<Send size={28} />} title="보낼 보고 없음" body="모든 보고를 담당자에게 보냈어요." /> : (
-          <List>{m.queue.map((q) => <ListRow key={q.key} lead={<Clock size={20} />} title={q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${q.personCode} ${STEP_LABEL[q.step] || q.step}`} subtitle="전송 대기" />)}</List>
+          <List>{m.queue.map((q) => <ListRow key={q.key} lead={<Clock size={20} />} title={q.type === 'preference' ? (q.consent ? '참여 동의와 역할 선택' : '등록 동의 철회 요청') : q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${q.personCode} ${STEP_LABEL[q.step] || q.step}`} subtitle="전송 대기" />)}</List>
         )}
         {/* GPT 8차 H1: 서버가 받지 않은 보고는 지우지 않고 사유와 함께 남김. 담당자에게 전화로 알림 */}
         {m.rejected?.length > 0 && (

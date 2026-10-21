@@ -300,3 +300,16 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-grabber { width:60px; height:4px; }
 .mob-root.platform-android .mob-grabber { width:32px; }
 .mob-root.platform-android .mob-btn:focus-visible { background-image:linear-gradient(var(--m-press),var(--m-press)); }
+
+.mob-time-control { display:block; }
+.mob-time-wheels,.mob-time-digital { display:flex; align-items:center; justify-content:center; gap:16px; margin:16px 0; }
+.mob-time-wheel { max-height:220px; overflow-y:auto; scroll-snap-type:y mandatory; flex:1; background:var(--m-fill); border-radius:var(--m-r-md); }
+.mob-time-wheel button { display:block; width:100%; min-height:var(--m-touch); border:0; background:transparent; color:var(--m-ink); font:inherit; scroll-snap-align:center; }
+.mob-time-wheel [aria-selected=true] { background:var(--m-blue); color:var(--m-on-primary); }
+.mob-time-digital label { max-width:96px; }
+.mob-time-digital input { font-size:var(--t-display); text-align:center; }
+/* Figma 52949:28053 keyboard picker 24-hour. Radius maps to shared 20 scale by project rule. */
+.mob-root.platform-android .mob-time-digital { width:264px; min-height:144px; margin:16px auto; }
+.mob-root.platform-android .mob-time-digital input { width:96px; height:95px; font-size:57px; font-weight:400; line-height:64px; }
+.mob-root.platform-android .mob-time-digital > span { width:24px; font-size:57px; text-align:center; }
+.mob-root.platform-ios .mob-time-control > .mob-btn { border-radius:var(--m-r-full); }

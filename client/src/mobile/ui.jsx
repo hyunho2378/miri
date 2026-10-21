@@ -1,9 +1,12 @@
+import { ROLE_OPTIONS } from '../lib/helperConsent.js'
 // 미리 모바일 공용 부품. 같은 API, 플랫폼별 모양(docs/MOBILE_UI.md 5장 부품 대응).
 // 모양 차이는 mobile.css 의 .mob-root.platform-ios / .platform-android 토큰이 맡고,
 // 구조 차이(앱 바 큰 제목, 대화상자 버튼 배치, 토스트 위치, 물결)는 여기서 나눈다.
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react'
 import { ChevronLeft, ArrowLeft, ChevronRight, WifiOff, Inbox } from 'lucide-react'
 import { usePlatform } from './usePlatform.js'
+import { HELPER_PHRASES, AVOID_PHRASES, EMERGENCY, PREDEPARTURE } from '../lib/helperGuidance.js'
+import { validTime, timeValue } from './time.js'
 import './tokens.css'
 import './mobile.css'
 
@@ -186,7 +189,7 @@ function useOverlay(open, onClose) {
   useEffect(() => {
     if (!open) return undefined
     const before = document.activeElement
-    const onKey = (e) => { if (e.key === 'Escape') closeRef.current?.(); else trapTab(e, box.current) }
+    const onKey = (e) => { const overlays = document.querySelectorAll('.mob-sheet, .mob-dialog'); if (overlays.length && overlays[overlays.length - 1] !== box.current) return; if (e.key === 'Escape') closeRef.current?.(); else trapTab(e, box.current) }
     document.addEventListener('keydown', onKey)
     // 배경 inert: 덮개 바깥의 형제 요소를 잠시 비활성화
     const scrim = box.current?.parentElement
@@ -332,6 +335,30 @@ export function DisplaySettings() {
 }
 
 // iOS text field / M3 filled text field. Native OS time picker is not invoked.
-export const FilledInput = ({className='', type='text', ...props}) => <input {...props} type={type === 'time' ? 'text' : type} inputMode={type === 'time' ? 'numeric' : props.inputMode} className={`mob-filled-input ${className}`} />
+export function FilledInput({className='', type='text', ...props}) {
+ if(type === 'time') return <TimePicker {...props} />
+ return <input {...props} type={type} className={`mob-filled-input ${className}`} />
+}
+
+// App-owned sheet, never input[type=time] or a native select.
+export function TimePicker({ value='', onChange, disabled, ...props }) {
+ const ref = useRef(null); const platform = useRootPlatform(ref)
+ const [open,setOpen]=useState(false)
+ const [hour,setHour]=useState('00');const [minute,setMinute]=useState('00')
+ const choose=()=>{const [h,m]=(validTime(value)?value:'00:00').split(':');setHour(h);setMinute(m);setOpen(true)}
+ const result=timeValue(hour,minute)
+
+ return <span ref={ref} className="mob-time-control"><Button variant="gray" block disabled={disabled} onClick={choose} aria-label="증상 시각 선택">{validTime(value)?value:'시각 선택'}</Button><Sheet open={open} onClose={()=>setOpen(false)} title="시각 선택"><div className="mob-time-digital"><label>시<input {...props} className="mob-filled-input" inputMode="numeric" maxLength={2} value={hour} onChange={e=>setHour(e.target.value.replace(/\D/g,''))} /></label><span>:</span><label>분<input className="mob-filled-input" inputMode="numeric" maxLength={2} value={minute} onChange={e=>setMinute(e.target.value.replace(/\D/g,''))} /></label></div>{!validTime(result)&&<p role="alert" className="mob-t-sub">시는 00부터 23, 분은 00부터 59까지 입력해 주세요.</p>}<div className="mob-h-sheet-actions"><Button block disabled={!validTime(result)} onClick={()=>{onChange?.({target:{value:result}});setOpen(false)}}>확인</Button><Button variant="plain" block onClick={()=>setOpen(false)}>취소</Button></div></Sheet></span>
+}
 export const FilledTextarea = ({className='', ...props}) => <textarea {...props} className={`mob-filled-input ${className}`} />
 export function BottomActions({children}) { return <div className="mob-h-bottom">{children}</div> }
+
+export function SafetyGuidance({beforeDeparture=false}) {
+ const [open,setOpen]=useState(false)
+ return <><Banner tone="red">{EMERGENCY}</Banner>{beforeDeparture&&<Banner tone="blue">{PREDEPARTURE}</Banner>}<List><ListRow href="tel:119" title="119 연결" subtitle="현재 위치와 의식 및 호흡 변화 전달" chevron /><ListRow title="상황별 안내 문구" subtitle="권장 문구 6개와 피할 표현" onClick={()=>setOpen(true)} chevron /></List><Sheet open={open} onClose={()=>setOpen(false)} title="상황별 안내 문구"><List>{HELPER_PHRASES.map(([title,subtitle])=><ListRow key={title} title={title} subtitle={subtitle} />)}<ListRow title="피할 표현" subtitle={AVOID_PHRASES.join(', ')} /><ListRow title="전달 방법" subtitle="천천히 말하고 한 번에 한 가지 정보만 전달해 주세요." /></List><Button block variant="plain" onClick={()=>setOpen(false)}>닫기</Button></Sheet></>
+}
+
+export function HelperConsent({onChange,withdraw=false}) {
+ const [roles,setRoles]=useState(['ride']);const [sent,setSent]=useState(false)
+ return <Card><p className="mob-t-headline">참여 동의</p><p className="mob-t-sub">참여와 역할은 본인이 선택합니다.</p><p className="mob-t-sub">참여를 거절하거나 동의를 철회해도 불이익이 없습니다. 배정 불가 응답과 등록 동의 철회는 별개입니다.</p><div className="mob-h-chips">{Object.entries(ROLE_OPTIONS).map(([value,label])=><Chip key={value} selected={roles.includes(value)} onClick={()=>setRoles(r=>r.includes(value)?r.filter(x=>x!==value):[...r,value])}>{label}</Chip>)}</div><div className="mob-h-sheet-actions"><Button block disabled={!roles.length} variant="tonal" onClick={()=>{onChange(true,roles);setSent(true)}}>선택한 역할로 참여 동의</Button>{withdraw&&<Button block variant="plain" onClick={()=>{onChange(false,roles);setSent(true)}}>등록 동의 철회 요청</Button>}</div>{sent&&<p role="status" className="mob-t-sub">요청을 기록했습니다. 연결이 없으면 전송 대기에 보관하며 담당자 화면과 동기화 후 다음 배정 후보에 반영합니다. 현재 배정은 담당자에게 연락해 조정해 주세요.</p>}</Card>
+}
