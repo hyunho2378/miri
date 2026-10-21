@@ -14,11 +14,12 @@ import useNow from '../../hooks/useNow.js'
 import useToast from '../../hooks/useToast.js'
 import { USE_MOCK } from '../../lib/api.js'
 import { personDest } from '../../lib/assign.js'
-import { DECLINE_REASONS, ackOf, indexStops, stepOf } from '../../lib/dispatchSim.js'
+import { DECLINE_REASONS, ackOf, helperBrief, indexStops, stepOf } from '../../lib/dispatchSim.js'
+import { HAZARD_KINDS } from '../../lib/scenario.js'
 import { typeOf } from '../../lib/shortage.js'
 import { fmtHM } from '../../lib/time.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
-import useMiriStore from '../../store/useMiriStore.js'
+import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 
 const NEXT = {
   wait: { step: 'depart', label: '출발' },
@@ -109,6 +110,8 @@ export default function HelperPage() {
   const shelterName = (code) => data.shelters.find((s) => s.code === code)?.name || '대피소'
   const shelters = [...new Set(trips.flatMap((tr) => (tr.shelters?.length ? tr.shelters.map(shelterName) : [shelterOf(tr.village)])))]
 
+  const sc = activeScenario(data)
+  const brief = helperBrief({ result: d.result, me, scenario: sc, villages: data.villages, hazardLabel: HAZARD_KINDS[sc?.kind]?.label })
   const summary = (
     <Card>
       <div className="flex items-center gap-2">
@@ -120,10 +123,16 @@ export default function HelperPage() {
         size="lg"
         className="mt-3"
         items={[
+          { label: '재난', value: <>{brief?.disaster} 대피 이송{d.kind === 'drill' ? ', 훈련' : ''}</> },
+          { label: '이송 완료 기한', value: <strong className="tabular-nums">{brief?.completeBy ? `${fmtHM(brief.completeBy)}까지` : '담당자 확인'}</strong> },
+          { label: '마을', value: <>{brief?.villages.join(', ')}</> },
+          { label: '만나는 곳', value: <>{brief?.meetVillage} 첫 대상자 댁, 차량 {vehicle?.code}</> },
           { label: '차량', value: <>{vehicle?.code}, {typeOf(vehicle?.type)?.label}</> },
+          { label: '동승 도우미', value: <>{brief?.coHelpers.length ? brief.coHelpers.join(', ') : '없음'}</> },
           { label: '대상자', value: <>{list.length}명, {trips.length}회차</> },
           { label: '대피소', value: <>{shelters.join(', ')}</> },
-          { label: '첫 출발', value: <>{fmtHM(trips[0]?.departAt)}</> }
+          { label: '첫 출발', value: <>{fmtHM(trips[0]?.departAt)}</> },
+          { label: '담당자 연락', value: <>{data.settings?.officerContact || '발령 담당자, 문자 회신'}</> }
         ]}
       />
     </Card>

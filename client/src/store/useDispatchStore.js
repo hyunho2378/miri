@@ -4,7 +4,8 @@ import { create } from 'zustand'
 import { helperDeclined, helperQualifies, planDispatch, reassignBlock, scorePlan } from '../lib/assign.js'
 import { capOf, gradeOf } from '../lib/shortage.js'
 import { calcTiming, calcVehicles, scenarioArrivals, scopeInput } from '../lib/shortageCalc.js'
-import { indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
+import { dispatchSms, helperBrief, indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
+import { HAZARD_KINDS } from '../lib/scenario.js'
 import { MIN } from '../lib/time.js'
 import { activeScenario, useMiriStore } from './useMiriStore.js'
 
@@ -99,7 +100,13 @@ export const useDispatchStore = create((set, get) => ({
     }
     pickFail('wheelchair', 'absent')
     pickFail('bed', 'blocked')
-    const smsLog = helpers.map((h) => ({ helper: h, at: vnow, text: `[미리] ${h} 배정 도착. 링크에서 수락 또는 불가 응답` }))
+    const data = useMiriStore.getState()
+    const sc = activeScenario(data)
+    const hz = HAZARD_KINDS[sc?.kind]?.label
+    const smsLog = helpers.map((h) => {
+      const sms = dispatchSms(helperBrief({ result: d.result, me: h, scenario: sc, villages: data.villages, hazardLabel: hz }), { drill: d.kind === 'drill' })
+      return { helper: h, at: vnow, text: sms?.text || `[미리] ${h} 배정 도착. 링크에서 수락 또는 불가 응답`, bytes: sms?.bytes, smsKind: sms?.kind }
+    })
     set({ status: 'sent', confirmedAt: vnow, sentAt: vnow, ackPlan, failPlan, manualHelper, smsLog })
   },
 
@@ -126,7 +133,7 @@ export const useDispatchStore = create((set, get) => ({
     set({
       result,
       ackOverride: { ...d.ackOverride, [next.code]: { answer: 'accept', at: vnow, replaced: oldCode } },
-      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `[미리] ${next.code} 대체 배정 도착` }]
+      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 대체 배정 도착(${next.code}). 기존 배정을 이어받아 링크에서 확인` }]
     })
     return next.code
   },

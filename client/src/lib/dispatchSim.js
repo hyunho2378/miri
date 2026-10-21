@@ -1,6 +1,6 @@
 // dispatchSim.js 발령 진행 상태 계산. 가상 시계 기준으로 이송 단계를 결정한다.
 // 수동 도우미(도우미 화면을 쓰는 사람)의 대상자는 자동 진행 없이 보고로만 바뀐다.
-import { MIN } from './time.js'
+import { MIN, fmtHM } from './time.js'
 
 export const STEPS = ['wait', 'depart', 'arrive', 'board', 'handover']
 export const STEP_LABEL = { wait: '대기', depart: '출발', arrive: '도착', board: '탑승', handover: '인계 완료', fail: '실패', handedToFire: '소방 인계' }
@@ -68,6 +68,39 @@ export function summarize(d, vnow, persons) {
   }
   counts.unassigned = d.result ? d.result.unassigned.filter((u) => !d.events[u.personCode]).length : 0
   return { counts, stops }
+}
+
+// 도우미 배정 안내(회신 반영: 수락 전에 재난 종류, 마을, 이송 완료 기한, 만나는 곳, 동승 도우미를 본다)
+// result: planDispatch 결과, me: 도우미 코드, scenario: 발령 시나리오, villages: 마을 목록
+export function helperBrief({ result, me, scenario, villages = [], hazardLabel }) {
+  const a = result?.assignments?.find((x) => x.helperCodes.includes(me))
+  if (!a) return null
+  const trips = [...a.trips].sort((x, y) => x.index - y.index)
+  const label = (code) => result?.ctx?.vmap?.[code]?.label || villages.find((v) => v.code === code)?.label || code
+  const villageCodes = [...new Set(trips.map((t) => t.village))]
+  const limits = villageCodes.map((c) => result?.ctx?.deadlines?.[c]?.completeBy).filter((x) => Number.isFinite(x))
+  return {
+    disaster: hazardLabel || (scenario?.kind && scenario.kind !== 'fire' ? scenario.kind : '산불'),
+    vehicleCode: a.vehicleCode,
+    villages: villageCodes.map(label),
+    completeBy: limits.length ? Math.min(...limits) : null,
+    meetVillage: trips[0] ? label(trips[0].village) : null,
+    firstDepartAt: trips[0]?.departAt ?? null,
+    coHelpers: a.helperCodes.filter((c) => c !== me),
+    persons: trips.reduce((n, t) => n + t.personCodes.length, 0)
+  }
+}
+
+// 배정 문자 문안. 90바이트(EUC-KR 기준 한글 2바이트) 이하는 단문, 넘으면 장문
+export function smsBytes(text) { let n = 0; for (const ch of text) n += ch.charCodeAt(0) > 127 ? 2 : 1; return n }
+export function dispatchSms(brief, { drill = true, link = '' } = {}) {
+  if (!brief) return null
+  const head = drill ? '[미리 훈련]' : '[미리]'
+  const where = brief.villages.slice(0, 2).join(', ') + (brief.villages.length > 2 ? ` 외 ${brief.villages.length - 2}곳` : '')
+  const until = brief.completeBy ? ` ${fmtHM(brief.completeBy)}까지 이송 완료` : ''
+  const text = `${head} ${brief.disaster} 대피 이송 배정. ${where}, ${brief.persons}명${until}. 링크에서 수락 또는 불가 응답${link ? ' ' + link : ''}`
+  const bytes = smsBytes(text)
+  return { text, bytes, kind: bytes <= 90 ? '단문' : '장문' }
 }
 
 export { MIN }
