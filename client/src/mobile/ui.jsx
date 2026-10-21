@@ -5,18 +5,49 @@ import { ROLE_OPTIONS } from '../lib/helperConsent.js'
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react'
 import { ChevronLeft, ArrowLeft, ChevronRight, WifiOff, Inbox } from 'lucide-react'
 import { usePlatform } from './usePlatform.js'
+import { layoutFor } from './layout.js'
 import { HELPER_PHRASES, AVOID_PHRASES, EMERGENCY, PREDEPARTURE } from '../lib/helperGuidance.js'
 import { validTime, timeValue } from './time.js'
 import './tokens.css'
 import './mobile.css'
 
-// 셸 바깥 껍데기. 플랫폼과 큰 글자 클래스를 이 요소에 붙여 토큰을 고정한다.
+// 셸 바깥 껍데기. 플랫폼, 큰 글자, 화면 크기 등급(size-*), 이동 막대 위치(bar-*) 클래스를 이 요소에 붙여 토큰을 고정한다.
+function useViewport() {
+  const read = () => (typeof window === 'undefined' ? { width: 402, height: 874 } : { width: window.innerWidth, height: window.innerHeight })
+  const [vp, setVp] = useState(read)
+  useEffect(() => {
+    const on = () => setVp(read())
+    window.addEventListener('resize', on)
+    return () => window.removeEventListener('resize', on)
+  }, [])
+  return vp
+}
+
+const LayoutContext = createContext(layoutFor())
+export function useLayout() { return useContext(LayoutContext) }
+
 export function MobileRoot({ platform: forced, className = '', children, ...rest }) {
   const { platform, largeText } = usePlatform()
   const p = forced || platform
+  const vp = useViewport()
+  const layout = layoutFor({ platform: p, ...vp })
   return (
-    <div className={`mob-root platform-${p} ${largeText ? 'text-large' : ''} ${className}`} data-platform={p} {...rest}>
-      <ToastHost>{children}</ToastHost>
+    <LayoutContext.Provider value={layout}>
+      <div className={`mob-root platform-${p} size-${layout.size} bar-${layout.bar} ${layout.twoPane ? 'two-pane' : ''} ${largeText ? 'text-large' : ''} ${className}`} data-platform={p} data-size={layout.size} data-bar={layout.bar} {...rest}>
+        <ToastHost>{children}</ToastHost>
+      </div>
+    </LayoutContext.Provider>
+  )
+}
+
+// 목록과 상세 두 단(medium 이상, iPhone Duo 안쪽). compact 에서는 상세가 있으면 상세만, 없으면 목록만 보인다.
+export function TwoPane({ list, detail, emptyDetail }) {
+  const { twoPane } = useLayout()
+  if (!twoPane) return detail || list
+  return (
+    <div className="mob-two">
+      <div className="mob-pane mob-pane-list">{list}</div>
+      <div className="mob-pane mob-pane-detail">{detail || emptyDetail}</div>
     </div>
   )
 }
@@ -51,7 +82,7 @@ export function AppBar({ title, large = false, onBack, backLabel = '뒤로', tra
         <div className={`mob-bar-slot ${onBack ? '' : 'empty'}`}>
           {onBack && <button type="button" className="mob-icon-btn" onClick={onBack} aria-label={backLabel}><BackIcon size={24} aria-hidden="true" /></button>}
         </div>
-        <h1 className="mob-bar-title" aria-hidden={showLarge && platform === 'ios' ? 'true' : undefined} style={showLarge && platform === 'ios' ? { opacity: 0 } : undefined}>{title}</h1>
+        <h1 className="mob-bar-title" aria-hidden={showLarge && platform === 'ios' ? 'true' : undefined} data-hidden={showLarge && platform === 'ios' ? 'true' : undefined}>{title}</h1>
         <div className="mob-bar-slot">{trailing}</div>
       </div>
       {showLarge && platform === 'ios' && <div className="mob-bar-large"><p className="mob-t-display" role="heading" aria-level={1}>{title}</p></div>}
@@ -259,7 +290,7 @@ function ToastHost({ children }) {
       <div className="mob-toast-wrap" role="status" aria-live="polite">
         {toast && (
           <div key={toast.key} className="mob-toast">
-            <span style={{ flex: 1 }}>{toast.message}</span>
+            <span className="mob-toast-text">{toast.message}</span>
             {toast.action && <Button variant="plain" size="sm" onClick={() => { toast.action.onClick(); setToast(null) }}>{toast.action.label}</Button>}
           </div>
         )}
@@ -304,20 +335,24 @@ export function EmptyState({ icon, title, body, action }) {
   )
 }
 
-// 하단 이동(iOS 탭 바, M3 내비게이션 바 알약). items: [{ key, label, icon, href|onClick, current, badge }]
+// 이동 막대. 위치는 화면 크기로 정한다(layout.js).
+// iOS 아래: 떠 있는 알약 탭 바(키트 Tab Bar - iPhone 3:70967, 402x95 pad 16/25/25/25, 탭 72x54)
+// iOS 옆: iPhone Duo 세로 탭 바(12887:20935, 막대 84 폭, 탭 48x48 아이콘만, 이름은 화면 낭독기 글자)
+// Android 아래: 내비게이션 바(58016:37259, 64 높이, 아이콘 칸 56x32), medium 이상: 내비게이션 레일(58016:36879, 96 폭)
 export function BottomNav({ items, label = '주요 화면' }) {
+  const { bar } = useLayout()
   return (
-    <nav className="mob-nav" aria-label={label}>
+    <nav className={`mob-nav nav-${bar}`} aria-label={label}>
       <div className="mob-nav-inner">
         {items.map((it) => {
           const Tag = it.href ? 'a' : 'button'
           return (
-            <Tag key={it.key} href={it.href} onClick={it.onClick} type={Tag === 'button' ? 'button' : undefined} aria-current={it.current ? 'page' : undefined}>
-              <span className="mob-nav-pill" style={{ position: 'relative' }}>
+            <Tag key={it.key} href={it.href} onClick={it.onClick} type={Tag === 'button' ? 'button' : undefined} aria-current={it.current ? 'page' : undefined} className="mob-nav-item">
+              <span className="mob-nav-pill">
                 {it.icon}
                 {it.badge ? <span className="mob-nav-badge" aria-label={`${it.badge}건`}>{it.badge}</span> : null}
               </span>
-              <span>{it.label}</span>
+              <span className="mob-nav-label">{it.label}</span>
             </Tag>
           )
         })}
@@ -332,7 +367,7 @@ export function DisplaySettings() {
   return (
     <List label="화면 설정">
       <ListRow title="화면 모양" subtitle="휴대폰 종류에 맞춤" trailing={
-        <div style={{ width: 168 }}><Segmented label="화면 모양" value={platform} onChange={setPlatform} options={[{ value: 'ios', label: '아이폰' }, { value: 'android', label: '안드로이드' }]} /></div>
+        <div className="mob-seg-fit"><Segmented label="화면 모양" value={platform} onChange={setPlatform} options={[{ value: 'ios', label: '아이폰' }, { value: 'android', label: '안드로이드' }]} /></div>
       } />
       <ListRow title="큰 글자" subtitle="본문 22, 버튼 56" trailing={<Toggle label="큰 글자" checked={largeText} onChange={setLargeText} />} />
     </List>

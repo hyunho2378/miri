@@ -5,7 +5,8 @@
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Activity, MapPinned, Users, Menu, ClipboardList } from 'lucide-react'
 import { PlatformProvider } from './usePlatform.js'
-import { MobileRoot, AppBar, EmptyState, OfflineBanner, BottomNav, DisplaySettings } from './ui.jsx'
+import { MobileRoot, AppBar, EmptyState, OfflineBanner, BottomNav, DisplaySettings, TwoPane } from './ui.jsx'
+import { FieldVillagesPage, FieldPeoplePage } from './field/FieldScreens.jsx'
 
 export function MobileProviderLayout() {
   return (
@@ -62,7 +63,7 @@ export function FieldShell() {
     <MobileRoot>
       <div className="mob-screen">
         <OfflineBanner />
-        <Outlet />
+        <FieldPanes pathname={pathname} />
         <BottomNav label="현장 담당자 화면" items={FIELD_TABS.map((t) => {
           const Icon = t.icon
           return { key: t.key, label: t.label, icon: <Icon size={24} aria-hidden="true" />, onClick: () => navigate(t.path), current: current.key === t.key }
@@ -72,3 +73,23 @@ export function FieldShell() {
   )
 }
 
+
+// 목록과 상세가 있는 화면(마을, 대상자)은 medium 이상과 iPhone Duo 안쪽에서 두 단으로 보인다.
+// 같은 경로, 같은 기능, 보이는 양만 다르다. compact 에서는 경로가 가리키는 한 화면만 보인다.
+const PANES = [
+  { base: '/m/f/villages', List: FieldVillagesPage, empty: '마을을 고르면 진행 상황이 여기에 보임' },
+  { base: '/m/f/people', List: FieldPeoplePage, empty: '대상자를 고르면 등급과 상태가 여기에 보임' }
+]
+function FieldPanes({ pathname }) {
+  const pane = PANES.find((x) => pathname === x.base || pathname.startsWith(`${x.base}/`))
+  if (!pane) return <Outlet />
+  const isDetail = pathname.startsWith(`${pane.base}/`)
+  const List = pane.List
+  return (
+    <TwoPane
+      list={isDetail ? <List /> : <Outlet />}
+      detail={isDetail ? <Outlet /> : null}
+      emptyDetail={<main className="mob-content"><EmptyState title={pane.empty} /></main>}
+    />
+  )
+}
