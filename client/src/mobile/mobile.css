@@ -641,3 +641,17 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 .mob-root.platform-ios .mob-emergency { line-height: 22px; }
 /* M3 화면 아래 주 버튼은 Button Medium(Type=Round, 57994:2227): 높이 56, 안쪽 16/24, 글자 16/24 w500 */
 .mob-root.platform-android .mob-bottom-action .mob-btn.v-filled, .mob-root.platform-android .mob-bottom-action .mob-btn.v-danger { min-height: 56px; height: 56px; padding: 16px 24px; font-size: 16px; line-height: 24px; font-weight: 500; }
+
+/* 화면 전수 대조(2026-10-22): 제목과 보조 글 두 줄 행
+   iOS Row Height=Tall 550:50515 은 68, Regular 52 는 한 줄 행 전용. 보조 글이 있으면 최소 68.
+   M3 List item 59106:13183 은 headline 과 supporting text 사이 간격 0(2줄 72, 3줄 88). */
+.mob-root.platform-ios .mob-row:not(.kv):has(.mob-row-main > :nth-child(2)) { min-height: var(--m-row-tall); }
+.mob-root.platform-android .mob-row-main { gap: 0; }
+/* M3 List item 59106:13184 State layer: pad 10/16/10/16, gap 12(앞 요소, 내용, 끝 요소 사이) */
+.mob-root.platform-android .mob-row { padding-top: 10px; padding-bottom: 10px; gap: 12px; }
+/* 화면 전수 대조: iOS 긴급 글자 버튼은 Toolbar 글자 버튼 17/22(1:54472). size-sm 행간 18 이 이기던 문제 */
+.mob-root.platform-ios .mob-btn.size-sm.mob-emergency { line-height: 22px; }
+/* 화면 전수 대조: M3 시트 안 주 동작(채움, 위험)도 Button Medium 57994:2227 56, 라벨 16/24 w500 */
+.mob-root.platform-android .mob-sheet .mob-btn.block.v-filled, .mob-root.platform-android .mob-sheet .mob-btn.block.v-danger { min-height: 56px; height: 56px; padding: 16px 24px; font-size: 16px; line-height: 24px; font-weight: 500; }
+/* 화면 전수 대조: iOS 글자 버튼(로그아웃 등 size-sm)도 Body 17/22(Toolbar 1:54472). 18 은 키트에 없는 값 */
+.mob-root.platform-ios .mob-btn.size-sm { line-height: 22px; }
