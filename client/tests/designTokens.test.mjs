@@ -59,3 +59,29 @@ test('모바일 화면 파일은 색을 직접 쓰지 않고 ui.jsx 부품과 �
   }
   assert.deepEqual(bad, [], bad.join('\n'))
 })
+
+// 옅은 색조 채움 금지: 밝기 85% 이상이면서 색차(최대 채널과 최소 채널 차이) 0.05 이상인 유채색은 화면 어디에도 쓰지 않는다. iOS 회색(#F2F2F7, #E5E5EA)은 색차 0.02로 무채색
+const tint = (hex) => { const [r, g, b] = norm(hex).slice(1).match(/../g).map((x) => parseInt(x, 16) / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b); return { c: mx - mn, l: (mx + mn) / 2 } }
+const paleTint = (hex) => { const { c, l } = tint(hex); return l >= 0.85 && c >= 0.05 && norm(hex) !== '#FFCC00' }
+test('옅은 색조 채움 금지(생성 토큰, 실제로 참조하는 키트 값, 리터럴)', () => {
+  const bad = []
+  const tokCss = readFileSync(join(SRC, 'mobile/tokens.css'), 'utf8')
+  for (const m of tokCss.matchAll(HEX)) if (paleTint(m[0])) bad.push(`mobile/tokens.css ${m[0]}`)
+  for (const f of files) {
+    if (/kitTokens\.js$|three\/localBasemap\.js$|three\/Region3D\.js$/.test(f)) continue
+    const s = strip(readFileSync(f, 'utf8'))
+    for (const m of s.matchAll(/\b(ios|m3)\.([A-Za-z0-9]+)/g)) { const v = (m[1] === 'ios' ? ios : m3)[m[2]]; if (typeof v === 'string' && v.startsWith('#') && paleTint(v)) bad.push(`${relative(SRC, f)} ${m[0]} ${v}`) }
+    for (const m of s.matchAll(HEX)) { const pre = s.slice(Math.max(0, m.index - 12), m.index); if (/&$|href=|url\(|id=|#$/.test(pre)) continue; if (paleTint(m[0])) bad.push(`${relative(SRC, f)} ${m[0]}`) }
+  }
+  assert.deepEqual(bad, [], bad.join('\n'))
+})
+test('iOS 큰 제목은 키트 Toolbars Title 34/41 Bold', () => {
+  const css = readFileSync(join(SRC, 'mobile/mobile.css'), 'utf8')
+  assert.match(css, /--t-display: 34px; --l-display: 41px; --w-display: 700;/)
+})
+test('색 글자 대비: iOS 파랑과 빨강은 흰 면에서 4.5:1, Android primary와 error는 회색 채움에서 4.5:1', () => {
+  assert.ok(contrast(ios.blueAccessible, ios.white) >= 4.5)
+  assert.ok(contrast(ios.redAccessible, ios.white) >= 4.5)
+  assert.ok(contrast(m3.primary, ios.fill) >= 4.5, String(contrast(m3.primary, ios.fill)))
+  assert.ok(contrast(m3.error, ios.fill) >= 4.5, String(contrast(m3.error, ios.fill)))
+})

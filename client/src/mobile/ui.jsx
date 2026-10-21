@@ -146,7 +146,7 @@ export function Segmented({ label, options, value, onChange }) {
   return (
     <div className="mob-seg" role="radiogroup" aria-label={label}>
       {options.map((o) => (
-        <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)} {...radioProps(options.map((x) => x.value), value, onChange, o.value)}>{o.label}</button>
+        <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)} {...radioProps(options.map((x) => x.value), value, onChange, o.value)}>{value === o.value && <svg className="mob-seg-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" fill="currentColor" /></svg>}{o.label}</button>
       ))}
     </div>
   )

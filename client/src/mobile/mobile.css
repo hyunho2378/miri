@@ -38,7 +38,7 @@
   --m-dialog-w: 300px;
   --m-toast-r: var(--m-r-lg);
   --m-seg-h: 32px;
-  --t-display: 34px; --l-display: 41px; --w-display: 400;
+  --t-display: 34px; --l-display: 41px; --w-display: 700;
   --t-title: 22px; --l-title: 28px; --w-title: 400;
   --t-headline: 17px; --l-headline: 22px; --w-headline: 600;
   --t-body: 17px; --l-body: 22px;
@@ -166,9 +166,8 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 .mob-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px; border-radius: var(--m-chip-r); background: var(--m-fill); color: var(--m-ink-2); font-size: var(--t-label); line-height: var(--l-label); font-weight: 600; border: 0; font-family: inherit; }
 button.mob-chip { cursor: pointer; position: relative; }
 button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
-.mob-chip.selected { background: var(--m-blue-soft); color: var(--m-blue-ink); }
-.mob-chip.tone-blue { background: var(--m-blue-soft); color: var(--m-blue-ink); }
-.mob-chip.tone-red { background: var(--m-red-soft); color: var(--m-red-strong); }
+.mob-chip.selected, .mob-chip.tone-blue { background: var(--m-blue); color: var(--m-on-primary); }
+.mob-chip.tone-red { background: var(--m-red); color: var(--m-on-danger); }
 .mob-seg { display: flex; background: var(--m-fill); border-radius: var(--m-r-full); padding: 2px; gap: 2px; }
 .mob-seg button { flex: 1; min-height: var(--m-seg-h); border: 0; background: transparent; border-radius: var(--m-r-full); font: inherit; font-size: var(--t-sub); font-weight: 600; color: var(--m-ink-2); cursor: pointer; position: relative; }
 .mob-seg button::after { content: ''; position: absolute; inset: calc((var(--m-touch) - var(--m-seg-h)) / -2) 0; }
@@ -177,7 +176,11 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-root.platform-android .mob-seg button { min-height: var(--m-touch); }
 .mob-root.platform-android .mob-seg button:first-child { border-radius: var(--m-r-full) 0 0 var(--m-r-full); }
 .mob-root.platform-android .mob-seg button:last-child { border-radius: 0 var(--m-r-full) var(--m-r-full) 0; }
-.mob-root.platform-android .mob-seg button[aria-checked='true'] { background: var(--m3-primary-container); color: var(--m3-on-primary-container); box-shadow: none; border-radius: 0; }
+.mob-root.platform-android .mob-seg button[aria-checked='true'] { background: var(--m-page); color: var(--m3-primary); box-shadow: none; border-radius: 0; }
+.mob-root.platform-android .mob-seg button[aria-checked='true']:first-child { border-radius: var(--m-r-full) 0 0 var(--m-r-full); }
+.mob-root.platform-android .mob-seg button[aria-checked='true']:last-child { border-radius: 0 var(--m-r-full) var(--m-r-full) 0; }
+.mob-seg-check { display: none; }
+.mob-root.platform-android .mob-seg button[aria-checked='true'] .mob-seg-check { display: inline-block; width: 18px; height: 18px; margin-right: 6px; vertical-align: -3px; }
 .mob-toggle { appearance: none; border: 0; width: 64px; height: 28px; border-radius: var(--m-r-full); background: var(--m-ink-disabled); position: relative; cursor: pointer; flex: none; transition: background-color 160ms ease; }
 .mob-toggle::before { content: ''; position: absolute; top: 2px; left: 2px; width: 36px; height: 24px; border-radius: var(--m-r-full); background: var(--m-inverse); box-shadow: var(--m-shadow-1); transition: transform 160ms ease; }
 .mob-toggle::after { content: ''; position: absolute; inset: -8px 0; }
