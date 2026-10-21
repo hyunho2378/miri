@@ -25,7 +25,7 @@ test('iPhone Duo 자세별 막대와 여백(키트 Safe Areas 12892:62092)', () 
 test('Android 창 크기별 막대와 여백(Layout grid 56384:120, Navigation Rail 58016:36879)', () => {
   const a = (w, h = 900) => layoutFor({ platform: 'android', width: w, height: h })
   assert.deepEqual(a(412), { size: 'compact', bar: 'bottom', twoPane: false, margin: 16 })
-  assert.deepEqual(a(673), { size: 'medium', bar: 'rail', twoPane: true, margin: 32 })
+  assert.deepEqual(a(673), { size: 'medium', bar: 'rail', twoPane: false, margin: 32 })
   assert.deepEqual(a(900), { size: 'expanded', bar: 'rail', twoPane: true, margin: 24 })
 })
 

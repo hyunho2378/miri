@@ -20,12 +20,13 @@ test('배정 알림, 동의, 종료 화면은 두 단을 쓰지 않음', () => {
   for (const base of ['H0', 'H1', 'H2', 'H9']) assert.deepEqual(helperPaneOf({ twoPane: true, base }), { list: null, detail: null })
 })
 
-test('두 단이 켜지는 크기: Duo 안쪽 세로와 가로, Android 600 이상. iPhone 과 Duo 바깥 세로는 한 단', () => {
+test('두 단이 켜지는 크기: Duo 안쪽 세로와 가로, Android 840 이상(medium 은 레일과 한 단). iPhone 과 Duo 바깥 세로는 한 단', () => {
   assert.equal(layoutFor({ platform: 'ios', width: 669, height: 951 }).twoPane, true)
   assert.equal(layoutFor({ platform: 'ios', width: 951, height: 669 }).twoPane, true)
   assert.equal(layoutFor({ platform: 'ios', width: 466, height: 678 }).twoPane, false)
   assert.equal(layoutFor({ platform: 'ios', width: 402, height: 874 }).twoPane, false)
-  assert.equal(layoutFor({ platform: 'android', width: 673, height: 841 }).twoPane, true)
+  assert.equal(layoutFor({ platform: 'android', width: 673, height: 841 }).twoPane, false)
+  assert.equal(layoutFor({ platform: 'android', width: 900, height: 700 }).twoPane, true)
   assert.equal(layoutFor({ platform: 'android', width: 412, height: 915 }).twoPane, false)
 })
 
@@ -38,5 +39,5 @@ test('화면 코드: 두 단에서 목록 고르기는 오른쪽만 바꾸고, �
 
 test('키와 값 행: 값 칸이 내용 폭에 고정되지 않음(꼬리 칸 65%까지 늘어남)', () => {
   const css = readFileSync(new URL('../src/mobile/mobile.css', import.meta.url), 'utf8')
-  assert.match(css, /\.mob-row-trail:has\(> \.mob-h-kv\) \{ flex: 0 1 auto; min-width: 0; max-width: 65%; \}/)
+  assert.match(css, /\.mob-row-trail:has\(> \.mob-h-kv\) \{ flex: 0 0 auto; min-width: 0; max-width: 65%; \}/)
 })

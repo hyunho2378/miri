@@ -16,12 +16,13 @@ export function sizeClassOf(width) {
 
 export function layoutFor({ platform = 'ios', width = 402, height = 874 } = {}) {
   const size = sizeClassOf(width)
-  const twoPane = size !== 'compact'
   if (platform === 'android') {
+    // M3 canonical list-detail: compact 와 medium 은 한 단(레일만), expanded 부터 두 단
     const bar = size === 'compact' ? 'bottom' : 'rail'
     const margin = size === 'compact' ? 16 : size === 'medium' ? 32 : 24
-    return { size, bar, twoPane, margin }
+    return { size, bar, twoPane: size === 'expanded', margin }
   }
+  const twoPane = size !== 'compact'
   const bar = height < IOS_SIDE_BAR_MAX_H ? 'side' : 'bottom'
   const margin = bar === 'side' || twoPane ? 20 : 16
   return { size, bar, twoPane, margin }
