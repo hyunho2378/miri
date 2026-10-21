@@ -368,7 +368,7 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-ios-pill-input { display:inline-flex; align-items:center; gap:2px; }
 .mob-ios-pill-input input { width:2.2ch; border:0; background:transparent; color:inherit; font:inherit; font-size:17px; text-align:center; min-height:var(--m-touch); }
 /* M3 키트 Keyboard picker(52949:28053) 24시간 */
-.mob-m3-timepicker { width:264px; margin:8px auto; padding:24px 24px 12px; border-radius:28px; background:var(--m-fill); box-sizing:content-box; }
+.mob-m3-timepicker { width:264px; margin:8px auto; padding:24px 24px 12px; border-radius:28px; background:var(--m-fill); box-sizing:border-box; }   /* 키트 Format=24 hour 264x243 은 여백 포함 바깥 크기(시 96 + 콜론 24 + 분 96 = 216 + 좌우 24) */
 .mob-m3-tp-title { margin:0 0 20px; font-size:12px; line-height:16px; font-weight:500; letter-spacing:.5px; color:var(--m-ink-3); }
 .mob-m3-tp-digits { display:flex; align-items:center; gap:0; }
 .mob-m3-tp-digits input { width:96px; height:72px; border:0; border-radius:8px; background:var(--m-page); color:var(--m-ink); font:inherit; font-size:57px; line-height:64px; font-weight:400; text-align:center; }
