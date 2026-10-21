@@ -256,7 +256,7 @@ export function FieldNoteReviewPage() {
     <>
       <AppBar title={n.personCode} onBack={() => navigate('/m/f/notes')} backLabel="목록" />
       <main id="main" className="mob-content">
-        <FieldFigure label={`${sourceLabel(n.source)}이 전한 소식`} value={gradeOf(nextGrade)?.label || '확인 필요'} unit="">
+        <FieldFigure label={`받은 소식, ${sourceLabel(n.source)}`} value={gradeOf(nextGrade)?.label || '확인 필요'} unit="">
           <p className="mob-t-callout">{dif?.gradeChanged ? `지금 명부 ${gradeOf(n.current?.grade)?.label}에서 바뀜` : '등급은 그대로'}</p>
         </FieldFigure>
         <List label="근거">

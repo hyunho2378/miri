@@ -627,5 +627,5 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 
 /* 재설계 2b: 큰 숫자 하나(카드 없이 바탕 위). 숫자는 큰 제목 글자 역할(--t-display), 설명은 목록 행 보조 글 역할(callout) */
 .mob-field-figure { display: flex; flex-direction: column; gap: 6px; padding: 0 4px; }
-.mob-field-figure .mob-t-display .mob-t-body { margin-left: 4px; color: var(--m-ink-2); }
+.mob-field-figure .mob-t-display .mob-t-body { margin-left: 4px; color: var(--m-ink-2); font-weight: 400; }
 .mob-field-figure .mob-progress { margin: 4px 0; }
