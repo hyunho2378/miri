@@ -676,3 +676,7 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
    채움, 위험 채움 동작도 대화상자 안에서는 글자 버튼으로, 위험 동작은 글자 색만 빨강 */
 .mob-root.platform-android .mob-dialog-actions .mob-btn { background-color: transparent; color: var(--m-blue-strong); padding-left: 12px; padding-right: 12px; }
 .mob-root.platform-android .mob-dialog-actions .mob-btn.v-danger { color: var(--m-red-strong); }
+/* 화면 전수 대조(2026-10-22): iOS Alert 의 취소 동작은 _Buttons Role=Cancel 10513:3958(회색 채움 알약, 17/22 w590 검정 글자).
+   키트 채움 #787880@0.16 은 옅은 반투명이라 사용자 규칙(옅은 색 금지)에 따라 같은 무채색 단색 --m-fill 로 */
+.mob-root.platform-ios .mob-dialog-actions .mob-btn.v-plain { background: var(--m-fill); }
+.mob-root.platform-ios .mob-dialog-actions .mob-btn.v-plain:not(.mob-h-danger-text) { color: var(--m-ink); }
