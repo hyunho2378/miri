@@ -94,6 +94,26 @@ export function itemsOf(out) {
   }))
 }
 
+// 모델 응답 형식 오류는 한 번만 다시 묻고, 그래도 틀리면 422 확인 요청(회신 R36 홀드아웃 HO-04)
+export async function askItems(system, user, ask = hcxJson) {
+  for (let k = 0; k < 2; k++) {
+    try { return itemsOf(await ask(system, user)) } catch (e) {
+      if (!['PARSE', 'BAD_MODEL_OUTPUT'].includes(e.code)) throw e
+      if (k === 1) throw Object.assign(new Error('분류 결과 형식 오류(재요청 뒤에도)'), { code: 'MODEL_FORMAT' })
+    }
+  }
+}
+
+// 자유 서술 문서에서 모델이 빠뜨린 대상자를 확인 필요로 채운다(회신 R36). 근거: 번호 매긴 줄 수, P 번호 빈자리
+export function fillMissing(persons, items, masked) {
+  const ids = items.map((x) => /^P(\d+)$/.exec(x.id || '')?.[1]).filter(Boolean).map(Number)
+  const numbered = masked.filter((l) => /^\s*\d{1,2}\s*[.)]\s*\S/.test(l) && /가림|거\s*동|걸|휠체|침상|와상|부축|보행/.test(l)).length
+  const want = Math.max(ids.length ? Math.max(...ids) : 0, numbered, persons.length)
+  const out = persons.slice()
+  for (let k = out.length; k < want; k++) out.push({ personHint: `순번 ${k + 1}`, tags: [], quote: '', confidence: 'low', box: null, grade: 'unknown', reason: 'missingFromModel' })
+  return out
+}
+
 // 한 사람 판정. 근거 문구가 그 구간 원문에 없으면 원래 문구를 남기고 실패로 표시해 담당자 확인으로 넘긴다(GPT 재검토 R3)
 export function judge(it, segText, personHint, box, free = false) {
   const quote = one(it?.quote)
@@ -130,21 +150,22 @@ export default async function handler(req, res) {
     let persons
     if (segs.length) {
       const user = segs.map((s, k) => `S${k + 1}: ${s.text}`).join('\n')
-      const items = itemsOf(await hcxJson(SYSTEM, user))
+      const items = await askItems(SYSTEM, user)
       persons = segs.map((s, k) => {
         const it = items.find((x) => x.id === `S${k + 1}`) || (items.length === segs.length && !items.some((x) => x.id) ? items[k] : undefined)
         const idx = s.lines.flatMap((li) => lines[li].idx)
         return judge(it, s.text, `순번 ${k + 1}`, boxOf(fields, idx, size))
       })
     } else {
-      const items = itemsOf(await hcxJson(FREE_SYSTEM, transcript))
-      persons = items.map((it, k) => judge(it, transcript, `순번 ${k + 1}`, null, true))
+      const items = await askItems(FREE_SYSTEM, transcript)
+      persons = fillMissing(items.map((it, k) => judge(it, transcript, `순번 ${k + 1}`, null, true)), items, masked)
     }
     // 읽은 내용이 없으면 성공으로 넘기지 않는다(GPT 3차 확인 R9)
     if (!transcript || !persons.length) return fail(res, 422, 'EMPTY_RESULT', '읽은 내용 없음. 담당자가 서류를 직접 확인해 주십시오')
     return res.status(200).json({ transcript, persons, engine: { ocr: 'CLOVA OCR', llm: HCX_MODEL, region: 'KR' } })
   } catch (e) {
     if (e.code === 'NO_KEY') return fail(res, 503, 'NO_KEY', `판독 서버 미연결. ${e.message}`)
+    if (e.code === 'MODEL_FORMAT') return fail(res, 422, 'MODEL_FORMAT', '판독 결과 형식이 맞지 않아 담당자 확인이 필요합니다. 서류를 직접 확인해 주십시오')
     if (e.code === 'TIMEOUT') return fail(res, 504, 'TIMEOUT', `판독 실패: ${e.message}. 잠시 뒤 다시 시도해 주십시오`)
     return fail(res, 502, ['UPSTREAM', 'BAD_UPSTREAM', 'PARSE', 'BAD_MODEL_OUTPUT', 'NETWORK'].includes(e.code) ? e.code : 'NETWORK', `판독 실패: ${e.message}`)
   }

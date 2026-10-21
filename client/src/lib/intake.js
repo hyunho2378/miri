@@ -21,8 +21,11 @@ export function verifyResult(transcript, r0) {
 // 판독 불가(unknown), 근거 약함(low)인 도보와 부축 판정은 배정 계산에서 휠체어 등급으로 잡고 '등급 확인 필요'를 단다.
 // 담당자가 확인하거나 고치면 그 값으로 바뀐다. 휠체어와 침상 판정은 이미 높은 쪽이라 그대로 둔다.
 export const UNCERTAIN_PLAN_GRADE = 'wheelchair'
+// 도보 판정이라도 보조 단서(지팡이, 보행기, 천천히, 부축 등)가 근거나 문맥에 있으면 확인 필요 후보로 둔다(회신 R36 홀드아웃)
+export const ASSIST_CUE = /지팡이|보행\s*기|보행\s*보조|실버\s*카|천천히|부축|느리게|느림|휘청|넘어|낙상|불안정|손잡이|짚고|짚으|붙잡|기대어|의지/
 export function planningGrade(r) {
   if (!GRADE_KEYS.includes(r.grade)) return { grade: UNCERTAIN_PLAN_GRADE, uncertain: true }
+  if (r.grade === 'walk' && ASSIST_CUE.test(`${r.quote || ''} ${r.context || ''}`)) return { grade: UNCERTAIN_PLAN_GRADE, uncertain: true }
   if (r.confidence === 'low' && (r.grade === 'walk' || r.grade === 'assist')) return { grade: UNCERTAIN_PLAN_GRADE, uncertain: true }
   return { grade: r.grade, uncertain: false }
 }
