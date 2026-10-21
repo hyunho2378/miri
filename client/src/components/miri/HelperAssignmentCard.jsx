@@ -6,6 +6,7 @@ import { STEP_LABEL, FAIL_REASONS } from '../../lib/dispatchSim.js'
 import { TAGS } from '../../lib/intake.js'
 import { gradeOf } from '../../lib/shortage.js'
 import { fmtHM } from '../../lib/time.js'
+import { personCare } from '../../lib/tripChecks.js'
 import StatusPill from '../dashboard/StatusPill.jsx'
 import Badge from '../ui/Badge.jsx'
 import Card from '../ui/Card.jsx'
@@ -15,12 +16,13 @@ const DONE = new Set(['handover', 'fail', 'handedToFire'])
 
 export default function HelperAssignmentCard({
   order, person, step, info, villageLabel, shelterName, tripIndex,
-  current = false, expanded = false, onToggle, doneAt, failReason
+  current = false, expanded = false, onToggle, doneAt, failReason, routeCheck = false
 }) {
   const done = DONE.has(step)
   const open = current || expanded
   const g = gradeOf(person.grade)
   const tags = (person.tags || []).filter((t) => t !== 'bedridden').map((t) => TAGS[t]).filter(Boolean)
+  const care = personCare(person)
   return (
     <Card as="li" padding="none">
       <button
@@ -67,6 +69,19 @@ export default function HelperAssignmentCard({
               보호자에게 전화 <span className="tabular-nums">{info.guardianPhone}</span>
             </a>
           )}
+          {routeCheck && (
+            <p role="note" className="rounded-md bg-warning-soft px-3 py-2 type-body-sm text-warning-text">경로 확인 필요. 집결지와 대피소를 잇는 직선이 산불 영향 범위를 지남(직선 기준, 도로 경로 아님). 출발 전 담당자 확인</p>
+          )}
+          <div>
+            <p className="type-caption text-text-sec">동행과 소통</p>
+            <ul className="mt-1 space-y-1 type-body text-text-pri">
+              <li>평소 돌봄 담당자: {care.caregiverType}{care.caregiverType !== '없음' && care.caregiverType !== '확인 필요' ? `, ${care.reachableLabel}` : ''}</li>
+              {care.companionCall && <li className="text-primary-text">동행 연락 필요. 출발 전 돌봄 담당자에게 연락</li>}
+              {care.caregiverUnreachable && <li className="text-warning-text">돌봄 담당자 연락 불가. 담당자에게 알림</li>}
+              <li>의사소통 특성: {!care.known ? '확인 필요' : care.comm.length ? `${care.comm.join(', ')}, 천천히 짧게 설명` : '없음'}</li>
+              <li>보조기구: {!care.known ? '확인 필요' : care.aids.length ? care.aids.join(', ') : '없음'}</li>
+            </ul>
+          </div>
           <div>
             <p className="type-caption text-text-sec">필요 차량과 인력</p>
             <p className="mt-0.5 type-body text-text-pri">{g?.need}</p>

@@ -22,7 +22,19 @@ export function moveOptions(assignments, vehicles, code, fromTrip) {
   return opts
 }
 
-export default function AssignmentBundle({ assignment, vehicle, villageLabel = (c) => c, assignments, vehicles, onMove, editable = false }) {
+// 회차 확인 표시 문구. checks 는 tripChecks() 결과
+export function tripCheckNotes(checks) {
+  if (!checks) return []
+  const notes = []
+  if (checks.companionCall.length) notes.push({ tone: 'primary', text: `동행 연락 필요 ${checks.companionCall.length}명(평소 돌봄 담당자)` })
+  if (checks.caregiverUnreachable.length) notes.push({ tone: 'warning', text: `돌봄 담당자 연락 불가 ${checks.caregiverUnreachable.length}명` })
+  if (checks.commCaution.length) notes.push({ tone: 'primary', text: `의사소통 유의 ${checks.commCaution.length}명` })
+  if (checks.liftUnchecked.length) notes.push({ tone: 'warning', text: `리프트 차량 진입 확인 필요: ${checks.liftUnchecked.join(', ')}` })
+  if (checks.routeCheck) notes.push({ tone: 'warning', text: '경로 확인 필요(직선 기준, 도로 경로 아님)' })
+  return notes
+}
+
+export default function AssignmentBundle({ assignment, vehicle, villageLabel = (c) => c, assignments, vehicles, onMove, editable = false, checkTrip, careOf }) {
   const type = typeOf(vehicle?.type)
   const last = assignment.trips[assignment.trips.length - 1]
   const persons = assignment.trips.reduce((s, t) => s + t.personCodes.length, 0)
@@ -47,6 +59,13 @@ export default function AssignmentBundle({ assignment, vehicle, villageLabel = (
               <span className="text-text-meta">출발 {fmtHM(t.departAt)}, 이송 완료 {fmtHM(t.finishAt)}</span>
               {t.added && <span className="text-primary-text">재배정으로 추가</span>}
             </p>
+            {checkTrip && tripCheckNotes(checkTrip(t)).length > 0 && (
+              <ul className="mt-1.5 flex flex-wrap gap-1.5" aria-label={`${t.index}회차 확인할 점`}>
+                {tripCheckNotes(checkTrip(t)).map((n) => (
+                  <li key={n.text} className={n.tone === 'warning' ? 'rounded-md bg-warning-soft px-2 py-0.5 type-meta text-warning-text' : 'rounded-md bg-primary-soft px-2 py-0.5 type-meta text-primary-text'}>{n.text}</li>
+                ))}
+              </ul>
+            )}
             <ul className="mt-2 space-y-1.5">
               {t.personCodes.map((code) => {
                 const opts = editable ? moveOptions(assignments, vehicles, code, t) : []
@@ -54,6 +73,11 @@ export default function AssignmentBundle({ assignment, vehicle, villageLabel = (
                   <li key={code} className="flex flex-wrap items-center gap-2">
                     <GradeChip grade={t.grade} size="sm" />
                     <span className="type-body-sm text-text-pri tabular-nums">{code}</span>
+                    {careOf && (() => { const c = careOf(code); return c ? <>
+                      {c.companionCall && <span className="type-meta text-primary-text">동행 연락</span>}
+                      {c.commCaution && <span className="type-meta text-primary-text">소통 {c.comm.join(', ')}</span>}
+                      {c.aids.length > 0 && <span className="type-meta text-text-meta">{c.aids.join(', ')}</span>}
+                    </> : null })()}
                     {editable && (
                       <span className="ml-auto w-full sm:w-48">
                         {opts.length ? (

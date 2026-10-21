@@ -10,6 +10,7 @@ import GradeChip from '../../components/miri/GradeChip.jsx'
 import MetricCard from '../../components/miri/MetricCard.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import AssignmentBundle from '../../components/miri/AssignmentBundle.jsx'
+import { personCare, tripChecks } from '../../lib/tripChecks.js'
 import BaselineCompare from '../../components/miri/BaselineCompare.jsx'
 import StepIndicator from '../../components/miri/StepIndicator.jsx'
 import TransportStatusTable from '../../components/miri/TransportStatusTable.jsx'
@@ -194,8 +195,21 @@ function AssignedPanel({ meta }) {
   const movePerson = useDispatchStore((s) => s.movePerson)
   const confirmAndSend = useDispatchStore((s) => s.confirmAndSend)
   const vehicles = useMiriStore((s) => s.vehicles)
+  const persons = useMiriStore((s) => s.persons)
+  const shelterList = useMiriStore((s) => s.shelters)
+  const villageList = useMiriStore((s) => s.villages)
+  const scenarioNow = useMiriStore(activeScenario)
   const toast = useToast()
   const trips = result.assignments.reduce((s, a) => s + a.trips.length, 0)
+  // 회차 확인 표시(동행 연락, 의사소통, 리프트 진입, 직선 경로). 배정 숫자는 바꾸지 않음
+  const checkCtx = useMemo(() => ({
+    persons: Object.fromEntries(persons.map((p) => [p.code, p])),
+    shelters: Object.fromEntries((shelterList || []).map((x) => [x.code, x])),
+    villages: villageList, scenario: scenarioNow,
+    villageShelter: (code) => result.ctx?.vmap?.[code]?.shelterCode || villageList.find((v) => v.code === code)?.shelterCode
+  }), [persons, shelterList, villageList, scenarioNow, result])
+  const checkTrip = (t) => tripChecks({ trip: t, ...checkCtx })
+  const careOf = (code) => (checkCtx.persons[code] ? personCare(checkCtx.persons[code]) : null)
   const firstDepart = Math.min(...result.assignments.flatMap((a) => (a.trips || []).map((t) => t.departAt)).filter(Number.isFinite))
 
   const unassignedRows = result.unassigned.map((u) => ({ ...u, code: u.personCode }))
@@ -240,6 +254,7 @@ function AssignedPanel({ meta }) {
           <AssignmentBundle
             key={a.vehicleCode} assignment={a} vehicle={vehicles.find((v) => v.code === a.vehicleCode)}
             villageLabel={meta.label} assignments={result.assignments} vehicles={vehicles} editable
+            checkTrip={checkTrip} careOf={careOf}
             onMove={(code, veh, idx) => { movePerson(code, veh, idx); toast(`회차 이동: ${code}, ${veh} ${idx}회차`) }}
           />
         ))}

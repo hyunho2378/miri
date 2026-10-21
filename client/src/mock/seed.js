@@ -12,6 +12,7 @@ import { HOUR, MIN } from '../lib/time.js'
 import { citywideScenario, hazardScenario, fireScenario } from '../lib/scenario.js'
 import { DONG_CENTERS, LTC, TEMP_SHELTERS, VILLAGES } from './donghaeData.js'
 import { VILLAGE_TERRAIN } from './villageTerrain.js'
+import { withShelterChecks } from '../lib/tripChecks.js'
 
 const DAY = 24 * HOUR
 
@@ -23,7 +24,8 @@ export const DONGS = [
 ].map((d) => ({ ...d, center: DONG_CENTERS.find((c) => c.dong === d.code) || null }))
 
 // 임시주거시설 27곳(실제). 화면에서 쓰는 이름 그대로
-export const SHELTERS = TEMP_SHELTERS
+// 리프트 차량 진입, 야간과 휴일 개방 담당은 공개 자료에 없어 null(확인 필요). 시설 확인 뒤 같은 칸에 채움
+export const SHELTERS = withShelterChecks(TEMP_SHELTERS)
 
 export const SETTINGS = {
   orgName: import.meta.env?.VITE_ORG_NAME || '동해시',
@@ -52,6 +54,23 @@ function gradeSlots(r) {
     ;[slots[i], slots[j]] = [slots[j], slots[i]]
   }
   return slots
+}
+
+// 대상자 돌봄과 의사소통 정보(가상). 의사소통 특성은 청각, 인지, 언어. 돌봄 담당자 유형만 두고 이름은 두지 않음
+function careOf(tags, grade, k) {
+  const comm = []
+  if (tags.includes('hearing')) comm.push('청각')
+  if (tags.includes('dementia')) comm.push('인지')
+  if (k % 11 === 0) comm.push('언어')
+  const caregiverType = tags.includes('guardian') ? '가족' : k % 3 === 0 ? '요양보호사' : k % 3 === 1 ? '이웃' : '없음'
+  const caregiverReachable = caregiverType === '없음' ? null : k % 7 === 0 ? false : true
+  const aids = []
+  if (tags.includes('wheelPower')) aids.push('전동 휠체어')
+  if (tags.includes('wheelManual')) aids.push('수동 휠체어')
+  if (grade === 'bed') aids.push('침대형 이송')
+  if (tags.includes('oxygen')) aids.push('산소')
+  if (grade === 'assist' && k % 4 === 0) aids.push('보행기')
+  return { comm, caregiverType, caregiverReachable, aids }
 }
 
 export function buildSeed() {
@@ -98,7 +117,10 @@ export function buildSeed() {
           stairs: k % 5 === 0 ? '계단만 있음' : k % 3 === 0 ? '엘리베이터 있음' : '계단 없음',
           vehicle: k % 2 === 0 ? '대문 앞까지 차량 진입 가능' : '골목 입구에서 하차, 30미터 도보',
           comm: tags.includes('hearing') ? '글로 써서 설명' : tags.includes('dementia') ? '보호자가 먼저 설명' : '말로 설명'
-        }
+        },
+        // 치매 전문 언론 자문 회신: 평소 돌봄 담당자, 의사소통 특성, 보조기구. 모두 가상 값이고 이름은 두지 않음
+        // 난수 순서를 바꾸지 않도록 태그와 k로 정함
+        care: careOf(tags, grade, k)
       })
       privateInfo[code] = {
         address: `동해시 ${v.name} (가상 대상자, 번지 없음)`,

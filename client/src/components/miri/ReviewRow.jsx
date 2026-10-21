@@ -1,5 +1,6 @@
 // 서류 1건 확인 화면(PATTERNS 35 개정, PRD v2 F2). 왼쪽 원본 이미지, 오른쪽 읽은 값과 근거. 조작은 확인, 수정, 제외 세 가지.
 import { useState } from 'react'
+import { personCare } from '../../lib/tripChecks.js'
 import { GRADES } from '../../lib/shortage.js'
 import { TAGS } from '../../lib/intake.js'
 import Button from '../ui/Button.jsx'
@@ -51,6 +52,14 @@ export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdi
           </div>
           <Select label="이송 등급" value={grade} options={GRADE_OPTIONS} onChange={setGrade} disabled={!canEdit} />
           <MultiSelect label="특이사항" values={tags} options={TAG_OPTIONS} onChange={setTags} disabled={!canEdit} />
+          {(() => { const c = personCare(result); return (
+            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-md bg-mute px-3 py-2 type-body-sm">
+              <dt className="text-text-sec">평소 돌봄 담당자</dt><dd className="text-text-pri">{c.caregiverType}{c.known && c.caregiverType !== '없음' ? `, ${c.reachableLabel}` : ''}</dd>
+              <dt className="text-text-sec">의사소통 특성</dt><dd className="text-text-pri">{!c.known ? '확인 필요' : c.comm.join(', ') || '없음'}</dd>
+              <dt className="text-text-sec">보조기구</dt><dd className="text-text-pri">{!c.known ? '확인 필요' : c.aids.join(', ') || '없음'}</dd>
+              {!c.known && <dd className="col-span-2 type-meta text-text-meta">서류에 칸이 없으면 확인 필요로 두고 사회복지 담당자가 명부에서 입력</dd>}
+            </dl>
+          ) })()}
           {changed && <p className="type-meta text-primary-text">읽은 값에서 변경했습니다. 수정을 누르면 변경한 값으로 확정합니다.</p>}
           <EvidencePanel quote={result.quote} matched={result.quoteMatched} confidence={result.confidence} conflict={result.conflict} transcript={doc.transcript} docName={doc.name} />
           {canEdit && (

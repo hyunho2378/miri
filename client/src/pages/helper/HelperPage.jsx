@@ -21,6 +21,8 @@ import { fmtHM } from '../../lib/time.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
 import RemoteHelper from './RemoteHelper.jsx'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
+import { tripChecks } from '../../lib/tripChecks.js'
+import { tripCheckNotes } from '../../components/miri/AssignmentBundle.jsx'
 
 const NEXT = {
   wait: { step: 'depart', label: '출발' },
@@ -113,6 +115,19 @@ function DemoHelperPage() {
 
   const sc = activeScenario(data)
   const brief = helperBrief({ result: d.result, me, scenario: sc, villages: data.villages, hazardLabel: HAZARD_KINDS[sc?.kind]?.label })
+  // 회차 확인 표시(동행 연락, 의사소통, 리프트 진입, 직선 경로)
+  const checkCtx = {
+    persons: Object.fromEntries(data.persons.map((p) => [p.code, p])),
+    shelters: Object.fromEntries(data.shelters.map((x) => [x.code, x])),
+    villages: data.villages, scenario: sc,
+    villageShelter: (code) => villageOf(code)?.shelterCode
+  }
+  const tripCheck = Object.fromEntries(trips.map((tr) => [tr.index, tripChecks({ trip: tr, ...checkCtx })]))
+  const merged = Object.values(tripCheck).reduce((m, c) => ({
+    companionCall: [...m.companionCall, ...c.companionCall], caregiverUnreachable: [...m.caregiverUnreachable, ...c.caregiverUnreachable],
+    commCaution: [...m.commCaution, ...c.commCaution], liftUnchecked: [...new Set([...m.liftUnchecked, ...c.liftUnchecked])], routeCheck: m.routeCheck || c.routeCheck
+  }), { companionCall: [], caregiverUnreachable: [], commCaution: [], liftUnchecked: [], routeCheck: false })
+  const allNotes = tripCheckNotes(merged)
   const summary = (
     <Card>
       <div className="flex items-center gap-2">
@@ -133,7 +148,8 @@ function DemoHelperPage() {
           { label: '대상자', value: <>{list.length}명, {trips.length}회차</> },
           { label: '대피소', value: <>{shelters.join(', ')}</> },
           { label: '첫 출발', value: <>{fmtHM(trips[0]?.departAt)}</> },
-          { label: '담당자 연락', value: <>{data.settings?.officerContact || '발령 담당자, 문자 회신'}</> }
+          { label: '담당자 연락', value: <>{data.settings?.officerContact || '발령 담당자, 문자 회신'}</> },
+          { label: '확인할 점', value: allNotes.length ? <ul className="space-y-0.5">{allNotes.map((n) => <li key={n.text} className={n.tone === 'warning' ? 'text-warning-text' : 'text-primary-text'}>{n.text}</li>)}</ul> : '없음' }
         ]}
       />
     </Card>
@@ -214,7 +230,7 @@ function DemoHelperPage() {
                 shelterName={personDest(code, trip, d.result?.ctx) ? shelterName(personDest(code, trip, d.result?.ctx)) : shelterOf(trip.village)}
                 current={i === currentIdx} expanded={!!expanded[code]}
                 onToggle={() => setExpanded((x) => ({ ...x, [code]: !x[code] }))}
-                doneAt={ev?.at} failReason={ev?.reason}
+                doneAt={ev?.at} failReason={ev?.reason} routeCheck={!!tripCheck[trip.index]?.routeCheck}
               />
             )
           })}

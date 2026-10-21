@@ -9,7 +9,7 @@ import { useLang } from '../../i18n/LangContext.jsx'
 import EmptyState from '../ui/EmptyState.jsx'
 import Pagination from '../ui/Pagination.jsx'
 
-const HIDE = { md: 'hidden md:table-cell', lg: 'hidden lg:table-cell' }
+const HIDE = { md: 'hidden md:table-cell', lg: 'hidden lg:table-cell', xl: 'hidden xl:table-cell' }
 
 export default function DataTable({
   columns = [], rows = [], rowKey = (r) => r.id, onRowClick,
