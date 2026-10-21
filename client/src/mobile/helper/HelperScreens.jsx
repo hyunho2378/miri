@@ -19,7 +19,7 @@ const Bottom = BottomActions
 function KV({ rows }) {
   return (
     <List>
-      {rows.filter(Boolean).map((r) => <ListRow key={r.label} title={r.label} trailing={<span className="mob-h-kv">{r.value}</span>} />)}
+      {rows.filter(Boolean).map((r) => <ListRow key={r.label} className="kv" title={r.label} trailing={<span className="mob-h-kv">{r.value}</span>} />)}
     </List>
   )
 }

@@ -265,7 +265,7 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 
 /* 스낵바와 토스트 */
 .mob-toast-wrap { position: fixed; left: 0; right: 0; z-index: 70; display: flex; justify-content: center; pointer-events: none; padding: 0 var(--m-margin); }
-.mob-root.platform-ios .mob-toast-wrap { top: calc(var(--m-safe-top) + 8px); }
+.mob-root.platform-ios .mob-toast-wrap { bottom: calc(var(--m-nav-h) + var(--m-safe-bottom) + 12px); }   /* 키트에 iOS 토스트 없음: 큰 제목을 가리지 않게 아래 탭 바 위 */
 .mob-root.platform-android .mob-toast-wrap { bottom: calc(var(--m-nav-h) + var(--m-safe-bottom) + 12px); }
 .mob-toast { pointer-events: auto; min-height: 48px; max-width: 344px; width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--m-toast-r); background: var(--m-ink); color: var(--m-inverse); font-size: 15px; line-height: 20px; box-shadow: var(--m-shadow-2); animation: mob-fade 160ms ease; }
 .mob-root.platform-ios .mob-toast { background: var(--m-page); color: var(--m-ink); }
@@ -530,8 +530,7 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 .mob-root.platform-android .mob-nav.nav-rail .mob-nav-item { flex: none; width: 96px; min-height: 64px; }
 
 /* 두 단(목록과 상세). 경계는 접힘선이 있으면 접힘선에 맞춘다 */
-/* 목록 단은 행 글자가 꺾이지 않도록 최소 300(iOS 목록 행 최소, M3 목록 단 360 권장 아래 한계), 나머지는 상세 */
-.mob-two { display: grid; grid-template-columns: minmax(300px, 2fr) minmax(0, 3fr); flex: 1; min-height: 0; }
+.mob-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); flex: 1; min-height: 0; }   /* 키트에 두 단 폭 예시 없음: 접힘선 기준 반반(Duo 안쪽 669 = 334 + 334) */
 .mob-pane { min-width: 0; display: flex; flex-direction: column; height: 100dvh; overflow: auto; }
 .mob-frame .mob-pane { height: 100%; }
 .mob-root.two-pane .mob-pane-detail .mob-bar-slot:first-child .mob-icon-btn { visibility: hidden; }
@@ -544,12 +543,26 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 .mob-root.platform-android .mob-h-time { font-size: 32px; line-height: 40px; font-weight: 400; letter-spacing: 0; }
 .mob-root.platform-ios .mob-h-big { font-size: 20px; line-height: 25px; font-weight: 590; letter-spacing: -0.45px; }   /* Title 3 강조 */
 .mob-root.platform-android .mob-h-big { font-size: 22px; line-height: 28px; font-weight: 500; letter-spacing: 0; }   /* Title Large */
-/* 키와 값 행: 값 칸은 행 너비의 65%까지 늘어나고 그 안에서 줄바꿈(꼬리 칸이 내용 폭으로 고정되면 값이 한두 글자씩 꺾임) */
-.mob-row-trail:has(> .mob-h-kv) { flex: 0 0 auto; min-width: 0; max-width: 65%; }
-.mob-h-kv { font-weight: var(--w-strong); }
+/* 키와 값 행(ListRow kv). iOS 키트 Lists 의 Detail 변형: 제목은 줄지 않는 최소 폭, 값은 남은 폭 전체를 오른쪽 정렬로 쓰고 단어 단위로 줄바꿈.
+   행 폭이 360 미만이면 Subtitle 변형처럼 값을 제목 아래 줄로 내린다(Duo 바깥 화면 카드 폭 342 등) */
+.mob-list > li:has(> .mob-row.kv) { container-type: inline-size; }
+.mob-row.kv .mob-row-main { flex: 0 0 auto; max-width: 45%; }
+.mob-row.kv .mob-row-trail { flex: 1 1 auto; min-width: 0; max-width: none; justify-content: flex-end; text-align: right; }
+.mob-h-kv { font-weight: var(--w-strong); word-break: keep-all; overflow-wrap: anywhere; }
+@container (max-width: 359px) {
+  .mob-row.kv { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding-top: 11px; padding-bottom: 11px; }
+  .mob-row.kv .mob-row-main { max-width: none; }
+  .mob-row.kv .mob-row-trail { justify-content: flex-start; text-align: left; width: 100%; }
+}
 /* 구획 머리 아래 설명과 목록 아래 설명: Grouped Table Footer 35:55757 pad 8/16/6/16, 13/18 자간 -0.08 */
 .mob-section > p.mob-t-foot, .mob-section > p.mob-t-sub { padding: 0 var(--m-row-pad-x); margin: 0; }
 /* 구획 제목: iOS Section Title 50:56535(17/22 w590 자간 -0.43, 아래 9, 보조 글자색. 대비 4.5 위해 #48484A), M3 목록 머리 Title Small 14/20 w500 자간 0.1 */
 .mob-root.platform-ios .mob-section-title { font-size: 17px; line-height: 22px; font-weight: 590; letter-spacing: -0.43px; color: var(--m-ink-2); padding-bottom: 1px; }
 .mob-root.platform-ios.text-large .mob-section-title { font-size: 23px; line-height: 29px; }
 .mob-root.platform-android .mob-section-title { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px; color: var(--m-ink-2); }
+
+/* 알림 위치 보정: 하단 고정 동작(도우미 화면)이 있으면 그 위, 옆 막대와 레일만큼 비킴, 두 단이면 목록 단 폭 안에 둔다(상세 단을 가리지 않음) */
+.mob-root:has(.mob-h-bottom) .mob-toast-wrap { bottom: calc(var(--m-safe-bottom) + var(--m-toast-above, 132px)); }
+.mob-root .mob-toast-wrap { left: calc(var(--m-safe-left) + var(--m-rail)); right: calc(var(--m-safe-right) + var(--m-side-bar)); }
+.mob-root.two-pane .mob-toast-wrap { right: calc(50% + var(--m-side-bar) / 2); justify-content: center; }
+.mob-root.platform-android { --m-toast-above: 84px; }

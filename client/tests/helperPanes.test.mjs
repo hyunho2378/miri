@@ -37,7 +37,11 @@ test('화면 코드: 두 단에서 목록 고르기는 오른쪽만 바꾸고, �
   assert.match(src, /<TwoPane\s/)
 })
 
-test('키와 값 행: 값 칸이 내용 폭에 고정되지 않음(꼬리 칸 65%까지 늘어남)', () => {
+test('키와 값 행: 값은 남은 폭 오른쪽 정렬, 단어 단위 줄바꿈, 행 폭 360 미만이면 값을 아래 줄로', () => {
   const css = readFileSync(new URL('../src/mobile/mobile.css', import.meta.url), 'utf8')
-  assert.match(css, /\.mob-row-trail:has\(> \.mob-h-kv\) \{ flex: 0 0 auto; min-width: 0; max-width: 65%; \}/)
+  assert.match(css, /\.mob-row\.kv \.mob-row-trail \{ flex: 1 1 auto;[^}]*justify-content: flex-end;/)
+  assert.match(css, /\.mob-h-kv \{[^}]*word-break: keep-all;/)
+  assert.match(css, /@container \(max-width: 359px\) \{\s*\.mob-row\.kv \{ flex-direction: column;/)
+  const jsx = readFileSync(new URL('../src/mobile/helper/HelperScreens.jsx', import.meta.url), 'utf8')
+  assert.match(jsx, /className="kv" title=\{r\.label\}/)
 })

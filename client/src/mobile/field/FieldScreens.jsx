@@ -189,7 +189,7 @@ export function FieldVillagesPage() {
         {!list.length ? <EmptyState title="배정 전" body="배정 계산 뒤 마을별 진행 표시" /> : (
           <List label="마을별 진행">
             {list.map((v) => (
-              <ListRow key={v.code} title={`${v.name}`} subtitle={`완료 ${v.done}, 진행 ${v.moving}, 대기 ${v.wait}${v.issue ? `, 미배정과 실패 ${v.issue}` : ''} / ${v.total}명`} meta={v.at ? `${hm(v.at)}까지` : '기한 없음'}
+              <ListRow key={v.code} title={`${v.name}`} subtitle={`완료 ${v.done} / ${v.total}명${v.issue ? `, 미배정과 실패 ${v.issue}` : ''}`} meta={v.at ? `${hm(v.at)}까지` : '기한 없음'}
                 trailing={(() => { const tg = deadlineTag(v, vnow); return tg ? <Chip tone="red">{tg === 'over' ? '기한 지남' : '임박'}</Chip> : null })()} chevron onClick={() => navigate(`/m/f/villages/${v.code}`)} />
             ))}
           </List>
