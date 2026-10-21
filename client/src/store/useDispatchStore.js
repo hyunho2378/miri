@@ -13,6 +13,18 @@ import { clearRemote, loadRemote, newDispatchId, restoreSnapshot, saveRemote, sn
 import { mergeReports } from '../lib/reportQueue.js'
 import { activeScenario, useMiriStore } from './useMiriStore.js'
 
+// 도우미 참여 동의, 철회, 역할 변경 보고를 명부 도우미에 반영. 복원, 주기 조회, 발령 종료 직전이 같은 함수를 쓴다(GPT 11차 M1)
+// 등록 동의는 발령 보고와 수명이 달라, 서버 발령 기록을 지우기 전에 명부 쪽으로 옮겨 둔다
+export function applyPreferenceReports(reports) {
+  let n = 0
+  for (const rep of [...(reports || [])].filter((x) => x?.type === 'preference').sort((a, b) => (a.at || 0) - (b.at || 0))) {
+    const patch = preferencePatch(rep, rep.at)
+    const helper = useMiriStore.getState().helpers.find((h) => h.code === rep.helper)
+    if (patch && helper) { useMiriStore.getState().upsertHelper({ code: rep.helper, ...patch }); n += 1 }
+  }
+  return n
+}
+
 const EMPTY = {
   status: 'idle', kind: 'drill', speed: 60, realStart: 0, vStart: 0, issuedAt: 0, arrivals: {},
   result: null, confirmedAt: null, sentAt: null, ackPlan: {}, ackOverride: {}, failPlan: {}, events: {},
@@ -278,6 +290,8 @@ export const useDispatchStore = create((set, get) => ({
       const r = await loadRemote()
       if (!r?.state || get().status !== 'idle') return false
       const st = restoreSnapshot(r.state)
+      // 서버에 접수된 참여 동의, 철회, 역할 변경을 복원 직후에도 명부 도우미에 반영(GPT 11차 M1)
+      applyPreferenceReports(r.reports)
       const merged = mergeReports(st, r.reports)
       skipSave = true // 서버에서 받은 상태를 그대로 다시 저장하지 않는다(다른 화면 순번 충돌 방지)
       set({ ...EMPTY, ...st, ...merged, remote: { ...EMPTY.remote, state: 'saved', dispatchId: r.dispatchId, rev: Number(r.rev) || 0, savedAt: Date.now(), polledAt: Date.now() } })
@@ -297,11 +311,7 @@ export const useDispatchStore = create((set, get) => ({
       // 응답이 오는 사이 종료했거나 다른 발령으로 바뀌었으면 합치지 않는다(GPT 5차 M1)
       const now = get()
       if (!r || r.dispatchId !== d.remote.dispatchId || now.remote.dispatchId !== d.remote.dispatchId || now.status !== 'sent') return 0
-      for (const rep of [...(r.reports || [])].filter(x=>x.type === 'preference').sort((a,b)=>a.at-b.at)) {
-        const patch=preferencePatch(rep,rep.at)
-        const helper=useMiriStore.getState().helpers.find(h=>h.code===rep.helper)
-        if(patch&&helper)useMiriStore.getState().upsertHelper({code:rep.helper,...patch})
-      }
+      applyPreferenceReports(r.reports)
       const merged = mergeReports(now, r.reports)
       skipSave = true // 도우미 보고는 서버에 따로 저장되어 있으므로 합친 결과를 다시 저장하지 않는다
       set((s) => ({ ...merged, remote: { ...s.remote, polledAt: Date.now() } }))
@@ -376,6 +386,8 @@ export const useDispatchStore = create((set, get) => ({
     set({ ...EMPTY, status: 'closed', closedRecordId: id })
     if (dispatchId) {
       const tryClear = async (left) => {
+        // 지우기 전에 마지막 보고를 한 번 더 받아 참여 철회와 역할 변경을 명부에 남긴다(GPT 11차 M1)
+        if (left === 3) { try { const last = await loadRemote(); if (last?.dispatchId === dispatchId) applyPreferenceReports(last.reports) } catch { /* 조회 실패해도 삭제는 진행 */ } }
         try { await clearRemote(dispatchId) } catch (e) {
           if (left > 0) return setTimeout(() => tryClear(left - 1), 2000)
           if (get().status === 'closed') set((s) => ({ remote: { ...s.remote, state: 'error', reason: `서버 발령 기록 삭제 실패(${e.message}). 도우미 링크는 12시간 뒤 만료` } }))

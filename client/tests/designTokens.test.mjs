@@ -85,3 +85,38 @@ test('색 글자 대비: iOS 파랑과 빨강은 흰 면에서 4.5:1, Android pr
   assert.ok(contrast(m3.primary, ios.fill) >= 4.5, String(contrast(m3.primary, ios.fill)))
   assert.ok(contrast(m3.error, ios.fill) >= 4.5, String(contrast(m3.error, ios.fill)))
 })
+
+// GPT 11차 M2, M3: 실제로 쓰는 조합(문서함 종류 배지 흰 글자, iOS 달력 요일 글자)을 합성 색까지 계산해 검사
+test('문서함 종류 배지 흰 글자 4.5:1(파랑, 초록, 보라)', async () => {
+  const { colors } = await import('../src/tokens.js')
+  const kind = colors.kind
+  assert.ok(kind, 'kind 토큰')
+  for (const k of ['doc', 'sheet', 'form']) assert.ok(contrast(kind[k], ios.white) >= 4.5, `${k} ${kind[k]} ${contrast(kind[k], ios.white)}`)
+})
+test('iOS 달력 요일 글자는 흰 달력 면에서 4.5:1(30% 회색 합성 금지)', () => {
+  const css = readFileSync(new URL('../src/mobile/mobile.css', import.meta.url), 'utf8')
+  const rule = css.match(/\.mob-ios-cal-week span\s*\{([^}]*)\}/)?.[1] || ''
+  assert.ok(!/rgba\(/.test(rule), rule)
+  const tok = readFileSync(new URL('../src/mobile/tokens.css', import.meta.url), 'utf8')
+  const varName = rule.match(/color:\s*var\((--[\w-]+)/)?.[1]
+  assert.ok(varName, rule)
+  const val = tok.match(new RegExp(`${varName}:\\s*(#[0-9A-Fa-f]{6})`))?.[1]
+  assert.ok(val && contrast(val, ios.white) >= 4.5, `${varName} ${val}`)
+})
+test('달력 방향키 이동: 하루, 한 주, 주의 처음과 끝, 달 이동(말일 보정)', async () => {
+  const src = readFileSync(new URL('../src/mobile/ui.jsx', import.meta.url), 'utf8')
+  const body = src.slice(src.indexOf('export function calendarKeyMove'), src.indexOf('function IosInlineCalendar'))
+  const calendarKeyMove = new Function(`${body.replace('export function', 'function')}; return calendarKeyMove`)()
+  const d = new Date(2026, 9, 31) // 10월 31일 토요일
+  const ymd = (x) => `${x.getMonth() + 1}/${x.getDate()}`
+  assert.equal(ymd(calendarKeyMove(d, 'ArrowRight')), '11/1')
+  assert.equal(ymd(calendarKeyMove(d, 'ArrowLeft')), '10/30')
+  assert.equal(ymd(calendarKeyMove(d, 'ArrowUp')), '10/24')
+  assert.equal(ymd(calendarKeyMove(d, 'ArrowDown')), '11/7')
+  assert.equal(ymd(calendarKeyMove(d, 'Home')), '10/25')
+  assert.equal(ymd(calendarKeyMove(d, 'End')), '10/31')
+  assert.equal(ymd(calendarKeyMove(d, 'PageDown')), '11/30')
+  assert.equal(ymd(calendarKeyMove(d, 'PageUp')), '9/30')
+  assert.equal(calendarKeyMove(d, 'a'), null)
+  assert.ok(/role="row"/.test(src) && /tabIndex=\{d === focus\.getDate\(\) \? 0 : -1\}/.test(src), '행 구조와 이동 가능한 칸 하나')
+})

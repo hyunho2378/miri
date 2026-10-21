@@ -349,38 +349,85 @@ export function FilledInput({className='', type='text', ...props}) {
 // iOS: 키트 'Date and time - Collapsed'(30:53803) 알약을 누르면 'Date and time - Pickers' Inline(51:56014) 카드가 시트로 열린다. 휠 없음.
 // Android: M3 키트 'Keyboard picker'(52949:28053) 24시간 입력형.
 const WEEK = ['일', '월', '화', '수', '목', '금', '토']
+// 날짜 격자: 행(row) 구조와 이동 가능한 칸 하나(roving tabindex). 좌우 하루, 위아래 한 주, Home과 End 주의 처음과 끝, PageUp과 PageDown 이전과 다음 달, Enter와 Space 선택(GPT 11차 L1)
+export function calendarKeyMove(date, key) {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const shiftMonth = (k) => { const last = new Date(d.getFullYear(), d.getMonth() + k + 1, 0).getDate(); return new Date(d.getFullYear(), d.getMonth() + k, Math.min(d.getDate(), last)) }
+  switch (key) {
+    case 'ArrowLeft': return new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1)
+    case 'ArrowRight': return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
+    case 'ArrowUp': return new Date(d.getFullYear(), d.getMonth(), d.getDate() - 7)
+    case 'ArrowDown': return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7)
+    case 'Home': return new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay())
+    case 'End': return new Date(d.getFullYear(), d.getMonth(), d.getDate() + (6 - d.getDay()))
+    case 'PageUp': return shiftMonth(-1)
+    case 'PageDown': return shiftMonth(1)
+    default: return null
+  }
+}
 function IosInlineCalendar({ day, onDay }) {
-  const [view, setView] = useState(() => new Date(day.getFullYear(), day.getMonth(), 1))
+  const [focus, setFocus] = useState(() => new Date(day.getFullYear(), day.getMonth(), day.getDate()))
+  const view = new Date(focus.getFullYear(), focus.getMonth(), 1)
+  const gridRef = useRef(null)
+  const moved = useRef(false)
   const today = new Date()
   const first = view.getDay()
   const last = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate()
-  const cells = Array.from({ length: first + last }, (_, n) => (n < first ? null : n - first + 1))
+  const cells = Array.from({ length: Math.ceil((first + last) / 7) * 7 }, (_, n) => (n < first || n >= first + last ? null : n - first + 1))
+  const rows = Array.from({ length: cells.length / 7 }, (_, r) => cells.slice(r * 7, r * 7 + 7))
   const same = (a, d) => a.getFullYear() === view.getFullYear() && a.getMonth() === view.getMonth() && a.getDate() === d
-  const move = (k) => setView(new Date(view.getFullYear(), view.getMonth() + k, 1))
+  const move = (k) => { const last2 = new Date(view.getFullYear(), view.getMonth() + k + 1, 0).getDate(); setFocus(new Date(view.getFullYear(), view.getMonth() + k, Math.min(focus.getDate(), last2))) }
+  useEffect(() => {
+    if (!moved.current) return
+    moved.current = false
+    gridRef.current?.querySelector('[tabindex="0"]')?.focus()
+  }, [focus])
+  const onKey = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDay(new Date(focus)); return }
+    const next = calendarKeyMove(focus, e.key)
+    if (!next) return
+    e.preventDefault()
+    moved.current = true
+    setFocus(next)
+  }
   return (
     <div className="mob-ios-cal">
       <div className="mob-ios-cal-head">
-        <p className="mob-ios-cal-month">{view.getFullYear()}년 {view.getMonth() + 1}월<span className="mob-ios-cal-disc" aria-hidden="true"><ChevronRight size={13} strokeWidth={3} /></span></p>
+        <p className="mob-ios-cal-month" aria-live="polite">{view.getFullYear()}년 {view.getMonth() + 1}월<span className="mob-ios-cal-disc" aria-hidden="true"><ChevronRight size={13} strokeWidth={3} /></span></p>
         <span className="mob-ios-cal-arrows">
           <button type="button" className="mob-ios-cal-arrow" aria-label="이전 달" onClick={() => move(-1)}><ChevronLeft size={20} /></button>
           <button type="button" className="mob-ios-cal-arrow" aria-label="다음 달" onClick={() => move(1)}><ChevronRight size={20} /></button>
         </span>
       </div>
       <div className="mob-ios-cal-week" aria-hidden="true">{WEEK.map((w) => <span key={w}>{w}</span>)}</div>
-      <div className="mob-ios-cal-grid" role="grid" aria-label="날짜">
-        {cells.map((d, n) => d === null ? <span key={'e' + n} /> : (
-          <button key={d} type="button" role="gridcell" aria-selected={same(day, d)} className={`mob-ios-day ${same(today, d) ? 'is-today' : ''} ${same(day, d) ? 'is-selected' : ''}`} onClick={() => onDay(new Date(view.getFullYear(), view.getMonth(), d))}>{d}</button>
+      <div ref={gridRef} className="mob-ios-cal-grid" role="grid" aria-label={`${view.getFullYear()}년 ${view.getMonth() + 1}월 날짜`} onKeyDown={onKey}>
+        {rows.map((row, r) => (
+          <div key={r} role="row" className="mob-ios-cal-row">
+            {row.map((d, c) => d === null ? <span key={'e' + c} role="gridcell" aria-hidden="true" /> : (
+              <span key={d} role="gridcell" aria-selected={same(day, d)}>
+                <button type="button" tabIndex={d === focus.getDate() ? 0 : -1} aria-label={`${view.getMonth() + 1}월 ${d}일${same(today, d) ? ', 오늘' : ''}`} className={`mob-ios-day ${same(today, d) ? 'is-today' : ''} ${same(day, d) ? 'is-selected' : ''}`} onClick={() => { const nd = new Date(view.getFullYear(), view.getMonth(), d); setFocus(nd); onDay(nd) }}>{d}</button>
+              </span>
+            ))}
+          </div>
         ))}
       </div>
     </div>
   )
 }
-function DigitPair({ hour, minute, setHour, setMinute, inputProps, className }) {
+// 시와 분 칸: Tab 외에도 시 칸 끝에서 오른쪽 방향키, 분 칸 처음에서 왼쪽 방향키로 옮겨 가고, 시 두 자리를 치면 분 칸으로 넘어간다(GPT 11차 L1)
+function DigitPair({ hour, minute, setHour, setMinute, inputProps, className, onEnter }) {
+  const hRef = useRef(null)
+  const mRef = useRef(null)
+  const atEnd = (el) => el.selectionStart === el.value.length && el.selectionEnd === el.value.length
+  const atStart = (el) => el.selectionStart === 0 && el.selectionEnd === 0
+  const keyH = (e) => { if (e.key === 'ArrowRight' && atEnd(e.currentTarget)) { e.preventDefault(); mRef.current?.focus(); mRef.current?.setSelectionRange(0, 0) } else if (e.key === 'Enter') { e.preventDefault(); onEnter?.() } }
+  const keyM = (e) => { if ((e.key === 'ArrowLeft' || e.key === 'Backspace') && atStart(e.currentTarget)) { e.preventDefault(); hRef.current?.focus() } else if (e.key === 'Enter') { e.preventDefault(); onEnter?.() } }
+  const changeH = (e) => { const v = e.target.value.replace(/\D/g, ''); setHour(v); if (v.length === 2) mRef.current?.focus() }
   return (
     <span className={className}>
-      <input {...inputProps} aria-label="시" inputMode="numeric" maxLength={2} value={hour} onChange={(e) => setHour(e.target.value.replace(/\D/g, ''))} />
+      <input {...inputProps} ref={hRef} aria-label="시" inputMode="numeric" maxLength={2} value={hour} onChange={changeH} onKeyDown={keyH} />
       <span aria-hidden="true">:</span>
-      <input aria-label="분" inputMode="numeric" maxLength={2} value={minute} onChange={(e) => setMinute(e.target.value.replace(/\D/g, ''))} />
+      <input ref={mRef} aria-label="분" inputMode="numeric" maxLength={2} value={minute} onChange={(e) => setMinute(e.target.value.replace(/\D/g, ''))} onKeyDown={keyM} />
     </span>
   )
 }
@@ -402,7 +449,7 @@ export function TimePicker({ value = '', onChange, disabled, label = '시각', .
         <Sheet open={open} onClose={() => setOpen(false)} title={`${label} 입력`} hideTitle>
           <div className="mob-m3-timepicker">
             <p className="mob-m3-tp-title" aria-hidden="true">{label} 입력</p>
-            <DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={{ ...props, 'data-autofocus': true }} className="mob-m3-tp-digits" />
+            <DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={{ ...props, 'data-autofocus': true }} className="mob-m3-tp-digits" onEnter={() => ok && commit()} />
             <span className="mob-m3-tp-caption" aria-hidden="true"><span>시</span><span>분</span></span>
             {hint}
             <div className="mob-m3-tp-actions"><Button variant="plain" onClick={() => setOpen(false)}>취소</Button><Button variant="plain" disabled={!ok} onClick={commit}>확인</Button></div>
@@ -420,7 +467,7 @@ export function TimePicker({ value = '', onChange, disabled, label = '시각', .
       <Sheet open={open} onClose={() => setOpen(false)} title={label}>
         <div className="mob-ios-inline">
           <IosInlineCalendar day={day} onDay={setDay} />
-          <div className="mob-ios-inline-time"><span className="mob-t-body">시간</span><DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={props} className="mob-ios-pill mob-ios-pill-input" /></div>
+          <div className="mob-ios-inline-time"><span className="mob-t-body">시간</span><DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={props} className="mob-ios-pill mob-ios-pill-input" onEnter={() => ok && commit()} /></div>
         </div>
         {hint}
         <div className="mob-h-sheet-actions"><Button block disabled={!ok} onClick={commit}>완료</Button><Button variant="plain" block onClick={() => setOpen(false)}>취소</Button></div>

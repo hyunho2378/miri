@@ -320,8 +320,10 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-ios-cal-disc { color:var(--m-blue); display:inline-flex; }
 .mob-ios-cal-arrows { display:flex; gap:4px; }
 .mob-ios-cal-arrow { width:var(--m-touch); height:var(--m-touch); display:inline-flex; align-items:center; justify-content:center; border:0; background:transparent; color:var(--m-blue); cursor:pointer; }
-.mob-ios-cal-week, .mob-ios-cal-grid { display:grid; grid-template-columns:repeat(7, 1fr); justify-items:center; }
-.mob-ios-cal-week span { font-size:13px; line-height:18px; font-weight:590; color:var(--m-ink-4, rgba(60,60,67,0.3)); height:20px; }
+.mob-ios-cal-week, .mob-ios-cal-row { display:grid; grid-template-columns:repeat(7, 1fr); justify-items:center; }
+.mob-ios-cal-grid { display:flex; flex-direction:column; }
+.mob-ios-day:focus-visible { outline:2px solid var(--m-blue); outline-offset:2px; }
+.mob-ios-cal-week span { font-size:13px; line-height:18px; font-weight:590; color:var(--m-ink-2); height:20px; }
 .mob-ios-cal-grid { row-gap:6px; margin-top:6px; }
 .mob-ios-day { width:44px; height:44px; border:0; border-radius:9999px; background:transparent; color:var(--m-ink); font:inherit; font-size:20px; line-height:24px; font-weight:400; cursor:pointer; }
 .mob-ios-day.is-today { color:var(--m-blue); }
