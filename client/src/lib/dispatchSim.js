@@ -5,7 +5,8 @@ import { vnowOfState } from './clock.js'
 
 export const STEPS = ['wait', 'depart', 'arrive', 'board', 'handover']
 export const STEP_LABEL = { wait: '대기', depart: '출발', arrive: '도착', board: '탑승', handover: '인계 완료', fail: '실패', handedToFire: '소방 인계' }
-export const FAIL_REASONS = { absent: '부재', refuse: '이송 거부', blocked: '진입 불가', worse: '상태 악화', etc: '기타' }
+export const FAIL_REASONS = { absent: '부재', refuse: '대피 원하지 않음', support: '지원 부족으로 이동 못 함', blocked: '진입 불가', worse: '상태 악화', etc: '기타' }
+export const FAIL_FOLLOW_UP = { refuse: '평소 돌봄 담당자 연락과 재방문', support: '차량이나 인력 다시 배정' }
 export const DECLINE_REASONS = { far: '거리 멀음', health: '건강 문제', etc: '기타' }
 
 // 입력은 실제 시각만(clock.js)

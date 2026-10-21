@@ -71,3 +71,51 @@ test('생활지원사 돌봄 유형도 동행과 연락 판단에 사용', async
  assert.equal(personCare({ care:{ ...p.care, caregiverReachable:true } }).companionCall, true)
  assert.equal(personCare({ care:{ ...p.care, caregiverReachable:false } }).caregiverUnreachable, true)
 })
+
+// 회신 R39: 기존 보고 호환성과 지원 부족 분리
+for (const reason of ['refuse', 'support']) {
+ test(`R39 ${reason} 실패 보고를 서버에서 받아 담당자 화면 상태로 복원`, async () => {
+  const { cleanReport } = await import('../api/dispatch.js')
+  const { mergeReports } = await import('../src/lib/reportQueue.js')
+  const { FAIL_REASONS, FAIL_FOLLOW_UP, failReasonOf, stepOf } = await import('../src/lib/dispatchSim.js')
+  const { FAIL_REASONS_M } = await import('../src/mobile/helper/flow.js')
+  const report = cleanReport({ key:'r39report01', type:'step', personCode:'P1', step:'fail', reason }, { personCodes:['P1'] }, 'H1')
+  assert.ok(report)
+  const restored = mergeReports({ events:{}, ackOverride:{} }, [report])
+  assert.equal(stepOf(restored, 'P1', 0, {}), 'fail')
+  assert.equal(failReasonOf(restored, 'P1'), reason)
+  assert.equal(FAIL_REASONS[reason], reason === 'refuse' ? '대피 원하지 않음' : '지원 부족으로 이동 못 함')
+  assert.equal(FAIL_REASONS_M[reason], FAIL_REASONS[reason])
+  assert.equal(FAIL_FOLLOW_UP[reason], reason === 'refuse' ? '평소 돌봄 담당자 연락과 재방문' : '차량이나 인력 다시 배정')
+ })
+}
+test('R39 보건소 담당자 소식은 검증을 통과하고 승인 뒤에만 반영', async () => {
+ const { sourceLabel, verifyNote } = await import('../src/lib/notes.js')
+ const { validateRequest } = await import('../api/note.js')
+ const text = '이제 휠체어를 타고 이동하세요'
+ assert.equal(sourceLabel('visitingHealth'), '보건소 방문건강관리 담당자')
+ assert.equal(validateRequest({ text, source:'visitingHealth', virtualOnly:true }).error, undefined)
+ const before = data.getState()
+ try {
+  const p = before.persons.find(p => p.grade === 'assist')
+  const read = verifyNote(text, { grade:'wheelchair', tags:[], quote:text, confidence:'high' }, p)
+  data.getState().addFieldNote({ id:'R39', personCode:p.code, source:'visitingHealth', status:'pending', read })
+  assert.deepEqual(data.getState().persons, before.persons)
+  data.getState().reviewFieldNote('R39', 'apply', read.diff.next)
+  assert.equal(data.getState().persons.find(x => x.code === p.code).grade, 'wheelchair')
+ } finally { data.setState(before) }
+})
+test('R39 동의서와 교육 순서 및 결과 선택지', async () => {
+ const { DOC_TEMPLATES, FORM_TEMPLATES } = await import('../src/lib/workspaceTemplates.js')
+ const consent = DOC_TEMPLATES.find(x => x.key === 'consent')
+ assert.equal(consent.title, '재난 때 이동 지원 사전 확인 동의서')
+ assert.ok(!consent.html.includes('재난취약자'))
+ assert.ok(consent.html.includes('재난 때 필요한 이동 지원을 미리 확인하고, 발령 때 차량과 도우미를 배정'))
+ assert.ok(consent.html.includes('정보를 받는 사람'))
+ assert.ok(consent.html.includes('동 맞춤형복지 담당, 발령 때 배정된 차량 기사와 도우미(배정된 분의 정보만)'))
+ assert.ok(DOC_TEMPLATES.find(x => x.key === 'helper-training').html.includes('문자 먼저, 익숙한 담당자가 전화로 이해했는지 확인, 그다음 도우미 방문'))
+ const options = FORM_TEMPLATES.flatMap(x => x.questions || []).find(x => x.title === '결과').options
+ assert.ok(options.includes('대피 원하지 않음'))
+ assert.ok(options.includes('지원 부족으로 이동 못 함'))
+ assert.ok(!options.includes('거부'))
+})

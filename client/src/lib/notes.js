@@ -11,6 +11,7 @@ const uniq = (a) => [...new Set(a)]
 export const NOTE_SOURCES = [
   { value: 'caregiver', label: '요양보호사' },
   { value: 'dailyCare', label: '생활지원사' },
+  { value: 'visitingHealth', label: '보건소 방문건강관리 담당자' },
   { value: 'leader', label: '이장, 통장' },
   { value: 'family', label: '가족, 보호자' },
   { value: 'dong', label: '동 담당자' }

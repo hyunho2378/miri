@@ -26,7 +26,7 @@ import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import useNow from '../../hooks/useNow.js'
 import useToast from '../../hooks/useToast.js'
 import { UNSERVED_REASON } from '../../lib/assign.js'
-import { DECLINE_REASONS, FAIL_REASONS, STEP_LABEL, ackOf, failReasonOf, indexStops, stepOf } from '../../lib/dispatchSim.js'
+import { DECLINE_REASONS, FAIL_REASONS, FAIL_FOLLOW_UP, STEP_LABEL, ackOf, failReasonOf, indexStops, stepOf } from '../../lib/dispatchSim.js'
 import { MIN, fmtHM, fmtHMFrom, remainText } from '../../lib/time.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
@@ -441,6 +441,7 @@ function SentPanel({ now, meta }) {
               <span className="type-strong text-text-pri tabular-nums">{r.code}</span>
               <span className="type-body-sm text-text-sec">{r.village}</span>
               <span className="type-strong text-danger-text">사유: {FAIL_REASONS[failReasonOf(d, r.code)] || '미상'}</span>
+              {FAIL_FOLLOW_UP[failReasonOf(d, r.code)] && <span className="type-body-sm text-text-sec">후속 조치: {FAIL_FOLLOW_UP[failReasonOf(d, r.code)]}</span>}
               <span className="ml-auto flex flex-wrap gap-2">
                 <Button size="sm" variant="secondary" onClick={() => { const v = d.reassign(r.code); toast(v ? `재배정: ${r.code}, ${v} 차량 새 회차` : '기한 내 이송 가능한 차량이 없습니다. 소방 인계가 필요합니다.', v ? 'primary' : 'danger') }}>재배정</Button>
                 {role === 'city' && <Button size="sm" variant="danger" onClick={() => { d.handover([r.code]); toast(`소방 인계: ${r.code}, 동해소방서`) }}>소방 인계</Button>}

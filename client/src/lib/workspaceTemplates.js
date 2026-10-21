@@ -61,7 +61,7 @@ export const FORM_TEMPLATES = [
     key: 'report', title: '도우미 현장 보고', desc: '이송 완료와 문제 보고',
     questions: [
       { type: 'short', title: '대상자 코드', required: true },
-      { type: 'choice', title: '결과', required: true, options: ['이송 완료', '부재', '거부', '도움 필요'] },
+      { type: 'choice', title: '결과', required: true, options: ['이송 완료', '부재', '대피 원하지 않음', '지원 부족으로 이동 못 함', '도움 필요'] },
       { type: 'long', title: '현장 상황', required: false }
     ]
   },

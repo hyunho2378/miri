@@ -8,7 +8,7 @@ export const NEXT_STEP = {
 export const STEP_LABEL = { wait: '대기', depart: '출발', arrive: '도착', board: '탑승', handover: '인계 완료', fail: '이송 실패', handedToFire: '소방 인계' }
 export const STEP_ORDER = ['wait', 'depart', 'arrive', 'board', 'handover']
 export const DONE_STEPS = new Set(['handover', 'fail', 'handedToFire'])
-export const FAIL_REASONS_M = { absent: '부재', refuse: '이송 거부', blocked: '진입 불가', worse: '상태 악화', etc: '기타' }
+export const FAIL_REASONS_M = { absent: '부재', refuse: '대피 원하지 않음', support: '지원 부족으로 이동 못 함', blocked: '진입 불가', worse: '상태 악화', etc: '기타' }
 export const DECLINE_REASONS_M = { far: '거리 멀음', health: '건강 문제', contact: '연락 불가', etc: '기타' }
 export const CONSENT_KEY = 'miri.m.consent.'
 
