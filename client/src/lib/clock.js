@@ -14,10 +14,19 @@ export function virtualAt(clock, real = Date.now()) {
 }
 export const vnowOfState = (d, real = Date.now()) => virtualAt(clockOf(d), real)
 // 발령 개시 뒤 경과 분(가상 시계 기준). issuedAt 이 없으면 0
-export function elapsedMinOf(d, vnow) {
-  const start = d?.issuedAt || d?.vStart
+// 발령 개시 기준점: issuedAt(발령 개시 가상 시각). vStart 는 마지막 배속 변경 기준점이라 경과 시간 기준으로 쓰지 않는다(GPT 10차)
+export const issuedOf = (d) => d?.issuedAt || d?.vStart || 0
+export function elapsedMsOf(d, vnow) {
+  const start = issuedOf(d)
   if (!start) return 0
-  return Math.max(0, Math.round((vnow - start) / MIN_MS))
+  return Math.max(0, vnow - start)
+}
+export function elapsedMinOf(d, vnow) {
+  return Math.round(elapsedMsOf(d, vnow) / MIN_MS)
+}
+// 배속 변경: 같은 실제 시각 하나로 바뀌기 전 가상 시각을 새 기준점으로 잡아 가상 시계를 끊김 없이 잇는다
+export function withSpeed(d, speed, real = Date.now()) {
+  return { speed, realStart: real, vStart: virtualAt(clockOf(d), real) }
 }
 // 기한까지 남은 분(음수면 지남)
 export const minutesLeft = (deadline, vnow) => (deadline == null ? null : Math.round((deadline - vnow) / MIN_MS))

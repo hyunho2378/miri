@@ -4,6 +4,7 @@ import { Siren } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import useNow from '../../hooks/useNow.js'
 import { remainText } from '../../lib/time.js'
+import { elapsedMsOf } from '../../lib/clock.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
 
 export default function DispatchBanner() {
@@ -18,7 +19,7 @@ export default function DispatchBanner() {
   return (
     <div role="status" className={clsx('shrink-0 flex flex-wrap items-center gap-x-3 gap-y-1 px-4 lg:px-8 py-2', late ? 'bg-danger text-text-inverse' : 'bg-text-pri text-text-inverse')}>
       <Siren size={16} aria-hidden="true" />
-      <span className="type-caption tabular-nums">{d.kind === 'drill' ? '훈련 발령' : '실제 발령'} 후 {remainText(now - d.vStart).replace(' 경과', '')} 경과</span>
+      <span className="type-caption tabular-nums">{d.kind === 'drill' ? '훈련 발령' : '실제 발령'} 후 {remainText(elapsedMsOf(d, now)).replace(' 경과', '')} 경과</span>
       <span className="type-caption tabular-nums">가장 이른 산불 도달까지 {remainText(earliest - now)}</span>
       {late && <span className="type-caption tabular-nums">미이송 예상 {unserved}명</span>}
       {d.kind === 'drill' && d.speed > 1 && <span className="type-caption">훈련 시뮬레이션 속도 {d.speed}배</span>}

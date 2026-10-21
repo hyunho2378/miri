@@ -4,6 +4,7 @@ import { create } from 'zustand'
 import { helperDeclined, helperQualifies, planDispatch, reassignBlock, scorePlan } from '../lib/assign.js'
 import { capOf, gradeOf } from '../lib/shortage.js'
 import { calcTiming, calcVehicles, scenarioArrivals, scopeInput } from '../lib/shortageCalc.js'
+import { withSpeed } from '../lib/clock.js'
 import { dispatchSms, helperBrief, indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
 import { HAZARD_KINDS } from '../lib/scenario.js'
 import { MIN } from '../lib/time.js'
@@ -38,9 +39,8 @@ export const useDispatchStore = create((set, get) => ({
     })
   },
   setSpeed: (speed) => {
-    const d = get()
-    const vnow = vnowOf(d)
-    set({ speed, realStart: Date.now(), vStart: vnow })
+    // 실제 시각 하나로 기준점을 옮겨 가상 시계와 발령 경과 시간이 이어지게 한다(GPT 10차)
+    set(withSpeed(get(), speed, Date.now()))
   },
   setArrival: (village, ms) => set((s) => ({ arrivals: { ...s.arrivals, [village]: ms }, result: s.status === 'assigned' ? null : s.result, status: s.status === 'assigned' ? 'standby' : s.status })),
 
@@ -352,9 +352,10 @@ if (typeof window !== 'undefined') {
   useDispatchStore.subscribe((s, prev) => {
     if (!WATCH.some((k) => s[k] !== prev[k])) return
     if (s.kind !== 'drill' || !['standby', 'assigned', 'sent'].includes(s.status)) return
-    if (helperPage() && !s.remote?.dispatchId) return
+    // 도우미 링크 화면(/h/, /m/h/)에서는 담당자 발령을 저장하지 않는다(GPT 10차: 같은 탭 이동, 예약 타이머 포함)
+    if (helperPage()) return
     clearTimeout(timer)
-    timer = setTimeout(() => { useDispatchStore.getState().syncSave() }, 1500)
+    timer = setTimeout(() => { if (!helperPage()) useDispatchStore.getState().syncSave() }, 1500)
   })
 }
 
