@@ -52,8 +52,8 @@ test('마을 상세 차량과 도우미는 쉼표 줄글 대신 한 줄에 하�
   assert.match(f, /<List label="배정 도우미">/)
 })
 
-test('도우미 수락 안내는 멘토링 근거(수락 필요) 문장 하나로 통일', () => {
-  const NEW = '수락해야 배정이 확정됩니다. 어려우면 불가를 눌러 주세요. 다른 도우미에게 넘어갑니다.'
+test('도우미 수락 안내는 멘토링(수락 필요)과 한림봉사센터 회신 R12(거절 불이익 없음) 근거 문장 하나로 통일', () => {
+  const NEW = '수락해야 배정이 확정됩니다. 거절해도 불이익은 없습니다. 불가를 누르면 다른 도우미에게 넘어갑니다.'
   for (const p of ['mobile/helper/HelperScreens.jsx', 'pages/helper/RemoteHelper.jsx', 'pages/helper/HelperPage.jsx']) {
     const s = src(p); assert.ok(s.includes(NEW), p); assert.ok(!s.includes('참여 의무'), p)
   }
