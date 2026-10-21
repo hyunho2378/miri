@@ -548,7 +548,7 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 .mob-list > li:has(> .mob-row.kv) { container-type: inline-size; }
 .mob-row.kv .mob-row-main { flex: 0 0 auto; max-width: 45%; }
 .mob-row.kv .mob-row-trail { flex: 1 1 auto; min-width: 0; max-width: none; justify-content: flex-end; text-align: right; }
-.mob-h-kv { font-weight: var(--w-strong); word-break: keep-all; overflow-wrap: anywhere; }
+.mob-h-kv { font-size: var(--t-body); line-height: var(--l-body); letter-spacing: var(--ls-body); font-weight: var(--w-strong); word-break: keep-all; overflow-wrap: anywhere; }   /* Detail 값은 제목과 같은 Body 역할(큰 글자 설정도 함께 커짐) */
 @container (max-width: 299px) {
   .mob-root .mob-row.kv { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding-top: 11px; padding-bottom: 11px; }   /* Subtitle 변형 pad 11 */
   .mob-row.kv .mob-row-main { max-width: none; }
