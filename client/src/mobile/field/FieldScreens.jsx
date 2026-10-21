@@ -100,10 +100,24 @@ export function FieldStatusPage() {
           </List>
         )}
         {scope.isDong ? null : u.total > 0 && <Button block variant="danger" onClick={() => navigate('/m/f/fire')}>동해소방서 지원 요청</Button>}
-        {d.remote?.state !== 'saved' && <p className="mob-t-callout mob-pad">이 휴대폰 안에서만 진행 중. 서버 저장은 콘솔 로그인 뒤</p>}
+        {d.remote?.state !== 'saved' && <ServerLink remote={d.remote} />}
       </main>
     </>
   )
+}
+
+// 서버 연결 상태 한 줄. 세션이 끊기면(오류) 계정을 다시 고르는 행으로 보낸다(시연 코드 칸이 없는 막다른 안내 제거)
+function ServerLink({ remote }) {
+  const logout = useAuthStore((s) => s.logout)
+  const navigate = useNavigate()
+  if (remote?.state === 'error') {
+    return (
+      <List label="서버 연결">
+        <ListRow title="다시 로그인" subtitle="서버에 연결하지 못해 이 휴대폰 안에서만 진행 중" chevron onClick={() => { logout(); navigate('/m/f') }} />
+      </List>
+    )
+  }
+  return <p className="mob-t-callout mob-pad">이 휴대폰 안에서만 진행 중</p>
 }
 
 // 평시 홈: 우리 범위 미이송 예상 숫자 하나, 그 아래 오늘 확인할 일

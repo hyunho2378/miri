@@ -33,7 +33,7 @@ test('현장 담당자 화면은 로그인한 담당자만(데모도 계정 선�
   assert.match(s, /if \(!ok\) return USE_MOCK \? <FieldLogin \/> : <Navigate to="\/console\/login"/)
   const auth = src('store/useAuthStore.js')
   assert.match(auth, /signedIn: USE_MOCK \? !!initialRole : false/)
-  assert.match(auth, /setDemoUser: \(role\) => \{ writeSigned\(role\); set\(\{ user: DEMO_USERS\[role\], signedIn: true \}\) \}/)
+  assert.match(auth, /setDemoUser: \(role\) => \{ writeSigned\(role\); set\(\{ user: DEMO_USERS\[role\], signedIn: true \}\);/)
 })
 
 test('동 담당자는 자기 동 마을과 대상자만', () => {
