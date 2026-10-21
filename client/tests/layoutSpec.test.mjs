@@ -29,15 +29,15 @@ test('Android 창 크기별 막대와 여백(Layout grid 56384:120, Navigation R
   assert.deepEqual(a(900), { size: 'expanded', bar: 'rail', twoPane: true, margin: 24 })
 })
 
-test('iOS 글자 역할 크기, 행간, 자간(Text Styles 0:2194)', () => {
+test('iOS 글자 역할 크기와 행간(Text Styles 0:2194), 한국어 수동 자간 0', () => {
   const b = block('.mob-root.platform-ios')
-  const want = { '--t-display': '34px', '--l-display': '41px', '--ls-display': '0.4px', '--w-display': '700', '--t-body': '17px', '--l-body': '22px', '--ls-body': '-0.43px', '--t-sub': '15px', '--ls-sub': '-0.23px', '--t-foot': '13px', '--ls-foot': '-0.08px', '--t-label': '12px', '--w-label': '400', '--ls-label': '0px', '--w-headline': '590' }
+  const want = { '--t-display': '34px', '--l-display': '41px', '--ls-display': '0px', '--w-display': '700', '--t-body': '17px', '--l-body': '22px', '--ls-body': '0px', '--t-sub': '15px', '--ls-sub': '0px', '--t-foot': '13px', '--ls-foot': '0px', '--t-label': '12px', '--w-label': '400', '--ls-label': '0px', '--w-headline': '590' }
   for (const [k, v] of Object.entries(want)) assert.equal(tok(b, k), v, k)
 })
 
-test('M3 글자 역할 자간(Styles 49823:12141)', () => {
+test('M3 글자 역할(Styles 49823:12141), 한국어 수동 자간 0', () => {
   const b = block('.mob-root.platform-android')
-  const want = { '--ls-body': '0.5px', '--ls-sub': '0.25px', '--ls-headline': '0.15px', '--ls-label': '0.5px', '--w-label': '500', '--ls-title': '0px' }
+  const want = { '--ls-body': '0px', '--ls-sub': '0px', '--ls-headline': '0px', '--ls-label': '0px', '--w-label': '500', '--ls-title': '0px', '--t-body': '16px', '--l-body': '24px' }
   for (const [k, v] of Object.entries(want)) assert.equal(tok(b, k), v, k)
 })
 

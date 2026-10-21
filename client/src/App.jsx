@@ -36,9 +36,10 @@ const PRELOAD = Object.values(loaders)
 const PrivacyPage = lazy(() => import('./pages/public/PrivacyPage.jsx'))
 const OpenApiPage = lazy(() => import('./pages/public/OpenApiPage.jsx'))
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage.jsx'))
-// 모바일 셸(docs/MOBILE_UI.md). 도우미 /m/h/*, 현장 담당자 /m/f/*, 부품 견본 /m/kit
+// 모바일 셸(docs/MOBILE_UI.md). /m 시작 화면, 도우미 /m/h/*, 현장 담당자 /m/f/*. 부품 견본 /m/kit 은 개발용 주소(링크 없음)
 const mobileShells = () => import('./mobile/shells.jsx')
 const MobileProviderLayout = lazy(() => mobileShells().then((m) => ({ default: m.MobileProviderLayout })))
+const MobileStart = lazy(() => mobileShells().then((m) => ({ default: m.MobileStart })))
 const MobileHelperShell = lazy(() => mobileShells().then((m) => ({ default: m.HelperShell })))
 const MobileHelperHome = lazy(() => mobileShells().then((m) => ({ default: m.HelperHomeSlot })))
 const MobileHelperPage = lazy(() => import('./mobile/helper/HelperScreens.jsx'))
@@ -134,7 +135,7 @@ export default function App() {
               <Route path="/h/:token" element={<HelperPage />} />
             </Route>
             <Route path="/m" element={<MobileProviderLayout />}>
-              <Route index element={<Navigate to="/m/kit" replace />} />
+              <Route index element={<MobileStart />} />
               <Route path="kit" element={<MobileKitPage />} />
               <Route path="h/:token" element={<MobileHelperShell />}>
                 <Route index element={<MobileHelperPage />} />

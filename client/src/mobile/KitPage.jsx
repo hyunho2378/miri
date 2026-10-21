@@ -1,7 +1,7 @@
 // 부품 견본 /m/kit. 주소 값 ?platform=ios|android 가 있으면 그 한 벌만 390 x 844 로, 없으면 두 벌을 나란히.
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Activity, MapPinned, Users, Menu, Car, Phone, Accessibility } from 'lucide-react'
+import { Activity, MapPinned, Users, Menu, Footprints, Phone, Accessibility } from 'lucide-react'
 import { normalizePlatform } from './platform.js'
 import {
   MobileRoot, AppBar, Button, Card, List, ListRow, Chip, Segmented, Toggle, Progress, Spinner,
@@ -31,7 +31,7 @@ function KitBody({ platform }) {
         <Segmented label="보기" value={seg} onChange={setSeg} options={[{ value: 'all', label: '전체' }, { value: 'wait', label: '대기' }, { value: 'done', label: '완료' }]} />
         <List label="대상자">
           <ListRow lead={<Accessibility size={20} />} title="MS-04-014" subtitle="휠체어, 동행 연락 필요" chevron onClick={() => {}} />
-          <ListRow lead={<Car size={20} />} title="MS-04-015" subtitle="부축" meta="경로 확인 필요(직선 기준)" chevron onClick={() => {}} />
+          <ListRow lead={<Footprints size={20} />} title="MS-04-015" subtitle="부축" meta="경로 확인 필요(직선 기준)" chevron onClick={() => {}} />
           <ListRow lead={<Phone size={20} />} title="담당자 연락" trailing={<Toggle label="문자 알림" checked={toggle} onChange={setToggle} />} />
         </List>
         <div className="mob-kit-grid" role="group" aria-label="칩">

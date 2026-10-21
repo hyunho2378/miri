@@ -3,7 +3,7 @@ import { FilledInput, FilledTextarea, IconButton, BottomActions } from '../ui.js
 // F0 평시, F1 발령 상태, F2 마을별 진행(목록, 상세), F3 도우미 응답, F4 미배정과 소방 지원 요청, F5 대상자 확인, F6 서류 판독, F7 현장 소식
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Camera, Flame, Send, Siren, Truck, UserCheck, FileText, MessageSquare, Search } from 'lucide-react'
+import { Camera, Clock, Flame, PhoneOutgoing, Send, Siren, Truck, UserCheck, FileText, MessageSquare, Search } from 'lucide-react'
 import { useRealNow } from '../../hooks/useNow.js'
 import useOpenData from '../../hooks/useOpenData.js'
 import { useDispatchStore } from '../../store/useDispatchStore.js'
@@ -119,11 +119,11 @@ export function FieldStatusPage() {
         </div>
         {s.next && (
           <List label="다음 기한">
-            <ListRow lead={<Flame size={22} />} title={`${s.next.name} ${hm(s.next.at)}까지`} subtitle={`남은 대상자 ${s.next.left}명, 산불 도달 시각 기준`} chevron onClick={() => navigate(`/m/f/villages/${s.next.code}`)} />
+            <ListRow lead={<Clock size={22} />} title={`${s.next.name} ${hm(s.next.at)}까지`} subtitle={`남은 대상자 ${s.next.left}명, 산불 도달 시각 기준`} chevron onClick={() => navigate(`/m/f/villages/${s.next.code}`)} />
           </List>
         )}
         {s.counts.unassigned > 0 && (
-          <Banner tone="red" icon={<Siren size={20} aria-hidden="true" />}>
+          <Banner tone="red" icon={<PhoneOutgoing size={20} aria-hidden="true" />}>
             <span className="mob-flex-1">소방 지원 요청 대상 {s.counts.unassigned}명</span>
             <Button size="sm" variant="danger" onClick={() => navigate('/m/f/fire')}>요청 화면</Button>
           </Banner>
@@ -650,7 +650,7 @@ export function FieldMorePage() {
       <AppBar title="더보기" large />
       <main id="main" className="mob-content">
         <List label="현장 업무">
-          <ListRow lead={<Siren size={22} />} title="미배정과 소방 지원 요청" subtitle={d.result ? `요청 전 미배정 ${u.total}명` : '배정 뒤 표시'} chevron onClick={() => navigate('/m/f/fire')} />
+          <ListRow lead={<PhoneOutgoing size={22} />} title="미배정과 소방 지원 요청" subtitle={d.result ? `요청 전 미배정 ${u.total}명` : '배정 뒤 표시'} chevron onClick={() => navigate('/m/f/fire')} />
           <ListRow lead={<UserCheck size={22} />} title="대상자 확인" subtitle="대상자 번호로 등급, 동행, 상태 확인" chevron onClick={() => navigate('/m/f/people')} />
           <ListRow lead={<Camera size={22} />} title="서류 사진 판독" subtitle="국내 AI 판독과 원문 대조" chevron onClick={() => navigate('/m/f/intake')} />
           <ListRow lead={<MessageSquare size={22} />} title="현장 소식 보내기" subtitle="글 또는 음성 메모" chevron onClick={() => navigate('/m/f/note')} />

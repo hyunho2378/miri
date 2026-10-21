@@ -376,15 +376,13 @@ export function BottomNav({ items, label = '주요 화면' }) {
   )
 }
 
-// 큰 글자 모드와 플랫폼 수동 전환 줄(설정 화면과 부품 견본에서 씀).
+// 큰 글자 설정 줄(더보기와 도우미 설정에서 씀). 화면 모양(아이폰, 안드로이드)은 기기에서 정한다:
+// 휴대폰에서는 기기 종류, 컴퓨터 미리보기에서는 위쪽 기기 고르기(DeviceFrame.jsx).
 export function DisplaySettings() {
-  const { platform, setPlatform, largeText, setLargeText } = usePlatform()
+  const { largeText, setLargeText } = usePlatform()
   return (
     <List label="화면 설정">
-      <ListRow title="화면 모양" subtitle="휴대폰 종류에 맞춤" trailing={
-        <div className="mob-seg-fit"><Segmented label="화면 모양" value={platform} onChange={setPlatform} options={[{ value: 'ios', label: '아이폰' }, { value: 'android', label: '안드로이드' }]} /></div>
-      } />
-      <ListRow title="큰 글자" subtitle="본문 22, 버튼 56" trailing={<Toggle label="큰 글자" checked={largeText} onChange={setLargeText} />} />
+      <ListRow title="큰 글자" subtitle="글자와 버튼을 크게" trailing={<Toggle label="큰 글자" checked={largeText} onChange={setLargeText} />} />
     </List>
   )
 }
@@ -538,4 +536,36 @@ export function SafetyGuidance({beforeDeparture=false}) {
 export function HelperConsent({onChange,withdraw=false}) {
  const [roles,setRoles]=useState(['ride']);const [sent,setSent]=useState(false)
  return <Card><p className="mob-t-headline">참여 동의</p><p className="mob-t-sub">참여와 역할은 본인이 선택합니다.</p><p className="mob-t-sub">참여를 거절하거나 동의를 철회해도 불이익이 없습니다. 배정 불가 응답과 등록 동의 철회는 별개입니다.</p><div className="mob-h-chips">{Object.entries(ROLE_OPTIONS).map(([value,label])=><Chip key={value} selected={roles.includes(value)} onClick={()=>setRoles(r=>r.includes(value)?r.filter(x=>x!==value):[...r,value])}>{label}</Chip>)}</div><div className="mob-h-sheet-actions"><Button block disabled={!roles.length} variant="tonal" onClick={()=>{onChange(true,roles);setSent(true)}}>선택한 역할로 참여 동의</Button>{withdraw&&<Button block variant="plain" onClick={()=>{onChange(false,roles);setSent(true)}}>등록 동의 철회 요청</Button>}</div>{sent&&<p role="status" className="mob-t-sub">요청을 기록했습니다. 연결이 없으면 전송 대기에 보관하며 담당자 화면과 동기화 후 다음 배정 후보에 반영합니다. 현재 배정은 담당자에게 연락해 조정해 주세요.</p>}</Card>
+}
+
+// ===== 벤치마크 공통 규칙 부품(공모전/모바일UI/벤치마크_20261022.md, 부품표_20261022.md) =====
+// 화면 아래 주 동작. 주 버튼은 한 순간에 하나(채움, 전체 폭), 보조 동작은 그 아래 글자 버튼(약하게).
+// iOS: Toolbar - Bottom - iPhone 4:55732 + Button Large 50(5473:21667), Android: Bottom app bar 51159:5105 + Button 57994:2227
+export function BottomAction({ primary, secondary }) {
+  return (
+    <div className="mob-h-bottom mob-bottom-action">
+      {primary && <Button block onClick={primary.onClick} disabled={primary.disabled} aria-describedby={primary.describedBy}>{primary.label}</Button>}
+      {secondary && <Button block variant={secondary.danger ? 'danger-tonal' : 'plain'} onClick={secondary.onClick} disabled={secondary.disabled}>{secondary.label}</Button>}
+    </div>
+  )
+}
+
+// 긴급 버튼. 모든 단계에서 같은 자리(앱 바 오른쪽)에 작은 빨간 버튼으로 둔다.
+// iOS: Toolbar 글자 버튼(Toolbar - Top - iPhone 1:54472), Android: App bar 끝 동작(58114:20565) + Button - tonal 58651:11237
+export function EmergencyButton({ label = '상태가 나빠졌어요', onClick }) {
+  return <Button variant="danger-tonal" size="sm" className="mob-emergency" onClick={onClick}>{label}</Button>
+}
+
+// 긴 설명은 화면에 문단으로 두지 않고 한 줄 행 뒤 시트로. 행: Row 550:50430 / List item 59106:13183, 시트: Sheet - iPhone 10525:1632 / Bottom sheet 51827:5859
+export function InfoSheet({ lead, title, summary, sheetTitle, children, closeLabel = '닫기' }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <ListRow lead={lead} title={title} subtitle={summary} chevron onClick={() => setOpen(true)} />
+      <Sheet open={open} onClose={() => setOpen(false)} title={sheetTitle || title}>
+        {children}
+        <Button block variant="plain" onClick={() => setOpen(false)}>{closeLabel}</Button>
+      </Sheet>
+    </>
+  )
 }

@@ -1,0 +1,18 @@
+/* 컴퓨터에서 보는 휴대폰 틀. 무테두리, 면 색으로만 구분, 미리 반경 단계(10, 원형)와 틀 모서리. */
+.dev-host { height: 100vh; overflow: hidden; display: flex; flex-direction: column; background: var(--m-canvas); color: var(--m-ink); font-family: 'Pretendard GOV Variable', 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif; word-break: keep-all; }
+.dev-head { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 20px 24px 16px; }
+.dev-title h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 700; }
+.dev-title p { margin: 2px 0 0; font-size: 14px; line-height: 20px; color: var(--m-ink-2); }
+.dev-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.dev-pick button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 9999px; background: var(--m-fill); color: var(--m-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.dev-pick button.on { background: var(--m-blue); color: var(--m-on-primary); }
+.dev-pick button:focus-visible { outline: 3px solid var(--m-blue); outline-offset: 2px; }
+.dev-pick .dev-rotate { margin-left: 8px; }
+.dev-stage { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 24px 24px; }
+.dev-outer { position: relative; flex: 0 0 auto; }
+.dev-body { position: absolute; left: 0; top: 0; transform-origin: top left; box-sizing: border-box; padding: 12px; background: var(--m-ink); box-shadow: var(--m-shadow-3); }
+.dev-body.p-ios { border-radius: 56px; }
+.dev-body.p-android { border-radius: 36px; }
+.dev-body iframe { display: block; border: 0; background: var(--m-page); }
+.dev-body.p-ios iframe { border-radius: 44px; }
+.dev-body.p-android iframe { border-radius: 24px; }

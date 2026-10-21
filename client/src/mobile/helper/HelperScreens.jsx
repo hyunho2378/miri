@@ -3,7 +3,7 @@ import { FilledInput, FilledTextarea, IconButton, BottomActions, SafetyGuidance,
 // iOS: 큰 제목, 그룹 inset 목록, 하단 고정 버튼, 시트와 alert. Android: top app bar, list item, filled와 tonal 버튼, bottom sheet, snackbar.
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { AlertTriangle, CheckCircle2, CircleX, Clock, CloudOff, Link2Off, MapPin, Phone, RefreshCw, Send, ShieldCheck, Truck, Users } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, CircleX, Clock, CloudOff, HandHeart, Link2Off, MapPin, Phone, RefreshCw, Send, ShieldCheck, User, Users } from 'lucide-react'
 import { radioProps, useLayout, TwoPane, AppBar, Banner, Button, Card, Chip, Dialog, EmptyState, List, ListRow, Progress, Sheet, Spinner, Toggle, DisplaySettings, useMobileToast } from '../ui.jsx'
 import { usePlatform } from '../usePlatform.js'
 import { fmtHM } from '../../lib/time.js'
@@ -130,7 +130,7 @@ function H3({ m, steps, go, selected = null, inPane = false }) {
   const p = progressOf(m.codes, steps)
   return (
     <>
-      <AppBar title="이송 목록" large trailing={<IconButton label="연락" onClick={() => go({ name: 'H7' })}><Phone size={22} aria-hidden="true" /></IconButton>} />
+      <AppBar title="이송 목록" large trailing={<Button variant="plain" size="sm" onClick={() => go({ name: 'H7' })}>담당자 전화</Button>} />
       <main id="main" className="mob-content no-nav">
         <Deadline m={m} />
         <div className="mob-h-progress">
@@ -211,7 +211,7 @@ function H5({ m, code, steps, go, onBack }) {
   }
   return (
     <>
-      <AppBar title={`${code} 보고`} onBack={onBack} trailing={<IconButton label="대상자 상세" onClick={() => go({ name: 'H4', code })}><Users size={22} aria-hidden="true" /></IconButton>} />
+      <AppBar title={`${code} 보고`} onBack={onBack} trailing={<IconButton label="대상자 상세" onClick={() => go({ name: 'H4', code })}><User size={22} aria-hidden="true" /></IconButton>} />
       <main id="main" className="mob-content no-nav">
         <SafetyGuidance beforeDeparture={st === 'wait'} />
         <ol className="mob-h-steps" aria-label="이송 단계">
@@ -410,7 +410,7 @@ function DemoHelper() {
   const m = useDemoModel()
   useEffect(() => { document.title = '도우미 배정 | 미리' }, [])
   const start = <Button block onClick={startDemoDispatch}>시연 발령 시작</Button>
-  if (m.phase === 'idle') return <Notice icon={<Truck size={28} />} title="배정 대기 중" body="발령이 내려지면 문자와 이 화면으로 알려 드려요." action={start} />
+  if (m.phase === 'idle') return <Notice icon={<HandHeart size={28} />} title="배정 대기 중" body="발령이 내려지면 문자와 이 화면으로 알려 드려요." action={start} />
   if (m.phase === 'preparing') return <Notice icon={<Spinner />} title="배정 준비 중" body="배정이 전송되면 이 화면에 표시돼요." />
   if (m.phase === 'closed') return <Notice icon={<CheckCircle2 size={28} />} title="발령이 끝났어요" body="배정 정보와 연락처를 지웠어요." action={start} />
   if (m.phase === 'none') return <Notice icon={<CircleX size={28} />} title="이번 발령에 배정 없음" body="담당자 연락을 기다려 주세요." />
