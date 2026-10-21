@@ -669,3 +669,10 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
    글자 버튼은 누름 48 안에 보이는 면 40(위아래 투명 4)이라 바깥 여백을 4 줄여 보이는 간격 20 을 맞춤 */
 .mob-root.platform-android .mob-dialog-body { padding: 24px 24px 0; gap: 16px; }
 .mob-root.platform-android .mob-dialog-actions { padding: 16px 24px 16px 8px; gap: 8px; }
+/* 화면 전수 대조(2026-10-22): iOS 바닥 시트는 내용 폭으로 줄지 않고 화면 폭에서 좌우 6을 뺀 폭(Sheet 10525:1632, iPhone 402 기준 390).
+   내용이 짧은 시트(차량과 도우미)에서 폭이 160으로 줄던 문제 */
+.mob-root.platform-ios:not(.bar-side):not(.two-pane) .mob-sheet:not(.center) { width: calc(100% - 12px); flex: 0 0 auto; }
+/* 화면 전수 대조(2026-10-22): M3 Basic dialog 50723:10948 의 동작은 글자 버튼(Label large 14/20 w500, 높이 40, 채움 없음).
+   채움, 위험 채움 동작도 대화상자 안에서는 글자 버튼으로, 위험 동작은 글자 색만 빨강 */
+.mob-root.platform-android .mob-dialog-actions .mob-btn { background-color: transparent; color: var(--m-blue-strong); padding-left: 12px; padding-right: 12px; }
+.mob-root.platform-android .mob-dialog-actions .mob-btn.v-danger { color: var(--m-red-strong); }
