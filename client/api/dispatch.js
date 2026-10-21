@@ -85,7 +85,8 @@ export function cleanReport(body, brief, h) {
   if (body.type === 'ack') {
     if (!ANSWERS.has(body.answer)) return null
     const reason = typeof body.reason === 'string' ? body.reason.slice(0, 40) : undefined
-    return { key, type: 'ack', helper: h, answer: body.answer, reason, at }
+    const memo = typeof body.memo === 'string' && body.memo.trim() ? body.memo.slice(0, 200) : undefined // GPT 8차 M1
+    return { key, type: 'ack', helper: h, answer: body.answer, reason, ...(memo ? { memo } : {}), at }
   }
   if (body.type === 'step') {
     if (!STEPS.has(body.step)) return null

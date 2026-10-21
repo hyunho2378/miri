@@ -143,18 +143,39 @@ export function Spinner({ label = '불러오는 중' }) {
   return <div className="mob-spinner" role="status" aria-label={label} />
 }
 
-// 덮개 공통: Esc 닫기, 첫 버튼 포커스, 바깥 누르면 닫기, 닫은 뒤 원래 위치로 포커스.
+// 덮개 공통: Esc 닫기, 첫 입력 포커스, Tab 순환(포커스 가두기), 배경 inert, 닫은 뒤 원래 위치로 포커스.
+// GPT 8차 H2: onClose 는 ref 로 보관하고 효과는 열림 전환에만 실행한다(입력할 때마다 첫 칸으로 포커스가 돌아가던 문제).
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+export function trapTab(e, root) {
+  if (e.key !== 'Tab' || !root) return false
+  const items = [...root.querySelectorAll(FOCUSABLE)]
+  if (!items.length) { e.preventDefault(); return true }
+  const first = items[0]; const last = items[items.length - 1]
+  const active = root.ownerDocument.activeElement
+  if (e.shiftKey && (active === first || !root.contains(active))) { e.preventDefault(); last.focus(); return true }
+  if (!e.shiftKey && (active === last || !root.contains(active))) { e.preventDefault(); first.focus(); return true }
+  return false
+}
 function useOverlay(open, onClose) {
   const box = useRef(null)
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
   useEffect(() => {
     if (!open) return undefined
     const before = document.activeElement
-    const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
+    const onKey = (e) => { if (e.key === 'Escape') closeRef.current?.(); else trapTab(e, box.current) }
     document.addEventListener('keydown', onKey)
-    const first = box.current?.querySelector('button, [href], input, textarea, select')
-    first?.focus()
-    return () => { document.removeEventListener('keydown', onKey); before?.focus?.() }
-  }, [open, onClose])
+    // 배경 inert: 덮개 바깥의 형제 요소를 잠시 비활성화
+    const scrim = box.current?.parentElement
+    const siblings = scrim?.parentElement ? [...scrim.parentElement.children].filter((el) => el !== scrim && !el.hasAttribute('inert')) : []
+    siblings.forEach((el) => el.setAttribute('inert', ''))
+    box.current?.querySelector(FOCUSABLE)?.focus()
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      siblings.forEach((el) => el.removeAttribute('inert'))
+      if (before && document.contains(before)) before.focus?.()
+    }
+  }, [open])
   return box
 }
 

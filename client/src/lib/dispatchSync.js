@@ -68,13 +68,31 @@ export const clockNow = (clock, real = Date.now()) => (clock && clock.realStart 
 export async function helperGet(token) {
   const r = await fetch(`${API}?action=helper&t=${encodeURIComponent(token)}`, { credentials: 'same-origin' })
   const j = await r.json().catch(() => ({}))
-  if (!r.ok) throw Object.assign(new Error(j?.error?.message || `HTTP ${r.status}`), { status: r.status })
+  // GPT 8차 M2: 서버 오류 코드(CLOSED, NO_ASSIGNMENT 등)를 버리지 않는다
+  if (!r.ok) throw Object.assign(new Error(j?.error?.message || `HTTP ${r.status}`), { status: r.status, code: j?.error?.code || null })
   return j
 }
+
+// 전송 결과 분류(GPT 8차 H1). ok: 저장됨(중복 포함) / retry: 다시 보냄(429, 5xx, 네트워크) / reject: 다시 보내도 받지 않음
+export function classifySend(status, code) {
+  if (status >= 200 && status < 300) return 'ok'
+  if (status === 429 || status >= 500 || !status) return 'retry'
+  return 'reject'
+}
+export async function helperSendResult(token, item) {
+  let r
+  try {
+    r = await fetch(`${API}?action=report&t=${encodeURIComponent(token)}`, {
+      method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item)
+    })
+  } catch (e) { return { kind: 'retry', status: 0, code: 'NETWORK', message: e?.message || '연결 실패' } }
+  const j = await r.json().catch(() => ({}))
+  const code = j?.error?.code || null
+  return { kind: classifySend(r.status, code), status: r.status, code, message: j?.error?.message || (r.ok ? '' : `HTTP ${r.status}`) }
+}
+// 기존 큰 화면 도우미(RemoteHelper)용: 영구 거부는 대기열에서 빼고(true), 재시도 대상은 남긴다(false)
 export async function helperSend(token, item) {
-  const r = await fetch(`${API}?action=report&t=${encodeURIComponent(token)}`, {
-    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item)
-  })
-  if ([400, 401, 404, 409].includes(r.status)) return true // 다시 보내도 받지 않는 보고는 대기열에서 뺀다. 503(저장 실패)과 429 는 남겨 다시 보냄
-  return r.ok
+  const res = await helperSendResult(token, item)
+  if (res.kind === 'retry' && res.code === 'NETWORK') throw Object.assign(new Error(res.message), { status: 0 })
+  return res.kind !== 'retry'
 }

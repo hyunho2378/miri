@@ -43,6 +43,26 @@ async function flushOnce(scope, send, storage) {
   }
   return { sent, left: readQueue(scope, storage).length }
 }
+// GPT 8차 H1: 다시 보내도 받지 않는 보고는 지우지 않고 '보내지 못한 보고'로 옮겨 화면에 사유와 함께 남긴다
+const REJ = '.rejected'
+export function readRejected(scope, storage = defaultStorage()) {
+  try { const v = JSON.parse(storage.getItem(PREFIX + scope + REJ) || '[]'); return Array.isArray(v) ? v : [] } catch { return [] }
+}
+export function moveToRejected(scope, key, why, storage = defaultStorage()) {
+  const q = readQueue(scope, storage)
+  const it = q.find((x) => x.key === key)
+  if (!it) return null
+  writeQueue(scope, q.filter((x) => x.key !== key), storage)
+  const rej = readRejected(scope, storage)
+  if (!rej.some((x) => x.key === key)) rej.push({ ...it, rejected: why })
+  storage.setItem(PREFIX + scope + REJ, JSON.stringify(rej))
+  return it
+}
+// 발령 종료나 링크 만료 뒤 휴대폰에 남은 보고와 인계 기록 정리(H0 안내 '발령 종료 뒤 삭제' 이행)
+export function clearScope(scope, storage = defaultStorage()) {
+  storage.removeItem(PREFIX + scope); storage.removeItem(PREFIX + scope + REJ)
+}
+
 export function flush(scope, send, storage = defaultStorage()) {
   let m = running.get(storage)
   if (!m) { m = new Map(); running.set(storage, m) }
@@ -60,7 +80,7 @@ export function mergeReports(state, reports = []) {
   const sorted = [...reports].filter(Boolean).sort((a, b) => (a.at || 0) - (b.at || 0))
   for (const r of sorted) {
     // GPT 5차 검토 M1: 수락과 불가도 더 늦은 기록만 덮는다. 원격 보고의 at 은 도우미 화면이 발령 가상 시각(brief.clock)으로 맞춰 보낸다
-    if (r.type === 'ack' && r.helper) { const cur = ackOverride[r.helper]; if (!cur || !(cur.at > r.at)) ackOverride[r.helper] = { answer: r.answer, reason: r.reason, at: r.at, remote: true } }
+    if (r.type === 'ack' && r.helper) { const cur = ackOverride[r.helper]; if (!cur || !(cur.at > r.at)) ackOverride[r.helper] = { answer: r.answer, reason: r.reason, ...(r.memo ? { memo: r.memo } : {}), at: r.at, remote: true } }
     if (r.type === 'step' && r.personCode) {
       const cur = events[r.personCode]
       if (cur?.step === 'handedToFire') continue

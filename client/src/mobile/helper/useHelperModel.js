@@ -2,8 +2,8 @@
 // 두 경로가 같은 모양(model)을 돌려주므로 화면은 한 벌로 iOS와 Android 를 함께 그린다.
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import useNow from '../../hooks/useNow.js'
-import { clockNow, helperGet, helperSend } from '../../lib/dispatchSync.js'
-import { enqueue, flush, readQueue } from '../../lib/reportQueue.js'
+import { clockNow, helperGet, helperSendResult } from '../../lib/dispatchSync.js'
+import { clearScope, enqueue, flush, moveToRejected, readQueue, readRejected } from '../../lib/reportQueue.js'
 import { ackOf, helperBrief, indexStops, stepOf } from '../../lib/dispatchSim.js'
 import { personDest } from '../../lib/assign.js'
 import { HAZARD_KINDS } from '../../lib/scenario.js'
@@ -85,7 +85,7 @@ export function useDemoModel() {
         }
       },
       reports, pending: 0, queue: [],
-      ack: (answer, reason) => useDispatchStore.getState().helperAck(me, answer, reason),
+      ack: (answer, reason, memo) => useDispatchStore.getState().helperAck(me, answer, reason, memo),
       step: (code, step, extra = {}) => {
         useDispatchStore.getState().report(code, step, extra.reason, extra.memo)
         if (extra.care) useDispatchStore.setState((s) => ({ events: { ...s.events, [code]: { ...s.events[code], care: extra.care } } }))
@@ -110,13 +110,21 @@ export function useRemoteModel(token) {
       setError((prev) => (code === 'NETWORK' && res ? prev : { code, message: e.message }))
     }
   }, [token, res])
+  const [rejected, setRejected] = useState(() => readRejected(scope))
   const send = useCallback(async () => {
-    const r = await flush(scope, (it) => helperSend(token, it).then(() => true).catch((e) => {
-      const code = errorCodeOf(e)
-      if (code === 'CLOSED' || code === 'NO_ASSIGNMENT' || code === 'EXPIRED') { setError({ code, message: e.message }); return false }
+    // GPT 8차 H1: 503, 429, 네트워크는 대기열에 남겨 다시 보냄. 종료, 교체, 만료는 화면 상태를 바꾸고 대기열은 보존.
+    // 그 밖의 영구 거부(400, 409)는 지우지 않고 '보내지 못한 보고'로 옮겨 사유를 보여 줌
+    const r = await flush(scope, async (it) => {
+      const res = await helperSendResult(token, it)
+      if (res.kind === 'ok') return true
+      if (res.kind === 'retry') return false
+      const code = errorCodeOf({ status: res.status, code: res.code })
+      if (code === 'CLOSED' || code === 'NO_ASSIGNMENT' || code === 'EXPIRED' || code === 'BAD_TOKEN') { setError({ code, message: res.message }); return false }
+      moveToRejected(scope, it.key, res.message || res.code || `HTTP ${res.status}`)
       return false
-    }))
+    })
     setQueue(readQueue(scope))
+    setRejected(readRejected(scope))
     if (r.sent) { setLastOk(Date.now()); load() }
     return r
   }, [scope, token, load])
@@ -129,6 +137,8 @@ export function useRemoteModel(token) {
     return () => { window.removeEventListener('online', on); clearInterval(t) }
   }, [send, load, scope])
 
+  // 종료, 만료 링크는 휴대폰에 남은 보고와 인계 기록을 지운다(H0 안내 이행)
+  useEffect(() => { if (error && (error.code === 'CLOSED' || error.code === 'EXPIRED')) { clearScope(scope); setQueue([]); setRejected([]) } }, [error, scope])
   return useMemo(() => {
     if (error && error.code !== 'NETWORK') return { phase: 'error', error }
     if (!res) return error ? { phase: 'error', error } : { phase: 'loading' }
@@ -148,10 +158,10 @@ export function useRemoteModel(token) {
       codes: b.personCodes || trips.flatMap((t) => t.personCodes),
       // 실제 링크는 이름, 주소, 건강 정보를 휴대폰으로 보내지 않는다. 상세는 담당자 문자와 현장 확인
       detail: () => null, expiresAt: res.expiresAt,
-      reports: [...(res.reports || []), ...queue], pending: queue.length, queue, lastOk, offlineError: error?.code === 'NETWORK',
+      reports: [...(res.reports || []), ...queue], pending: queue.length, queue, rejected, lastOk, offlineError: error?.code === 'NETWORK',
       ack: (answer, reason, memo) => push({ type: 'ack', answer, reason, memo }),
       step: (code, step, extra = {}) => push({ type: 'step', personCode: code, step, reason: extra.reason, memo: extra.memo, care: extra.care }),
       resend: send
     }
-  }, [res, error, queue, scope, send, now, lastOk])
+  }, [res, error, queue, rejected, scope, send, now, lastOk])
 }

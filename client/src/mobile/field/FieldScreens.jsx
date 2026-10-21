@@ -16,7 +16,7 @@ import { readDocument } from '../../lib/intake.js'
 import { readNote } from '../../lib/notes.js'
 import { aiErrorMessage } from '../../lib/aiErrors.js'
 import { AppBar, DisplaySettings, Banner, Button, Card, Chip, Dialog, EmptyState, List, ListRow, Progress, Segmented, Sheet, Spinner, useMobileToast } from '../ui.jsx'
-import { ACTIVE, STATUS_LABEL, fieldSummary, helperResponses, hm, searchPersons, stepLabel, unservedByReason, villageName, villageProgress, deadlineTag } from './fieldModel.js'
+import { ACTIVE, STATUS_LABEL, failedPending, fieldSummary, helperResponses, hm, searchPersons, stepLabel, unservedByReason, villageName, villageProgress, deadlineTag } from './fieldModel.js'
 
 // 발령 복원과 10초 주기 조회(콘솔 발령 운영과 같은 방식)
 function useDispatchLive() {
@@ -77,7 +77,7 @@ export function FieldStatusPage() {
   const pct = s.total ? (s.counts.done / s.total) * 100 : 0
   return (
     <>
-      <AppBar title="발령 상태" large trailing={<Chip tone="red">훈련</Chip>} />
+      <AppBar title="발령 상태" large trailing={d.kind !== 'drill' ? <Chip tone="red">실제 발령</Chip> : <Chip tone="red">훈련</Chip>} />
       <main id="main" className="mob-content">
         <Card filled className="mob-hero">
           <p className="mob-t-foot">{STATUS_LABEL[d.status]}</p>
@@ -245,7 +245,7 @@ export function FieldHelpersPage() {
         {!rows.length ? <EmptyState title="해당 도우미 없음" /> : (
           <List label="도우미 목록">
             {rows.map((h) => (
-              <ListRow key={h.code} title={h.code} subtitle={`차량 ${h.vehicle}, ${h.trips}회차${h.reason ? `, 사유 ${DECLINE_REASONS[h.reason] || h.reason}` : ''}`} meta={h.at ? `${hm(h.at)} 응답` : `문자 ${h.sms}회 발송`}
+              <ListRow key={h.code} title={h.code} subtitle={`차량 ${h.vehicle}, ${h.trips}회차${h.reason ? `, 사유 ${DECLINE_REASONS[h.reason] || h.reason}` : ''}${h.memo ? `, 메모 ${h.memo}` : ''}`} meta={h.at ? `${hm(h.at)} 응답` : `문자 ${h.sms}회 발송`}
                 trailing={tab === 'accept' ? null : <Button size="sm" variant="tonal" onClick={() => setConfirm(h)}>{tab === 'decline' ? '교체' : '교체 요청'}</Button>} />
             ))}
           </List>
@@ -263,9 +263,12 @@ export function FieldFirePage() {
   const data = useMiriStore()
   const navigate = useNavigate()
   const requestFireSupport = useDispatchStore((s) => s.requestFireSupport)
+  const handover = useDispatchStore((s) => s.handover)
   const toast = useMobileToast()
   const [open, setOpen] = useState(false)
+  const [openFail, setOpenFail] = useState(false)
   const u = unservedByReason(d)
+  const failed = failedPending(d)
   return (
     <>
       <AppBar title="소방 지원 요청" onBack={() => navigate('/m/f/more')} backLabel="더보기" />
@@ -282,6 +285,16 @@ export function FieldFirePage() {
             <div className="mob-pad">
               <Button block variant="danger" disabled={!u.total} onClick={() => setOpen(true)}>동해소방서 지원 요청</Button>
             </div>
+            <Section title="이송 실패 보고 대상자">
+              {!failed.length ? <p className="mob-t-foot mob-pad">실패 보고 없음</p> : (
+                <>
+                  <List label="이송 실패 보고 대상자">
+                    {failed.map((f) => <ListRow key={f.code} title={f.code} subtitle={[FAIL_REASONS[f.reason] || f.reason, f.memo].filter(Boolean).join(', ') || '사유 미기재'} meta={f.at ? `${hm(f.at)} 보고` : undefined} />)}
+                  </List>
+                  <div className="mob-pad"><Button block variant="danger-tonal" onClick={() => setOpenFail(true)}>실패 {failed.length}명 소방 인계</Button></div>
+                </>
+              )}
+            </Section>
             <Section title="요청 기록">
               {!d.fireRequests?.length ? <p className="mob-t-foot mob-pad">요청 기록 없음</p> : (
                 <List label="요청 기록">
@@ -296,6 +309,8 @@ export function FieldFirePage() {
       </main>
       <Dialog open={open} onClose={() => setOpen(false)} title={`미배정 ${u.total}명 지원 요청`} body="사유와 마을별 인원을 동해소방서 인계 기록으로 넘김. 콘솔 소방 인계 화면에도 같은 기록 표시"
         actions={<><Button variant="plain" onClick={() => setOpen(false)}>취소</Button><Button variant="danger" onClick={() => { const q = requestFireSupport(); toast(q ? `지원 요청 ${q.count}명 기록` : '요청할 미배정자 없음'); setOpen(false) }}>요청</Button></>} />
+      <Dialog open={openFail} onClose={() => setOpenFail(false)} title={`실패 ${failed.length}명 소방 인계`} body="이송 실패로 보고된 대상자를 동해소방서 인계 기록으로 넘김. 콘솔 소방 인계 화면에도 같은 기록 표시"
+        actions={<><Button variant="plain" onClick={() => setOpenFail(false)}>취소</Button><Button variant="danger" onClick={() => { handover(failed.map((f) => f.code)); toast(`실패 ${failed.length}명 소방 인계 기록`); setOpenFail(false) }}>인계</Button></>} />
     </>
   )
 }
@@ -389,15 +404,18 @@ export function FieldIntakePage() {
   const [state, setState] = useState({ phase: 'idle' })
   const run = async (file) => {
     if (!file) return
-    setState({ phase: 'loading' })
+    const req = { village: villageCode } // GPT 8차 H3와 같은 원인: 판독 중 마을을 바꿔도 요청 당시 마을로 저장
+    setState({ phase: 'loading', req })
     try {
       const page = await readDocument(file)
-      setState({ phase: 'done', page, file })
+      setState({ phase: 'done', page, file, req })
     } catch (e) {
-      setState({ phase: 'error', err: aiErrorMessage(e, '서류') })
+      setState({ phase: 'error', err: aiErrorMessage(e, '서류'), req })
     }
   }
   const save = () => {
+    const villageCode = state.req?.village
+    if (!villageCode || !state.page) return
     const used = new Set(data.persons.map((p) => p.code))
     const codes = []
     for (let k = 301; codes.length < state.page.persons.length; k += 1) { const c = `${villageCode}-${k}`; if (!used.has(c)) codes.push(c) }
@@ -455,22 +473,27 @@ export function FieldNotePage() {
   const [state, setState] = useState({ phase: 'idle' })
   const fileRef = useRef(null)
   const person = data.persons.find((p) => p.code === code.trim().toUpperCase())
+  const reqSeq = useRef(0)
   const send = async (file) => {
     if (!person) { toast('대상자 번호 확인 필요'); return }
-    const current = { grade: person.grade, tags: [...(person.tags || [])] }
-    setState({ phase: 'loading' })
+    // GPT 8차 H3: 요청 시작 시 대상자, 마을, 현재 값, 방식, 글을 한 요청 객체로 고정. 결과와 저장 모두 이 객체만 사용
+    const req = { id: ++reqSeq.current, personCode: person.code, villageCode: person.villageCode, current: { grade: person.grade, tags: [...(person.tags || [])] }, mode, text: text.trim() }
+    setState({ phase: 'loading', req })
     try {
-      const read = await readNote({ text: file ? undefined : text.trim(), file: file || undefined, current })
-      setState({ phase: 'done', read, file, current })
+      const read = await readNote({ text: file ? undefined : req.text, file: file || undefined, current: req.current })
+      if (req.id !== reqSeq.current) return // 늦게 온 이전 요청 응답은 버림
+      setState({ phase: 'done', read, file, req })
       setSheet(true)
     } catch (e) {
-      setState({ phase: 'error', err: aiErrorMessage(e, '소식') })
+      if (req.id !== reqSeq.current) return
+      setState({ phase: 'error', err: aiErrorMessage(e, '소식'), req })
     }
   }
   const keep = () => {
-    const { read, file, current } = state
-    addFieldNote({ id: nextNoteId(), personCode: person.code, villageCode: person.villageCode, source: 'dong', status: 'pending', receivedAt: Date.now(), current, mode, fileName: file?.name || '', text: read.transcript || text.trim(), read, mock: false })
-    toast('확인 대기 소식으로 저장')
+    const { read, file, req } = state
+    if (!req || !read) return
+    addFieldNote({ id: nextNoteId(), personCode: req.personCode, villageCode: req.villageCode, source: 'dong', status: 'pending', receivedAt: Date.now(), current: req.current, mode: req.mode, fileName: file?.name || '', text: read.transcript || req.text, read, mock: false })
+    toast(`${req.personCode} 확인 대기 소식으로 저장`)
     setSheet(false); setText(''); setState({ phase: 'idle' })
   }
   const r = state.read
@@ -480,7 +503,7 @@ export function FieldNotePage() {
       <main id="main" className="mob-content">
         <List label="대상자">
           <ListRow title="대상자 번호" subtitle={person ? `${villageName(data.villages, person.villageCode)}, 현재 ${gradeOf(person.grade)?.label || '등급 확인'}` : '예: MS-04-014'}
-            trailing={<input className="mob-input" value={code} onChange={(e) => setCode(e.target.value)} aria-label="대상자 번호" placeholder="번호" autoCapitalize="characters" />} />
+            trailing={<input className="mob-input" value={code} onChange={(e) => setCode(e.target.value)} disabled={state.phase === 'loading'} aria-label="대상자 번호" placeholder="번호" autoCapitalize="characters" />} />
         </List>
         <div className="mob-pad"><Segmented label="보내는 방식" value={mode} onChange={setMode} options={[{ value: 'text', label: '글' }, { value: 'voice', label: '음성 메모' }]} /></div>
         {mode === 'text' ? (
@@ -503,7 +526,7 @@ export function FieldNotePage() {
         {r && (
           <>
             <List label="판독 결과">
-              <ListRow title="등급" subtitle={r.diff?.gradeChanged ? `${gradeOf(state.current.grade)?.label} → ${gradeOf(r.diff.next.grade)?.label}` : '등급 변경 없음'} />
+              <ListRow title="등급" subtitle={r.diff?.gradeChanged ? `${gradeOf(state.req?.current?.grade)?.label} → ${gradeOf(r.diff.next.grade)?.label}` : '등급 변경 없음'} />
               <ListRow title="근거" subtitle={r.quote || '없음'} meta={r.quoteMatched ? '원문 대조 통과' : '원문 불일치, 직접 확인'} />
             </List>
             <div className="mob-row-buttons" style={{ marginTop: 16 }}>

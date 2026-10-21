@@ -590,7 +590,10 @@ export default class Region3D {
       const on = this.layers.shortage !== false
       s.mesh.visible = on
       s.dot.visible = false
-      s.label.visible = on && v.inScope && (v.waiting > 0 || isSel)
+      s.baseVisible = on && v.inScope && (v.waiting > 0 || isSel)
+      s.isSel = isSel
+      s.label.visible = s.baseVisible
+      this.labelsDirty = true
     }
     for (const [code, s] of this.pillars) {
       if (seen.has(code)) continue
@@ -995,7 +998,7 @@ export default class Region3D {
   }
 
   updatePlaceLabels() {
-    if (!this.placeLabels?.length) return
+    if (!this.placeLabels?.length && !this.pillars?.size) return
     const dist = this.camera.position.distanceTo(this.controls.target)
     const W = this.box.clientWidth, H = this.box.clientHeight
     const taken = []
@@ -1008,8 +1011,24 @@ export default class Region3D {
       if (v.z > 1) continue
       taken.push({ x: ((v.x + 1) / 2) * W - 30, y: ((1 - v.y) / 2) * H - 8, w: 60, h: 16 })
     }
+    // 마을 인원 라벨 겹침 회피(회신 R34, 3D). 선택한 마을, 인원 많은 순으로 놓고 겹치면 숨김. 선택한 마을은 항상 표시
+    const pills = []
+    for (const s of (this.pillars || new Map()).values()) {
+      if (!s.baseVisible) { s.label.visible = false; continue }
+      s.label.getWorldPosition(v); v.project(this.camera)
+      if (v.z > 1) { s.label.visible = false; continue }
+      const w = Math.max(40, String(s.v?.waiting ?? '').length * 9 + 30)
+      pills.push({ s, r: { x: ((v.x + 1) / 2) * W - w / 2, y: ((1 - v.y) / 2) * H - 12, w, h: 24 } })
+    }
+    pills.sort((a, b) => (b.s.isSel - a.s.isSel) || ((b.s.v?.waiting || 0) - (a.s.v?.waiting || 0)))
+    const pillTaken = []
+    for (const it of pills) {
+      const clash = !it.s.isSel && pillTaken.some((t) => overlap(it.r, t))
+      it.s.label.visible = !clash
+      if (!clash) { pillTaken.push(it.r); taken.push(it.r) }
+    }
     const cand = []
-    for (const L of [...this.placeLabels, ...(this.roadLabels || [])]) {
+    for (const L of [...(this.placeLabels || []), ...(this.roadLabels || [])]) {
       if (dist > L.near || this.layers.dongs === false) { L.obj.visible = false; continue }
       L.obj.getWorldPosition(v); v.project(this.camera)
       if (v.z > 1 || Math.abs(v.x) > 1.05 || Math.abs(v.y) > 1.05) { L.obj.visible = false; continue }

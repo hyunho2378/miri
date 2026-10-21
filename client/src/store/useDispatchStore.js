@@ -117,7 +117,7 @@ export const useDispatchStore = create((set, get) => ({
   },
 
   // 도우미 화면 보고
-  helperAck: (helper, answer, reason) => set((s) => ({ ackOverride: { ...s.ackOverride, [helper]: { answer, reason, at: vnowOf(s) } } })),
+  helperAck: (helper, answer, reason, memo) => set((s) => ({ ackOverride: { ...s.ackOverride, [helper]: { answer, reason, ...(memo ? { memo: String(memo).slice(0, 200) } : {}), at: vnowOf(s) } } })),
   report: (code, step, reason, memo) => set((s) => ({ events: { ...s.events, [code]: { step, reason, memo, at: vnowOf(s) } } })),
 
   // 불가 또는 무응답 도우미 교체

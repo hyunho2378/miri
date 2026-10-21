@@ -31,7 +31,7 @@ export default function DisasterAlertsCard({ className = '' }) {
               ))}
             </ul>
           ) : <p className="type-body-sm text-text-meta">최근 7일 동해시 수신 문자 없음</p>}
-        <FreshnessNote kind="alerts" state={s} />
+        {d?.status === 'pending' ? null : <FreshnessNote kind="alerts" state={s} />}
       </div>
     </Card>
   )

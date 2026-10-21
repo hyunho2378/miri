@@ -47,7 +47,7 @@ export function WeatherLine({ className }) {
   const hot = w.data?.related?.length
   return (
     <p className={clsx('type-meta leading-5', hot ? 'text-warning-text' : 'text-text-sec', className)}>
-      {parts.join(' / ')}<span className="text-text-meta">, 기상청{w.data?.issuedAt ? ` ${fmtTmFc(w.data.issuedAt)}` : ''}</span>
+      {parts.join(' / ')}<span className="text-text-meta">, 기상청</span>
       <FreshnessNote kind="warning" state={w} />
       <FreshnessNote kind="wind" state={v} />
     </p>

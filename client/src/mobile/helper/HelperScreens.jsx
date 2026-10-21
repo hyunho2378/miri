@@ -30,6 +30,8 @@ function Deadline({ m }) {
       <p className="mob-t-label">이송 완료 기한</p>
       <p className="mob-h-time">{m.completeBy ? `${fmtHM(m.completeBy)}까지` : '담당자 확인'}</p>
       {r && <p className={`mob-t-sub ${r.over ? 'mob-h-over' : ''}`} role="timer">{r.text}</p>}
+      {/* GPT 8차 M7: 매 분 낭독하지 않고 의미 있는 전환(30분 이내, 기한 지남)만 알림 */}
+      <p className="mob-sr" aria-live="polite">{r ? (r.over ? '이송 완료 기한 지남' : r.min <= 30 ? '이송 완료 기한 30분 이내' : '') : ''}</p>
     </Card>
   )
 }
@@ -109,7 +111,7 @@ function H2({ m, onBack }) {
       <main id="main" className="mob-content no-nav">
         <p className="mob-t-sub mob-h-lead">사유를 고르면 담당자가 다른 도우미를 배정해요.</p>
         <div className="mob-h-chips" role="radiogroup" aria-label="불가 사유">
-          {Object.entries(DECLINE_REASONS_M).map(([k, v]) => <Chip key={k} selected={reason === k} onClick={() => setReason(k)}>{v}</Chip>)}
+          {Object.entries(DECLINE_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)}>{v}</Chip>)}
         </div>
         <label className="mob-h-field"><span className="mob-t-label">메모(선택)</span>
           <textarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="담당자에게 전할 말" />
@@ -253,9 +255,9 @@ function H6({ m, code, onBack, onDone }) {
     <>
       <AppBar title="이송 실패 보고" onBack={onBack} />
       <main id="main" className="mob-content no-nav">
-        <p className="mob-t-sub mob-h-lead">{code} 대상자. 실패로 보고하면 담당자가 소방 지원 요청 목록으로 넘겨요.</p>
+        <p className="mob-t-sub mob-h-lead">{code} 대상자. 실패로 보고하면 담당자 휴대폰의 소방 지원 요청 화면에 실패 대상자로 올라가요.</p>
         <div className="mob-h-chips" role="radiogroup" aria-label="실패 사유">
-          {Object.entries(FAIL_REASONS_M).map(([k, v]) => <Chip key={k} selected={reason === k} onClick={() => setReason(k)}>{v}</Chip>)}
+          {Object.entries(FAIL_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)}>{v}</Chip>)}
         </div>
         <label className="mob-h-field"><span className="mob-t-label">메모(선택)</span><textarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="현장 상황" /></label>
       </main>
@@ -308,6 +310,10 @@ function H8({ m, onBack }) {
         <p className="mob-t-sub mob-h-lead">{m.lastOk ? `마지막 연결 ${fmtHM(m.lastOk)}` : '아직 연결 기록 없음'}</p>
         {m.queue.length === 0 ? <EmptyState icon={<Send size={28} />} title="보낼 보고 없음" body="모든 보고를 담당자에게 보냈어요." /> : (
           <List>{m.queue.map((q) => <ListRow key={q.key} lead={<Clock size={20} />} title={q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${q.personCode} ${STEP_LABEL[q.step] || q.step}`} subtitle="전송 대기" />)}</List>
+        )}
+        {/* GPT 8차 H1: 서버가 받지 않은 보고는 지우지 않고 사유와 함께 남김. 담당자에게 전화로 알림 */}
+        {m.rejected?.length > 0 && (
+          <List label="보내지 못한 보고">{m.rejected.map((q) => <ListRow key={q.key} lead={<CircleX size={20} />} title={q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${q.personCode} ${STEP_LABEL[q.step] || q.step}`} subtitle={`보내지 못함: ${q.rejected}. 담당자에게 전화로 알림`} />)}</List>
         )}
       </main>
       {m.queue.length > 0 && <Bottom><Button block disabled={busy} onClick={async () => { setBusy(true); const r = await m.resend(); setBusy(false); toast(r.left ? `아직 ${r.left}건 대기, 연결되면 자동 전송` : '모두 보냈어요') }}><RefreshCw size={18} aria-hidden="true" />다시 보내기</Button></Bottom>}

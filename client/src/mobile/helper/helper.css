@@ -24,7 +24,7 @@
 .mob-h-steps li.next .mob-h-dot { background: var(--m-blue); color: #fff; }
 .mob-h-big { min-height: 64px; font-size: 20px; }
 .mob-h-field { display: flex; flex-direction: column; gap: 6px; }
-.mob-h-field input, .mob-h-field textarea { font: inherit; font-size: 16px; color: var(--m-ink); background: var(--m-fill); border: 0; border-radius: var(--m-r-md); padding: 12px; min-height: var(--m-touch); resize: vertical; }
+.mob-h-field input, .mob-h-field textarea { font: inherit; font-size: max(16px, var(--t-body)); line-height: var(--t-body-lh, 1.4); color: var(--m-ink); background: var(--m-fill); border: 0; border-radius: var(--m-r-md); padding: 12px; min-height: var(--m-touch); resize: vertical; }
 .mob-h-field input:focus-visible, .mob-h-field textarea:focus-visible { outline: 2px solid var(--m-blue); outline-offset: 2px; }
 .mob-h-care { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
 .mob-h-sheet-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }

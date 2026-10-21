@@ -76,7 +76,7 @@ export function helperResponses(d, vnow) {
       seen.add(h)
       const ack = ackOf(d, h, vnow)
       const key = ack.answer === 'accept' ? 'accept' : ack.answer === 'decline' ? 'decline' : 'none'
-      groups[key].push({ code: h, vehicle: a.vehicleCode, trips: a.trips.length, reason: ack.reason || null, at: ack.at || null, sms: (d.smsLog || []).filter((s) => (s.helper || s.to) === h).length })
+      groups[key].push({ code: h, vehicle: a.vehicleCode, trips: a.trips.length, reason: ack.reason || null, memo: ack.memo || null, at: ack.at || null, sms: (d.smsLog || []).filter((s) => (s.helper || s.to) === h).length })
     }
   }
   return groups
@@ -89,6 +89,12 @@ export function unservedByReason(d) {
   const rows = d.result.unassigned.filter((u) => d.events?.[u.personCode]?.step !== 'handedToFire')
   for (const u of rows) out[u.reason] = (out[u.reason] || 0) + 1
   return { total: rows.length, reasons: Object.entries(out).map(([k, n]) => ({ key: k, label: UNSERVED_REASON[k] || k, n })).sort((a, b) => b.n - a.n) }
+}
+
+// GPT 8차 M3: 배정됐지만 실패로 보고된 대상자(아직 소방 인계 전). 미배정 요청과 따로 묶는다
+export function failedPending(d) {
+  const ev = d?.events || {}
+  return Object.entries(ev).filter(([, e]) => e?.step === 'fail').map(([code, e]) => ({ code, reason: e.reason || null, memo: e.memo || null, at: e.at || null }))
 }
 
 // F5 대상자 검색. 이름은 없으므로 대상자 번호와 마을 이름으로 찾는다
