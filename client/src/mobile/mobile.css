@@ -550,7 +550,7 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 .mob-row.kv .mob-row-trail { flex: 1 1 auto; min-width: 0; max-width: none; justify-content: flex-end; text-align: right; }
 .mob-h-kv { font-weight: var(--w-strong); word-break: keep-all; overflow-wrap: anywhere; }
 @container (max-width: 359px) {
-  .mob-row.kv { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding-top: 11px; padding-bottom: 11px; }
+  .mob-root .mob-row.kv { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding-top: 11px; padding-bottom: 11px; }   /* Subtitle 변형 pad 11 */
   .mob-row.kv .mob-row-main { max-width: none; }
   .mob-row.kv .mob-row-trail { justify-content: flex-start; text-align: left; width: 100%; }
 }
@@ -566,3 +566,6 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 .mob-root .mob-toast-wrap { left: calc(var(--m-safe-left) + var(--m-rail)); right: calc(var(--m-safe-right) + var(--m-side-bar)); }
 .mob-root.two-pane .mob-toast-wrap { right: calc(50% + var(--m-side-bar) / 2); justify-content: center; }
 .mob-root.platform-android { --m-toast-above: 84px; }
+/* 옆 세로 막대 자리는 이동 막대가 있는 화면에서만 비운다(도우미 화면처럼 탭이 없으면 84 를 비우지 않음) */
+.mob-root.platform-ios.bar-side:not(:has(.mob-nav)) { --m-side-bar: 0px; }
+.mob-root.platform-android.bar-rail:not(:has(.mob-nav)) { --m-rail: 0px; }
