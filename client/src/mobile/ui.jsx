@@ -269,7 +269,9 @@ function ToastHost({ children }) {
 }
 export function useMobileToast() { return useContext(ToastContext) }
 
-export function Banner({ tone = 'gray', icon, children }) {
+export function Banner({ tone = 'gray', icon, title, children }) {
+  // title 이 있으면 제목만 색 글자, 본문은 기본 글자색(긴 문장을 색 글자로 쓰지 않음)
+  if (title) return <div className={`mob-banner tone-${tone} has-title`} role={tone === 'red' ? 'alert' : 'status'}>{icon}<span><span className="mob-banner-title">{title}</span><span className="mob-banner-body">{children}</span></span></div>
   return <div className={`mob-banner tone-${tone}`} role={tone === 'red' ? 'alert' : 'status'}>{icon}{children}</div>
 }
 
@@ -431,7 +433,7 @@ export function BottomActions({children}) { return <div className="mob-h-bottom"
 
 export function SafetyGuidance({beforeDeparture=false}) {
  const [open,setOpen]=useState(false)
- return <><Banner tone="red">{EMERGENCY}</Banner>{beforeDeparture&&<Banner tone="blue">{PREDEPARTURE}</Banner>}<List><ListRow href="tel:119" title="119 연결" subtitle="현재 위치와 의식 및 호흡 변화 전달" chevron /><ListRow title="상황별 안내 문구" subtitle="권장 문구 6개와 피할 표현" onClick={()=>setOpen(true)} chevron /></List><Sheet open={open} onClose={()=>setOpen(false)} title="상황별 안내 문구"><List>{HELPER_PHRASES.map(([title,subtitle])=><ListRow key={title} title={title} subtitle={subtitle} />)}<ListRow title="피할 표현" subtitle={AVOID_PHRASES.join(', ')} /><ListRow title="전달 방법" subtitle="천천히 말하고 한 번에 한 가지 정보만 전달해 주세요." /></List><Button block variant="plain" onClick={()=>setOpen(false)}>닫기</Button></Sheet></>
+ return <><Banner tone="red" title="상태가 나빠지면 이동 중단">{EMERGENCY}</Banner>{beforeDeparture&&<Banner tone="blue" title="출발 전 확인">{PREDEPARTURE}</Banner>}<List><ListRow href="tel:119" title="119 연결" subtitle="현재 위치와 의식 및 호흡 변화 전달" chevron /><ListRow title="상황별 안내 문구" subtitle="권장 문구 6개와 피할 표현" onClick={()=>setOpen(true)} chevron /></List><Sheet open={open} onClose={()=>setOpen(false)} title="상황별 안내 문구"><List>{HELPER_PHRASES.map(([title,subtitle])=><ListRow key={title} title={title} subtitle={subtitle} />)}<ListRow title="피할 표현" subtitle={AVOID_PHRASES.join(', ')} /><ListRow title="전달 방법" subtitle="천천히 말하고 한 번에 한 가지 정보만 전달해 주세요." /></List><Button block variant="plain" onClick={()=>setOpen(false)}>닫기</Button></Sheet></>
 }
 
 export function HelperConsent({onChange,withdraw=false}) {

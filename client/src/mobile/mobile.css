@@ -343,3 +343,6 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-sheet:focus, .mob-dialog:focus { outline: none; }
 .mob-sheet-title { margin-bottom: 12px; }
 .mob-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.mob-banner.has-title { align-items: flex-start; }
+.mob-banner-title { display: block; font-size: var(--t-headline); line-height: var(--l-headline); font-weight: 700; margin-bottom: 4px; }
+.mob-banner-body { display: block; color: var(--m-ink); font-weight: 400; }
