@@ -1,4 +1,3 @@
-import { ROLE_OPTIONS } from '../lib/helperConsent.js'
 // 미리 모바일 공용 부품. 같은 API, 플랫폼별 모양(docs/MOBILE_UI.md 5장 부품 대응).
 // 모양 차이는 mobile.css 의 .mob-root.platform-ios / .platform-android 토큰이 맡고,
 // 구조 차이(앱 바 큰 제목, 대화상자 버튼 배치, 토스트 위치, 물결)는 여기서 나눈다.
@@ -6,7 +5,6 @@ import { createContext, useCallback, useContext, useEffect, useId, useRef, useSt
 import { ChevronLeft, ArrowLeft, ChevronRight, WifiOff, Inbox, Check } from 'lucide-react'
 import { usePlatform } from './usePlatform.js'
 import { layoutFor } from './layout.js'
-import { HELPER_PHRASES, AVOID_PHRASES, EMERGENCY, PREDEPARTURE } from '../lib/helperGuidance.js'
 import { validTime, timeValue } from './time.js'
 import './tokens.css'
 import './mobile.css'
@@ -126,9 +124,6 @@ export function IconButton({ label, children, ...rest }) {
   return <button type="button" className="mob-icon-btn" aria-label={label} {...rest}>{children}</button>
 }
 
-export function Card({ filled = false, className = '', children, ...rest }) {
-  return <section className={`mob-card ${filled ? 'filled' : ''} ${className}`} {...rest}>{children}</section>
-}
 
 // 목록. iOS 그룹 inset(구분선), Android list item(1~3줄).
 export function List({ label, children }) {
@@ -160,10 +155,6 @@ export function ListRow({ lead, title, subtitle, meta, trailing, onClick, href, 
   )
 }
 
-export function Chip({ selected, tone, onClick, children, ...rest }) {
-  if (onClick) return <button type="button" className={`mob-chip ${selected ? 'selected' : ''} ${tone ? `tone-${tone}` : ''}`} aria-pressed={!!selected} onClick={onClick} {...rest}>{children}</button>
-  return <span className={`mob-chip ${tone ? `tone-${tone}` : ''}`} {...rest}>{children}</span>
-}
 
 // 세그먼트(iOS segmented, M3 segmented button). 단일 선택 radiogroup.
 // radio 묶음 방향키 이동과 roving tabindex. 선택된 항목만 Tab 으로 들어가고 화살표로 옮기며 바로 고른다
@@ -315,11 +306,6 @@ function ToastHost({ children }) {
 }
 export function useMobileToast() { return useContext(ToastContext) }
 
-export function Banner({ tone = 'gray', icon, title, children }) {
-  // title 이 있으면 제목만 색 글자, 본문은 기본 글자색(긴 문장을 색 글자로 쓰지 않음)
-  if (title) return <div className={`mob-banner tone-${tone} has-title`} role={tone === 'red' ? 'alert' : 'status'}>{icon}<span><span className="mob-banner-title">{title}</span><span className="mob-banner-body">{children}</span></span></div>
-  return <div className={`mob-banner tone-${tone}`} role={tone === 'red' ? 'alert' : 'status'}>{icon}{children}</div>
-}
 
 // 오프라인 띠. navigator.onLine 과 전송 대기 수를 함께 보여 준다.
 export function OfflineBanner({ pending = 0 }) {
@@ -333,9 +319,10 @@ export function OfflineBanner({ pending = 0 }) {
   }, [])
   if (online && !pending) return null
   return (
-    <Banner tone={online ? 'blue' : 'red'} icon={<WifiOff size={20} aria-hidden="true" />}>
-      {online ? `전송 대기 ${pending}건, 연결되어 다시 보내는 중` : `연결 끊김. 보고는 휴대폰에 보관 후 연결되면 전송${pending ? `, 대기 ${pending}건` : ''}`}
-    </Banner>
+    <List label="연결 상태">
+      <ListRow lead={<WifiOff size={20} aria-hidden="true" />} role="status" className={online ? '' : 'tone-red-text'}
+        title={online ? `보내는 중 ${pending}건` : '연결 끊김'} subtitle={online ? '연결되어 다시 보내는 중' : `보고는 휴대폰에 보관, 연결되면 전송${pending ? `, 대기 ${pending}건` : ''}`} />
+    </List>
   )
 }
 
@@ -526,17 +513,8 @@ export function TimePicker({ value = '', onChange, disabled, label = '시각', .
   )
 }
 export const FilledTextarea = ({className='', ...props}) => <textarea {...props} className={`mob-filled-input ${className}`} />
-export function BottomActions({children}) { return <div className="mob-h-bottom">{children}</div> }
 
-export function SafetyGuidance({beforeDeparture=false}) {
- const [open,setOpen]=useState(false)
- return <><Banner tone="red" title="상태가 나빠지면 이동 중단">{EMERGENCY}</Banner>{beforeDeparture&&<Banner tone="blue" title="출발 전 확인">{PREDEPARTURE}</Banner>}<List><ListRow href="tel:119" title="119 연결" subtitle="현재 위치와 의식 및 호흡 변화 전달" chevron /><ListRow title="상황별 안내 문구" subtitle="권장 문구 6개와 피할 표현" onClick={()=>setOpen(true)} chevron /></List><Sheet open={open} onClose={()=>setOpen(false)} title="상황별 안내 문구"><List>{HELPER_PHRASES.map(([title,subtitle])=><ListRow key={title} title={title} subtitle={subtitle} />)}<ListRow title="피할 표현" subtitle={AVOID_PHRASES.join(', ')} /><ListRow title="전달 방법" subtitle="천천히 말하고 한 번에 한 가지 정보만 전달해 주세요." /></List><Button block variant="plain" onClick={()=>setOpen(false)}>닫기</Button></Sheet></>
-}
 
-export function HelperConsent({onChange,withdraw=false}) {
- const [roles,setRoles]=useState(['ride']);const [sent,setSent]=useState(false)
- return <Card><p className="mob-t-headline">참여 동의</p><p className="mob-t-sub">참여와 역할은 본인이 선택합니다.</p><p className="mob-t-sub">참여를 거절하거나 동의를 철회해도 불이익이 없습니다. 배정 불가 응답과 등록 동의 철회는 별개입니다.</p><div className="mob-h-chips">{Object.entries(ROLE_OPTIONS).map(([value,label])=><Chip key={value} selected={roles.includes(value)} onClick={()=>setRoles(r=>r.includes(value)?r.filter(x=>x!==value):[...r,value])}>{label}</Chip>)}</div><div className="mob-h-sheet-actions"><Button block disabled={!roles.length} variant="tonal" onClick={()=>{onChange(true,roles);setSent(true)}}>선택한 역할로 참여 동의</Button>{withdraw&&<Button block variant="plain" onClick={()=>{onChange(false,roles);setSent(true)}}>등록 동의 철회 요청</Button>}</div>{sent&&<p role="status" className="mob-t-sub">요청을 기록했습니다. 연결이 없으면 전송 대기에 보관하며 담당자 화면과 동기화 후 다음 배정 후보에 반영합니다. 현재 배정은 담당자에게 연락해 조정해 주세요.</p>}</Card>
-}
 
 // ===== 벤치마크 공통 규칙 부품(공모전/모바일UI/벤치마크_20261022.md, 부품표_20261022.md) =====
 // 화면 아래 주 동작. 주 버튼은 한 순간에 하나(채움, 전체 폭), 보조 동작은 그 아래 글자 버튼(약하게).
@@ -573,12 +551,15 @@ export function InfoSheet({ lead, title, summary, sheetTitle, children, closeLab
 // ===== 도우미 화면 재구성(2a)에서 더한 키트 조합 부품 =====
 // 큰 값 하나(기한, 다음 장소, 결과). iOS: Large Title 글자 역할(Text Styles 0:2194, 34/41 w700)을 묶음 목록 면(Lists 507:24675) 위에.
 // Android: Headline Medium(Styles 49823:12141, 28/36)을 List 면(59106:13028) 위에. 위계 세 층(큰 값, 보조 한 줄, 주 버튼, 벤치마크 규칙 4)
-export function Figure({ value, caption, live, tone }) {
+export function Figure({ label, value, unit, caption, live, tone, plain = false, children }) {
+  // plain: 카드 면 없이 바탕 위(현장 홈 큰 숫자). 기본: 목록 면 위(도우미 기한, 다음 장소)
   return (
-    <div className={`mob-figure ${tone ? `tone-${tone}` : ''}`}>
-      <p className="mob-t-display mob-figure-value">{keepCodes(value)}</p>
+    <section className={`mob-figure ${plain ? 'is-plain' : ''} ${tone ? `tone-${tone}` : ''}`} aria-label={label || undefined}>
+      {label && <p className="mob-t-callout mob-figure-caption">{keepCodes(label)}</p>}
+      <p className="mob-t-display mob-figure-value">{keepCodes(value)}{unit ? <span className="mob-t-body mob-figure-unit">{unit}</span> : null}</p>
       {caption && <p className="mob-t-callout mob-figure-caption" role={live ? 'timer' : undefined}>{keepCodes(caption)}</p>}
-    </div>
+      {children}
+    </section>
   )
 }
 

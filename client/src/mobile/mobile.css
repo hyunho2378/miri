@@ -186,8 +186,6 @@
 @keyframes mob-ripple { to { transform: scale(4); opacity: 0; } }
 
 /* 카드와 목록 */
-.mob-card { background: var(--m-page); border-radius: var(--m-card-r); box-shadow: var(--m-shadow-1); padding: 16px; }
-.mob-root.platform-android .mob-card.filled { background: var(--m3-surface-container-high); box-shadow: none; }
 .mob-list { background: var(--m-page); border-radius: var(--m-card-r); overflow: hidden; box-shadow: var(--m-shadow-1); list-style: none; margin: 0; padding: 0; }
 .mob-root.platform-android .mob-list { border-radius: var(--m-r-md); box-shadow: none; background: var(--m3-surface); }
 .mob-row { min-height: var(--m-row); display: flex; align-items: center; gap: 12px; padding: 8px 16px; position: relative; background: transparent; width: 100%; text-align: left; border: 0; font: inherit; color: inherit; }
@@ -203,11 +201,6 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 .mob-root.platform-ios .mob-list > li + li .mob-row::before { content: ''; position: absolute; top: 0; left: 16px; right: 0; height: 1px; background: var(--m-sep); }
 
 /* 칩, 세그먼트, 토글 */
-.mob-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px; border-radius: var(--m-chip-r); background: var(--m-fill); color: var(--m-ink-2); font-size: var(--t-label); line-height: var(--l-label); font-weight: 600; border: 0; font-family: inherit; }
-button.mob-chip { cursor: pointer; position: relative; }
-button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
-.mob-chip.selected, .mob-chip.tone-blue { background: var(--m-blue); color: var(--m-on-primary); }
-.mob-chip.tone-red { background: var(--m-red); color: var(--m-on-danger); }
 .mob-seg { display: flex; background: var(--m-fill); border-radius: var(--m-r-full); padding: 2px; gap: 2px; }
 .mob-seg button { flex: 1; min-height: var(--m-seg-h); border: 0; background: transparent; border-radius: var(--m-r-full); font: inherit; font-size: var(--t-sub); font-weight: 600; color: var(--m-ink-2); cursor: pointer; position: relative; }
 .mob-seg button::after { content: ''; position: absolute; inset: calc((var(--m-touch) - var(--m-seg-h)) / -2) 0; }
@@ -277,10 +270,6 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-root.platform-ios .mob-toast .mob-btn.v-plain { color: var(--m-blue-strong); }
 
 /* 상태 띠와 빈 상태 */
-.mob-banner { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: var(--m-r-md); font-size: var(--t-sub); line-height: var(--l-sub); font-weight: 600; }
-.mob-banner.tone-red { background: var(--m-red-soft); color: var(--m-red-strong); }
-.mob-banner.tone-blue { background: var(--m-blue-soft); color: var(--m-blue-ink); }
-.mob-banner.tone-gray { background: var(--m-fill); color: var(--m-ink-2); }
 .mob-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 48px 24px; }
 .mob-empty-icon { width: 64px; height: 64px; border-radius: var(--m-r-full); background: var(--m-blue-soft); color: var(--m-blue-ink); display: flex; align-items: center; justify-content: center; }
 
@@ -385,9 +374,6 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-sheet:focus, .mob-dialog:focus { outline: none; }
 .mob-sheet-title { margin-bottom: 12px; }
 .mob-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.mob-banner.has-title { align-items: flex-start; }
-.mob-banner-title { display: block; font-size: var(--t-headline); line-height: var(--l-headline); font-weight: 700; margin-bottom: 4px; }
-.mob-banner-body { display: block; color: var(--m-ink); font-weight: 400; }
 /* 누르는 영역: 스위치는 보이는 크기(iOS 64x28, Android 52x32)를 두고 위아래로 넓혀 44pt와 48dp 이상, iOS 시와 분 칸은 폭 44 이상 */
 .mob-toggle::after { content: ''; position: absolute; inset: -10px -4px; }
 .mob-ios-pill-input input { min-width: 44px; }
@@ -440,14 +426,12 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-root.platform-ios .mob-row { padding-top: 0; padding-bottom: 0; }
 .mob-root.platform-ios .mob-row-main { gap: 0; }
 .mob-row-lead { width: var(--m-row-lead); height: var(--m-row-lead); border-radius: var(--m-row-lead-r); }
-.mob-root.platform-ios .mob-row.tall .mob-row-lead { width: 44px; height: 44px; border-radius: 11px; }   /* _Images/Tall Rounded 44 r11 */
+/* 키트 Row Tall 은 앞 그림 44(_Images/Tall Rounded 44 r11)지만, 한 목록 안에 Regular 와 Tall 이 섞이면 제목 시작선이 17pt 어긋난다.
+   같은 목록 안 정렬을 지키려고 모든 행 앞 그림을 30(r7)으로 둔다(피그마 전수 검증 2026. 10. 22., 규칙상 예외) */
 .mob-root.platform-ios .mob-list > li + li .mob-row::before { left: var(--m-row-pad-x); }
 .mob-row-trail { gap: 16px; }
 
 /* 칩: iOS 키트에 칩 없음, Button Small(28, pad 10, 15) 모양. Android Filter chip(32, 모서리 8, Label Large 14/20 w500 자간 0.1) */
-.mob-chip { min-height: var(--m-chip-h); padding: 0 var(--m-chip-pad-x); border-radius: var(--m-chip-r); font-size: var(--t-sub); line-height: var(--l-sub); letter-spacing: 0; font-weight: 510; }
-.mob-root.platform-android .mob-chip { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0; }
-button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0; }
 
 /* 세그먼트: iOS Small 32(안쪽 2, 칸 사이 4, 13/18, 선택 590 기본 510, 자간 -0.08). Android 보이는 면 40, 누르는 영역 48 */
 .mob-seg { padding: var(--m-seg-pad); gap: var(--m-seg-gap); }
@@ -489,8 +473,6 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 .mob-toast-text { flex: 1; min-width: 0; }
 
 /* 띠와 입력 칸 */
-.mob-banner { font-weight: var(--w-strong); letter-spacing: 0; }
-.mob-banner-title { font-weight: var(--w-headline); letter-spacing: 0; }
 .mob-input { width: auto; min-width: 0; max-width: 100%; inline-size: 9ch; letter-spacing: 0; }
 .mob-textarea, .mob-filled-input { line-height: var(--l-body); letter-spacing: 0; }
 .mob-root.platform-ios .mob-filled-input { min-height: 52px; padding: 0 16px; }      /* Text Fields 553:22762 높이 52, pad 0/16 */
@@ -626,9 +608,10 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 .mob-emergency { white-space: nowrap; }
 
 /* 재설계 2b: 큰 숫자 하나(카드 없이 바탕 위). 숫자는 큰 제목 글자 역할(--t-display), 설명은 목록 행 보조 글 역할(callout) */
-.mob-field-figure { display: flex; flex-direction: column; gap: 6px; padding: 0 4px; }
-.mob-field-figure .mob-t-display .mob-t-body { margin-left: 4px; color: var(--m-ink-2); font-weight: 400; }
-.mob-field-figure .mob-progress { margin: 4px 0; }
+.mob-figure.is-plain { gap: 6px; padding: 0 4px; background: none; box-shadow: none; }
+.mob-root.platform-android .mob-figure.is-plain { background: none; }
+.mob-figure-unit { margin-left: 4px; color: var(--m-ink-2); font-weight: 400; }
+.mob-figure .mob-progress { margin: 4px 0; }
 
 /* 도우미 재구성 2a: 큰 값(Figure)과 고르기 행(SelectRow). 테두리 없이 면 색으로 구분 */
 .mob-figure { display: flex; flex-direction: column; gap: 4px; padding: 16px var(--m-row-pad-x, 16px); background: var(--m-page); border-radius: var(--m-card-r); box-shadow: var(--m-shadow-1); }
@@ -644,3 +627,17 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 .mob-select-mark.radio { border-radius: var(--m-r-full); }
 .mob-select-mark.box { border-radius: 6px; }
 .mob-select-mark.on { background: var(--m-blue); }
+
+/* M3 Bottom sheet(51827:5859): 시트 안 목록 항목은 시트 가장자리까지 펴고 글자는 시트 제목과 같은 16 선에 맞춘다(목록을 다시 안쪽으로 넣으면 제목 16, 행 글자 32로 어긋남) */
+.mob-root.platform-android .mob-sheet .mob-list { margin-left: calc(var(--m-margin) * -1); margin-right: calc(var(--m-margin) * -1); border-radius: 0; background: transparent; }
+.mob-root.platform-android .mob-sheet .mob-row { padding-left: var(--m-margin); padding-right: var(--m-margin); }
+/* 안내 한 줄은 제목과 같은 선(바깥 들여쓰기 없음) */
+.mob-sheet .mob-h-lead { padding-left: 0; padding-right: 0; }
+
+/* 피그마 전수 검증(2026. 10. 22.) 보정 */
+/* 한국어 수동 자간 0: 사이트 공통 body 자간(-0.01em)이 휴대폰 화면에 물려 내려오지 않게 뿌리에서 끊는다 */
+.mob-root { letter-spacing: 0; }
+/* iOS 앱 바 글자 버튼은 Toolbar 글자 17/22(1:54472). 작은 버튼 행간 18이 섞이지 않게 */
+.mob-root.platform-ios .mob-emergency { line-height: 22px; }
+/* M3 화면 아래 주 버튼은 Button Medium(Type=Round, 57994:2227): 높이 56, 안쪽 16/24, 글자 16/24 w500 */
+.mob-root.platform-android .mob-bottom-action .mob-btn.v-filled, .mob-root.platform-android .mob-bottom-action .mob-btn.v-danger { min-height: 56px; height: 56px; padding: 16px 24px; font-size: 16px; line-height: 24px; font-weight: 500; }

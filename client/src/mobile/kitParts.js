@@ -26,14 +26,7 @@ export const KIT_PARTS = {
   DisplaySettings: { use: '큰 글자 설정', ios: ['550:50430 Row', '507:24690 Toggles'], android: ['59106:13183 List item', '54446:25289 Switch'], status: 'combo' },
   OfflineBanner: { use: '연결 끊김 알림 한 줄', ios: ['550:50430 Row'], android: ['59106:13183 List item'], status: 'combo' },
   Figure: { use: '큰 값 하나(기한, 다음 장소, 결과)와 보조 한 줄', ios: ['0:2194 Text Styles Large Title 34/41', '507:24675 Lists 면'], android: ['49823:12141 Styles Headline Medium 28/36', '59106:13028 List 면'], status: 'combo', note: '키트에 숫자 강조 부품이 없어 글자 역할과 목록 면을 조합(도우미 재구성 2a)' },
-  SelectRow: { use: '하나 또는 여러 개 고르기(역할, 불가 사유, 실패 사유)', ios: ['550:50430 Row', '212:117586 _Trailing Checkmark'], android: ['59106:13183 List item', '59106:13365 Trailing element Radio', '59106:13362 Trailing element Checkbox'], status: 'combo', note: 'Chip 대신. iOS 는 끝 체크 표시, Android 는 끝 라디오와 체크 상자' },
-  // 아래는 키트에 대응 부품이 없다. 다음 화면 재구성에서 위 부품으로 바꾸고 화면에서 뺀다.
-  Chip: { use: '역할과 사유 고르기', ios: [], android: ['53923:28270 Filter chip', '53923:28089 Assistive chip'], status: 'replace', note: 'iOS 키트에 칩 없음. iOS 는 Row 체크 표시 또는 Segmented 로 바꿈' },
-  Card: { use: '덩어리 묶기', ios: [], android: ['52350:27728 Card states/Filled'], status: 'replace', note: 'iOS 키트에 카드 없음. 묶음 목록(List)으로 바꿈' },
-  Banner: { use: '안내 띠', ios: [], android: [], status: 'replace', note: '두 키트에 없음. 한 줄 Row 또는 InfoSheet 로 바꿈' },
-  BottomActions: { use: '하단 버튼 묶음(옛 부품)', ios: ['4:55732 Toolbar - Bottom - iPhone'], android: ['51159:5105 Bottom app bar'], status: 'replace', note: 'BottomAction 으로 바꿈(주 버튼 하나 규칙)' },
-  SafetyGuidance: { use: '안전 안내 문단(옛 부품)', ios: [], android: [], status: 'replace', note: '문단 두 개를 화면에 펼침. EmergencyButton 과 InfoSheet 로 바꿈' },
-  HelperConsent: { use: '참여 동의 카드(옛 부품)', ios: [], android: [], status: 'replace', note: '문단 세 개. 질문 하나와 버튼 하나 화면으로 바꿈' }
+  SelectRow: { use: '하나 또는 여러 개 고르기(역할, 불가 사유, 실패 사유)', ios: ['550:50430 Row', '212:117586 _Trailing Checkmark'], android: ['59106:13183 List item', '59106:13365 Trailing element Radio', '59106:13362 Trailing element Checkbox'], status: 'combo', note: 'iOS 키트에 칩이 없어 고르기는 행으로. iOS 는 끝 체크 표시, Android 는 끝 라디오와 체크 상자' },
 }
 
 // 부품이 아닌 도구(훅, 계산 함수, 껍데기)

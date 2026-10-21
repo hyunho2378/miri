@@ -3,7 +3,7 @@
 // 응급 대응은 늘 같은 자리의 작은 빨간 버튼(EmergencyButton) 뒤 시트. 부품은 부품표(kitParts.js)의 키트 부품만 쓴다.
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { CheckCircle2, CircleX, Clock, CloudOff, HandHeart, Link2Off, Phone, RefreshCw, Send, User, Users } from 'lucide-react'
+import { CheckCircle2, CircleX, ClipboardList, Route, Clock, CloudOff, HandHeart, Link2Off, Phone, RefreshCw, Send, User, Users } from 'lucide-react'
 import { AppBar, BottomAction, Button, Dialog, DisplaySettings, EmergencyButton, EmptyState, Figure, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, SelectRow, Sheet, Spinner, TwoPane, useLayout, useMobileToast } from '../ui.jsx'
 import { usePlatform } from '../usePlatform.js'
 import { fmtHM } from '../../lib/time.js'
@@ -221,7 +221,7 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
         <Figure value={place} caption={[code, d?.grade, trip ? `${tripWord(trip.index)}${st === 'wait' && trip.departAt ? ` ${fmtHM(trip.departAt)} 출발` : ''}` : ''].filter(Boolean).join(', ')} />
         <List label="이 대상자">
           {d?.care?.companionCall && <ListRow lead={<Phone size={20} />} title="평소 돌봄 담당자에게 연락" subtitle={d.care.caregiverType} href={d.guardianPhone ? `tel:${d.guardianPhone}` : undefined} chevron={!!d.guardianPhone} />}
-          {(d?.routeCheck || trip?.routeCheck) && <ListRow title="경로 확인 필요" subtitle="직선 기준, 도로 경로 아님" />}
+          {(d?.routeCheck || trip?.routeCheck) && <ListRow lead={<Route size={20} />} title="경로 확인 필요" subtitle="직선 기준, 도로 경로 아님" />}
           <InfoSheet lead={<User size={20} />} title="대상자 정보" summary={d ? '돌봄 담당자, 보조기구, 대피소' : '이름과 주소는 휴대폰으로 보내지 않음'}>
             {d ? (
               <List label="대상자 정보">
@@ -235,7 +235,7 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
               </List>
             ) : <List label="대상자 정보"><ListRow title="담당자 문자와 현장에서 확인" subtitle="이름, 주소, 건강 정보는 휴대폰으로 보내지 않음" /></List>}
           </InfoSheet>
-          {next?.step === 'handover' && <ListRow title="인계 기록(선택)" subtitle={care.observation || care.action || care.symptomAt ? '적어 둠, 인계 때 함께 보냄' : '증상 시각, 관찰, 조치'} chevron onClick={() => setCareOpen(true)} />}
+          {next?.step === 'handover' && <ListRow lead={<ClipboardList size={20} />} title="인계 기록(선택)" subtitle={care.observation || care.action || care.symptomAt ? '적어 둠, 인계 때 함께 보냄' : '증상 시각, 관찰, 조치'} chevron onClick={() => setCareOpen(true)} />}
           {!inPane && <ListRow lead={<Users size={20} />} title={`전체 ${p.total}명`} subtitle={`완료 ${p.done}명, 실패 ${p.failed}명`} chevron onClick={() => go({ name: 'list' })} />}
         </List>
         {!next && <EmptyState icon={<CheckCircle2 size={28} />} title="이 대상자 보고 끝" body={STEP_LABEL[st]} />}

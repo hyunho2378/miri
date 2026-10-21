@@ -17,7 +17,7 @@ import { personCare, ROUTE_NOTE } from '../../lib/tripChecks.js'
 import { readDocument, verifyResult } from '../../lib/intake.js'
 import { readNote, sourceLabel } from '../../lib/notes.js'
 import { aiErrorMessage } from '../../lib/aiErrors.js'
-import { AppBar, DisplaySettings, Button, Dialog, EmptyState, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, Segmented, Sheet, Spinner, Toggle, useMobileToast } from '../ui.jsx'
+import { AppBar, DisplaySettings, Button, Dialog, EmptyState, Figure, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, Segmented, Sheet, Spinner, Toggle, useMobileToast } from '../ui.jsx'
 import { ACTIVE, failedPending, scopeDispatch, fieldSummary, helperResponses, hm, searchPersons, stepLabel, unservedByReason, villageName, villageProgress, deadlineTag, scopedShortage, lateVillages, docQueue, noteQueue } from './fieldModel.js'
 
 // 발령 복원과 10초 주기 조회(콘솔 발령 운영과 같은 방식)
@@ -61,17 +61,6 @@ function Who({ user, extra }) {
   return <p className="mob-t-callout mob-pad">미리 현장 담당자, {user?.name || '담당 공무원'}{extra ? `, ${extra}` : ''}</p>
 }
 
-// 큰 숫자 하나. 키트 큰 제목 글자 역할(Large Title 34/700, M3 Headline Medium)을 숫자에 쓴다. 카드 없이 바탕 위
-function FieldFigure({ label, value, unit, children }) {
-  return (
-    <section className="mob-field-figure" aria-label={label}>
-      <p className="mob-t-callout">{label}</p>
-      <p className="mob-t-display">{value}<span className="mob-t-body">{unit}</span></p>
-      {children}
-    </section>
-  )
-}
-
 const tagText = (tag) => (tag === 'over' ? '기한 지남' : tag === 'soon' ? '1시간 안' : null)
 const Tag = ({ tone, children }) => <span className={`mob-t-callout ${tone === 'red' ? 'tone-red-text' : ''}`}>{children}</span>
 
@@ -94,10 +83,10 @@ export function FieldStatusPage() {
       <AppBar title="발령 진행" large />
       <main id="main" className="mob-content">
         <Who user={scope.user} extra={d.kind !== 'drill' ? '실제 발령' : '훈련'} />
-        <FieldFigure label="아직 옮기지 못한 사람" value={left} unit="명">
+        <Figure plain label="아직 옮기지 못한 사람" value={left} unit="명">
           <Progress value={pct} label="이송 완료 비율" />
           <p className="mob-t-callout">전체 {s.total}명 중 {s.counts.done}명 대피소 도착</p>
-        </FieldFigure>
+        </Figure>
         <List label="늦는 마을">
           {late.map((v) => (
             <ListRow key={v.code} lead={<Clock size={22} />} title={`${v.name} ${v.at ? `${hm(v.at)}까지` : ''}`.trim()} subtitle={`남은 사람 ${v.left}명`}
@@ -131,9 +120,9 @@ function PeaceHome({ closed }) {
       <AppBar title="오늘 할 일" large />
       <main id="main" className="mob-content">
         <Who user={scope.user} extra={closed ? '발령 종료' : null} />
-        <FieldFigure label={`${scope.isDong ? '우리 동' : '동해시'} 미이송 예상, ${scenario?.name || '기준 시나리오'}`} value={sh.unserved ?? '-'} unit="명">
+        <Figure plain label={`${scope.isDong ? '우리 동' : '동해시'} 미이송 예상, ${scenario?.name || '기준 시나리오'}`} value={sh.unserved ?? '-'} unit="명">
           <p className="mob-t-callout">대피 대상 {sh.villages}개 마을 {sh.targets}명 중</p>
-        </FieldFigure>
+        </Figure>
         <List label="확인할 일">
           <ListRow lead={<FileText size={22} />} title={`확인할 서류 ${docs.length}건`} subtitle={docs.length ? 'AI가 읽은 등급을 원본과 맞춰 확정' : '모두 확인함'} chevron onClick={() => navigate('/m/f/docs')} />
           <ListRow lead={<MessageSquare size={22} />} title={`확인할 현장 소식 ${notes.length}건`} subtitle={notes.length ? '돌봄 담당자가 전한 상태 변화' : '모두 확인함'} chevron onClick={() => navigate('/m/f/notes')} />
@@ -196,9 +185,9 @@ export function FieldDocPage() {
     <>
       <AppBar title={q.person.code} onBack={() => navigate('/m/f/docs')} backLabel="목록" />
       <main id="main" className="mob-content">
-        <FieldFigure label={`${villageName(data.villages, q.person.villageCode)}, ${i + 1} / ${list.length}`} value={plan?.label || '확인 필요'} unit="">
+        <Figure plain label={`${villageName(data.villages, q.person.villageCode)}, ${i + 1} / ${list.length}`} value={plan?.label || '확인 필요'} unit="">
           <p className="mob-t-callout">{q.person.grade !== v.aiGrade ? `AI 초안 ${gradeOf(v.aiGrade)?.label || '판독 불가'}, 확인 전까지 휠체어로 계산` : 'AI 초안과 같은 등급'}</p>
-        </FieldFigure>
+        </Figure>
         <List label="근거">
           <ListRow title={v.quote ? `“${v.quote}”` : '근거 문구 없음'} subtitle={v.quoteMatched ? '서류 원문에 있는 문구' : '원문에서 찾지 못함, 원본 사진 확인'} />
           {q.doc.image && <ListRow title="원본 사진 보기" chevron href={q.doc.image} target="_blank" rel="noreferrer" />}
@@ -256,9 +245,9 @@ export function FieldNoteReviewPage() {
     <>
       <AppBar title={n.personCode} onBack={() => navigate('/m/f/notes')} backLabel="목록" />
       <main id="main" className="mob-content">
-        <FieldFigure label={`받은 소식, ${sourceLabel(n.source)}`} value={gradeOf(nextGrade)?.label || '확인 필요'} unit="">
+        <Figure plain label={`받은 소식, ${sourceLabel(n.source)}`} value={gradeOf(nextGrade)?.label || '확인 필요'} unit="">
           <p className="mob-t-callout">{dif?.gradeChanged ? `지금 명부 ${gradeOf(n.current?.grade)?.label}에서 바뀜` : '등급은 그대로'}</p>
-        </FieldFigure>
+        </Figure>
         <List label="근거">
           <ListRow title={n.read?.quote ? `“${n.read.quote}”` : '근거 문구 없음'} subtitle={n.read?.quoteMatched ? '받은 글에 있는 문구' : '받은 글에서 찾지 못함, 직접 확인'} />
           <InfoSheet title="받은 글 전체" sheetTitle="받은 소식">
@@ -320,9 +309,9 @@ export function FieldVillageDetailPage() {
       <main id="main" className="mob-content">
         {!scope.inScope(code) ? <EmptyState title="담당 구역 밖 마을" body={`${ROLE_LABEL.dong} 계정은 담당 동 마을만 볼 수 있음`} /> : !v ? <EmptyState title="진행 정보 없음" body="대피 대상 구역 밖 마을이거나 배정 전" /> : (
           <>
-            <FieldFigure label={`대피소 도착${v.at ? `, ${hm(v.at)}까지` : ''}${tg ? `, ${tg}` : ''}`} value={`${v.done} / ${v.total}`} unit="명">
+            <Figure plain label={`대피소 도착${v.at ? `, ${hm(v.at)}까지` : ''}${tg ? `, ${tg}` : ''}`} value={`${v.done} / ${v.total}`} unit="명">
               <Progress value={v.total ? (v.done / v.total) * 100 : 0} label="마을 이송 완료 비율" />
-            </FieldFigure>
+            </Figure>
             <List label="만나는 곳과 차량">
               <ListRow title={village?.pickup?.name || '집결지 확인 필요'} subtitle={village?.pickup?.road || undefined} />
               <InfoSheet lead={<Truck size={22} />} title={`차량 ${vehicles.length}대, 도우미 ${v.helpers.length}명`} sheetTitle="차량과 도우미">
@@ -421,7 +410,7 @@ export function FieldFirePage() {
       <main id="main" className="mob-content">
         {!d.result ? <EmptyState icon={<Truck size={28} />} title="배정 전" body="배정 뒤 못 옮길 사람이 여기에 보임" /> : (
           <>
-            <FieldFigure label="차량이나 도우미가 없는 사람" value={u.total} unit="명" />
+            <Figure plain label="차량이나 도우미가 없는 사람" value={u.total} unit="명" />
             <List label="사유별 인원">
               {u.reasons.map((r) => <ListRow key={r.key} title={r.label} trailing={<span className="mob-t-body">{r.n}명</span>} />)}
               {!!failed.length && (
@@ -500,9 +489,9 @@ export function FieldPersonPage() {
     <>
       <AppBar title={p.code} onBack={() => navigate(-1)} />
       <main id="main" className="mob-content">
-        <FieldFigure label={villageName(data.villages, p.villageCode)} value={g?.label || '등급 확인'} unit="">
+        <Figure plain label={villageName(data.villages, p.villageCode)} value={g?.label || '등급 확인'} unit="">
           <p className="mob-t-callout">{row ? `${stepLabel(row.step)}${row.stop ? `, 차량 ${row.stop.vehicleCode}` : ''}${row.step === 'fail' ? `, ${FAIL_REASONS[d.events[p.code]?.reason] || ''}` : ''}` : g?.need || ''}</p>
-        </FieldFigure>
+        </Figure>
         <List label="동행과 소통">
           <ListRow title="평소 돌봄 담당자" subtitle={`${care.caregiverType}, ${care.reachableLabel}${care.companionCall ? ', 동행 연락' : ''}`} />
           <ListRow title="의사소통" subtitle={care.comm.length ? care.comm.join(', ') : care.known ? '특이 없음' : '확인 필요'} />
@@ -601,7 +590,7 @@ export function FieldIntakePage() {
           </>
         ) : (
           <>
-            <FieldFigure label={`${villageName(data.villages, state.req?.village)} 서류`} value={state.page.persons.length} unit="명 읽음" />
+            <Figure plain label={`${villageName(data.villages, state.req?.village)} 서류`} value={state.page.persons.length} unit="명 읽음" />
             <List label="읽은 결과">
               {state.page.persons.map((r, i) => (
                 <ListRow key={i} title={gradeOf(r.grade)?.label || '등급 확인 필요'} subtitle={r.quote ? `“${r.quote}”` : '근거 문구 없음'} trailing={r.quoteMatched ? null : <Tag tone="red">원본 확인</Tag>} />
