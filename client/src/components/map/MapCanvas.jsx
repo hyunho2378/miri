@@ -4,6 +4,7 @@
 // 레이어 켜고 끄기는 anime.js 로 투명도를 움직인다(움직임 줄이기 설정이면 즉시).
 import { useEffect, useRef, useState } from 'react'
 import { Map as MlMap, Marker, MercatorCoordinate, setWorkerUrl } from 'maplibre-gl'
+import { placeLabels } from '../../lib/labelLayout.js'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { DONGHAE_BBOX, cityOutlineFeature, dongFeatures, dongLabelFeatures, featureCollection, pointFeature } from '../../lib/geo.js'
@@ -79,6 +80,12 @@ function fireFc(fire) {
   }
 }
 
+// 라벨 보이기: 부족분 층 투명도와 겹침 숨김을 함께 따진다
+function applyVis(el) {
+  const o = Number(el.style.opacity || 1)
+  el.style.visibility = o > 0.001 && !el.dataset.collide ? 'visible' : 'hidden'
+}
+
 function labelEl() {
   const el = document.createElement('button')
   el.type = 'button'
@@ -102,6 +109,32 @@ export default function MapCanvas({
   const [tip, setTip] = useState(null)
   propsRef.current = { theme, mode, layers, villages, vehicles, shelters, routes, ltc, agingStops, fire, selected, onSelect, padding, scopeBounds }
 
+  // 2D 인원 라벨 겹침 회피(회신 R34). 3D 는 막대 윗면에 붙으므로 모두 보인다
+  const layoutRef = useRef(() => {})
+  layoutRef.current = () => {
+    const map = mapRef.current
+    if (!map) return
+    const { mode: md, villages: vs = [], selected: sel } = propsRef.current
+    const waiting = Object.fromEntries(vs.map((v) => [v.code, v.waiting || 0]))
+    const items = []
+    for (const [code, m] of markersRef.current) {
+      const wrap = m.el.parentElement
+      if (md !== '2d') { m.el.dataset.collide = ''; applyVis(m.el); continue }
+      if (wrap.style.display === 'none') continue
+      const pt = map.project(m.marker.getLngLat())
+      items.push({ code, x: pt.x, y: pt.y, w: m.el.offsetWidth || 44, h: m.el.offsetHeight || 24, priority: waiting[code] })
+    }
+    if (md !== '2d') return
+    const placed = placeLabels(items, { selected: sel })
+    for (const [code, pos] of Object.entries(placed)) {
+      const m = markersRef.current.get(code)
+      if (!m) continue
+      m.marker.setOffset([pos.dx, pos.dy])
+      m.el.dataset.collide = pos.hidden ? '1' : ''
+      applyVis(m.el)
+    }
+  }
+
   // 묶음 투명도를 지도와 막대, 표식에 반영
   const applyGroup = (group, v) => {
     const map = mapRef.current
@@ -118,7 +151,7 @@ export default function MapCanvas({
       barsRef.current?.setOpacity(v)
       for (const { el } of markersRef.current.values()) {
         el.style.opacity = String(v)
-        el.style.visibility = v > 0.001 ? 'visible' : 'hidden'
+        applyVis(el)
       }
     }
     if (group === 'fire' && fireMarkerRef.current) {
@@ -276,6 +309,7 @@ export default function MapCanvas({
     map.fitBounds(DONGHAE_BBOX, { padding: FIT_GAP, animate: false })
     let triedFallback = false
     map.on('style.load', () => { install(); onReady?.() })
+    map.on('moveend', () => layoutRef.current())
     // 어두운 바탕 스타일이 참조하는 무늬 이미지(wood-pattern 등)가 스프라이트에 없어 경고가 난다. 투명 1px 로 채운다
     map.on('styleimagemissing', (e) => {
       if (!map.hasImage(e.id)) map.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) })
@@ -377,17 +411,19 @@ export default function MapCanvas({
       m.el.classList.toggle('text-text-meta', !isSel && v.waiting === 0)
       const o = opRef.current.shortage
       m.el.style.opacity = String(o)
-      m.el.style.visibility = o > 0.001 ? 'visible' : 'hidden'
+      applyVis(m.el)
     }
     for (const [code, m] of markers) {
       if (!seen.has(code)) { m.marker.remove(); markers.delete(code) }
     }
+    layoutRef.current()
   }, [villages, selected]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 표식 위치: 2D 는 원 가운데, 3D 는 막대 윗면(barsLayer onFrame 이 맞춘다)
   useEffect(() => {
-    if (mode === '3d') { mapRef.current?.triggerRepaint(); return }
+    if (mode === '3d') { layoutRef.current(); mapRef.current?.triggerRepaint(); return }
     for (const { marker } of markersRef.current.values()) marker.setOffset([0, 0])
+    layoutRef.current()
   }, [mode, villages])
 
   useEffect(() => { mapRef.current?.getSource('vehicles')?.setData(vehicleFc(vehicles)) }, [vehicles])

@@ -34,7 +34,7 @@ const BOARDING_STEPS = [10, 15, 20, 25, 30]
 const EXTRA_TYPES = [...new Set(Object.values(EXTRA_TYPE))]
 
 const offsetText = (h) => `+${fmtElapsed(h)}`
-const completeText = (h) => (h ? `도달 ${h}시간 전` : '도달 시각')
+const completeText = (h) => (h ? `산불 도달 ${h}시간 전까지` : '산불 도달 시각까지')
 const prepText = (m) => (m === 60 ? '1시간' : m === 90 ? '1시간 30분' : `${m}분`)
 
 export default function ShortagePage() {

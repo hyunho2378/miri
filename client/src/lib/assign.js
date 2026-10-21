@@ -195,7 +195,10 @@ export function runBaseline(ctx) {
   return { ...plan, rule: 'seq', metrics: scorePlan(plan) }
 }
 
-export function runOptimize(ctx, { iterations = 300, seed = 20261214, budgetMs = 1200 } = {}) {
+// 탐색 횟수와 난수 씨앗이 같으면 기기 속도와 상관없이 같은 결과(회신 R34: 화면마다 추천 배정 효과가 다르던 원인이 시간 제한이었음).
+// budgetMs 는 안전장치로만 남기고 기본값은 제한 없음
+export const OPT_ITERATIONS = 300
+export function runOptimize(ctx, { iterations = OPT_ITERATIONS, seed = 20261214, budgetMs = Infinity } = {}) {
   const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
   const t = now()
   const rt = (q) => (Number.isFinite(ctx.vmap[q.village].roundTripMin) ? ctx.vmap[q.village].roundTripMin : 1e9)
@@ -228,7 +231,7 @@ export function runOptimize(ctx, { iterations = 300, seed = 20261214, budgetMs =
       if (better(m, best.metrics)) best = { ...plan, order, rule, metrics: m }
     }
   }
-  return { trips: best.trips, unserved: best.unserved, crew: best.crew, rule: best.rule, metrics: best.metrics, elapsedMs: Math.round(now() - t) }
+  return { trips: best.trips, unserved: best.unserved, crew: best.crew, rule: best.rule, metrics: best.metrics, elapsedMs: Math.round(now() - t), iterations }
 }
 
 // 차량 단위 묶음 + 도우미 매칭 + 배정 사유(계산 사실만 문장화. 생성 모델 아님)

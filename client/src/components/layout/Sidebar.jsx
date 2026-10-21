@@ -52,7 +52,10 @@ export function Rail({ group, onGroup }) {
 // 2열. 고른 묶음의 메뉴. 휴대폰 서랍에서는 묶음을 모두 펼친다
 export function NavPanel({ group = 'work', onNavigate, showAll = false }) {
   const role = useAuthStore((s) => s.user?.role)
-  const pending = useMiriStore((s) => s.persons.filter((p) => p.review === 'pending').length + s.fieldNotes.filter((n) => n.status === 'pending').length)
+  // 메뉴 배지는 서류와 현장 소식을 더한 값. 화면마다 범위가 다른 숫자와 헷갈리지 않게 내역을 함께 단다(회신 R34)
+  const pendingDocs = useMiriStore((s) => s.persons.filter((p) => p.review === 'pending').length)
+  const pendingNotes = useMiriStore((s) => s.fieldNotes.filter((n) => n.status === 'pending').length)
+  const pending = pendingDocs + pendingNotes
   const { pathname } = useLocation()
   const current = sectionOf(pathname)
   const groups = showAll ? RAIL_GROUPS : RAIL_GROUPS.filter((g) => g.key === group)
@@ -67,7 +70,7 @@ export function NavPanel({ group = 'work', onNavigate, showAll = false }) {
         <m.Icon size={16} aria-hidden="true" className={clsx('shrink-0', active ? 'text-text-pri' : 'text-text-meta')} />
         <span className={clsx('min-w-0 flex-1 truncate type-body-sm', active && 'font-bold')}>{m.label}</span>
         {m.queue && pending > 0 && (
-          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-text-pri px-1.5 type-count text-text-inverse" aria-label={`확인 대기 ${pending}건`}>{pending}</span>
+          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-text-pri px-1.5 type-count text-text-inverse" title={`확인 대기 서류 ${pendingDocs}건, 현장 소식 ${pendingNotes}건`} aria-label={`확인 대기 서류 ${pendingDocs}건, 현장 소식 ${pendingNotes}건`}>{pending}</span>
         )}
       </>
     )

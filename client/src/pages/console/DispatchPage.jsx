@@ -12,6 +12,7 @@ import PageShell from '../../components/miri/PageShell.jsx'
 import AssignmentBundle from '../../components/miri/AssignmentBundle.jsx'
 import { personCare, tripChecks } from '../../lib/tripChecks.js'
 import BaselineCompare from '../../components/miri/BaselineCompare.jsx'
+import { dispatchBasisText } from '../../lib/basis.js'
 import StepIndicator from '../../components/miri/StepIndicator.jsx'
 import TransportStatusTable from '../../components/miri/TransportStatusTable.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
@@ -37,7 +38,7 @@ const KINDS = [{ value: 'drill', label: '훈련 발령' }, { value: 'real', labe
 const COUNT_ORDER = ['wait', 'depart', 'arrive', 'board', 'handover', 'fail', 'handedToFire', 'unassigned']
 const COUNT_LABEL = { ...STEP_LABEL, unassigned: '미배정' }
 const ISSUE = ['fail', 'handedToFire', 'unassigned']
-const completeText = (h) => (h ? `도달 ${h}시간 전` : '도달 시각')
+const completeText = (h) => (h ? `산불 도달 ${h}시간 전까지` : '산불 도달 시각까지')
 
 function useVillageMeta() {
   const villages = useMiriStore((s) => s.villages)
@@ -243,7 +244,7 @@ function AssignedPanel({ meta }) {
           </p>
         </Card>
       )}
-      <BaselineCompare result={result} villageLabel={meta.label} />
+      <BaselineCompare result={result} villageLabel={meta.label} basisText={`${dispatchBasisText(result.basis)}. 평시 현황판 값은 발령 직후 출발을 가정해 다를 수 있음`} />
       <SectionTitle
         className="mt-2"
         title="배정표"

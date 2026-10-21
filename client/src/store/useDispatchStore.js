@@ -12,7 +12,7 @@ import { mergeReports } from '../lib/reportQueue.js'
 import { activeScenario, useMiriStore } from './useMiriStore.js'
 
 const EMPTY = {
-  status: 'idle', kind: 'drill', speed: 60, realStart: 0, vStart: 0, arrivals: {},
+  status: 'idle', kind: 'drill', speed: 60, realStart: 0, vStart: 0, issuedAt: 0, arrivals: {},
   result: null, confirmedAt: null, sentAt: null, ackPlan: {}, ackOverride: {}, failPlan: {}, events: {},
   handovers: [], manualHelper: null, smsLog: [], closedRecordId: null, scopeCodes: [], blocked: null,
   fireRequests: [], remote: { state: 'local', dispatchId: null, tokens: {}, reason: null, savedAt: null, polledAt: null }
@@ -33,7 +33,7 @@ export const useDispatchStore = create((set, get) => ({
     // 대피 대상 구역 마을만 도달 시각을 둔다
     const sp = scopeInput({ persons: data.persons, villages: data.villages, scenario: sc, settings: data.settings })
     set({
-      ...EMPTY, status: 'standby', kind, speed, realStart: now, vStart: now,
+      ...EMPTY, status: 'standby', kind, speed, realStart: now, vStart: now, issuedAt: now,
       arrivals: scenarioArrivals(sc, sp.villages, now)
     })
   },
@@ -60,6 +60,9 @@ export const useDispatchStore = create((set, get) => ({
     })
     // 처음 추천 지표는 따로 보관하고, 재배정 뒤에는 현재 계획 지표를 다시 계산한다(GPT 검토 M6)
     result.initialMetrics = { ...result.metrics }
+    // 계산 기준(회신 R34): 발령 운영 값은 발령 개시 뒤 흐른 시간만큼 남은 시간이 줄어 평시 값과 다르다. 화면에 기준을 함께 보인다
+    const at = vnowOf(d)
+    result.basis = { at, elapsedMin: Math.max(0, Math.round((at - (d.issuedAt || d.vStart)) / MIN)), targets: persons.length, villages: codes.size }
     set({ result, status: 'assigned', scopeCodes: persons.map((p) => p.code) })
     return result
   },
@@ -300,7 +303,7 @@ export const useDispatchStore = create((set, get) => ({
     }
     const id = `R-${new Date(d.realStart).getTime()}`
     data.addRecord({
-      id, kind: d.kind, startedAt: d.vStart, closedAt: vnow, counts, byVillage,
+      id, kind: d.kind, startedAt: d.issuedAt || d.vStart, closedAt: vnow, counts, byVillage,
       metrics: d.result?.metrics, initialMetrics: d.result?.initialMetrics, baseline: d.result?.baseline?.metrics, handovers: d.handovers, targets: scope.size,
       helpers: d.result ? d.result.assignments.flatMap((a) => a.helperCodes).length : 0
     })

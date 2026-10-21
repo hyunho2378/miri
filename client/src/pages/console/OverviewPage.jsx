@@ -20,19 +20,21 @@ import { ANOMALY_RULES } from '../../lib/anomaly.js'
 import { GRADES, emptyByGrade } from '../../lib/shortage.js'
 import { computeShortage, optimizedUnserved } from '../../lib/shortageCalc.js'
 import { fmtElapsed } from '../../lib/geo.js'
+import { peaceBasisText, pendingCounts } from '../../lib/basis.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 
 const fmt = (n) => Number(n || 0).toLocaleString('ko-KR')
 
 // 작은 숫자 묶음. 라벨 위, 값 아래
-function Stat({ label, value, unit, tone }) {
+function Stat({ label, value, unit, tone, sub }) {
   return (
     <div className="min-w-0">
       <p className="type-meta text-text-meta">{label}</p>
       <p className={clsx('mt-0.5 whitespace-nowrap type-h3 tabular-nums', tone === 'danger' ? 'text-danger-text' : 'text-text-pri')}>
         {value}{unit && <span className="ml-0.5 type-body-sm">{unit}</span>}
       </p>
+      {sub && <p className="mt-0.5 type-meta text-text-meta">{sub}</p>}
     </div>
   )
 }
@@ -80,6 +82,7 @@ export default function OverviewPage() {
   const settings = useMiriStore((s) => s.settings)
   const dongs = useMiriStore((s) => s.dongs)
   const today = useMiriStore((s) => s.today)
+  const fieldNotes = useMiriStore((s) => s.fieldNotes)
   const scenario = useMiriStore(activeScenario)
   const user = useAuthStore((s) => s.user)
   const now = useNow(5000)
@@ -97,7 +100,10 @@ export default function OverviewPage() {
   const isDong = user?.role === 'dong'
   const myVillages = isDong ? villages.filter((v) => v.dongCode === user.dong) : villages
   const active = persons.filter((p) => p.review !== 'rejected' && myVillages.some((v) => v.code === p.villageCode))
-  const pending = persons.filter((p) => p.review === 'pending' && myVillages.some((v) => v.code === p.villageCode)).length
+  const myCodes = new Set(myVillages.map((v) => v.code))
+  // 확인 대기 세 값(대피 대상 구역 서류, 명부 전체 서류, 현장 소식)을 한 함수로 센다(회신 R34: 4, 7, 10건이 기준 없이 보이던 문제)
+  const pc = pendingCounts({ persons: persons.filter((p) => myCodes.has(p.villageCode)), fieldNotes: isDong ? fieldNotes.filter((x) => myCodes.has(x.villageCode)) : fieldNotes })
+  const pending = pc.docsAll
   const scope = myVillages.map((v) => ({ v, r: result.byVillage[v.code] })).filter((x) => x.r)
   const scopeTotal = scope.reduce((s, x) => s + x.r.total, 0)
   const scopeByGrade = scope.reduce((acc, x) => { for (const g of GRADES) acc[g.key] += x.r.shortage[g.key]; return acc }, emptyByGrade())
@@ -118,8 +124,12 @@ export default function OverviewPage() {
 
   const topVillages = [...shortVillages].sort((a, b) => b.r.total - a.r.total).slice(0, 6)
   const availVehicles = vehicles.filter((v) => v.available).length
-  const todo = pending + anomalies.length
-  const completeText = scenario.completeBeforeHours ? `도달 ${scenario.completeBeforeHours}시간 전` : '도달 시각'
+  const todo = pending + pc.notes + anomalies.length
+  // 이송 완료 기한: 규칙 글자 대신 첫 마을의 실제 기한(발령 후 경과 시간)을 보이고, 규칙은 아래 줄에 적는다
+  const firstCompleteH = Math.max(0, (scenario.windowHours || 0) - (scenario.completeBeforeHours || 0))
+  const completeRule = scenario.completeBeforeHours ? `기준: 산불 도달 ${scenario.completeBeforeHours}시간 전` : '기준: 산불 도달 시각'
+  const scopeTargets = inScope.reduce((s, x) => s + x.r.targetTotal, 0)
+  const rtOf = (v) => result.ctx?.vmap?.[v.code]?.roundTripMin ?? v.roundTripMin
 
   const h0 = wind.data?.hours?.[0]
   const g = fire.data?.grades || {}
@@ -170,7 +180,8 @@ export default function OverviewPage() {
             <span className="whitespace-nowrap type-meta text-text-sec">추천 배정 적용 시</span>
             <span className="whitespace-nowrap type-strong text-text-pri tabular-nums">{fmt(optUnserved)}명{diff < 0 ? <span className="ml-1 type-meta text-text-sec">{-diff}명 감소</span> : null}</span>
           </div>
-          {scopeProvisional > 0 && <p className="mt-2 type-meta text-text-meta">확인 대기 서류 {scopeProvisional}건이 포함된 잠정값입니다.</p>}
+          <p className="mt-1.5 type-meta text-text-meta">{peaceBasisText({ villages: inScope.length, targets: scopeTargets })}</p>
+          {scopeProvisional > 0 && <p className="mt-2 type-meta text-text-meta">대피 대상 구역 확인 대기 서류 {scopeProvisional}건 포함 잠정값</p>}
           <p className="mt-2 type-meta leading-5 text-text-meta">명부 {fmt(active.length)}건: {rosterPartsText(rosterBreakdown(active))}. 재가 장기요양 수급자 추정(2025, 국민건강보험공단)에 맞춘 가상 명부이며 등록장애인은 명부 확인 뒤 포함합니다.</p>
           <div className="mt-auto grid grid-cols-2 gap-3 pt-5">
             <Stat label="명부" value={fmt(active.length)} unit="건" />
@@ -186,7 +197,7 @@ export default function OverviewPage() {
         >
           <div className="flex flex-wrap gap-x-8 gap-y-2">
             <Stat label="첫 도달" value={`발령 후 ${fmtElapsed(scenario.windowHours)}`} />
-            <Stat label="이송 완료 기한" value={completeText} />
+            <Stat label="첫 마을 이송 완료 기한" value={`발령 후 ${fmtElapsed(firstCompleteH)}`} sub={completeRule} />
             <Stat label="대피 대상" value={inScope.length} unit="곳" />
           </div>
           <div className="mt-5">
@@ -222,8 +233,17 @@ export default function OverviewPage() {
                 <li>
                   <Link to="/console/intake" className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
                     <Circle size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
-                    <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">확인 대기 서류</span>
+                    <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">확인 대기 서류(명부 전체)</span>
                     <span className="type-meta text-text-meta tabular-nums">{pending}건</span>
+                  </Link>
+                </li>
+              )}
+              {pc.notes > 0 && (
+                <li>
+                  <Link to="/console/notes" className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
+                    <Circle size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
+                    <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">확인 대기 현장 소식</span>
+                    <span className="type-meta text-text-meta tabular-nums">{pc.notes}건</span>
                   </Link>
                 </li>
               )}
@@ -253,7 +273,7 @@ export default function OverviewPage() {
               {topVillages.map(({ v, r }) => (
                 <li key={v.code}>
                   <Link to="/console/map" className="grid min-h-12 grid-cols-[4.5rem_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md px-2 py-1.5 hover:bg-page">
-                    <span className="type-meta leading-4 text-text-meta">{dongName(v.dongCode)}<br />왕복 {v.roundTripMin}분</span>
+                    <span className="type-meta leading-4 text-text-meta">{dongName(v.dongCode)}<br />왕복 {rtOf(v)}분</span>
                     <span className="min-w-0">
                       <span className="block truncate type-strong text-text-pri">{v.label}</span>
                       <span className="block break-keep type-meta text-text-meta tabular-nums">{GRADES.filter((x) => r.targets[x.key]).map((x) => `${x.label} ${r.targets[x.key]}`).join(' ')}</span>

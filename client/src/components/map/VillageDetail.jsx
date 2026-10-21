@@ -54,7 +54,7 @@ export default function VillageDetail({ village, onBack }) {
           {v.shelterParts.length > 1 && <p className="mt-0.5 type-meta text-text-meta">나눠 배정: {v.shelterParts.join(', ')}</p>}
         </div>
       )}
-      {v.provisional > 0 && <p className="mt-3 type-meta text-primary-text">확인 대기 판독 {v.provisional}건 포함 잠정값</p>}
+      {v.provisional > 0 && <p className="mt-3 type-meta text-primary-text">이 마을 확인 대기 서류 {v.provisional}건 포함 잠정값</p>}
       <p className="mt-4 type-meta leading-5 text-text-meta">
         {v.weightBasis === '행정동 전체'
           ? '대상자 수는 2025 장기요양 재가 수급자 추정치를 행정동 75세 이상 인구 비율로 나눈 값입니다.'

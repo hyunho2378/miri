@@ -7,7 +7,7 @@ import Disclosure from '../ui/Disclosure.jsx'
 
 const sign = (n, unit) => (n > 0 ? `${n}${unit} 증가` : `${Math.abs(n)}${unit} 감소`)
 
-export default function BaselineCompare({ result, villageLabel = (c) => c }) {
+export default function BaselineCompare({ result, villageLabel = (c) => c, basisText }) {
   const { diff, baseline, metrics } = result
   const same = diff.unserved === 0 && diff.weightedUnserved === 0 && diff.lastFinishMinutes === 0
   const rows = useMemo(() => {
@@ -19,7 +19,7 @@ export default function BaselineCompare({ result, villageLabel = (c) => c }) {
   const weightNote = GRADES.map((g) => `${g.label} ${g.weight}`).join(' ')
 
   return (
-    <Card title="기본 순서 대비 추천 배정">
+    <Card title="기본 순서 대비 추천 배정" desc={basisText || undefined}>
       {same ? (
         <p className="type-body-sm text-text-sec">기본 순서와 추천 배정의 결과가 같습니다.</p>
       ) : (

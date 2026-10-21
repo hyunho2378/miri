@@ -175,6 +175,10 @@ export function requiredExtraVehicles(input, current, { max = 300 } = {}) {
 }
 
 // AI 배정 최적화를 같은 시나리오에 돌렸을 때의 미이송 수(평시 화면 비교용)
+// 현황판, 서식, 발령 운영이 같은 탐색 조건(고정 횟수, 같은 씨앗)을 쓴다. 같은 입력이면 같은 값
+const optCache = new WeakMap()
 export function optimizedUnserved(result) {
-  return runOptimize(result.ctx, { budgetMs: 600 }).metrics.unserved
+  if (!result?.ctx) return 0
+  if (!optCache.has(result.ctx)) optCache.set(result.ctx, runOptimize(result.ctx).metrics.unserved)
+  return optCache.get(result.ctx)
 }
