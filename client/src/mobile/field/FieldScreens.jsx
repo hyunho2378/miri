@@ -10,7 +10,7 @@ import { activeScenario, useMiriStore } from '../../store/useMiriStore.js'
 import { vnowOf, FAIL_REASONS, DECLINE_REASONS } from '../../lib/dispatchSim.js'
 import { computeShortage, optimizedUnserved } from '../../lib/shortageCalc.js'
 import { pendingCounts } from '../../lib/basis.js'
-import { gradeOf } from '../../lib/shortage.js'
+import { OWNERS, VEHICLE_NOTE, vehicleLabel, gradeOf } from '../../lib/shortage.js'
 import { personCare, ROUTE_NOTE } from '../../lib/tripChecks.js'
 import { readDocument } from '../../lib/intake.js'
 import { readNote } from '../../lib/notes.js'
@@ -145,6 +145,7 @@ function PeaceStatus({ data, scenario, fire, warning, navigate, closed }) {
             <ListRow lead={<Siren size={22} />} title={warning.data ? (warning.data.active?.length ? `동해 발효 특보 ${warning.data.active.join(', ')}` : '동해 발효 특보 없음') : warning.loading ? '조회 중' : '기상특보 조회 실패'} subtitle={<Fresh res={warning} />} />
           </List>
         </Section>
+        <Section title="차량 소속과 확인 상태"><p className="mob-t-foot">{VEHICLE_NOTE}</p><List>{Object.entries(OWNERS).map(([key, label]) => <ListRow key={key} title={label} subtitle={data.vehicles.filter((v) => v.owner === key).map(vehicleLabel).join(', ') || '없음'} />)}</List></Section>
         <Section title="확인할 일">
           <List label="확인할 일">
             <ListRow lead={<FileText size={22} />} title={`확인 대기 서류 ${pc.docsInScope}건`} subtitle="대피 대상 구역 기준, 판독 결과 원문 대조 필요" chevron onClick={() => navigate('/m/f/intake')} />
@@ -208,7 +209,7 @@ export function FieldVillageDetailPage() {
             </div>
             <List label="만나는 곳과 자원">
               <ListRow title="집결지" subtitle={village?.pickup?.name ? `${village.pickup.name}, ${village.pickup.road}` : '확인 필요'} />
-              <ListRow title="차량" subtitle={v.vehicles.join(', ') || '없음'} />
+              <ListRow title="차량" subtitle={v.vehicles.map((code) => { const vehicle = data.vehicles.find((x) => x.code === code); return vehicle ? vehicleLabel(vehicle) : code }).join(', ') || '없음'} />
               <ListRow title="도우미" subtitle={v.helpers.join(', ') || '없음'} />
             </List>
             <Section title="대상자">
@@ -473,7 +474,7 @@ export function FieldIntakePage() {
           <Section title={`판독 결과 ${state.page.persons.length}명`}>
             <List label="판독 결과">
               {state.page.persons.map((r, i) => (
-                <ListRow key={i} title={gradeOf(r.grade)?.label || '등급 확인 필요'} subtitle={`근거: ${r.quote || '없음'}`} meta={r.quoteMatched ? '근거 원문 대조 통과' : '원문 불일치, 원본 직접 확인'}
+                <ListRow key={i} title={gradeOf(r.grade)?.label || '등급 확인 필요'} subtitle={`${r.gradeUncertain ? '확인 필요. 침상 가능성 담당자 확인. ' : ''}근거: ${r.quote || '없음'}`} meta={r.quoteMatched ? '근거 원문 대조 통과' : '원문 불일치, 원본 직접 확인'}
                   trailing={<Chip tone={r.quoteMatched ? 'blue' : 'red'}>{r.quoteMatched ? '일치' : '불일치'}</Chip>} />
               ))}
             </List>

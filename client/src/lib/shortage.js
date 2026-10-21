@@ -26,7 +26,9 @@ export const capOf = (vehicle, grade) => typeOf(vehicle.type)?.capacity?.[grade]
 // 부족분 해소용 추가 협약 차종 우선순위
 export const EXTRA_TYPE = { bed: 'bedVan', wheelchair: 'liftVan', assist: 'car', walk: 'bus' }
 
-export const OWNERS = { fire: '소방', city: '시청', facility: '요양시설', contract: '민간 협약' }
+export const OWNERS = { fire: '소방(별도 운용)', city: '시 보유', facility: '기관(요양시설, 주야간보호기관)', contract: '협약 승용차' }
+export const VEHICLE_NOTE = '개인 차량 등록은 쓰지 않음. 협약 대상(택시 운송조합 등)은 동해시와 협의'
+export const vehicleLabel = (v) => `${v.code} ${OWNERS[v.owner] || '소속 확인 필요'}, ${COMMITMENTS[commitmentOf(v)]}`
 
 // 차량 가용 확실성(회신 R01): 소방 구급차는 지자체 가용 차량과 따로 보고, 협약이나 소유로 약속된 차량과 아직 확인하지 않은 차량을 나눈다
 export const COMMITMENTS = { agreed: '약속됨', unconfirmed: '미확인', fire: '소방 별도' }

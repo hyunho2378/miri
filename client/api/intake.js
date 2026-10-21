@@ -108,10 +108,18 @@ export async function askItems(system, user, ask = hcxJson) {
 export function fillMissing(persons, items, masked) {
   const ids = items.map((x) => /^P(\d+)$/.exec(x.id || '')?.[1]).filter(Boolean).map(Number)
   const numbered = masked.filter((l) => /^\s*\d{1,2}\s*[.)]\s*\S/.test(l) && /가림|거\s*동|걸|휠체|침상|와상|부축|보행/.test(l)).length
-  const want = Math.max(ids.length ? Math.max(...ids) : 0, numbered, persons.length)
+  const want = Math.max(ids.length ? Math.max(...ids) : 0, numbered, detectedPersonCount(masked), persons.length)
   const out = persons.slice()
   for (let k = out.length; k < want; k++) out.push({ personHint: `순번 ${k + 1}`, tags: [], quote: '', confidence: 'low', box: null, grade: 'unknown', reason: 'missingFromModel' })
   return out
+}
+
+// OCR에서 확인되는 대상자 표식 수만 사용하며 모델 출력 수로 축소하지 않는다.
+export function detectedPersonCount(masked) {
+  const text = masked.join(' ')
+  const count = (re) => [...text.matchAll(re)].length
+  const declared = [...text.matchAll(/(?:대상자|인원|총)\s*[:：]?\s*(\d{1,3})\s*명/g)].map((m) => Number(m[1]))
+  return Math.max(0, ...declared, count(/순\s*번\s*[:：]?\s*\d+/g), count(/(?:대상자|성명|이름)\s*[:：]?\s*\[가림\]/g), masked.filter((l) => /^\s*\d{1,3}\s+\[가림\]/.test(l)).length)
 }
 
 // 한 사람 판정. 근거 문구가 그 구간 원문에 없으면 원래 문구를 남기고 실패로 표시해 담당자 확인으로 넘긴다(GPT 재검토 R3)
@@ -119,7 +127,7 @@ export function judge(it, segText, personHint, box, free = false) {
   const quote = one(it?.quote)
   const base = { personHint, tags: [], quote, context: free ? undefined : segText, confidence: 'low', box }
   if (!it || !it.grade || !it.confidence) return { ...base, grade: 'unknown', reason: 'noResult' }
-  if (!free && UNREADABLE.test(segText)) return { ...base, grade: 'unknown', quote: quote || segText, reason: 'unreadable' }
+  if ((!free && UNREADABLE.test(segText)) || /판\s*독\s*불\s*가|읽\s*을\s*수\s*없|식\s*별\s*불\s*가|빈칸|(?:기록|정보|근거|기재|도움의 종류).{0,12}없/.test(quote)) return { ...base, grade: 'unknown', quote: quote || segText, reason: 'unreadable' }
   if (!quote || !segText.includes(quote)) {
     return { ...base, grade: 'unknown', proposedGrade: it.grade === 'unknown' ? undefined : it.grade, quoteMismatch: true, reason: 'quoteMismatch' }
   }
@@ -160,6 +168,7 @@ export default async function handler(req, res) {
       const items = await askItems(FREE_SYSTEM, transcript)
       persons = fillMissing(items.map((it, k) => judge(it, transcript, `순번 ${k + 1}`, null, true)), items, masked)
     }
+    persons = fillMissing(persons, [], masked)
     // 읽은 내용이 없으면 성공으로 넘기지 않는다(GPT 3차 확인 R9)
     if (!transcript || !persons.length) return fail(res, 422, 'EMPTY_RESULT', '읽은 내용 없음. 담당자가 서류를 직접 확인해 주십시오')
     return res.status(200).json({ transcript, persons, engine: { ocr: 'CLOVA OCR', llm: HCX_MODEL, region: 'KR' } })

@@ -17,7 +17,7 @@ import NumberStepper from '../../components/ui/NumberStepper.jsx'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
-import { EXTRA_TYPE, GRADES, commitmentOf, typeOf } from '../../lib/shortage.js'
+import { OWNERS, VEHICLE_NOTE, EXTRA_TYPE, GRADES, commitmentOf, typeOf } from '../../lib/shortage.js'
 import { TIME_BANDS, bandOf, computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import { DISABLED_NOTE } from '../../lib/rosterCount.js'
 import { fireScenario } from '../../lib/scenario.js'
@@ -280,6 +280,7 @@ export default function ShortagePage() {
                 <p className="mt-2 type-meta leading-5 text-text-meta">근거가 한 곳뿐이라 가정값은 바꾸지 않았습니다. 도우미 수와 지원 등급도 차량과 함께 계산 조건이며, 함께 탈 도우미가 모자란 대상자는 '도우미 부족'으로 미이송 예상에 들어갑니다. 발령 배정도 같은 조건을 씁니다.</p>
               </section>
               <section aria-labelledby="chk-commit" className="min-w-0">
+                <p className="type-body-sm text-text-sec">{Object.values(OWNERS).join(', ')}</p><p className="type-meta text-text-meta">{VEHICLE_NOTE}</p>
                 <h3 id="chk-commit" className="type-h3 text-text-pri">차량 가용 확실성</h3>
                 <ul className="mt-2 grid gap-2">
                   <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">

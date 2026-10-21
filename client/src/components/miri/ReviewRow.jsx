@@ -50,6 +50,7 @@ export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdi
               <GradeChip grade={result.grade} />
             </span>
           </div>
+          {result.gradeUncertain && <p role="alert" className="type-body-sm text-warning-text">확인 필요. 침상 가능성 담당자 확인</p>}
           <Select label="이송 등급" value={grade} options={GRADE_OPTIONS} onChange={setGrade} disabled={!canEdit} />
           <MultiSelect label="특이사항" values={tags} options={TAG_OPTIONS} onChange={setTags} disabled={!canEdit} />
           {(() => { const c = personCare(result); return (

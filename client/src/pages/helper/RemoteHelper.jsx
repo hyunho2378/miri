@@ -79,6 +79,7 @@ export default function RemoteHelper({ token }) {
       )}
 
       <Card title="배정 안내">
+        {!ack && <p role="note" className="type-body-sm text-text-sec">참여 의무는 없습니다. 불가를 누르면 다른 도우미에게 배정을 넘깁니다.</p>}
         <KeyValue items={[
           { label: '이송 완료 기한', value: b.completeBy ? `${fmtHM(b.completeBy)}까지` : '담당자 확인' },
           { label: '마을', value: (b.villages || []).join(', ') },

@@ -14,7 +14,7 @@ import Drawer from '../../components/ui/Drawer.jsx'
 import Tabs from '../../components/ui/Tabs.jsx'
 import Toggle from '../../components/ui/Toggle.jsx'
 import useToast from '../../hooks/useToast.js'
-import { COMMITMENTS, GRADES, HELPER_ROLES, OWNERS, VEHICLE_TYPES, commitmentOf, gradeOf, typeOf } from '../../lib/shortage.js'
+import { VEHICLE_NOTE, COMMITMENTS, GRADES, HELPER_ROLES, OWNERS, VEHICLE_TYPES, commitmentOf, gradeOf, typeOf } from '../../lib/shortage.js'
 import { fmtDate } from '../../lib/time.js'
 import { fmtKDate } from '../../components/miri/BasisLine.jsx'
 import useAuthStore from '../../store/useAuthStore.js'
@@ -144,7 +144,7 @@ export default function ResourcesPage() {
       />
       {tab === 'vehicles' ? (
         <TableCard
-          key="vehicles" title="차량" count={`가용 ${usable} / 전체 ${vehicles.length}대`} desc={`협약 만료는 ${fmtKDate(today)} 기준으로 판정합니다. 차종별 회차당 정원은 협의 전 가정값입니다.`}
+          key="vehicles" title="차량" count={`가용 ${usable} / 전체 ${vehicles.length}대`} desc={`협약 만료는 ${fmtKDate(today)} 기준으로 판정합니다. 차종별 회차당 정원은 협의 전 가정값입니다. ${VEHICLE_NOTE}`}
           actions={<InlineEditBar resource="vehicles" addLabel="차량 추가" onAdd={() => { setErrors({}); setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'contract', baseDong: 'MS', available: true, contractUntil: '', note: '', commitment: 'unconfirmed' } }) }} />}
           columns={vehicleColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={vehicles} rowKey={(v) => v.code} caption="차량 목록"
         />

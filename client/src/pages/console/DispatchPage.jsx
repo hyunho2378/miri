@@ -354,12 +354,12 @@ function SentPanel({ now, meta }) {
   const shown = rows.filter((r) => (filter === 'all' ? true : filter === 'moving' ? ['depart', 'arrive', 'board'].includes(r.step) : ISSUE.includes(r.step)))
   const fails = rows.filter((r) => r.step === 'fail')
 
-  const helpers = [...new Set(d.result.assignments.flatMap((a) => a.helperCodes))]
+  const helpers = [...new Set([...d.result.assignments.flatMap((a) => a.helperCodes), ...Object.keys(d.ackOverride).filter((h) => ['noack', 'decline'].includes(d.ackOverride[h].answer))])]
   const helperRows = helpers.map((h) => {
     const ack = ackOf(d, h, now)
     let answer = ack.answer
     // 시연용 수동 도우미는 화면 보고를 기다리므로 무응답으로 넘기지 않는다
-    if (answer === 'none' && h !== d.manualHelper && d.sentAt && now - d.sentAt > settings.noAckMinutes * MIN) answer = 'noack'
+    if (answer === 'none' && d.sentAt && now - (d.ackOverride[h]?.requestedAt || d.sentAt) >= 10 * MIN) answer = 'noack'
     const a = d.result.assignments.find((x) => x.helperCodes.includes(h))
     return {
       code: h, answer, reason: ack.reason, replaced: ack.replaced, vehicle: a?.vehicleCode,

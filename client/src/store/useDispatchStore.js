@@ -4,8 +4,8 @@ import { create } from 'zustand'
 import { helperDeclined, helperQualifies, planDispatch, reassignBlock, scorePlan } from '../lib/assign.js'
 import { capOf, gradeOf } from '../lib/shortage.js'
 import { calcTiming, calcVehicles, scenarioArrivals, scopeInput } from '../lib/shortageCalc.js'
-import { withSpeed } from '../lib/clock.js'
-import { dispatchSms, helperBrief, indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
+import { vnowOfState, withSpeed } from '../lib/clock.js'
+import { ackOf, dispatchSms, helperBrief, indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
 import { HAZARD_KINDS } from '../lib/scenario.js'
 import { MIN } from '../lib/time.js'
 import { clearRemote, loadRemote, newDispatchId, restoreSnapshot, saveRemote, snapshotOf } from '../lib/dispatchSync.js'
@@ -131,7 +131,7 @@ export const useDispatchStore = create((set, get) => ({
     if (!a) return null
     // 도우미가 필요한 회차의 모든 등급을 지원하고 활성 상태이며, 이미 불가로 답한 사람은 아닌 도우미만(GPT 재검토 R7)
     const grades = [...new Set(a.trips.map((t) => t.grade))].filter((g) => gradeOf(g).helpers > 0)
-    const declined = (c) => helperDeclined(c, d.ackOverride, d.ackPlan)
+    const declined = (c) => d.ackOverride[c]?.answer === 'noack' || helperDeclined(c, d.ackOverride, d.ackPlan)
     const next = data.helpers.find((h) => h.code !== oldCode && !used.has(h.code) && !declined(h.code) && helperQualifies(h, grades))
     if (!next) return null
     const result = structuredClone(d.result)
@@ -140,10 +140,34 @@ export const useDispatchStore = create((set, get) => ({
     const vnow = vnowOf(d)
     set({
       result,
-      ackOverride: { ...d.ackOverride, [next.code]: { answer: 'accept', at: vnow, replaced: oldCode } },
-      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 대체 배정 도착(${next.code}). 기존 배정을 이어받아 링크에서 확인` }]
+      ackOverride: { ...d.ackOverride, [next.code]: { answer: 'none', at: vnow, requestedAt: vnow, replaced: oldCode } },
+      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 대체 배정 도착(${next.code}). 참여 의무 없음. 링크에서 수락 또는 불가 응답` }]
     })
     return next.code
+  },
+
+  // 담당자 시계로 10 가상 분 응답 기한을 검사한다. 대체 도우미도 수락 전까지 미응답 상태다.
+  processResponses: (real = Date.now()) => {
+    let d = get()
+    if (d.status !== 'sent' || !d.result || !d.sentAt) return
+    const now = vnowOfState(d, real)
+    const helpers = [...new Set(d.result.assignments.flatMap((a) => a.helperCodes))]
+    for (const code of helpers) {
+      d = get()
+      const ack = ackOf(d, code, now)
+      const requestedAt = d.ackOverride[code]?.requestedAt || d.sentAt
+      if (ack.answer !== 'decline' && !(ack.answer === 'none' && now - requestedAt >= 10 * MIN)) continue
+      set({ ackOverride: { ...d.ackOverride, [code]: { ...ack, answer: ack.answer === 'decline' ? 'decline' : 'noack', at: now } } })
+      if (get().replaceHelper(code)) continue
+      d = get()
+      const result = structuredClone(d.result)
+      const affected = result.assignments.filter((a) => a.helperCodes.includes(code))
+      const codes = affected.flatMap((a) => a.trips.flatMap((t) => t.personCodes)).filter((c) => !['handover', 'handedToFire'].includes(d.events[c]?.step))
+      result.assignments = result.assignments.filter((a) => !a.helperCodes.includes(code))
+      for (const personCode of codes) if (!result.unassigned.some((u) => u.personCode === personCode)) result.unassigned.push({ personCode, reason: 'noHelper' })
+      set({ result })
+      get().requestFireSupport()
+    }
   },
 
   // 도우미 링크 문자 재발송(현장 휴대폰 F3). 시연은 발송 기록만 남긴다
@@ -361,6 +385,8 @@ export const useDispatchStore = create((set, get) => ({
 if (typeof window !== 'undefined') {
   // 도우미 링크 화면(/h/, /m/h/)은 담당자 발령을 불러오거나 저장하지 않는다(같은 브라우저에서 두 화면을 열면 시계와 배정이 섞이던 문제)
   const helperPage = () => /^\/(m\/)?h\//.test(window.location.pathname)
+  const responseTimer = setInterval(() => { if (!helperPage()) useDispatchStore.getState().processResponses() }, 1000)
+  responseTimer?.unref?.()
   if (!helperPage()) setTimeout(() => { useDispatchStore.getState().restoreRemote() }, 0)
   let timer = null
   const WATCH = ['status', 'result', 'confirmedAt', 'ackOverride', 'events', 'handovers', 'arrivals', 'speed', 'realStart', 'vStart', 'fireRequests']

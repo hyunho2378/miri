@@ -10,7 +10,7 @@ export function verifyResult(transcript, r0) {
   const r = r0.aiGrade ? { ...r0, grade: r0.aiGrade } : r0
   const quoteMatched = !!r.quote && normalize(transcript).includes(normalize(r.quote))
   let confidence = GRADE_KEYS.includes(r.grade) ? r.confidence || 'mid' : 'low'
-  if (!quoteMatched) confidence = 'low'
+  if (!quoteMatched || /판\s*독\s*불\s*가|빈칸|(?:기록|정보|근거|기재|도움의 종류).{0,12}없/.test(r.quote || '')) confidence = 'low'
   const conflict = (r.grade === 'walk' || r.grade === 'assist') && (r.tags || []).includes('bedridden')
   if (conflict) confidence = DOWN[confidence]
   const planned = planningGrade({ ...r, confidence })
