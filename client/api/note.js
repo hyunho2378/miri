@@ -9,12 +9,13 @@
 
 import { hcxJson, clovaStt, csrSupported, maskLines, residualPII, pick, pickTags, GRADES, TAGS, CONFS, HCX_MODEL, B64, readJsonBody, VIRTUAL_ONLY_MSG } from './_ncp.js'
 import { guard } from './_guard.js'
+import { NOTE_SOURCES } from '../src/lib/notes.js'
 
 const MAX_BYTES = 6 * 1024 * 1024
 const MAX_TEXT = 4000
 
 const SYSTEM = `너는 지자체 재난취약자 담당자에게 들어온 현장 소식을 읽는 판독 보조기다.
-요양보호사, 이장, 가족, 동 담당자가 전한 말이나 글에서 한 대상자의 거동 상태가 달라졌는지 찾는다. 담당자가 최종 확인한다.
+요양보호사, 생활지원사, 이장, 가족, 동 담당자가 전한 말이나 글에서 한 대상자의 거동 상태가 달라졌는지 찾는다. 담당자가 최종 확인한다.
 
 이송 등급
 - walk(도보): 안내만 받으면 스스로 걸어서 이동
@@ -42,7 +43,8 @@ const one = (s) => String(s || '').replace(/\s+/g, ' ').trim()
 const CUR_GRADES = GRADES.filter((g) => g !== 'unknown')
 export function validateRequest(body) {
   if (!body) return { status: 400, code: 'BAD_JSON', error: '요청 형식 오류' }
-  const { text, mimeType, data, current, virtualOnly } = body
+  const { text, mimeType, data, current, virtualOnly, source } = body
+  if (source != null && !NOTE_SOURCES.some((s) => s.value === source)) return { status: 400, code: 'BAD_INPUT', error: '소식을 전한 사람 형식 오류' }
   if (virtualOnly !== true) return { status: 400, code: 'VIRTUAL_ONLY', error: VIRTUAL_ONLY_MSG }
   let cur = null
   if (current != null) {

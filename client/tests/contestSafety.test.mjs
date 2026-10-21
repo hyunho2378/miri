@@ -41,3 +41,33 @@ test('예비 도우미 없으면 무응답 대상자 소방 지원 요청 및 �
 test('불가 응답은 기한 전에도 다음 후보로 교체',()=>{
  setup([{code:'H2',active:true,consent:true,roles:['ride'],grades:['assist']}]);store.setState({ackOverride:{H1:{answer:'decline',at:1000}}});store.getState().processResponses(1001);assert.equal(store.getState().result.assignments[0].helperCodes[0],'H2')
 })
+
+// 회신 R37: 돌봄 인력 소식도 담당자 승인 전에는 명부를 바꾸지 않는다
+test('생활지원사 소식은 서버 검증을 통과하고 승인 뒤에만 명부 반영', async () => {
+ const { NOTE_SOURCES, sourceLabel, verifyNote } = await import('../src/lib/notes.js')
+ const { validateRequest } = await import('../api/note.js')
+ assert.equal(sourceLabel('dailyCare'), '생활지원사')
+ assert.ok(NOTE_SOURCES.some(s => s.value === 'dailyCare'))
+ const text = '이제 휠체어를 타고 이동하세요'
+ assert.equal(validateRequest({ text, source:'dailyCare', virtualOnly:true }).error, undefined)
+ assert.equal(validateRequest({ text, source:'invalid', virtualOnly:true }).code, 'BAD_INPUT')
+ const before = data.getState()
+ try {
+  const p = before.persons.find(p => p.grade === 'assist')
+  const read = verifyNote(text, { grade:'wheelchair', tags:[], quote:text, confidence:'high' }, p)
+  data.getState().addFieldNote({ id:'R37', personCode:p.code, source:'dailyCare', status:'pending', read })
+  assert.deepEqual(data.getState().persons, before.persons)
+  assert.equal(data.getState().fieldNotes[0].status, 'pending')
+  data.getState().reviewFieldNote('R37', 'apply', read.diff.next)
+  assert.equal(data.getState().persons.find(x => x.code === p.code).grade, 'wheelchair')
+  assert.equal(data.getState().fieldNotes[0].status, 'applied')
+ } finally { data.setState(before) }
+})
+test('생활지원사 돌봄 유형도 동행과 연락 판단에 사용', async () => {
+ const { personCare } = await import('../src/lib/tripChecks.js')
+ const p = seed.persons.find(p => p.care?.caregiverType === '생활지원사')
+ assert.ok(p)
+ assert.equal(personCare(p).caregiverType, '생활지원사')
+ assert.equal(personCare({ care:{ ...p.care, caregiverReachable:true } }).companionCall, true)
+ assert.equal(personCare({ care:{ ...p.care, caregiverReachable:false } }).caregiverUnreachable, true)
+})

@@ -1,4 +1,4 @@
-// 현장 소식(IA 4.3 확장). 요양보호사, 이장, 가족, 동 담당자가 전한 글이나 음성을 AI가 읽어 명부 변경 후보를 만들고, 담당자가 승인해야 명부가 바뀐다.
+// 현장 소식(IA 4.3 확장). 요양보호사, 생활지원사, 이장, 가족, 동 담당자가 전한 글이나 음성을 AI가 읽어 명부 변경 후보를 만들고, 담당자가 승인해야 명부가 바뀐다.
 // 서류 읽기와 같은 구조: 위 단계 안내, 아래 왼쪽 확인 대기 목록, 오른쪽 선택한 건.
 import { useMemo, useState } from 'react'
 import { CircleAlert, FileAudio, MessageSquareText, ScanText, Send, UserCheck } from 'lucide-react'
@@ -113,7 +113,7 @@ export default function NotesPage() {
     if (!hasInput) { setError({ title: mode === 'voice' ? '음성 파일을 골라 주십시오' : '소식을 적어 주십시오', desc: '전달받은 말을 그대로 적거나 녹음 파일을 올립니다.' }); return }
     try {
       const b = base()
-      const read = await progress(mode === 'voice' ? file.name : '붙여 넣은 소식', readNote({ text: mode === 'text' ? text.trim() : undefined, file: mode === 'voice' ? file : undefined, current: b.current }))
+      const read = await progress(mode === 'voice' ? file.name : '붙여 넣은 소식', readNote({ text: mode === 'text' ? text.trim() : undefined, file: mode === 'voice' ? file : undefined, current: b.current, source }))
       finish({ ...b, mode, fileName: mode === 'voice' ? file.name : '', text: read.transcript || text.trim(), read, mock: false })
     } catch (e) {
       setReading(null)
@@ -135,9 +135,9 @@ export default function NotesPage() {
   }
 
   return (
-    <PageShell title="현장 소식" desc="명부 갱신은 동 맞춤형복지 담당(사회복지 담당자)이 맡습니다. 이사와 거주 변화를 가장 먼저 아는 사회복지 담당자가 요양보호사, 이장, 가족의 소식을 확인해 승인합니다.">
+    <PageShell title="현장 소식" desc="명부 갱신은 동 맞춤형복지 담당(사회복지 담당자)이 맡습니다. 이사와 거주 변화를 가장 먼저 아는 사회복지 담당자가 요양보호사, 생활지원사, 이장, 가족의 소식을 확인해 승인합니다.">
       <section aria-label="현장 소식 단계" className="mb-4 flex flex-col gap-3 lg:flex-row">
-        <StepCard n={1} Icon={MessageSquareText} title="소식 받기" desc="요양보호사, 이장, 가족이 전한 말을 글로 붙여 넣거나 음성 녹음을 올립니다." count={`${notes.length}건`}
+        <StepCard n={1} Icon={MessageSquareText} title="소식 받기" desc="요양보호사, 생활지원사, 이장, 가족이 전한 말을 글로 붙여 넣거나 음성 녹음을 올립니다." count={`${notes.length}건`}
           active={inputOpen} onClick={canEdit ? () => setShowInput((v) => !v) : undefined} />
         <StepCard n={2} Icon={ScanText} title="AI가 읽기" desc="글이나 음성을 AI에 보내 대상자의 거동이 달라졌는지 찾고 근거 문구를 붙입니다. 이름, 주소, 연락처는 결과에 남기지 않습니다." count={`${notes.filter((n) => n.read.diff.changed).length}건 변경 후보`} />
         <StepCard n={3} Icon={UserCheck} title="사회복지 담당자 승인" desc="동 맞춤형복지 담당이 근거와 현재 명부를 견주어 반영, 수정 후 반영, 반영 안 함을 고릅니다. 반영해야 명부와 부족분 계산이 바뀝니다." count={`대기 ${queue.length}건`} active={!inputOpen && queue.length > 0} />

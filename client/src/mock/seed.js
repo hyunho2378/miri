@@ -62,7 +62,8 @@ function careOf(tags, grade, k) {
   if (tags.includes('hearing')) comm.push('청각')
   if (tags.includes('dementia')) comm.push('인지')
   if (k % 11 === 0) comm.push('언어')
-  const caregiverType = tags.includes('guardian') ? '가족' : k % 3 === 0 ? '요양보호사' : k % 3 === 1 ? '이웃' : '없음'
+  // 회신 R37: 돌봄 있음 분기 안에서 유형만 구분. 난수와 연락 여부, 배정 수치는 유지한다
+  const caregiverType = tags.includes('guardian') ? '가족' : k % 3 === 0 ? (k % 2 === 0 ? '생활지원사' : '요양보호사') : k % 3 === 1 ? '이웃' : '없음'
   const caregiverReachable = caregiverType === '없음' ? null : k % 7 === 0 ? false : true
   const aids = []
   if (tags.includes('wheelPower')) aids.push('전동 휠체어')

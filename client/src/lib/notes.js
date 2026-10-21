@@ -1,4 +1,4 @@
-// notes.js 현장 소식 판독. 요양보호사, 이장, 가족, 동 담당자가 전한 글이나 음성에서 대상자의 거동 변화를 찾아 명부 변경 후보를 만든다.
+// notes.js 현장 소식 판독. 요양보호사, 생활지원사, 이장, 가족, 동 담당자가 전한 글이나 음성에서 대상자의 거동 변화를 찾아 명부 변경 후보를 만든다.
 // AI는 소식을 읽고 변경 후보와 근거 문구만 낸다. 필요 인원과 차량은 바뀐 등급을 받아 규칙으로 계산한다.
 // 원문 대조: 근거 문구가 전사문에 문자 그대로 없으면 일치도 하로 강제(환각 차단).
 // 비대칭 주의: 등급을 낮추는(도움이 덜 필요해지는) 제안은 일치도를 한 단계 내려 반드시 직접 확인하게 한다.
@@ -10,6 +10,7 @@ const uniq = (a) => [...new Set(a)]
 
 export const NOTE_SOURCES = [
   { value: 'caregiver', label: '요양보호사' },
+  { value: 'dailyCare', label: '생활지원사' },
   { value: 'leader', label: '이장, 통장' },
   { value: 'family', label: '가족, 보호자' },
   { value: 'dong', label: '동 담당자' }
@@ -46,8 +47,8 @@ const toBase64 = (file) => new Promise((resolve, reject) => {
 })
 
 // 서버 판독 호출(/api/note). 글이면 text, 음성이면 file. 키가 없으면 503
-export async function readNote({ text, file, current }) {
-  const payload = { current: { grade: current.grade, tags: current.tags || [] }, virtualOnly: true }
+export async function readNote({ text, file, current, source }) {
+  const payload = { source, current: { grade: current.grade, tags: current.tags || [] }, virtualOnly: true }
   if (file) { payload.mimeType = file.type || 'audio/mpeg'; payload.data = await toBase64(file) } else payload.text = text
   const res = await fetch('/api/note', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
   const body = await res.json().catch(() => null)
