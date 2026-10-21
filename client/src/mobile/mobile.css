@@ -499,7 +499,8 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 /* iOS 옆: iPhone Duo 세로 막대(84 폭, pad 24/24/24/12), 세로 탭 바(48 폭, pad 6/0, 탭 48x48, 사이 2, 선택 44 원) */
 .mob-root.platform-ios .mob-nav.nav-side { top: 0; bottom: 0; left: auto; right: var(--m-safe-right); width: 84px; padding: 24px 24px 24px 12px; background: transparent; box-shadow: none; display: flex; align-items: flex-end; pointer-events: none; }
 .mob-root.platform-ios .mob-nav.nav-side .mob-nav-inner { pointer-events: auto; flex-direction: column; width: 48px; height: auto; max-width: none; margin: 0; padding: 6px 0; gap: 2px; background: var(--m-page); border-radius: var(--m-r-full); box-shadow: var(--m-shadow-2); align-items: center; }
-.mob-root.platform-ios .mob-nav.nav-side .mob-nav-item { width: 44px; height: 44px; padding: 0; }
+/* Tab Bar - iPhone Duo 12887:20955 안 탭 _Tab Bar Button - iPhone Duo 12887:21457: 48x48, pad 6/8/7/8 */
+.mob-root.platform-ios .mob-nav.nav-side .mob-nav-item { width: 48px; height: 48px; padding: 6px 8px 7px; }
 .mob-root.platform-ios .mob-nav.nav-side .mob-nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Android 아래: 내비게이션 바(64, 항목 pad 6/0 사이 4, 아이콘 칸 56x32 모서리 16, Label Medium 12/16 w500 자간 0.5) */
@@ -655,3 +656,16 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 .mob-root.platform-android .mob-sheet .mob-btn.block.v-filled, .mob-root.platform-android .mob-sheet .mob-btn.block.v-danger { min-height: 56px; height: 56px; padding: 16px 24px; font-size: 16px; line-height: 24px; font-weight: 500; }
 /* 화면 전수 대조: iOS 글자 버튼(로그아웃 등 size-sm)도 Body 17/22(Toolbar 1:54472). 18 은 키트에 없는 값 */
 .mob-root.platform-ios .mob-btn.size-sm { line-height: 22px; }
+/* 발령 화면 전수 대조(2026-10-22): M3 본문 안 화면 주 동작(소방 지원 요청, 서류 확정, 명부 반영, 사진 고르기, 소식 보내기 등 block 채움과 위험)도 Button Medium 57994:2227 56, 라벨 16/24 w500. 보이는 면 56(투명 테두리 없음) */
+.mob-root.platform-android .mob-content .mob-btn.block.v-filled, .mob-root.platform-android .mob-content .mob-btn.block.v-danger,
+.mob-root.platform-android .mob-bottom-action .mob-btn.v-filled, .mob-root.platform-android .mob-bottom-action .mob-btn.v-danger,
+.mob-root.platform-android .mob-sheet .mob-btn.block.v-filled, .mob-root.platform-android .mob-sheet .mob-btn.block.v-danger { min-height: 56px; height: 56px; padding: 16px 24px; border-width: 0; font-size: 16px; line-height: 24px; font-weight: 500; }
+/* 화면 전수 대조(2026-10-22): iOS Alert Button Layout=Side-by-Side 65:57149. 폭 300, 모서리 34(Liquid Glass Medium), 안쪽 14,
+   제목과 메시지 묶음 pad 8/8/24/8 gap 10, 제목 17/22 w590 왼쪽 정렬, 메시지 17/22 w400 왼쪽 정렬, 버튼 둘은 grow 1 같은 폭(132) 높이 48 */
+.mob-root.platform-ios .mob-dialog { border-radius: 34px; text-align: left; }
+.mob-root.platform-ios .mob-dialog-body p { font-size: 17px; line-height: 22px; font-weight: 400; }
+.mob-root.platform-ios .mob-dialog-actions > * { flex: 1 1 0; min-width: 0; padding-left: 16px; padding-right: 16px; }
+/* M3 Basic dialog Icon=False 50723:10948: 제목과 설명 pad 24/24/0/24 gap 16, Actions pad 20/24/20/8 gap 8.
+   글자 버튼은 누름 48 안에 보이는 면 40(위아래 투명 4)이라 바깥 여백을 4 줄여 보이는 간격 20 을 맞춤 */
+.mob-root.platform-android .mob-dialog-body { padding: 24px 24px 0; gap: 16px; }
+.mob-root.platform-android .mob-dialog-actions { padding: 16px 24px 16px 8px; gap: 8px; }
