@@ -129,9 +129,10 @@ export function List({ label, children }) {
 }
 
 // 번호(V-18, MS-04-001, H-079)는 붙임표 뒤에서 줄이 바뀌지 않게 한 덩어리로 묶는다(글자는 그대로 두어 복사와 읽기 값은 같음)
-const CODE_RE = /([A-Z]{1,3}(?:-\d+)+,?)/g
+// 괄호가 붙은 어절(기관(요양시설,)도 괄호 앞뒤에서 꺾이지 않게 한 덩어리로 묶는다
+const CODE_RE = /([A-Z]{1,3}(?:-\d+)+,?|[^\s(),]+\([^\s()]*\)?,?)/g
 export function keepCodes(text) {
-  if (typeof text !== 'string' || !/[A-Z]-\d/.test(text)) return text
+  if (typeof text !== 'string' || !/[A-Z]-\d|\S\(/.test(text)) return text
   return text.split(CODE_RE).map((part, i) => (i % 2 ? <span key={i} className="mob-nb">{part}</span> : part))
 }
 
