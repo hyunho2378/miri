@@ -49,7 +49,7 @@ export const colors = {
   success: { DEFAULT: ios.green, soft: ios.fill, text: ios.label },
 
   // 문서함 종류 식별색(DAH Docs·Sheet·Form 규칙 준용: 흐린 틴트 금지, 진한 단색). 아이콘, 배지, 서식 카드 머리에만 쓴다
-  // 흰 글자 배지(11px 굵게)와 흰 면 위 글자 모두 4.5:1 이상이 되도록 HIG 고대비(Increased contrast, light) 값을 쓴다(GPT 11차 M2). 파랑 4.57, 초록 4.54, 보라 5.21
+  // 흰 글자 배지(11px 굵게)와 흰 면 위 글자 모두 4.5:1 이상이 되도록 HIG 고대비(Increased contrast, light) 값을 쓴다. 파랑 4.57, 초록 4.54, 보라 5.21
   kind: { doc: ios.blueAccessible, sheet: ios.greenAccessible, form: ios.purpleAccessible },
   chart: {
     1: p[50],

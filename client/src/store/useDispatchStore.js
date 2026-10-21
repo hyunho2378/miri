@@ -13,7 +13,7 @@ import { clearRemote, loadRemote, newDispatchId, restoreSnapshot, saveRemote, sn
 import { mergeReports } from '../lib/reportQueue.js'
 import { activeScenario, useMiriStore } from './useMiriStore.js'
 
-// 도우미 참여 동의, 철회, 역할 변경을 명부 도우미에 반영(GPT 11차 M1, 12차)
+// 도우미 참여 동의, 철회, 역할 변경을 명부 도우미에 반영
 // 서버가 발령과 별도로 보관한 동의 상태(prefs, 도우미별 최신 한 건과 서버 접수 순번)를 받는다. 발령을 종료해도 지워지지 않는다
 // 이미 반영한 순번(prefSeq)보다 큰 것만 적용해, 늦게 도착한 옛 응답이 최신 동의를 되돌리지 못하게 한다
 export function applyPrefs(prefs) {
@@ -44,7 +44,7 @@ export const useDispatchStore = create((set, get) => ({
   ...EMPTY,
 
   start: ({ kind = 'drill', speed = 60 } = {}) => {
-    // 실제 발령은 도우미 휴대폰 보고를 받는 서버 연결 전까지 열지 않는다. 자동 진행은 훈련 시연에만 쓴다(GPT 검토 S5)
+    // 실제 발령은 도우미 휴대폰 보고를 받는 서버 연결 전까지 열지 않는다. 자동 진행은 훈련 시연에만 쓴다
     if (kind !== 'drill') {
       set({ blocked: '실제 발령은 도우미 보고 서버 연결 뒤 엽니다. 지금은 훈련 발령만 진행합니다.' })
       return false
@@ -60,7 +60,7 @@ export const useDispatchStore = create((set, get) => ({
     })
   },
   setSpeed: (speed) => {
-    // 실제 시각 하나로 기준점을 옮겨 가상 시계와 발령 경과 시간이 이어지게 한다(GPT 10차)
+    // 실제 시각 하나로 기준점을 옮겨 가상 시계와 발령 경과 시간이 이어지게 한다
     set(withSpeed(get(), speed, Date.now()))
   },
   setArrival: (village, ms) => set((s) => ({ arrivals: { ...s.arrivals, [village]: ms }, result: s.status === 'assigned' ? null : s.result, status: s.status === 'assigned' ? 'standby' : s.status })),
@@ -73,13 +73,13 @@ export const useDispatchStore = create((set, get) => ({
     const sp = scopeInput({ persons: data.persons, villages: data.villages, scenario: sc, settings: data.settings })
     const codes = new Set(Object.keys(d.arrivals))
     const persons = sp.persons.filter((p) => codes.has(p.villageCode))
-    // 평시 부족분 계산과 같은 차량 목록(시간대, 가용률, 추가 협약)과 시간 조건을 쓴다(GPT 검토 S1)
+    // 평시 부족분 계산과 같은 차량 목록(시간대, 가용률, 추가 협약)과 시간 조건을 쓴다
     const result = planDispatch({
       persons, villages: sp.villages.filter((v) => codes.has(v.code)),
       vehicles: calcVehicles(data.vehicles, sc), helpers: data.helpers, t0: vnowOf(d), arrivals: d.arrivals,
       ...calcTiming(sc, data.settings)
     })
-    // 처음 추천 지표는 따로 보관하고, 재배정 뒤에는 현재 계획 지표를 다시 계산한다(GPT 검토 M6)
+    // 처음 추천 지표는 따로 보관하고, 재배정 뒤에는 현재 계획 지표를 다시 계산한다
     result.initialMetrics = { ...result.metrics }
     // 계산 기준(회신 R34): 발령 운영 값은 발령 개시 뒤 흐른 시간만큼 남은 시간이 줄어 평시 값과 다르다. 화면에 기준을 함께 보인다
     const at = vnowOf(d)
@@ -148,7 +148,7 @@ export const useDispatchStore = create((set, get) => ({
     const used = new Set(d.result.assignments.flatMap((a) => a.helperCodes))
     const a = d.result.assignments.find((x) => x.helperCodes.includes(oldCode))
     if (!a) return null
-    // 도우미가 필요한 회차의 모든 등급을 지원하고 활성 상태이며, 이미 불가로 답한 사람은 아닌 도우미만(GPT 재검토 R7)
+    // 도우미가 필요한 회차의 모든 등급을 지원하고 활성 상태이며, 이미 불가로 답한 사람은 아닌 도우미만
     const grades = [...new Set(a.trips.map((t) => t.grade))].filter((g) => gradeOf(g).helpers > 0)
     const declined = (c) => d.ackOverride[c]?.answer === 'noack' || helperDeclined(c, d.ackOverride, d.ackPlan)
     const next = data.helpers.find((h) => h.code !== oldCode && !used.has(h.code) && !declined(h.code) && helperQualifies(h, grades))
@@ -199,7 +199,7 @@ export const useDispatchStore = create((set, get) => ({
   },
 
   // 실패 대상자 재배정: 지금 이후 가장 빨리 비는 호환 차량에 새 회차 추가
-  // 발령 때 확정한 계산 문맥(시나리오 대피소와 왕복 시간, 시간대 차량, 완료 기한)을 그대로 쓰고 도우미까지 다시 확인한다(GPT 검토 S4)
+  // 발령 때 확정한 계산 문맥(시나리오 대피소와 왕복 시간, 시간대 차량, 완료 기한)을 그대로 쓰고 도우미까지 다시 확인한다
   reassign: (code) => {
     const d = get()
     const data = useMiriStore.getState()
@@ -207,7 +207,7 @@ export const useDispatchStore = create((set, get) => ({
     const person = data.persons.find((p) => p.code === code)
     const village = ctx?.vmap?.[person?.villageCode]
     if (!person || !village || !Number.isFinite(village.roundTripMin)) return false
-    // 대피소 자리가 없어 뺀 사람, 목적지가 없는 사람은 재배정하지 않는다(GPT 3차 확인 R6)
+    // 대피소 자리가 없어 뺀 사람, 목적지가 없는 사람은 재배정하지 않는다
     if (reassignBlock(code, ctx)) return false
     const destCode = ctx.dest[code]
     const declined = (c) => helperDeclined(c, d.ackOverride, d.ackPlan)
@@ -225,7 +225,7 @@ export const useDispatchStore = create((set, get) => ({
       if (need) {
         if (a) {
           const hs = a.helperCodes.map((c) => data.helpers.find((h) => h.code === c)).filter(Boolean)
-          // 불가로 답한 도우미가 탄 차량은 후보에서 뺀다(GPT 3차 확인 R7)
+          // 불가로 답한 도우미가 탄 차량은 후보에서 뺀다
           if (a.helperCodes.some(declined)) continue
           if (hs.length < need || !hs.every((h) => helperQualifies(h, [person.grade]))) continue
         } else {
@@ -263,7 +263,7 @@ export const useDispatchStore = create((set, get) => ({
     const d = get()
     if (d.kind !== 'drill' || !['standby', 'assigned', 'sent'].includes(d.status)) return null
     const data = useMiriStore.getState()
-    // 발령 ID 와 저장 순번을 보내기 전에 확정한다(GPT 5차 H4). 늦게 도착한 옛 저장은 서버가 순번으로 거부
+    // 발령 ID 와 저장 순번을 보내기 전에 확정한다. 늦게 도착한 옛 저장은 서버가 순번으로 거부
     const dispatchId = d.remote.dispatchId || newDispatchId()
     const rev = (d.remote.rev || 0) + 1
     set((s) => ({ remote: { ...s.remote, dispatchId, rev } }))
@@ -294,7 +294,7 @@ export const useDispatchStore = create((set, get) => ({
     if (get().status !== 'idle') return false
     try {
       const r = await loadRemote()
-      // 진행 중인 발령이 없어도(종료 뒤 새로고침) 서버의 도우미 동의 상태는 명부에 반영(GPT 12차)
+      // 진행 중인 발령이 없어도(종료 뒤 새로고침) 서버의 도우미 동의 상태는 명부에 반영
       applyPrefs(r?.prefs)
       if (!r?.state || get().status !== 'idle') return false
       const st = restoreSnapshot(r.state)
@@ -314,7 +314,7 @@ export const useDispatchStore = create((set, get) => ({
     if (d.status !== 'sent' || d.remote.state !== 'saved') return 0
     try {
       const r = await loadRemote()
-      // 응답이 오는 사이 종료했거나 다른 발령으로 바뀌었으면 합치지 않는다(GPT 5차 M1)
+      // 응답이 오는 사이 종료했거나 다른 발령으로 바뀌었으면 합치지 않는다
       const now = get()
       if (!r || r.dispatchId !== d.remote.dispatchId || now.remote.dispatchId !== d.remote.dispatchId || now.status !== 'sent') return 0
       applyPrefs(r.prefs)
@@ -368,7 +368,7 @@ export const useDispatchStore = create((set, get) => ({
     const stops = indexStops(d.result)
     const counts = {}
     const byVillage = {}
-    // 이번 발령 대상(배정 때 고정한 명단)만 집계한다. 구역 밖 주민을 미배정으로 세지 않는다(GPT 검토 M1)
+    // 이번 발령 대상(배정 때 고정한 명단)만 집계한다. 구역 밖 주민을 미배정으로 세지 않는다
     const scope = new Set(d.scopeCodes || [])
     for (const p of data.persons) {
       if (p.review === 'rejected' || !scope.has(p.code)) continue
@@ -387,11 +387,11 @@ export const useDispatchStore = create((set, get) => ({
       metrics: d.result?.metrics, initialMetrics: d.result?.initialMetrics, baseline: d.result?.baseline?.metrics, handovers: d.handovers, targets: scope.size,
       helpers: d.result ? d.result.assignments.flatMap((a) => a.helperCodes).length : 0
     })
-    // 서버 발령 기록 삭제. 실패하면 3번까지 다시 시도하고, 끝내 실패하면 종료 화면에 사유를 남긴다(GPT 5차 H4)
+    // 서버 발령 기록 삭제. 실패하면 3번까지 다시 시도하고, 끝내 실패하면 종료 화면에 사유를 남긴다
     const dispatchId = d.remote.dispatchId
     set({ ...EMPTY, status: 'closed', closedRecordId: id })
     if (dispatchId) {
-      // 동의 상태는 서버가 보고 접수와 같은 원자 실행 안에서 발령과 별도로 보관하고, 종료(원자 실행)는 그것을 지우지 않는다(GPT 12차)
+      // 동의 상태는 서버가 보고 접수와 같은 원자 실행 안에서 발령과 별도로 보관하고, 종료(원자 실행)는 그것을 지우지 않는다
       // 그래서 삭제 전 조회가 필요 없고, 삭제 뒤 한 번 받아 마지막 주기 조회 이후 접수된 철회까지 명부에 반영한다. 실패해도 서버에 남아 다음 조회 때 반영
       const syncPrefs = async () => { try { const r = await loadRemote(); applyPrefs(r?.prefs) } catch { /* 다음 복원이나 조회 때 반영 */ } }
       const tryClear = async (left) => {
@@ -419,7 +419,7 @@ if (typeof window !== 'undefined') {
     if (skipSave) return
     if (!WATCH.some((k) => s[k] !== prev[k])) return
     if (s.kind !== 'drill' || !['standby', 'assigned', 'sent'].includes(s.status)) return
-    // 도우미 링크 화면(/h/, /m/h/)에서는 담당자 발령을 저장하지 않는다(GPT 10차: 같은 탭 이동, 예약 타이머 포함)
+    // 도우미 링크 화면(/h/, /m/h/)에서는 담당자 발령을 저장하지 않는다(예약 타이머 포함)
     if (helperPage()) return
     clearTimeout(timer)
     timer = setTimeout(() => { if (!helperPage()) useDispatchStore.getState().syncSave() }, 1500)

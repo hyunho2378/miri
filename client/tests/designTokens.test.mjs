@@ -86,7 +86,7 @@ test('색 글자 대비: iOS 파랑과 빨강은 흰 면에서 4.5:1, Android pr
   assert.ok(contrast(m3.error, ios.fill) >= 4.5, String(contrast(m3.error, ios.fill)))
 })
 
-// GPT 11차 M2, M3: 실제로 쓰는 조합(문서함 종류 배지 흰 글자, iOS 달력 요일 글자)을 합성 색까지 계산해 검사
+// 실제로 쓰는 조합(문서함 종류 배지 흰 글자, iOS 달력 요일 글자)을 합성 색까지 계산해 검사
 test('문서함 종류 배지 흰 글자 4.5:1(파랑, 초록, 보라)', async () => {
   const { colors } = await import('../src/tokens.js')
   const kind = colors.kind

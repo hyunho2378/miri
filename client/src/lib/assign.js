@@ -24,7 +24,7 @@ export function buildContext({
       completeBy: arrival - completeBeforeHours * 60 * MIN
     }
   }
-  // 대피소 자리와 목적지(GPT 재검토 R6). 마을마다 들어갈 자리(shelterCap)까지만 배정하고, 자리를 받은 사람에게 목적지 시설을 정한다.
+  // 대피소 자리와 목적지. 마을마다 들어갈 자리(shelterCap)까지만 배정하고, 자리를 받은 사람에게 목적지 시설을 정한다.
   // 자리 순서는 배정 우선순위와 같게 침상부터, 같은 등급은 코드 순
   const preUnserved = []
   const dest = {}
@@ -59,7 +59,7 @@ export function buildContext({
   return {
     vmap, deadlines, qmap, queues, preUnserved, dest,
     vehicles: vehicles.filter((v) => v.available !== false).sort((a, b) => a.code.localeCompare(b.code)),
-    // helpers 를 넘기면 도우미 수와 지원 등급을 회차의 실행 조건으로 쓴다(GPT 검토 S2). 넘기지 않으면 차량만 본다
+    // helpers 를 넘기면 도우미 수와 지원 등급을 회차의 실행 조건으로 쓴다. 넘기지 않으면 차량만 본다
     helpers: Array.isArray(helpers) ? helpers.filter(crewEligible).sort((a, b) => a.code.localeCompare(b.code)) : [],
     crewModel: Array.isArray(helpers),
     t0,
@@ -69,7 +69,7 @@ export function buildContext({
 
 const rtOf = (ctx, qid) => {
   const rt = ctx.vmap[ctx.qmap[qid].village].roundTripMin
-  // 안전한 대피소가 없는 마을은 왕복 시간이 없다. 배정하지 않는다(GPT 검토 S3)
+  // 안전한 대피소가 없는 마을은 왕복 시간이 없다. 배정하지 않는다
   return Number.isFinite(rt) ? rt * MIN : Infinity
 }
 
@@ -316,7 +316,7 @@ export function planDispatch(input, opts) {
   }
 }
 
-// 도우미 자격(최초 배정, 교체, 재배정 공통. GPT 재검토 R7): 활성 상태이고 그 차량 회차의 모든 등급을 지원
+// 도우미 자격(최초 배정, 교체, 재배정 공통): 활성 상태이고 그 차량 회차의 모든 등급을 지원
 export function helperQualifies(h, grades) {
   return crewEligible(h) && Array.isArray(h.grades) && grades.every((g) => h.grades.includes(g))
 }
@@ -329,14 +329,14 @@ export function crewEligible(h) {
 
 export const UNSERVED_REASON = { capacity: '차량 부족', noCompatibleVehicle: '호환 차량 없음', noHelper: '도우미 부족', noShelter: '안전한 대피소 없음', noShelterRoom: '대피소 자리 부족' }
 
-// 사람별 목적지 시설 코드(GPT 3차 확인 R6). 배정 때 정한 목적지를 먼저 쓰고, 없으면 회차 목적지가 하나일 때 그것을, 그다음 마을 기본 대피소를 쓴다
+// 사람별 목적지 시설 코드. 배정 때 정한 목적지를 먼저 쓰고, 없으면 회차 목적지가 하나일 때 그것을, 그다음 마을 기본 대피소를 쓴다
 export function personDest(code, trip, ctx) {
   if (ctx?.dest?.[code]) return ctx.dest[code]
   if (trip?.shelters?.length === 1) return trip.shelters[0]
   return ctx?.vmap?.[trip?.village]?.shelterCode || null
 }
 
-// 재배정할 수 없는 이유(GPT 3차 확인 R6). 대피소 자리가 없어 처음부터 뺀 사람과 목적지가 정해지지 않은 사람은 재배정하지 않는다
+// 재배정할 수 없는 이유. 대피소 자리가 없어 처음부터 뺀 사람과 목적지가 정해지지 않은 사람은 재배정하지 않는다
 export function reassignBlock(code, ctx) {
   if (!ctx) return 'noContext'
   if ((ctx.preUnserved || []).some((u) => u.personCode === code && u.reason === 'noShelterRoom')) return 'noShelterRoom'
@@ -344,5 +344,5 @@ export function reassignBlock(code, ctx) {
   return null
 }
 
-// 불가로 답한 도우미(GPT 3차 확인 R7). 화면 보고(ackOverride)와 훈련 응답 계획(ackPlan) 둘 다 본다
+// 불가로 답한 도우미. 화면 보고(ackOverride)와 훈련 응답 계획(ackPlan) 둘 다 본다
 export const helperDeclined = (code, ackOverride = {}, ackPlan = {}) => ackOverride[code]?.answer === 'decline' || ackPlan[code]?.answer === 'decline'

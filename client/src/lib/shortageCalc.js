@@ -61,7 +61,7 @@ export function scenarioArrivals(scenario, villages, t0) {
   return out
 }
 
-// 평시 계산과 발령 배정이 함께 쓰는 차량 목록: 시간대, 가용률, 추가 협약 차량을 같은 방식으로 적용(GPT 검토 S1)
+// 평시 계산과 발령 배정이 함께 쓰는 차량 목록: 시간대, 가용률, 추가 협약 차량을 같은 방식으로 적용
 export function calcVehicles(vehicles, scenario) {
   return withExtra(bandVehicles(vehicles, scenario), scenario?.extraVehicles)
 }

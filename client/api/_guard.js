@@ -1,4 +1,4 @@
-// _guard.js 서버 함수 접근 제한(GPT 검토 S6, S7, 재검토 R1, R2).
+// _guard.js 서버 함수 접근 제한.
 // 시안 단계의 서버 확인 방식:
 //   1. 시연 코드(서버 환경변수 MIRI_DEMO_CODE)를 /api/session 에 내면 서버가 서명 쿠키를 발급한다.
 //      쿠키 값은 만료 시각과 HMAC-SHA256 서명(서버 환경변수 MIRI_SESSION_SECRET)이라 서버 비밀값 없이는 만들 수 없다.
@@ -104,7 +104,7 @@ export async function incr(key, ttlSec) {
   }
 }
 
-// AI 호출 상한 전용. 공유 저장소가 없거나 오류면 인스턴스 메모리로 돌아가지 않고 실패를 알린다(GPT 3차 확인 R2).
+// AI 호출 상한 전용. 공유 저장소가 없거나 오류면 인스턴스 메모리로 돌아가지 않고 실패를 알린다.
 // 서버 인스턴스마다 따로 세면 전체 합계 상한이 인스턴스 수만큼 늘어나기 때문이다
 export class StoreUnavailable extends Error { constructor(m) { super(m); this.code = 'NO_LIMIT_STORE' } }
 export async function incrShared(key, ttlSec) {

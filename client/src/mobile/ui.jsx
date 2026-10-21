@@ -166,7 +166,7 @@ export function Chip({ selected, tone, onClick, children, ...rest }) {
 }
 
 // 세그먼트(iOS segmented, M3 segmented button). 단일 선택 radiogroup.
-// radio 묶음 방향키 이동과 roving tabindex(GPT 9차 M7). 선택된 항목만 Tab 으로 들어가고 화살표로 옮기며 바로 고른다
+// radio 묶음 방향키 이동과 roving tabindex. 선택된 항목만 Tab 으로 들어가고 화살표로 옮기며 바로 고른다
 export function radioProps(values, current, onChange, value) {
   const sel = values.includes(current) ? current : values[0]
   return {
@@ -216,7 +216,7 @@ export function Spinner({ label = '불러오는 중' }) {
 }
 
 // 덮개 공통: Esc 닫기, 첫 입력 포커스, Tab 순환(포커스 가두기), 배경 inert, 닫은 뒤 원래 위치로 포커스.
-// GPT 8차 H2: onClose 는 ref 로 보관하고 효과는 열림 전환에만 실행한다(입력할 때마다 첫 칸으로 포커스가 돌아가던 문제).
+// onClose 는 ref 로 보관하고 효과는 열림 전환에만 실행한다(입력할 때마다 첫 칸으로 포커스가 돌아가던 문제).
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 export function trapTab(e, root) {
   if (e.key !== 'Tab' || !root) return false
@@ -399,7 +399,7 @@ export function FilledInput({className='', type='text', ...props}) {
 // iOS: 키트 'Date and time - Collapsed'(30:53803) 알약을 누르면 'Date and time - Pickers' Inline(51:56014) 카드가 시트로 열린다. 휠 없음.
 // Android: M3 키트 'Keyboard picker'(52949:28053) 24시간 입력형.
 const WEEK = ['일', '월', '화', '수', '목', '금', '토']
-// 날짜 격자: 행(row) 구조와 이동 가능한 칸 하나(roving tabindex). 좌우 하루, 위아래 한 주, Home과 End 주의 처음과 끝, PageUp과 PageDown 이전과 다음 달, Enter와 Space 선택(GPT 11차 L1)
+// 날짜 격자: 행(row) 구조와 이동 가능한 칸 하나(roving tabindex). 좌우 하루, 위아래 한 주, Home과 End 주의 처음과 끝, PageUp과 PageDown 이전과 다음 달, Enter와 Space 선택
 export function calendarKeyMove(date, key) {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate())
   const shiftMonth = (k) => { const last = new Date(d.getFullYear(), d.getMonth() + k + 1, 0).getDate(); return new Date(d.getFullYear(), d.getMonth() + k, Math.min(d.getDate(), last)) }
@@ -464,7 +464,7 @@ function IosInlineCalendar({ day, onDay }) {
     </div>
   )
 }
-// 시와 분 칸: Tab 외에도 시 칸 끝에서 오른쪽 방향키, 분 칸 처음에서 왼쪽 방향키로 옮겨 가고, 시 두 자리를 치면 분 칸으로 넘어간다(GPT 11차 L1)
+// 시와 분 칸: Tab 외에도 시 칸 끝에서 오른쪽 방향키, 분 칸 처음에서 왼쪽 방향키로 옮겨 가고, 시 두 자리를 치면 분 칸으로 넘어간다
 function DigitPair({ hour, minute, setHour, setMinute, inputProps, className, onEnter }) {
   const hRef = useRef(null)
   const mRef = useRef(null)

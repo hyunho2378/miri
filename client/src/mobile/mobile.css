@@ -163,7 +163,7 @@
 .mob-btn.block { width: 100%; }
 .mob-btn.size-sm { min-height: var(--m-btn-sm-h); padding: 0 16px; font-size: var(--t-sub); }
 .mob-btn.size-sm::after { content: ''; position: absolute; inset: calc((var(--m-touch) - var(--m-btn-sm-h)) / -2) 0; }
-/* GPT 8차 M5: 작은 버튼은 실제 누르는 영역을 터치 최소값으로 두고 보이는 면만 작게(overflow 로 잘리지 않게) */
+/* 작은 버튼은 실제 누르는 영역을 터치 최소값으로 두고 보이는 면만 작게(overflow 로 잘리지 않게) */
 .mob-btn.size-sm { min-height: var(--m-touch); background-clip: content-box; padding-top: calc((var(--m-touch) - var(--m-btn-sm-h)) / 2); padding-bottom: calc((var(--m-touch) - var(--m-btn-sm-h)) / 2); overflow: visible; }
 .mob-btn.v-filled { background: var(--m-blue); color: var(--m-on-primary); }
 .mob-btn.v-filled:active { background: var(--m-blue-strong); }

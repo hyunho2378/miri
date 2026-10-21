@@ -157,7 +157,7 @@ export default async function handler(req, res) {
   if (!redis) return fail(res, 503, 'NO_STORE', '저장소 미연결. UPSTASH_REDIS_REST_URL 과 UPSTASH_REDIS_REST_TOKEN 설정 필요')
   const q = req.query || {}
   // 공개 경로는 두 가지뿐이다: 설문지 조회(GET, public=1, id, action 없음)와 응답 제출(POST, action=submit).
-  // 그 밖의 조회(목록, 항목, 설문 응답), 저장, 삭제는 서버가 발급한 서명 쿠키가 있어야 처리한다(GPT 재검토 R1)
+  // 그 밖의 조회(목록, 항목, 설문 응답), 저장, 삭제는 서버가 발급한 서명 쿠키가 있어야 처리한다
   const kind = routeKind(req.method, q)
   const isPublicForm = kind === 'publicForm'
   const publicSubmit = kind === 'publicSubmit'

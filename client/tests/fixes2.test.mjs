@@ -1,4 +1,4 @@
-// node tests/fixes2.test.mjs GPT 재검토(2026. 10. 20.) 필수 수정 7건의 회귀 시험. 외부 호출은 모두 모의 fetch
+// node tests/fixes2.test.mjs 서버 요청 검사 회귀 시험. 외부 호출은 모두 모의 fetch
 import assert from 'node:assert/strict'
 
 let n = 0

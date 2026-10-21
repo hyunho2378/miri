@@ -15,7 +15,7 @@ const DEMO = [
   { role: 'dong', desc: '망상동 명부 관리, 서류 읽기, 부족분 계산, 배정 확인을 처리합니다.' }
 ]
 
-// 시연 코드: AI 판독과 문서함 서버 저장을 쓰려면 서버가 발급하는 서명 쿠키가 필요하다(GPT 재검토 R1)
+// 시연 코드: AI 판독과 문서함 서버 저장을 쓰려면 서버가 발급하는 서명 쿠키가 필요하다
 function DemoCode() {
   const [code, setCode] = useState('')
   const [state, setState] = useState({ active: false, checked: false, error: '' })

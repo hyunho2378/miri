@@ -34,7 +34,7 @@ export function freshness(kind, data, now = Date.now()) {
   const rule = MAX_LAG_MIN[kind]
   if (!rule) return { state: 'ok', label: asOfText ? `${basis} ${asOfText}` : '' }
   const t = Date.parse(data.asOf || '')
-  // GPT 5차 M2: 기준 시각이 없거나 미래 시각이면 정상으로 보지 않는다
+  // 기준 시각이 없거나 미래 시각이면 정상으로 보지 않는다
   if (Number.isNaN(t)) return { state: 'unknown', label: `자료 기준 시각 없음, 조회 ${fmtKst(data.fetchedAt)}` }
   if (t > now + 10 * 60000) return { state: 'unknown', label: `기준 시각 확인 필요(${asOfText}, 조회 시각보다 늦음)` }
   const lagMin = Math.max(0, Math.round((now - t) / 60000))

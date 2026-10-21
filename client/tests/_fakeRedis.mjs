@@ -1,6 +1,6 @@
 // 시험용 Upstash 대신 메모리 저장소. api/dispatch.js 의 Lua 스크립트 두 개(APPEND_LUA, SAVE_LUA)는 같은 동작을 JS 로 한 번에 실행해
 // 원자 처리를 흉내 낸다(JS 는 한 스레드라 중간에 다른 요청이 끼지 않음). fail 옵션으로 장애를 재현한다.
-// fail.beforeAppend 는 Lua 실행 직전에 멈추는 지점으로, 실제 Redis 에서 스크립트가 늦게 도착한 경우를 흉내 낸다(GPT 6차 H3 경합 재현).
+// fail.beforeAppend 는 Lua 실행 직전에 멈추는 지점으로, 실제 Redis 에서 스크립트가 늦게 도착한 경우를 흉내 낸다.
 import { APPEND_LUA, CLOSE_LUA, SAVE_LUA } from '../api/dispatch.js'
 
 export function fakeRedis(fail = {}) {

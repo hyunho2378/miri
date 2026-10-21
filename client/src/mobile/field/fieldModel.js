@@ -92,7 +92,7 @@ export function unservedByReason(d) {
   return { total: rows.length, reasons: Object.entries(out).map(([k, n]) => ({ key: k, label: UNSERVED_REASON[k] || k, n })).sort((a, b) => b.n - a.n) }
 }
 
-// GPT 8차 M3: 배정됐지만 실패로 보고된 대상자(아직 소방 인계 전). 미배정 요청과 따로 묶는다
+// 배정됐지만 실패로 보고된 대상자(아직 소방 인계 전). 미배정 요청과 따로 묶는다
 // F1 과 같은 기준: 보고된 실패와 훈련 진행상 실패(failPlan)를 모두 센다(persons, vnow 를 주면 F1 집계와 같은 함수)
 export function failedPending(d, persons = null, vnow = null) {
   const ev = d?.events || {}
@@ -122,7 +122,7 @@ export function deadlineTag(v, vnow) {
 export const stepLabel = (s) => STEP_LABEL[s] || (s === 'unassigned' ? '미배정' : s)
 export const hm = (ms) => { if (!ms) return '-'; const t = new Date(ms); return `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}` }
 
-// GPT 13차 H: 동 담당자는 상태, 도우미, 소방 화면도 자기 동 마을 기준으로 센다(마을, 대상자 화면과 같은 범위).
+// 동 담당자는 상태, 도우미, 소방 화면도 자기 동 마을 기준으로 센다(마을, 대상자 화면과 같은 범위).
 // 화면 범위 제한이며 서버 강제가 아니다. 실서버는 서버 세션에 역할과 동을 담아 조회 응답에서 거르는 단계가 필요하다.
 export function scopeDispatch(d, persons, codes) {
   if (!codes || !d?.result) return { d, persons: codes ? persons.filter((p) => codes.has(p.villageCode)) : persons }

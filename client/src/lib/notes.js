@@ -61,7 +61,7 @@ export async function readNote({ text, file, current, source }) {
   if (!body || typeof body.changed !== 'boolean' || typeof body.transcript !== 'string') {
     throw Object.assign(new Error('판독 결과 형식 오류'), { code: 'BAD_RESPONSE' })
   }
-  // 글 소식은 담당자가 입력한 원문 자체를 대조 기준으로 쓴다. AI가 돌려준 전사문은 음성일 때만 쓴다(GPT 검토 M2)
+  // 글 소식은 담당자가 입력한 원문 자체를 대조 기준으로 쓴다. AI가 돌려준 전사문은 음성일 때만 쓴다
   return verifyNote(file ? (body.transcript || '') : (text || ''), body, current)
 }
 

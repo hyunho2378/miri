@@ -41,7 +41,7 @@ export default function RemoteHelper({ token }) {
   }, [send, scope])
 
   const report = (item) => {
-    // 보고 시각은 발령 가상 시계 기준(담당자 화면 기록과 같은 시간 축, GPT 5차 M1)
+    // 보고 시각은 발령 가상 시계 기준(담당자 화면 기록과 같은 시간 축)
     const it = enqueue(scope, { ...item, at: Math.round(clockNow(data?.brief?.clock)) })
     setLocal((l) => [...l, it])
     setPending(readQueue(scope).length)

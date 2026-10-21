@@ -81,7 +81,7 @@ export function telOf(text) {
 export function mobilePathFor(token, { width, search = '' } = {}) {
   if (!token || width == null || width > 600) return null
   if (/[?&]view=desktop\b/.test(search)) return null
-  // GPT 8차 L1: 플랫폼 지정(?platform=ios|android)은 넘겨 준다. 다른 검색값은 버림
+  // 플랫폼 지정(?platform=ios|android)은 넘겨 준다. 다른 검색값은 버림
   const pf = String(search).match(/[?&]platform=(ios|android)\b/)
   return `/m/h/${encodeURIComponent(token)}${pf ? `?platform=${pf[1]}` : ''}`
 }

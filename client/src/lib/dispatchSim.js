@@ -42,7 +42,7 @@ export function stepOf(d, code, vnow, stops) {
   const stop = stops[code]
   if (!stop) return null
   if (d.status !== 'sent') return 'wait'
-  // 시간 경과만으로 완료 처리하는 자동 진행은 훈련 시연에만 쓴다(GPT 검토 S5)
+  // 시간 경과만으로 완료 처리하는 자동 진행은 훈련 시연에만 쓴다
   if (d.kind && d.kind !== 'drill') return 'wait'
   if (stop.helperCodes.includes(d.manualHelper)) return 'wait'
   const fail = d.failPlan[code]

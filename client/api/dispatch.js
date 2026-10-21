@@ -7,7 +7,7 @@ import { cleanPreference } from '../src/lib/helperConsent.js'
 // 도우미(서명 링크 토큰 t, 세션 불필요)
 //   GET  ?action=helper&t=  본인 배정만 조회
 //   POST ?action=report&t=  { key, type: ack|step, ... } 수락, 불가, 단계 보고. key 로 중복 저장 방지
-// 훈련 발령만 저장한다(GPT 검토 S5 유지). 저장소(Upstash)가 없으면 503.
+// 훈련 발령만 저장한다. 저장소(Upstash)가 없으면 503.
 import { createHash, randomBytes } from 'node:crypto'
 import { guard, incr, sameSite, sharedStore } from './_guard.js'
 import { HELPER_TTL_SEC, signHelperToken, validDispatchId, validHelperCode, verifyHelperToken } from './_helperToken.js'
@@ -21,14 +21,14 @@ const parse = (b) => { if (typeof b === 'string') { try { return JSON.parse(b) }
 const K = {
   owner: (sid) => `miri:dsp:o:${sid}`,
   state: (d) => `miri:dsp:s:${d}`,
-  assign: (d) => `miri:dsp:a:${d}`, // 현재 배정 전체(도우미별 요약). 저장 때 통째로 바꿔 빠진 도우미의 권한이 남지 않게 함(GPT 5차 H3)
+  assign: (d) => `miri:dsp:a:${d}`, // 현재 배정 전체(도우미별 요약). 저장 때 통째로 바꿔 빠진 도우미의 권한이 남지 않게 함
   rev: (d) => `miri:dsp:v:${d}`,
   idOwner: (d) => `miri:dsp:i:${d}`,
-  closed: (d) => `miri:dsp:c:${d}`, // 종료 표시. 늦게 도착한 저장 요청을 거부(GPT 5차 H4)
+  closed: (d) => `miri:dsp:c:${d}`, // 종료 표시. 늦게 도착한 저장 요청을 거부
   reports: (d) => `miri:dsp:r:${d}`,
-  members: (d) => `miri:dsp:m:${d}`, // 도우미별 현재 배정 대상자(",P-1,P-2,"). 보고 저장 Lua 가 같은 원자 실행 안에서 확인(GPT 6차 H3 경합)
+  members: (d) => `miri:dsp:m:${d}`, // 도우미별 현재 배정 대상자(",P-1,P-2,"). 보고 저장 Lua 가 같은 원자 실행 안에서 확인
   key: (d, h, k) => `miri:dsp:k:${d}:${h}:${k}`,
-  // 도우미 참여 동의와 역할은 발령과 수명이 달라 세션 단위로 따로 둔다. 발령 종료 때 지우지 않는다(GPT 12차)
+  // 도우미 참여 동의와 역할은 발령과 수명이 달라 세션 단위로 따로 둔다. 발령 종료 때 지우지 않는다
   pref: (sid) => `miri:pref:${sid}`,
   prefSeq: (sid) => `miri:pref:n:${sid}`
 }
@@ -59,10 +59,10 @@ export function cleanCare(care) {
   return { symptomAt: t, observation: observation || undefined, action: action || undefined }
 }
 
-// GPT 5차 H2: 중복 확인과 보고 추가를 한 번의 원자 연산으로. 같은 key 에 다른 내용이면 충돌로 알린다.
-// GPT 6차 H3: 권한 검사와 저장 사이에 도우미 교체가 끼어들 수 있어, 종료 표시와 현재 배정(도우미, 대상자)을 같은 원자 실행 안에서 다시 확인한다.
+// 중복 확인과 보고 추가를 한 번의 원자 연산으로. 같은 key 에 다른 내용이면 충돌로 알린다.
+// 권한 검사와 저장 사이에 도우미 교체가 끼어들 수 있어, 종료 표시와 현재 배정(도우미, 대상자)을 같은 원자 실행 안에서 다시 확인한다.
 // KEYS 1 중복키, 2 보고 목록, 3 현재 배정 대상자 해시, 4 종료 표시, 5 동의 상태 해시, 6 동의 순번. ARGV 1 보고, 2 해시, 3 TTL, 4 최대 길이, 5 도우미 코드, 6 대상자 코드(수락과 불가는 빈 값), 7 동의 값(동의 보고가 아니면 빈 값), 8 동의 TTL
-// GPT 12차: 동의 보고는 보고 목록 추가와 같은 원자 실행 안에서 동의 상태 해시에도 순번을 붙여 남긴다. 종료 표시 전에 접수된 동의는 종료와 상관없이 남고, 종료 뒤 보고는 거부된다
+// 동의 보고는 보고 목록 추가와 같은 원자 실행 안에서 동의 상태 해시에도 순번을 붙여 남긴다. 종료 표시 전에 접수된 동의는 종료와 상관없이 남고, 종료 뒤 보고는 거부된다
 // 반환 [1, 목록 길이] 새로 저장, [0, 기존 해시] 이미 저장, [0, 'closed'] 종료, [0, 'gone'] 현재 배정에 없음
 export const APPEND_LUA = `
 if redis.call('EXISTS', KEYS[4]) == 1 then return {0, 'closed'} end
@@ -82,7 +82,7 @@ if redis.call('SET', KEYS[1], ARGV[2], 'NX', 'EX', ARGV[3]) then
   return {1, n}
 end
 return {0, redis.call('GET', KEYS[1])}`
-// GPT 5차 H4: 종료 표시, 발령 ID 소유 세션, 저장 순번을 한 번에 검사하고 저장. 반환 [1, 'ok'] 또는 [0, 사유]
+// 종료 표시, 발령 ID 소유 세션, 저장 순번을 한 번에 검사하고 저장. 반환 [1, 'ok'] 또는 [0, 사유]
 // KEYS 7 현재 배정 대상자 해시를 통째로 바꾼다(ARGV 7부터 도우미 코드, ',대상자,' 쌍)
 export const SAVE_LUA = `
 if redis.call('EXISTS', KEYS[1]) == 1 then return {0, 'closed'} end
@@ -99,7 +99,7 @@ redis.call('DEL', KEYS[7])
 for i = 7, #ARGV - 1, 2 do redis.call('HSET', KEYS[7], ARGV[i], ARGV[i + 1]) end
 if #ARGV >= 8 then redis.call('EXPIRE', KEYS[7], ARGV[6]) end
 return {1, 'ok'}`
-// GPT 12차: 종료 표시와 발령 기록 삭제를 한 번에. 보고 추가 Lua 와 섞이지 않아 조회와 삭제 사이에 접수된 보고를 잃지 않는다
+// 종료 표시와 발령 기록 삭제를 한 번에. 보고 추가 Lua 와 섞이지 않아 조회와 삭제 사이에 접수된 보고를 잃지 않는다
 // KEYS 1 종료 표시, 2 상태, 3 배정, 4 대상자 해시, 5 보고 목록, 6 순번. ARGV 1 종료 표시 TTL
 export const CLOSE_LUA = `
 redis.call('SET', KEYS[1], '1', 'EX', ARGV[1])
@@ -122,7 +122,7 @@ export function cleanReport(body, brief, h) {
   if (body.type === 'ack') {
     if (!ANSWERS.has(body.answer)) return null
     const reason = typeof body.reason === 'string' ? body.reason.slice(0, 40) : undefined
-    const memo = typeof body.memo === 'string' && body.memo.trim() ? body.memo.slice(0, 200) : undefined // GPT 8차 M1
+    const memo = typeof body.memo === 'string' && body.memo.trim() ? body.memo.slice(0, 200) : undefined
     return { key, type: 'ack', helper: h, answer: body.answer, reason, ...(memo ? { memo } : {}), at }
   }
   if (body.type === 'step') {
@@ -137,7 +137,7 @@ export function cleanReport(body, brief, h) {
   return null
 }
 
-// GPT 13차 M: 조회 경로(get, lrange, hgetall, del)의 저장소 예외도 미처리 500 대신 503 STORE_ERROR 로 돌려준다.
+// 조회 경로(get, lrange, hgetall, del)의 저장소 예외도 미처리 500 대신 503 STORE_ERROR 로 돌려준다.
 // 화면은 503 을 받으면 이전 값을 유지하고 다시 시도한다
 export default async function handler(req, res) {
   try {
@@ -161,7 +161,7 @@ async function handle(req, res) {
     if (!r) return fail(res, 503, 'NO_STORE', '보고 저장소에 연결되지 않았습니다. 잠시 뒤 다시 시도해 주십시오')
     const active = parse(await r.get(K.state(tk.d)))
     if (!active || active.status !== 'sent' || active.kind !== 'drill') return fail(res, 404, 'CLOSED', '종료되었거나 전송되지 않은 배정입니다')
-    // 현재 배정 기준으로 다시 확인. 교체되어 빠진 도우미의 링크는 조회와 보고 모두 막힘(GPT 5차 H3)
+    // 현재 배정 기준으로 다시 확인. 교체되어 빠진 도우미의 링크는 조회와 보고 모두 막힘
     const assign = parse(await r.get(K.assign(tk.d)))
     const brief = assign?.briefs?.[tk.h]
     if (!brief) return fail(res, 404, 'NO_ASSIGNMENT', '이 링크의 배정이 종료되었거나 다른 도우미로 바뀌었습니다')
@@ -201,8 +201,8 @@ async function handle(req, res) {
   const sid = req.miriSession.id
 
   if (req.method === 'GET' && action === 'state') {
-    // 도우미 동의 상태는 진행 중인 발령이 없어도 돌려준다(발령 종료 뒤 새로고침 복원, GPT 12차)
-    // 동의 상태 조회 실패도 빈 값으로 넘기지 않고 503(화면은 이전 값 유지 뒤 재시도, GPT 13차 재확인)
+    // 도우미 동의 상태는 진행 중인 발령이 없어도 돌려준다(발령 종료 뒤 새로고침 복원)
+    // 동의 상태 조회 실패도 빈 값으로 넘기지 않고 503(화면은 이전 값 유지 뒤 재시도)
     const prefs = parsePrefs(await r.hgetall(K.pref(sid)))
     const own = await r.get(K.owner(sid))
     if (!own || !validDispatchId(own) || (await r.get(K.closed(own)))) return res.status(200).json({ state: null, prefs })
@@ -250,8 +250,8 @@ async function handle(req, res) {
     if (validDispatchId(id)) {
       const o = await r.get(K.idOwner(id))
       if (o && String(o) !== sid) return fail(res, 403, 'OWNER', '다른 세션의 발령입니다')
-      // 종료 표시를 먼저 남겨 진행 중이던 저장 요청이 늦게 와도 되살리지 못하게 함(GPT 5차 H4)
-      // 종료 표시와 삭제는 한 번의 원자 실행. 도우미 동의 상태(K.pref)는 지우지 않는다(GPT 12차)
+      // 종료 표시를 먼저 남겨 진행 중이던 저장 요청이 늦게 와도 되살리지 못하게 함
+      // 종료 표시와 삭제는 한 번의 원자 실행. 도우미 동의 상태(K.pref)는 지우지 않는다
       try {
         await r.eval(CLOSE_LUA, [K.closed(id), K.state(id), K.assign(id), K.members(id), K.reports(id), K.rev(id)], [String(HELPER_TTL_SEC)])
       } catch {

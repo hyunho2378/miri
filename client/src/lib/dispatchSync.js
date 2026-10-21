@@ -43,7 +43,7 @@ export function briefsOf(d, { scenario, villages = [], officerContact = '', pers
       ...helperBrief({ result: d.result, me: h, scenario, villages, hazardLabel: hz }),
       notes: checks ? tripCheckNotes(mergeChecks(Object.values(checks))).map((n) => n.text) : [],
       drill: d.kind === 'drill', officerContact: officerContact || '발령 담당자, 문자 회신',
-      // 도우미 보고 시각을 발령 가상 시계로 맞추기 위한 기준(GPT 5차 M1). 배속을 바꾸면 다시 저장된다
+      // 도우미 보고 시각을 발령 가상 시계로 맞추기 위한 기준. 배속을 바꾸면 다시 저장된다
       clock: { realStart: d.realStart, vStart: d.vStart, speed: d.speed },
       trips: [...a.trips].sort((x, y) => x.index - y.index).map((t) => ({
         index: t.index, village: label(t.village), grade: t.grade, personCodes: t.personCodes,
@@ -70,7 +70,7 @@ export const saveRemote = (d, ctx, meta = {}) => call('POST', 'save', { dispatch
 export const loadRemote = () => call('GET', 'state')
 export const clearRemote = (dispatchId) => call('DELETE', '', null, dispatchId ? { dispatchId } : {})
 
-// 발령 ID 는 화면이 정한다(GPT 5차 H4). 서버 형식 /^D[0-9a-z]{6,20}$/
+// 발령 ID 는 화면이 정한다. 서버 형식 /^D[0-9a-z]{6,20}$/
 export const newDispatchId = (now = Date.now()) => `D${now.toString(36)}${Math.random().toString(16).slice(2, 8).padEnd(6, '0')}`
 // 도우미 화면의 보고 시각. 발령 가상 시계 기준(담당자 화면의 보고와 같은 시간 축)
 export const clockNow = (clock, real = Date.now()) => virtualAt(clock, real)
@@ -79,12 +79,12 @@ export const clockNow = (clock, real = Date.now()) => virtualAt(clock, real)
 export async function helperGet(token) {
   const r = await fetch(`${API}?action=helper&t=${encodeURIComponent(token)}`, { credentials: 'same-origin' })
   const j = await r.json().catch(() => ({}))
-  // GPT 8차 M2: 서버 오류 코드(CLOSED, NO_ASSIGNMENT 등)를 버리지 않는다
+  // 서버 오류 코드(CLOSED, NO_ASSIGNMENT 등)를 버리지 않는다
   if (!r.ok) throw Object.assign(new Error(j?.error?.message || `HTTP ${r.status}`), { status: r.status, code: j?.error?.code || null })
   return j
 }
 
-// 전송 결과 분류(GPT 8차 H1). ok: 저장됨(중복 포함) / retry: 다시 보냄(429, 5xx, 네트워크) / reject: 다시 보내도 받지 않음
+// 전송 결과 분류. ok: 저장됨(중복 포함) / retry: 다시 보냄(429, 5xx, 네트워크) / reject: 다시 보내도 받지 않음
 export function classifySend(status, code) {
   if (status >= 200 && status < 300) return 'ok'
   if (status === 429 || status >= 500 || !status) return 'retry'

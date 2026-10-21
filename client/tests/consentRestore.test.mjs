@@ -1,4 +1,4 @@
-// node tests/consentRestore.test.mjs GPT 11차 M1, 12차: 도우미 참여 동의와 철회는 발령과 별도 수명으로 서버에 남고,
+// node tests/consentRestore.test.mjs 도우미 참여 동의와 철회는 발령과 별도 수명으로 서버에 남고,
 // 종료 직전 접수된 철회를 잃지 않으며, 늦게 도착한 옛 응답이 최신 동의를 되돌리지 못해야 한다
 import assert from 'node:assert/strict'
 process.env.MIRI_SESSION_SECRET = 'test-secret-0123456789abcdef'

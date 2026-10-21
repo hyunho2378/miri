@@ -25,7 +25,7 @@ export const fmtAt = (s) => {
   return m ? `${m[1]}. ${Number(m[2])}. ${Number(m[3])}. ${m[4]}시 분석` : s
 }
 
-// 공통 조회 훅(자료 종류별 보관 기한과 다시 읽기, GPT 5차 M3)
+// 공통 조회 훅(자료 종류별 보관 기한과 다시 읽기)
 export const useFireRisk = () => useOpenData('fire')
 export const useWarning = () => useOpenData('warning')
 export const useWind = () => useOpenData('wind')

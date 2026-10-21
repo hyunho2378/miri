@@ -479,7 +479,7 @@ export function FieldIntakePage() {
   const [state, setState] = useState({ phase: 'idle' })
   const run = async (file) => {
     if (!file) return
-    const req = { village: villageCode } // GPT 8차 H3와 같은 원인: 판독 중 마을을 바꿔도 요청 당시 마을로 저장
+    const req = { village: villageCode } // 판독 중 마을을 바꿔도 요청 당시 마을로 저장
     setState({ phase: 'loading', req })
     try {
       const page = await readDocument(file)
@@ -505,7 +505,7 @@ export function FieldIntakePage() {
       <main id="main" className="mob-content">
         <List label="판독 전 확인">
           <VillagePicker villages={data.villages.filter((v) => scope.inScope(v.code))} value={villageCode} onChange={setVillageCode} />
-          {/* 행 전체가 체크 영역(GPT 9차 M5): label 로 감싸 최소 터치 높이 이상, 글자를 눌러도 체크 */}
+          {/* 행 전체가 체크 영역: label 로 감싸 최소 터치 높이 이상, 글자를 눌러도 체크 */}
           <li>
             <label className="mob-row tall mob-check-row">
               <span className="mob-row-main">
@@ -561,7 +561,7 @@ export function FieldNotePage() {
   const reqSeq = useRef(0)
   const send = async (file) => {
     if (!person) { toast('대상자 번호 확인 필요'); return }
-    // GPT 8차 H3: 요청 시작 시 대상자, 마을, 현재 값, 방식, 글을 한 요청 객체로 고정. 결과와 저장 모두 이 객체만 사용
+    // 요청 시작 시 대상자, 마을, 현재 값, 방식, 글을 한 요청 객체로 고정. 결과와 저장 모두 이 객체만 사용
     const req = { id: ++reqSeq.current, personCode: person.code, villageCode: person.villageCode, current: { grade: person.grade, tags: [...(person.tags || [])] }, mode, text: text.trim() }
     setState({ phase: 'loading', req })
     try {

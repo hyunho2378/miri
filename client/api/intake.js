@@ -65,7 +65,7 @@ export function segment(masked) {
   return segs
 }
 
-// 요청 검사(GPT 재검토 R4, R9): 형식, 크기, 가상 자료 확인
+// 요청 검사: 형식, 크기, 가상 자료 확인
 export function validateRequest(body) {
   if (!body) return { status: 400, code: 'BAD_JSON', error: '요청 형식 오류' }
   const { mimeType, data, virtualOnly } = body
@@ -82,7 +82,7 @@ export function validateRequest(body) {
   return { mimeType, data, buf }
 }
 
-// 모델 응답 검사(GPT 재검토 R9). items 배열이 아니면 형식 오류로 멈추고, 항목마다 형식이 틀리면 그 항목은 없는 것으로 본다
+// 모델 응답 검사. items 배열이 아니면 형식 오류로 멈추고, 항목마다 형식이 틀리면 그 항목은 없는 것으로 본다
 export function itemsOf(out) {
   if (!out || typeof out !== 'object' || !Array.isArray(out.items)) throw Object.assign(new Error('분류 결과 형식 오류'), { code: 'BAD_MODEL_OUTPUT' })
   return out.items.filter((x) => x && typeof x === 'object' && !Array.isArray(x)).map((x) => ({
@@ -122,7 +122,7 @@ export function detectedPersonCount(masked) {
   return Math.max(0, ...declared, count(/순\s*번\s*[:：]?\s*\d+/g), count(/(?:대상자|성명|이름)\s*[:：]?\s*\[가림\]/g), masked.filter((l) => /^\s*\d{1,3}\s+\[가림\]/.test(l)).length)
 }
 
-// 한 사람 판정. 근거 문구가 그 구간 원문에 없으면 원래 문구를 남기고 실패로 표시해 담당자 확인으로 넘긴다(GPT 재검토 R3)
+// 한 사람 판정. 근거 문구가 그 구간 원문에 없으면 원래 문구를 남기고 실패로 표시해 담당자 확인으로 넘긴다
 export function judge(it, segText, personHint, box, free = false) {
   const quote = one(it?.quote)
   const base = { personHint, tags: [], quote, context: free ? undefined : segText, confidence: 'low', box }
@@ -146,11 +146,11 @@ export default async function handler(req, res) {
     const fields = await clovaOcr(data, mimeType)
     const lines = toLines(fields)
     const masked = maskLines(lines.map((l) => l.text))
-    // 가린 뒤에도 개인정보로 보이는 글자가 남으면 언어 모델에 보내지 않고 멈춘다(GPT 재검토 R4)
+    // 가린 뒤에도 개인정보로 보이는 글자가 남으면 언어 모델에 보내지 않고 멈춘다
     const left = residualPII(masked)
     if (left.length) return fail(res, 422, 'PII_REMAINS', `개인정보로 보이는 글자(${left.join(', ')})가 남아 AI 판독을 멈췄습니다. ${VIRTUAL_ONLY_MSG}`)
     const transcript = one(masked.join(' '))
-    // 글자를 하나도 못 읽었으면 언어 모델을 부르지 않고 확인 요청으로 돌려준다(GPT 3차 확인 R9)
+    // 글자를 하나도 못 읽었으면 언어 모델을 부르지 않고 확인 요청으로 돌려준다
     if (!transcript) return fail(res, 422, 'EMPTY_RESULT', '읽은 내용 없음. 담당자가 서류를 직접 확인해 주십시오')
     const size = imageSize(buf)
     const segs = segment(masked)
@@ -169,7 +169,7 @@ export default async function handler(req, res) {
       persons = fillMissing(items.map((it, k) => judge(it, transcript, `순번 ${k + 1}`, null, true)), items, masked)
     }
     persons = fillMissing(persons, [], masked)
-    // 읽은 내용이 없으면 성공으로 넘기지 않는다(GPT 3차 확인 R9)
+    // 읽은 내용이 없으면 성공으로 넘기지 않는다
     if (!transcript || !persons.length) return fail(res, 422, 'EMPTY_RESULT', '읽은 내용 없음. 담당자가 서류를 직접 확인해 주십시오')
     return res.status(200).json({ transcript, persons, engine: { ocr: 'CLOVA OCR', llm: HCX_MODEL, region: 'KR' } })
   } catch (e) {

@@ -97,7 +97,7 @@ export function useDemoModel() {
   }, [d, data, vnow])
 }
 
-// 실제 링크: 본인 배정만 서버에서 받고, 보고는 대기열에 먼저 넣은 뒤 보낸다(회신 R34, GPT 5차 H1)
+// 실제 링크: 본인 배정만 서버에서 받고, 보고는 대기열에 먼저 넣은 뒤 보낸다(회신 R34)
 export function useRemoteModel(token) {
   const scope = useMemo(() => String(token || '').split('.').slice(0, 2).join('.'), [token])
   const [res, setRes] = useState(null)
@@ -115,7 +115,7 @@ export function useRemoteModel(token) {
   }, [token, res])
   const [rejected, setRejected] = useState(() => readRejected(scope))
   const send = useCallback(async () => {
-    // GPT 8차 H1: 503, 429, 네트워크는 대기열에 남겨 다시 보냄. 종료, 교체, 만료는 화면 상태를 바꾸고 대기열은 보존.
+    // 503, 429, 네트워크는 대기열에 남겨 다시 보냄. 종료, 교체, 만료는 화면 상태를 바꾸고 대기열은 보존.
     // 그 밖의 영구 거부(400, 409)는 지우지 않고 '보내지 못한 보고'로 옮겨 사유를 보여 줌
     const r = await flush(scope, async (it) => {
       const res = await helperSendResult(token, it)

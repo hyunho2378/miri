@@ -1,4 +1,4 @@
-// node tests/fixes3.test.mjs GPT 3차 확인(2026. 10. 20.)이 남긴 4건(R2, R6, R7, R9)의 회귀 시험. 외부 호출은 모두 모의 fetch
+// node tests/fixes3.test.mjs 호출 상한, 목적지, 불가 응답, 빈 판독 회귀 시험. 외부 호출은 모두 모의 fetch
 import assert from 'node:assert/strict'
 
 let n = 0

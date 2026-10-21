@@ -72,7 +72,7 @@ export function citywideScenario({ id, name, villages, windowHours = 8, prepMinu
 }
 
 // 시나리오 범위 판정. affected 가 없으면(이전 형식) 모든 마을이 범위 안.
-// 빈 배열은 대피 대상 마을이 0곳이라는 뜻이므로 시 전체로 바꾸지 않는다(GPT 검토 M5)
+// 빈 배열은 대피 대상 마을이 0곳이라는 뜻이므로 시 전체로 바꾸지 않는다
 export function inScopeSet(scenario, villages) {
   return new Set(Array.isArray(scenario?.affected) ? scenario.affected : villages.map((v) => v.code))
 }
@@ -103,7 +103,7 @@ export function resolveVillages({ villages, persons, scenario, shelters = [], se
     }
     const eligible = v.drive.filter(([c]) => smap[c] && !(avoid && smap[c].villageCode && scope.has(smap[c].villageCode)))
     const room = (c) => smap[c].capacity - (load[c] || 0)
-    // 대피 대상 구역 밖에 쓸 수 있는 시설이 하나도 없으면 위험 구역 시설로 되돌아가지 않고 배정 불가로 둔다(GPT 검토 S3)
+    // 대피 대상 구역 밖에 쓸 수 있는 시설이 하나도 없으면 위험 구역 시설로 되돌아가지 않고 배정 불가로 둔다
     if (!eligible.length) {
       out[v.code] = { ...base, shelterCode: null, shelterParts: [], driveMin: null, roundTripMin: null, shelterNote: 'noSafeShelter' }
       continue
@@ -112,7 +112,7 @@ export function resolveVillages({ villages, persons, scenario, shelters = [], se
     let note = null
     if (!pick) {
       // 한 곳에 다 못 들어가면 남는 자리가 있는 가장 가까운 시설을 주 시설로 두고 나머지는 다음 시설로 나눈다.
-      // 남는 자리가 하나도 없으면 정원이 찬 시설로 보내지 않는다(GPT 재검토 R6)
+      // 남는 자리가 하나도 없으면 정원이 찬 시설로 보내지 않는다
       pick = eligible.find(([c]) => room(c) > 0)
       if (!pick) {
         out[v.code] = { ...base, shelterCode: null, shelterParts: [], shelterPartsDrive: [], shelterCap: 0, driveMin: null, roundTripMin: null, shelterNote: 'overflow' }
@@ -134,14 +134,14 @@ export function resolveVillages({ villages, persons, scenario, shelters = [], se
         const take = Math.min(left, Math.max(0, room(c)))
         if (take > 0) { load[c] = (load[c] || 0) + take; parts.push([c, take]); left -= take }
       }
-      // 시설 자리가 모자라 남는 인원은 정원이 찬 시설에 넣지 않고 배정하지 않는다(GPT 재검토 R6)
+      // 시설 자리가 모자라 남는 인원은 정원이 찬 시설에 넣지 않고 배정하지 않는다
       shelterCap = need - Math.max(0, left)
     } else {
       load[code] = (load[code] || 0) + need
       parts.push([code, need])
     }
     const tf = scenario?.travelFactor ?? 1
-    // 나눠 보내는 경우 회차마다 목적지가 다를 수 있으므로 가장 먼 목적지의 주행 시간으로 보수적으로 계산한다(GPT 검토 S3)
+    // 나눠 보내는 경우 회차마다 목적지가 다를 수 있으므로 가장 먼 목적지의 주행 시간으로 보수적으로 계산한다
     const driveOf = (c) => (v.drive.find(([x]) => x === c) || [c, min])[1]
     const farMin = parts.length ? Math.max(...parts.map(([c]) => driveOf(c))) : min
     const dm = Math.round(farMin * tf)

@@ -164,7 +164,7 @@ export function kstIso(v) {
 }
 
 // 자료 기준 시각을 고른다. 실시간 자료는 기관 입력이나 발표 시각, 목록형 자료는 조회 시각.
-// GPT 5차 M2: 실시간 자료에 기준 시각이 없으면 조회 시각으로 채우지 않고 비워 둔다(화면은 '기준 시각 없음'으로 표시).
+// 실시간 자료에 기준 시각이 없으면 조회 시각으로 채우지 않고 비워 둔다(화면은 '기준 시각 없음'으로 표시).
 // 응급실은 병원마다 입력 시각이 달라 가장 오래된 입력을 대표 시각으로 쓰고 병원별 시각도 함께 둔다.
 const REALTIME = new Set(['fire', 'warning', 'wind', 'er', 'alerts'])
 function stamp(kind, d) {
@@ -188,7 +188,7 @@ function stamp(kind, d) {
 // 출력 항목(공개 명세 기준, 승인 뒤 실제 응답으로 다시 확인): SN 일련번호, CRT_DT 생성일시, MSG_CN 내용,
 // RCPTN_RGN_NM 수신지역, EMRG_STEP_NM 긴급단계, DST_SE_NM 재해구분. 위험도는 판단하지 않고 공식 단계를 그대로 쓴다.
 export const ALERTS_APPLIED = '2026. 10. 20.'
-// GPT 5차 M4: 응답 구조가 다르면 '문자 없음'으로 숨기지 않고 오류로 알린다. 최근 7일 범위를 파서에서도 확인하고,
+// 응답 구조가 다르면 '문자 없음'으로 숨기지 않고 오류로 알린다. 최근 7일 범위를 파서에서도 확인하고,
 // 발송 시각을 읽지 못한 문자는 맨 뒤에 두고 표시한다.
 export function alertRows(j) {
   const cands = [j?.body, j?.body?.items?.item, j?.response?.body?.items?.item, j?.body?.item]

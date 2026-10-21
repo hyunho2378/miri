@@ -14,7 +14,7 @@ export function virtualAt(clock, real = Date.now()) {
 }
 export const vnowOfState = (d, real = Date.now()) => virtualAt(clockOf(d), real)
 // 발령 개시 뒤 경과 분(가상 시계 기준). issuedAt 이 없으면 0
-// 발령 개시 기준점: issuedAt(발령 개시 가상 시각). vStart 는 마지막 배속 변경 기준점이라 경과 시간 기준으로 쓰지 않는다(GPT 10차)
+// 발령 개시 기준점: issuedAt(발령 개시 가상 시각). vStart 는 마지막 배속 변경 기준점이라 경과 시간 기준으로 쓰지 않는다
 export const issuedOf = (d) => d?.issuedAt || d?.vStart || 0
 export function elapsedMsOf(d, vnow) {
   const start = issuedOf(d)
