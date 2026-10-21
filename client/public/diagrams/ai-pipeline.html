@@ -1620,8 +1620,7 @@ function pushHistoryIfChanged(){
   }
 }
 async function writeSerialized(handle){ var w=await handle.createWritable(); await w.write(serialize()); await w.close(); }
-/* 클로드 아티팩트 안에서 열린 경우: 페이지가 자기 새 버전을 발행하는 런타임(claude.use('artifact'))이 있으면 파일 대신 그쪽으로 저장한다.
-   일반 브라우저에는 window.claude가 없으므로 즉시 null. 결과는 한 번만 확인해 둔다 */
+/* 편집 환경 안에서 열린 경우 그 환경의 저장 기능을 쓴다. 일반 브라우저에서는 즉시 null. 결과는 한 번만 확인해 둔다 */
 var artifactNs;
 function artifactApi(){
   if(artifactNs!==undefined) return Promise.resolve(artifactNs);

@@ -1,4 +1,4 @@
-// api/session.js 시연 세션(GPT 재검토 R1).
+// api/session.js 시연 세션.
 // POST { code } → 시연 코드가 맞으면 서명 쿠키 발급. GET → { active }. DELETE → 쿠키 지움.
 // 시연 코드와 서명 비밀값은 서버 환경변수(MIRI_DEMO_CODE, MIRI_SESSION_SECRET)에만 둔다.
 import { checkCode, clientIpOf, cookieHeader, incr, issueToken, sameSite, sessionConfigured, sessionOf } from './_guard.js'

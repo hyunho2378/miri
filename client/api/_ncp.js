@@ -18,7 +18,7 @@ export const env = {
 }
 
 const rid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
-// 외부 호출 시간 제한(GPT 재검토 R5). 단계마다 끊어 서버리스 실행이 오래 붙잡히지 않게 한다
+// 외부 호출 시간 제한. 단계마다 끊어 서버리스 실행이 오래 붙잡히지 않게 한다
 export const TIMEOUT_MS = { ocr: 20000, hcx: 25000, stt: 20000 }
 const timeoutSignal = (ms) => (typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(ms) : undefined)
 const upstream = (e, what) => (e?.name === 'TimeoutError' || e?.name === 'AbortError'
@@ -127,14 +127,14 @@ export function maskLines(lines) {
     if (m && (/[:：]/.test(m[0]) || (!s.slice(0, m.index).trim() && !josa))) s = s.slice(0, m.index) + m[1].replace(/\s/g, '') + ': [가림]'
     return s
   })
-  // 표에서 항목 이름과 값이 다른 줄로 읽히면 항목 이름만 있는 줄 다음 줄을 값으로 보고 가린다(GPT 재검토 R4)
+  // 표에서 항목 이름과 값이 다른 줄로 읽히면 항목 이름만 있는 줄 다음 줄을 값으로 보고 가린다
   lines.forEach((line, i) => {
     if (LABEL_ONLY.test(line) && i + 1 < out.length && !/거\s*동\s*상\s*태/.test(out[i + 1])) out[i + 1] = '[가림]'
   })
   return out
 }
 
-// 가린 뒤에도 개인정보로 보이는 글자가 남았는지 검사한다. 남았으면 언어 모델에 보내지 않는다(GPT 재검토 R4, 회신 R36)
+// 가린 뒤에도 개인정보로 보이는 글자가 남았는지 검사한다. 남았으면 언어 모델에 보내지 않는다(회신 R36)
 const RESIDUAL = [
   [/\d{6}\s*-?\s*\d{7}/, '주민번호 꼴 번호'],
   [/(^|\D)\d{2,4}[\s.-]\d{3,4}[\s.-]\d{4}(?!\d)/, '전화번호 꼴 번호'],
@@ -197,7 +197,7 @@ export async function hcxJson(system, user, maxTokens = 1200) {
   for (const t of tries) {
     let v
     try { v = JSON.parse(t) } catch { continue }
-    // 객체나 배열만 받는다. null, 숫자, 문자열은 형식 오류(GPT 재검토 R9)
+    // 객체나 배열만 받는다. null, 숫자, 문자열은 형식 오류
     if (Array.isArray(v)) return { items: v }
     if (v && typeof v === 'object') return v
   }
@@ -234,12 +234,12 @@ const TAG_EVIDENCE = {
 export const pickTags = (a, evidence) => (Array.isArray(a) ? [...new Set(a.filter((t) => TAGS.includes(t) && (evidence == null || TAG_EVIDENCE[t].test(evidence))))] : [])
 export const norm = (s) => String(s || '').replace(/\s+/g, '')
 
-// 요청 검사(GPT 재검토 R9)
+// 요청 검사
 export const B64 = /^[A-Za-z0-9+/]+={0,2}$/
 export function readJsonBody(req) {
   let body = req.body
   if (typeof body === 'string') { try { body = JSON.parse(body) } catch { return null } }
   return body && typeof body === 'object' && !Array.isArray(body) ? body : null
 }
-// 실제 개인정보 서류 업로드 금지 확인. 화면에서 '가상 자료만 올립니다'를 고른 요청만 받는다(GPT 재검토 R4)
+// 실제 개인정보 서류 업로드 금지 확인. 화면에서 '가상 자료만 올립니다'를 고른 요청만 받는다
 export const VIRTUAL_ONLY_MSG = '시안에서는 가상 자료만 처리합니다. 실제 개인정보가 담긴 서류나 소식은 올리지 마십시오'

@@ -1,4 +1,4 @@
-// GPT 8차 모바일 검토 반영(H1~H3, M1~M9, L1) 재현 시험
+// 모바일 화면 회귀 시험
 import assert from 'node:assert/strict'
 process.env.MIRI_SESSION_SECRET = process.env.MIRI_SESSION_SECRET || 'test-secret-test-secret-test-secret'
 process.env.MIRI_HELPER_SECRET = process.env.MIRI_HELPER_SECRET || 'test-helper-secret-test-helper-secret'

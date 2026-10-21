@@ -1,4 +1,4 @@
-// GPT 6차 확인(2026. 10. 21.) 재현 시험: 권한 검사 뒤 저장 직전에 도우미 교체가 끝나면 예전 도우미의 보고를 저장하지 않는다(H3 경합)
+// 재현 시험: 권한 검사 뒤 저장 직전에 도우미 교체가 끝나면 예전 도우미의 보고를 저장하지 않는다
 import assert from 'node:assert/strict'
 process.env.MIRI_SESSION_SECRET = 'test-secret-0123456789abcdef'
 process.env.MIRI_DEMO_CODE = 'demo-code'

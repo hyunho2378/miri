@@ -48,7 +48,7 @@ export default function NotesPage() {
 
   const [showInput, setShowInput] = useState(false)
   const [mode, setMode] = useState('text')
-  // 실제 개인정보 소식 입력 금지. 가상 소식임을 고른 뒤에만 AI에 보낸다(GPT 재검토 R4)
+  // 실제 개인정보 소식 입력 금지. 가상 소식임을 고른 뒤에만 AI에 보낸다
   const [virtualOk, setVirtualOk] = useState(false)
   const [personCode, setPersonCode] = useState('')
   const [source, setSource] = useState('caregiver')

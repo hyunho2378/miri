@@ -110,7 +110,7 @@ function DemoHelperPage() {
   // 배정 계산에 쓴 마을 정보(시나리오별 대피소)를 먼저 본다
   const villageOf = (code) => d.result?.ctx?.vmap?.[code] || data.villages.find((v) => v.code === code)
   const shelterOf = (vcode) => data.shelters.find((s) => s.code === villageOf(vcode)?.shelterCode)?.name || '대피소'
-  // 회차마다 정한 목적지가 있으면 그 시설을 보인다(대피소 분산, GPT 재검토 R6)
+  // 회차마다 정한 목적지가 있으면 그 시설을 보인다(대피소 분산)
   const shelterName = (code) => data.shelters.find((s) => s.code === code)?.name || '대피소'
   const shelters = [...new Set(trips.flatMap((tr) => (tr.shelters?.length ? tr.shelters.map(shelterName) : [shelterOf(tr.village)])))]
 

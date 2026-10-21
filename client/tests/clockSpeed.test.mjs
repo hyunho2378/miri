@@ -1,4 +1,4 @@
-// node tests/clockSpeed.test.mjs GPT 10차 확인: 배속을 바꾸면 콘솔 발령 띠의 경과 시간이 0분으로 돌아가던 결함 회귀 시험
+// node tests/clockSpeed.test.mjs 배속을 바꾸면 콘솔 발령 띠의 경과 시간이 0분으로 돌아가던 결함 회귀 시험
 import assert from 'node:assert/strict'
 import { elapsedMinOf, elapsedMsOf, virtualAt, withSpeed } from '../src/lib/clock.js'
 import { vnowOf } from '../src/lib/dispatchSim.js'

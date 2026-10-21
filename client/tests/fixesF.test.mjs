@@ -1,4 +1,4 @@
-// GPT 5차 검토(2026. 10. 21.) 재현 시험: H1~H4 병합 차단 4건과 M1, M2, M4
+// 보고 저장, 종료 처리, 기준 시각 회귀 시험
 import assert from 'node:assert/strict'
 process.env.MIRI_SESSION_SECRET = 'test-secret-0123456789abcdef'
 process.env.MIRI_DEMO_CODE = 'demo-code'

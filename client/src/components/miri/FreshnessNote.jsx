@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { freshness, lastGood, fmtKst, rememberGood } from '../../lib/freshness.js'
 
 export default function FreshnessNote({ kind, state, className }) {
-  // 화면을 연 채로 시간이 지나도 지연 판정이 바뀌도록 1분마다 다시 판정(GPT 5차 M3)
+  // 화면을 연 채로 시간이 지나도 지연 판정이 바뀌도록 1분마다 다시 판정
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => { const iv = setInterval(() => setNow(Date.now()), 60_000); return () => clearInterval(iv) }, [])
   const f = state?.data ? freshness(kind, state.data, now) : null

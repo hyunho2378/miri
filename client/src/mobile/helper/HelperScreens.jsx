@@ -31,7 +31,7 @@ function Deadline({ m }) {
       <p className="mob-t-label">이송 완료 기한</p>
       <p className="mob-h-time">{m.completeBy ? `${fmtHM(m.completeBy)}까지` : '담당자 확인'}</p>
       {r && <p className={`mob-t-sub ${r.over ? 'mob-h-over' : ''}`} role="timer">{r.text}</p>}
-      {/* GPT 8차 M7: 매 분 낭독하지 않고 의미 있는 전환(30분 이내, 기한 지남)만 알림 */}
+      {/* 매 분 낭독하지 않고 의미 있는 전환(30분 이내, 기한 지남)만 알림 */}
       <p className="mob-sr" aria-live="polite">{r ? (r.over ? '이송 완료 기한 지남' : r.min <= 30 ? '이송 완료 기한 30분 이내' : '') : ''}</p>
     </Card>
   )
@@ -317,7 +317,7 @@ function H8({ m, onBack }) {
         {m.queue.length === 0 ? <EmptyState icon={<Send size={28} />} title="보낼 보고 없음" body="모든 보고를 담당자에게 보냈어요." /> : (
           <List>{m.queue.map((q) => <ListRow key={q.key} lead={<Clock size={20} />} title={q.type === 'preference' ? (q.consent ? '참여 동의와 역할 선택' : '등록 동의 철회 요청') : q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${q.personCode} ${STEP_LABEL[q.step] || q.step}`} subtitle="전송 대기" />)}</List>
         )}
-        {/* GPT 8차 H1: 서버가 받지 않은 보고는 지우지 않고 사유와 함께 남김. 담당자에게 전화로 알림 */}
+        {/* 서버가 받지 않은 보고는 지우지 않고 사유와 함께 남김. 담당자에게 전화로 알림 */}
         {m.rejected?.length > 0 && (
           <List label="보내지 못한 보고">{m.rejected.map((q) => <ListRow key={q.key} lead={<CircleX size={20} />} title={q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${q.personCode} ${STEP_LABEL[q.step] || q.step}`} subtitle={`보내지 못함: ${q.rejected}. 담당자에게 전화로 알림`} />)}</List>
         )}

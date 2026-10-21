@@ -1,4 +1,4 @@
-// node tests/fixes.test.mjs GPT 코드 검토(2026. 10. 20.) 지적 수정의 회귀 시험
+// node tests/fixes.test.mjs 계산과 서버 보호 회귀 시험
 import assert from 'node:assert/strict'
 import { buildContext, runBaseline, planDispatch } from '../src/lib/assign.js'
 import { calcTiming, calcVehicles, computeShortage, scenarioArrivals, scopeInput } from '../src/lib/shortageCalc.js'

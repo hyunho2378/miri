@@ -1,4 +1,4 @@
-// node tests/review13.test.mjs GPT 13차: (H) 동 담당자 화면 범위를 상태, 도우미, 소방 화면까지 적용, (M) 저장소 조회 예외를 503 으로
+// node tests/review13.test.mjs 동 담당자 화면 범위를 상태, 도우미, 소방 화면까지 적용, 저장소 조회 예외를 503 으로
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 process.env.MIRI_SESSION_SECRET = 'test-secret-0123456789abcdef'

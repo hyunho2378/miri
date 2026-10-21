@@ -36,7 +36,7 @@ export default function IntakeUploader({ villages, onFile, onSample, busy }) {
   const [village, setVillage] = useState(villages[0]?.code)
   const [kind, setKind] = useState('plan')
   const [drag, setDrag] = useState(false)
-  // 실제 개인정보 서류 업로드 금지. 가상 자료임을 고른 뒤에만 파일을 받는다(GPT 재검토 R4)
+  // 실제 개인정보 서류 업로드 금지. 가상 자료임을 고른 뒤에만 파일을 받는다
   const [virtualOk, setVirtualOk] = useState(false)
   const take = (file) => { if (file && !busy && virtualOk) onFile(file, { villageCode: village, kind }) }
   return (

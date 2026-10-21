@@ -39,7 +39,7 @@ const SYSTEM = `너는 지자체 재난취약자 담당자에게 들어온 현�
 const fail = (res, status, code, message) => res.status(status).json({ error: { code, message } })
 const one = (s) => String(s || '').replace(/\s+/g, ' ').trim()
 
-// 요청 검사(GPT 재검토 R4, R9). current 는 허용된 등급과 특이사항만 받는다
+// 요청 검사. current 는 허용된 등급과 특이사항만 받는다
 const CUR_GRADES = GRADES.filter((g) => g !== 'unknown')
 export function validateRequest(body) {
   if (!body) return { status: 400, code: 'BAD_JSON', error: '요청 형식 오류' }
@@ -66,7 +66,7 @@ export function validateRequest(body) {
   return { status: 400, code: 'BAD_INPUT', error: '글 또는 음성 파일 필요' }
 }
 
-// 모델 응답 검사와 판정(GPT 재검토 R3, R9). changed 는 참과 거짓 값만 받고, 근거 문구가 글에 없으면 등급을 비운다
+// 모델 응답 검사와 판정. changed 는 참과 거짓 값만 받고, 근거 문구가 글에 없으면 등급을 비운다
 export function judgeNote(p, transcript) {
   if (!p || typeof p !== 'object' || Array.isArray(p) || typeof p.changed !== 'boolean') throw Object.assign(new Error('판독 결과 형식 오류'), { code: 'BAD_MODEL_OUTPUT' })
   let grade = pick(p.grade, GRADES, 'unknown')
@@ -105,7 +105,7 @@ export default async function handler(req, res) {
     }
 
     const masked = maskLines(raw.split(/\n+/))
-    // 가린 뒤에도 개인정보로 보이는 글자가 남으면 언어 모델에 보내지 않는다(GPT 재검토 R4)
+    // 가린 뒤에도 개인정보로 보이는 글자가 남으면 언어 모델에 보내지 않는다
     const left = residualPII(masked)
     if (left.length) return fail(res, 422, 'PII_REMAINS', `개인정보로 보이는 글자(${left.join(', ')})가 남아 AI 판독을 멈췄습니다. ${VIRTUAL_ONLY_MSG}`)
     const transcript = one(masked.join(' '))
