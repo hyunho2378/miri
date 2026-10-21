@@ -30,10 +30,11 @@ test('두 단이 켜지는 크기: Duo 안쪽 세로와 가로, Android 840 이�
   assert.equal(layoutFor({ platform: 'android', width: 412, height: 915 }).twoPane, false)
 })
 
-test('화면 코드: 두 단에서 목록 고르기는 오른쪽만 바꾸고, 목록 아래 고정 버튼은 숨김', () => {
+test('화면 코드: 두 단에서 목록 고르기는 오른쪽만 바꾸고, 오른쪽 이송 화면에는 목록으로 가는 행을 숨김', () => {
   const src = readFileSync(new URL('../src/mobile/helper/HelperScreens.jsx', import.meta.url), 'utf8')
   assert.match(src, /const pick = \(v\) => setStack\(\[v\]\)/)
-  assert.match(src, /p\.current && !inPane && <Bottom>/)
+  assert.match(src, /list=\{<PeopleList m=\{m\} steps=\{steps\} go=\{pick\}[^\n]*inPane \/>\}/)
+  assert.match(src, /\{!inPane && <ListRow lead=\{<Users size=\{20\} \/>\} title=\{`전체 \$\{p\.total\}명`\}/)
   assert.match(src, /<TwoPane\s/)
 })
 
@@ -43,5 +44,5 @@ test('키와 값 행: 값은 남은 폭 오른쪽 정렬, 단어 단위 줄바�
   assert.match(css, /\.mob-h-kv \{[^}]*word-break: keep-all;/)
   assert.match(css, /@container \(max-width: 299px\) \{\s*\.mob-root \.mob-row\.kv \{ flex-direction: column;/)
   const jsx = readFileSync(new URL('../src/mobile/helper/HelperScreens.jsx', import.meta.url), 'utf8')
-  assert.match(jsx, /className="kv" title=\{r\.label\}/)
+  assert.match(jsx, /<ListRow className="kv" title=\{label\}/)
 })

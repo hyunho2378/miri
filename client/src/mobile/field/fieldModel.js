@@ -143,3 +143,42 @@ export function scopeDispatch(d, persons, codes) {
   }).filter((q) => q.count > 0)
   return { d: { ...d, result, arrivals, fireRequests }, persons: persons.filter((p) => codes.has(p.villageCode)) }
 }
+
+// ===== 재설계 2b(공모전/모바일UI/퍼소나_사용성진단_20261022.md 8-3, 벤치마크_20261022.md) =====
+// 평시 홈의 큰 숫자: 담당 범위 미이송 예상. 시 관리자는 시 전체(콘솔 현황판과 같은 computeShortage 결과 그대로),
+// 동 담당자는 결과의 마을별 값(byVillage)을 담당 동 마을만 더한다. 숫자를 새로 계산하지 않는다.
+export function scopedShortage(result, inScope) {
+  if (!result) return { unserved: null, targets: 0, villages: 0 }
+  const rows = Object.entries(result.byVillage || {}).filter(([code, v]) => v.inScope && inScope(code))
+  if (rows.length === Object.values(result.byVillage || {}).filter((v) => v.inScope).length) {
+    return { unserved: result.total, targets: result.scopeTargets ?? 0, villages: result.scopeVillages ?? rows.length }
+  }
+  return { unserved: rows.reduce((s, [, v]) => s + v.total, 0), targets: rows.reduce((s, [, v]) => s + v.targetTotal, 0), villages: rows.length }
+}
+
+// 발령 홈의 늦는 마을: 아직 남은 사람이 있는 마을을 기한 순으로. 남은 사람 = 전체 - 완료
+export function lateVillages(list, vnow, limit = 3) {
+  return list.filter((v) => v.total - v.done > 0)
+    .map((v) => ({ ...v, left: v.total - v.done, tag: deadlineTag(v, vnow) }))
+    .slice(0, limit)
+}
+
+// 확인할 서류: 판독 확인 대기(review pending) 대상자를 서류 결과와 묶는다. 홈의 건수와 같은 기준(scopeCodes: 대피 대상 구역)
+export function docQueue(docs, persons, inScope, scopeCodes) {
+  const byCode = Object.fromEntries(persons.map((p) => [p.code, p]))
+  const out = []
+  for (const doc of docs || []) {
+    (doc.results || []).forEach((r, i) => {
+      const p = byCode[r.personCode]
+      if (!p || p.review !== 'pending' || !inScope(p.villageCode)) return
+      if (scopeCodes && !scopeCodes.has(p.villageCode)) return
+      out.push({ doc, result: r, person: p, pos: i + 1 })
+    })
+  }
+  return out.sort((a, b) => a.person.code.localeCompare(b.person.code))
+}
+
+// 확인할 현장 소식: 대기 중인 소식만, 담당 범위 안
+export function noteQueue(notes, inScope) {
+  return (notes || []).filter((n) => n.status === 'pending' && inScope(n.villageCode)).sort((a, b) => (b.receivedAt || 0) - (a.receivedAt || 0))
+}

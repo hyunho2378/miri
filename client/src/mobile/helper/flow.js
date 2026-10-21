@@ -95,3 +95,35 @@ export function helperPaneOf({ twoPane = false, base, view = null, currentCode =
   const detail = view || (currentCode ? { name: 'H5', code: currentCode } : null)
   return { list: 'H3', detail }
 }
+
+// ===== 도우미 화면 재구성(2a): 벤치마크 규칙 2(주 버튼 이름이 곧 지금 단계) =====
+// 주 버튼 하나의 이름이 단계에 따라 바뀐다. 남은 단계를 카드로 늘어놓지 않는다
+export const STEP_ACTION = { wait: '출발했어요', depart: '도착했어요', arrive: '탑승했어요', board: '인계했어요' }
+// 지금 단계 한 줄(진행 n/4 와 함께)
+export const STEP_NOW = { wait: '출발 전', depart: '가는 중', arrive: '도착', board: '대피소로 가는 중' }
+// 진행 칸: 출발, 도착, 탑승, 인계 네 단계 중 몇 번째를 할 차례인지(1~4). 끝났으면 4
+export function stepIndexOf(step = 'wait') {
+  const i = STEP_ORDER.indexOf(step)
+  return i < 0 ? 4 : Math.min(4, i + 1)
+}
+// 다음 장소 한 줄. 출발 전과 가는 중은 대상자 댁, 도착하면 차에 타기, 탑승 뒤는 대피소
+export function nextPlaceOf(step = 'wait', { village = '', shelter = '' } = {}) {
+  if (step === 'wait' || step === 'depart') return `${village ? `${village} ` : ''}대상자 댁`
+  if (step === 'arrive') return '차에 타기'
+  if (step === 'board') return shelter || '대피소'
+  return ''
+}
+// 회차를 쉬운 말로(진단 8-4 낱말 바꾸기: 회차 → n번째 이동)
+export const tripWord = (index) => `${index}번째 이동`
+// 출발 전 확인 항목(helperGuidance.js PREDEPARTURE 문장을 한 줄씩). 끝 문장은 시트 아래 한 줄로 그대로 쓴다
+export const PREDEPARTURE_ITEMS = ['기존 질환', '거동 불편', '호흡 상태', '비상연락처와 필요한 의료정보']
+// 긴 응급 안내 문단(EMERGENCY)을 문장 단위 목록 행으로. 글자는 바꾸지 않는다
+export function sentencesOf(text = '') {
+  return String(text).split(/(?<=[.다요])\s+(?=\S)/).map((s) => s.trim()).filter(Boolean)
+}
+// 단계 보고 되돌리기: 누른 뒤 이 시간 동안은 보내지 않고 기다린다(확인 창 대신, 진단 8-3)
+export const UNDO_MS = 6000
+// 보내기 전 보고를 반영한 단계(화면 표시용)
+export function withPending(steps = {}, pending = null) {
+  return pending ? { ...steps, [pending.code]: pending.step } : steps
+}

@@ -1,5 +1,5 @@
 // 담당자 메뉴 구조. 업무 순서대로 놓는다: 현황 확인 → 서류 읽기(AI) → 명부 → 지도 → 자원 → 발령. 같은 일을 하는 화면은 상단 탭으로 묶는다.
-import { Archive, BookOpenText, FileScan, FolderOpen, History, LayoutDashboard, LayoutGrid, MapPinned, Network, Settings, ShieldCheck, Siren, Truck, UsersRound } from 'lucide-react'
+import { Archive, BookOpenText, FileScan, FolderOpen, History, LayoutDashboard, LayoutGrid, MapPinned, Network, Settings, ShieldCheck, Siren, Smartphone, Truck, UsersRound } from 'lucide-react'
 
 export const MAIN_NAV = [
   { key: 'home', to: '/console', end: true, label: '현황판', Icon: LayoutDashboard, match: ['/console'] , exact: true },
@@ -23,6 +23,7 @@ export const SUB_NAV = [
 
 // 공개 화면. 담당자 화면 밖에서 열린다
 export const PUBLIC_NAV = [
+  { key: 'mobile', href: '/m', label: '휴대폰 화면', Icon: Smartphone },
   { key: 'open', to: '/open', label: '개방 API', Icon: BookOpenText },
   { key: 'privacy', to: '/privacy', label: '개인정보 처리방침', Icon: ShieldCheck }
 ]
