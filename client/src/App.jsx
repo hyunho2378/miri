@@ -36,6 +36,17 @@ const PRELOAD = Object.values(loaders)
 const PrivacyPage = lazy(() => import('./pages/public/PrivacyPage.jsx'))
 const OpenApiPage = lazy(() => import('./pages/public/OpenApiPage.jsx'))
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage.jsx'))
+// 모바일 셸(docs/MOBILE_UI.md). 도우미 /m/h/*, 현장 담당자 /m/f/*, 부품 견본 /m/kit
+const mobileShells = () => import('./mobile/shells.jsx')
+const MobileProviderLayout = lazy(() => mobileShells().then((m) => ({ default: m.MobileProviderLayout })))
+const MobileHelperShell = lazy(() => mobileShells().then((m) => ({ default: m.HelperShell })))
+const MobileHelperHome = lazy(() => mobileShells().then((m) => ({ default: m.HelperHomeSlot })))
+const MobileFieldShell = lazy(() => mobileShells().then((m) => ({ default: m.FieldShell })))
+const MobileFieldStatus = lazy(() => mobileShells().then((m) => ({ default: m.FieldStatusSlot })))
+const MobileFieldVillages = lazy(() => mobileShells().then((m) => ({ default: m.FieldVillagesSlot })))
+const MobileFieldHelpers = lazy(() => mobileShells().then((m) => ({ default: m.FieldHelpersSlot })))
+const MobileFieldMore = lazy(() => mobileShells().then((m) => ({ default: m.FieldMoreSlot })))
+const MobileKitPage = lazy(() => import('./mobile/KitPage.jsx'))
 const LoginPage = lazy(() => import('./pages/console/LoginPage.jsx'))
 const OverviewPage = lazy(loaders.Overview)
 const RosterPage = lazy(loaders.Roster)
@@ -113,6 +124,19 @@ export default function App() {
             <Route path="/f/:id" element={<FormFillPage />} />
             <Route element={<HelperLayout />}>
               <Route path="/h/:token" element={<HelperPage />} />
+            </Route>
+            <Route path="/m" element={<MobileProviderLayout />}>
+              <Route index element={<Navigate to="/m/kit" replace />} />
+              <Route path="kit" element={<MobileKitPage />} />
+              <Route path="h/:token" element={<MobileHelperShell />}>
+                <Route index element={<MobileHelperHome />} />
+              </Route>
+              <Route path="f" element={<MobileFieldShell />}>
+                <Route index element={<MobileFieldStatus />} />
+                <Route path="villages" element={<MobileFieldVillages />} />
+                <Route path="helpers" element={<MobileFieldHelpers />} />
+                <Route path="more" element={<MobileFieldMore />} />
+              </Route>
             </Route>
             <Route element={<PublicLayout />}>
               <Route path="*" element={<NotFoundPage />} />
