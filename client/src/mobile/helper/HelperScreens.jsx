@@ -79,7 +79,7 @@ function H1({ m, onDecline }) {
           {m.drill && <Chip>훈련</Chip>}
           <Chip>도우미 {m.helper}</Chip>
         </div>
-        <Banner tone="blue">참여 의무는 없습니다. 불가를 누르면 다른 도우미에게 배정을 넘깁니다.</Banner>
+        <Banner tone="blue">수락해야 배정이 확정됩니다. 어려우면 불가를 눌러 주세요. 다른 도우미에게 넘어갑니다.</Banner>
         <Deadline m={m} />
         <KV rows={[
           { label: '마을', value: m.villages.join(', ') || '-' },

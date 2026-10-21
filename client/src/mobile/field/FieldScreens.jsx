@@ -8,10 +8,11 @@ import { useRealNow } from '../../hooks/useNow.js'
 import useOpenData from '../../hooks/useOpenData.js'
 import { useDispatchStore } from '../../store/useDispatchStore.js'
 import { activeScenario, useMiriStore } from '../../store/useMiriStore.js'
+import useAuthStore, { ROLE_LABEL } from '../../store/useAuthStore.js'
 import { vnowOf, FAIL_REASONS, DECLINE_REASONS } from '../../lib/dispatchSim.js'
 import { computeShortage, optimizedUnserved } from '../../lib/shortageCalc.js'
 import { pendingCounts } from '../../lib/basis.js'
-import { OWNERS, VEHICLE_NOTE, COMMITMENTS, commitmentOf, vehicleLabel, gradeOf } from '../../lib/shortage.js'
+import { OWNERS, VEHICLE_NOTE, COMMITMENTS, commitmentOf, gradeOf } from '../../lib/shortage.js'
 
 // 소속별 차량 요약: 대수와 확인 상태별 대수, 차량 코드
 const ownerSummary = (list) => {
@@ -43,6 +44,15 @@ function useDispatchLive() {
   // 실제 시각을 받아 한 번만 가상 시각으로 바꾼다(배속 이중 적용으로 경과 시간이 커지던 문제)
   const now = useRealNow(5000)
   return { d, vnow: d.realStart ? vnowOf(d, now) : now, now }
+}
+
+// 로그인한 담당자의 범위. 시 관리자는 전체, 동 담당자는 자기 동 마을만(콘솔 현황판과 명부의 동 범위와 같음)
+function useFieldScope() {
+  const user = useAuthStore((s) => s.user)
+  const villages = useMiriStore((s) => s.villages)
+  const isDong = user?.role === 'dong' && !!user.dong
+  const codes = isDong ? new Set(villages.filter((v) => v.dongCode === user.dong).map((v) => v.code)) : null
+  return { user, isDong, inScope: (villageCode) => !codes || codes.has(villageCode) }
 }
 
 function Section({ title, children, trailing }) {
@@ -179,13 +189,14 @@ export function FieldVillagesPage() {
   const { d, vnow } = useDispatchLive()
   const data = useMiriStore()
   const navigate = useNavigate()
+  const scope = useFieldScope()
   if (!ACTIVE.has(d.status)) return <NoDispatch title="마을별 진행" />
-  const list = villageProgress(d, data.persons, data.villages, vnow)
+  const list = villageProgress(d, data.persons, data.villages, vnow).filter((v) => scope.inScope(v.code))
   return (
     <>
       <AppBar title="마을별 진행" large />
       <main id="main" className="mob-content">
-        <p className="mob-t-foot mob-pad">기한 임박 순, 산불 도달 시각 기준</p>
+        <p className="mob-t-sub mob-pad">기한 임박 순, 산불 도달 시각 기준</p>
         {!list.length ? <EmptyState title="배정 전" body="배정 계산 뒤 마을별 진행 표시" /> : (
           <List label="마을별 진행">
             {list.map((v) => (
@@ -205,23 +216,38 @@ export function FieldVillageDetailPage() {
   const { d, vnow } = useDispatchLive()
   const data = useMiriStore()
   const navigate = useNavigate()
-  const v = villageProgress(d, data.persons, data.villages, vnow).find((x) => x.code === code)
+  const scope = useFieldScope()
+  const v = scope.inScope(code) ? villageProgress(d, data.persons, data.villages, vnow).find((x) => x.code === code) : null
   const village = data.villages.find((x) => x.code === code)
+  const vehicles = v ? v.vehicles.map((vc) => data.vehicles.find((x) => x.code === vc) || { code: vc }) : []
   return (
     <>
       <AppBar title={villageName(data.villages, code)} onBack={() => navigate('/m/f/villages')} backLabel="마을" />
       <main id="main" className="mob-content">
-        {!v ? <EmptyState title="진행 정보 없음" body="대피 대상 구역 밖 마을이거나 배정 전" /> : (
+        {!scope.inScope(code) ? <EmptyState title="담당 구역 밖 마을" body={`${ROLE_LABEL.dong} 계정은 담당 동 마을만 볼 수 있음`} /> : !v ? <EmptyState title="진행 정보 없음" body="대피 대상 구역 밖 마을이거나 배정 전" /> : (
           <>
             <div className="mob-stat-grid">
               <Stat label="기한" value={v.at ? hm(v.at) : '-'} />
               <Stat label="완료" value={`${v.done}/${v.total}`} />
             </div>
-            <List label="만나는 곳과 자원">
-              <ListRow title="집결지" subtitle={village?.pickup?.name ? `${village.pickup.name}, ${village.pickup.road}` : '확인 필요'} />
-              <ListRow title="차량" subtitle={v.vehicles.map((code) => { const vehicle = data.vehicles.find((x) => x.code === code); return vehicle ? vehicleLabel(vehicle) : code }).join(', ') || '없음'} />
-              <ListRow title="도우미" subtitle={v.helpers.join(', ') || '없음'} />
+            <List label="집결지">
+              <ListRow title={village?.pickup?.name || '집결지 확인 필요'} subtitle={village?.pickup?.road || undefined} />
             </List>
+            {/* 차량과 도우미는 쉼표로 잇지 않고 한 줄에 하나씩(목록 행 Body 역할) */}
+            <Section title={`차량 ${vehicles.length}대`}>
+              {!vehicles.length ? <EmptyState title="배정 차량 없음" /> : (
+                <List label="배정 차량">
+                  {vehicles.map((x) => <ListRow key={x.code} title={x.code} subtitle={x.owner ? `${OWNERS[x.owner] || '소속 확인 필요'}, ${COMMITMENTS[commitmentOf(x)]}` : undefined} />)}
+                </List>
+              )}
+            </Section>
+            <Section title={`도우미 ${v.helpers.length}명`}>
+              {!v.helpers.length ? <EmptyState title="배정 도우미 없음" /> : (
+                <List label="배정 도우미">
+                  {v.helpers.map((h) => <ListRow key={h} title={h} />)}
+                </List>
+              )}
+            </Section>
             <Section title="대상자">
               <List label="대상자 진행">
                 {v.people.map((r) => (
@@ -276,7 +302,7 @@ export function FieldHelpersPage() {
         )}
       </main>
       <Sheet open={!!linkOf} onClose={() => setLinkOf(null)} title={`${linkOf?.code || ''} 배정 링크`}>
-        <p className="mob-t-foot mob-pad">본인 배정만 조회, 12시간 뒤 만료. 문자 {linkOf?.sms ?? 0}회 발송</p>
+        <p className="mob-t-sub mob-pad">본인 배정만 조회, 12시간 뒤 만료. 문자 {linkOf?.sms ?? 0}회 발송</p>
         <p className="mob-t-body mob-pad mob-break">{linkOf ? (linkFor(linkOf.code) || '서버 저장 전이라 링크 없음') : ''}</p>
         <div className="mob-pad mob-stack-8">
           <Button block variant="tonal" disabled={!linkOf || !linkFor(linkOf.code)} onClick={() => copy(linkOf.code)}>링크 복사</Button>
@@ -318,7 +344,7 @@ export function FieldFirePage() {
               <Button block variant="danger" disabled={!u.total} onClick={() => setOpen(true)}>동해소방서 지원 요청</Button>
             </div>
             <Section title="이송 실패 보고 대상자">
-              {!failed.length ? <p className="mob-t-foot mob-pad">실패 보고 없음</p> : (
+              {!failed.length ? <p className="mob-t-sub mob-pad">실패 보고 없음</p> : (
                 <>
                   <List label="이송 실패 보고 대상자">
                     {failed.map((f) => <ListRow key={f.code} title={f.code} subtitle={[FAIL_REASONS[f.reason] || f.reason, f.memo].filter(Boolean).join(', ') || '사유 미기재'} meta={f.at ? `${hm(f.at)} 보고` : undefined} />)}
@@ -328,7 +354,7 @@ export function FieldFirePage() {
               )}
             </Section>
             <Section title="요청 기록">
-              {!d.fireRequests?.length ? <p className="mob-t-foot mob-pad">요청 기록 없음</p> : (
+              {!d.fireRequests?.length ? <p className="mob-t-sub mob-pad">요청 기록 없음</p> : (
                 <List label="요청 기록">
                   {d.fireRequests.map((q, i) => (
                     <ListRow key={i} title={`${hm(q.at)} 요청 ${q.count}명`} subtitle={Object.entries(q.villages).map(([c, n]) => `${villageName(data.villages, c)} ${n}`).join(', ')} />
@@ -352,7 +378,8 @@ export function FieldPeoplePage() {
   const data = useMiriStore()
   const navigate = useNavigate()
   const [q, setQ] = useState('')
-  const list = searchPersons(data.persons, data.villages, q)
+  const scope = useFieldScope()
+  const list = searchPersons(data.persons.filter((p) => scope.inScope(p.villageCode)), data.villages, q)
   return (
     <>
       <AppBar title="대상자 확인" onBack={() => navigate('/m/f/more')} backLabel="더보기" />
@@ -361,7 +388,7 @@ export function FieldPeoplePage() {
           <Search size={20} aria-hidden="true" />
           <FilledInput type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="대상자 번호 또는 마을" aria-label="대상자 번호 또는 마을 검색" />
         </label>
-        <p className="mob-t-foot mob-pad">{q ? `검색 결과 ${list.length}명` : '처음 50명'}, 이름은 화면에 두지 않음</p>
+        <p className="mob-t-sub mob-pad">{q ? `검색 결과 ${list.length}명` : '처음 50명'}, 이름은 화면에 두지 않음</p>
         {!list.length ? <EmptyState title="검색 결과 없음" body="번호 앞자리 또는 마을 이름으로 다시 검색" /> : (
           <List label="대상자 목록">
             {list.map((p) => (
@@ -379,7 +406,8 @@ export function FieldPersonPage() {
   const data = useMiriStore()
   const { d, vnow } = useDispatchLive()
   const navigate = useNavigate()
-  const p = data.persons.find((x) => x.code === code)
+  const scope = useFieldScope()
+  const p = data.persons.find((x) => x.code === code && scope.inScope(x.villageCode))
   if (!p) return (<><AppBar title="대상자" onBack={() => navigate(-1)} /><main className="mob-content"><EmptyState title="대상자 없음" /></main></>)
   const care = personCare(p)
   const g = gradeOf(p.grade)
@@ -400,7 +428,7 @@ export function FieldPersonPage() {
             <ListRow title="보조기구" subtitle={care.aids.length ? care.aids.join(', ') : care.known ? '없음' : '확인 필요'} />
           </List>
         </Section>
-        <p className="mob-t-foot mob-pad">경로 확인 표시는 {ROUTE_NOTE}</p>
+        <p className="mob-t-sub mob-pad">경로 확인 표시는 {ROUTE_NOTE}</p>
       </main>
     </>
   )
@@ -492,7 +520,7 @@ export function FieldIntakePage() {
               <Button variant="gray" onClick={() => setState({ phase: 'idle' })}>제외</Button>
               <Button onClick={save}>확인 대기로 저장</Button>
             </div>
-            <p className="mob-t-foot mob-pad">등급 확정은 콘솔 서류 읽기에서 원본 대조 뒤 진행</p>
+            <p className="mob-t-sub mob-pad">등급 확정은 콘솔 서류 읽기에서 원본 대조 뒤 진행</p>
           </Section>
         )}
       </main>
@@ -561,7 +589,7 @@ export function FieldNotePage() {
         )}
         {state.phase === 'loading' && <div className="mob-pad mob-inline"><Spinner label="판독 중" /><span className="mob-t-body">판독 중</span></div>}
         {state.phase === 'error' && <Banner tone="red"><span><strong>{state.err.title}</strong><br />{state.err.desc}</span></Banner>}
-        <p className="mob-t-foot mob-pad">이름과 연락처 가림 뒤 판독. 명부 반영은 담당자 확인 뒤</p>
+        <p className="mob-t-sub mob-pad">이름과 연락처 가림 뒤 판독. 명부 반영은 담당자 확인 뒤</p>
       </main>
       <Sheet open={sheet} onClose={() => setSheet(false)} title="판독 결과 확인">
         {r && (
@@ -597,6 +625,7 @@ function NoDispatch({ title, body }) {
 export function FieldMorePage() {
   const navigate = useNavigate()
   const d = useDispatchStore()
+  const account = { user: useAuthStore((st) => st.user), logout: useAuthStore((st) => st.logout) }
   const u = unservedByReason(d)
   return (
     <>
@@ -607,6 +636,10 @@ export function FieldMorePage() {
           <ListRow lead={<UserCheck size={22} />} title="대상자 확인" subtitle="대상자 번호로 등급, 동행, 상태 확인" chevron onClick={() => navigate('/m/f/people')} />
           <ListRow lead={<Camera size={22} />} title="서류 사진 판독" subtitle="국내 AI 판독과 원문 대조" chevron onClick={() => navigate('/m/f/intake')} />
           <ListRow lead={<MessageSquare size={22} />} title="현장 소식 보내기" subtitle="글 또는 음성 메모" chevron onClick={() => navigate('/m/f/note')} />
+        </List>
+        <h2 className="mob-t-label mob-section-title">계정</h2>
+        <List label="계정">
+          <ListRow title={account.user ? ROLE_LABEL[account.user.role] : '로그인 전'} subtitle={account.user?.name} trailing={<Button size="sm" variant="plain" onClick={account.logout}>로그아웃</Button>} />
         </List>
         <h2 className="mob-t-label mob-section-title">화면 설정</h2>
         <DisplaySettings />

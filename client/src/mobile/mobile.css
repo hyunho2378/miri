@@ -137,6 +137,7 @@
 .mob-t-body { font-size: var(--t-body); line-height: var(--l-body); letter-spacing: var(--ls-body); }
 .mob-t-callout { font-size: var(--t-callout); line-height: var(--l-callout); letter-spacing: var(--ls-callout); }
 .mob-t-sub { font-size: var(--t-sub); line-height: var(--l-sub); letter-spacing: var(--ls-sub); color: var(--m-ink-3); }
+.mob-t-callout { font-size: var(--t-callout); line-height: var(--l-callout); letter-spacing: var(--ls-callout); color: var(--m-ink-3); }   /* 목록 행 보조 글: iOS Callout 16/21, M3 Body Large 16/24 (한 단계 키움) */
 .mob-t-foot { font-size: var(--t-foot); line-height: var(--l-foot); letter-spacing: var(--ls-foot); color: var(--m-ink-3); }
 .mob-t-label { font-size: var(--t-label); line-height: var(--l-label); font-weight: var(--w-label); letter-spacing: var(--ls-label); }
 
@@ -534,6 +535,12 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 .mob-pane { min-width: 0; display: flex; flex-direction: column; height: 100dvh; overflow: auto; }
 .mob-frame .mob-pane { height: 100%; }
 .mob-root.two-pane .mob-pane-detail .mob-bar-slot:first-child .mob-icon-btn { visibility: hidden; }
+/* 탁상 자세(갤럭시 폴드 반 접힘, 세로 두 구획): 위 구획은 내용, 아래 구획은 조작(하단 동작과 이동 막대).
+   내용이 접힘선 아래로 내려가지 않게 아래 구획 높이만큼 비운다 */
+@media (vertical-viewport-segments: 2) {
+  .mob-root.posture-tabletop .mob-content { padding-bottom: calc(100dvh - env(viewport-segment-top 0 1, 100dvh)); }
+  .mob-root.posture-tabletop .mob-h-bottom { min-height: calc(100dvh - env(viewport-segment-top 0 1, 100dvh)); display: flex; flex-direction: column; justify-content: flex-end; }
+}
 @media (horizontal-viewport-segments: 2) {
   .mob-two { grid-template-columns: env(viewport-segment-width 0 0, 1fr) 1fr; column-gap: calc(env(viewport-segment-left 1 0, 0px) - env(viewport-segment-right 0 0, 0px)); }
 }

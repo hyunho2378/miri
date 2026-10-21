@@ -2,10 +2,12 @@
 // 도우미(/m/h/demo, /m/h/:token): 탭 없는 단일 흐름(H1 배정 알림 → H3 이송 목록 → H5 단계 보고).
 // 현장 담당자(/m/f): 탭 4개(상태, 마을, 도우미, 더보기).
 // 이번 단계는 셸과 화면 자리만 둔다. 화면 내용은 다음 작업이 채운다.
-import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Activity, MapPinned, Users, Menu, ClipboardList } from 'lucide-react'
+import { Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Activity, MapPinned, Users, Menu, ClipboardList, Building2, Home } from 'lucide-react'
 import { PlatformProvider } from './usePlatform.js'
-import { MobileRoot, AppBar, EmptyState, OfflineBanner, BottomNav, DisplaySettings, TwoPane } from './ui.jsx'
+import { MobileRoot, AppBar, EmptyState, OfflineBanner, BottomNav, DisplaySettings, TwoPane, List, ListRow } from './ui.jsx'
+import { USE_MOCK } from '../lib/api.js'
+import useAuthStore, { DEMO_USERS, ROLE_LABEL } from '../store/useAuthStore.js'
 import { FieldVillagesPage, FieldPeoplePage } from './field/FieldScreens.jsx'
 
 export function MobileProviderLayout() {
@@ -51,8 +53,48 @@ const FIELD_TABS = [
   { key: 'more', label: '더보기', path: '/m/f/more', icon: Menu }
 ]
 
+// 현장 담당자 로그인. 차량, 도우미, 대상자 진행은 담당 공무원만 본다.
+// 데모는 콘솔 로그인과 같은 데모 계정 두 개(시 관리자, 동 담당자) 중 하나를 고른다. 실서버는 콘솔 로그인으로 보낸다.
+const LOGIN_ROLES = [
+  { role: 'city', icon: Building2, desc: '동해시 전체 마을, 차량, 도우미 진행' },
+  { role: 'dong', icon: Home, desc: '망상동 마을과 대상자 진행만' }
+]
+export function FieldLogin() {
+  const setDemoUser = useAuthStore((s) => s.setDemoUser)
+  return (
+    <MobileRoot>
+      <div className="mob-screen">
+        <AppBar title="담당자 로그인" large />
+        <main id="main" className="mob-content no-nav">
+          <p className="mob-t-body mob-pad">현장 담당자 화면은 차량, 도우미, 대상자 진행을 보여 주므로 로그인한 담당 공무원만 열 수 있습니다.</p>
+          <h2 className="mob-t-label mob-section-title">시연 계정</h2>
+          <List label="시연 계정">
+            {LOGIN_ROLES.map(({ role, icon: Icon, desc }) => (
+              <ListRow key={role} lead={<Icon size={22} />} title={ROLE_LABEL[role]} subtitle={`${DEMO_USERS[role].name}, ${desc}`} chevron onClick={() => setDemoUser(role)} />
+            ))}
+          </List>
+          <p className="mob-t-sub mob-pad">마을과 시설은 실제 공개 자료, 대상자 개인은 가상입니다.</p>
+        </main>
+      </div>
+    </MobileRoot>
+  )
+}
+
+function useFieldSignedIn() {
+  const user = useAuthStore((s) => s.user)
+  const signedIn = useAuthStore((s) => s.signedIn)
+  return USE_MOCK ? signedIn && !!user : !!user
+}
+
 // 현장 담당자 셸: 하단 탭 4개. 탭 이동은 링크(NavLink)로 두어 뒤로 가기와 새로고침에서 위치가 유지됨.
 export function FieldShell() {
+  const ok = useFieldSignedIn()
+  const loc = useLocation()
+  if (!ok) return USE_MOCK ? <FieldLogin /> : <Navigate to="/console/login" state={{ from: loc }} replace />
+  return <FieldShellBody />
+}
+
+function FieldShellBody() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   // 더보기 아래 업무 화면(소방 요청, 대상자, 서류, 소식)은 더보기 탭으로 표시

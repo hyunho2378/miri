@@ -160,7 +160,7 @@ export const useDispatchStore = create((set, get) => ({
     set({
       result,
       ackOverride: { ...d.ackOverride, [next.code]: { answer: 'none', at: vnow, requestedAt: vnow, replaced: oldCode } },
-      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 대체 배정 도착(${next.code}). 참여 의무 없음. 링크에서 수락 또는 불가 응답` }]
+      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 대체 배정 도착(${next.code}). 수락해야 확정. 어려우면 링크에서 불가 응답` }]
     })
     return next.code
   },

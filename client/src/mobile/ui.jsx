@@ -12,13 +12,20 @@ import './tokens.css'
 import './mobile.css'
 
 // 셸 바깥 껍데기. 플랫폼, 큰 글자, 화면 크기 등급(size-*), 이동 막대 위치(bar-*) 클래스를 이 요소에 붙여 토큰을 고정한다.
+// 접힘 구획 수: CSS viewport segments 미디어 쿼리(지원 브라우저만, 없으면 1)
+const segCount = (axis) => {
+  if (typeof window === 'undefined' || !window.matchMedia) return 1
+  return window.matchMedia(`(${axis}-viewport-segments: 2)`).matches ? 2 : 1
+}
 function useViewport() {
-  const read = () => (typeof window === 'undefined' ? { width: 402, height: 874 } : { width: window.innerWidth, height: window.innerHeight })
+  const read = () => (typeof window === 'undefined' ? { width: 402, height: 874 } : { width: window.innerWidth, height: window.innerHeight, hSegments: segCount('horizontal'), vSegments: segCount('vertical') })
   const [vp, setVp] = useState(read)
   useEffect(() => {
     const on = () => setVp(read())
     window.addEventListener('resize', on)
-    return () => window.removeEventListener('resize', on)
+    const posture = navigator.devicePosture   // Device Posture API(continuous, folded)
+    posture?.addEventListener?.('change', on)
+    return () => { window.removeEventListener('resize', on); posture?.removeEventListener?.('change', on) }
   }, [])
   return vp
 }
@@ -33,7 +40,7 @@ export function MobileRoot({ platform: forced, className = '', children, ...rest
   const layout = layoutFor({ platform: p, ...vp })
   return (
     <LayoutContext.Provider value={layout}>
-      <div className={`mob-root platform-${p} size-${layout.size} bar-${layout.bar} ${layout.twoPane ? 'two-pane' : ''} ${largeText ? 'text-large' : ''} ${className}`} data-platform={p} data-size={layout.size} data-bar={layout.bar} {...rest}>
+      <div className={`mob-root platform-${p} size-${layout.size} bar-${layout.bar} ${layout.twoPane ? 'two-pane' : ''} ${layout.posture ? `posture-${layout.posture}` : ''} ${largeText ? 'text-large' : ''} ${className}`} data-platform={p} data-size={layout.size} data-bar={layout.bar} {...rest}>
         <ToastHost>{children}</ToastHost>
       </div>
     </LayoutContext.Provider>
@@ -144,8 +151,8 @@ export function ListRow({ lead, title, subtitle, meta, trailing, onClick, href, 
         {lead && <span className="mob-row-lead" aria-hidden="true">{lead}</span>}
         <span className="mob-row-main">
           <span className="mob-t-body">{keepCodes(title)}</span>
-          {subtitle && <span className="mob-t-sub">{keepCodes(subtitle)}</span>}
-          {meta && <span className="mob-t-foot">{keepCodes(meta)}</span>}
+          {subtitle && <span className="mob-t-callout">{keepCodes(subtitle)}</span>}
+          {meta && <span className="mob-t-sub">{keepCodes(meta)}</span>}
         </span>
         {(trailing || chevron) && <span className="mob-row-trail">{trailing}{chevron && <ChevronRight size={20} aria-hidden="true" />}</span>}
       </Tag>
