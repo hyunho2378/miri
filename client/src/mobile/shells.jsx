@@ -66,7 +66,7 @@ export function FieldLogin() {
       <div className="mob-screen">
         <AppBar title="담당자 로그인" large />
         <main id="main" className="mob-content no-nav">
-          <p className="mob-t-body mob-pad">현장 담당자 화면은 차량, 도우미, 대상자 진행을 보여 주므로 로그인한 담당 공무원만 열 수 있습니다.</p>
+          <p className="mob-t-body mob-pad">현장 담당자 화면은 차량, 도우미, 대상자 진행을 보여 주므로 담당 공무원 계정으로 엽니다. 시연에서는 아래 계정 중 하나를 고릅니다.</p>
           <h2 className="mob-t-label mob-section-title">시연 계정</h2>
           <List label="시연 계정">
             {LOGIN_ROLES.map(({ role, icon: Icon, desc }) => (

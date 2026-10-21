@@ -121,3 +121,17 @@ export function deadlineTag(v, vnow) {
 
 export const stepLabel = (s) => STEP_LABEL[s] || (s === 'unassigned' ? '미배정' : s)
 export const hm = (ms) => { if (!ms) return '-'; const t = new Date(ms); return `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}` }
+
+// GPT 13차 H: 동 담당자는 상태, 도우미, 소방 화면도 자기 동 마을 기준으로 센다(마을, 대상자 화면과 같은 범위).
+// 화면 범위 제한이며 서버 강제가 아니다. 실서버는 서버 세션에 역할과 동을 담아 조회 응답에서 거르는 단계가 필요하다.
+export function scopeDispatch(d, persons, codes) {
+  if (!codes || !d?.result) return { d, persons: codes ? persons.filter((p) => codes.has(p.villageCode)) : persons }
+  const villageOf = Object.fromEntries(persons.map((p) => [p.code, p.villageCode]))
+  const result = {
+    ...d.result,
+    assignments: d.result.assignments.filter((a) => a.trips.some((tr) => codes.has(tr.village))),
+    unassigned: d.result.unassigned.filter((u) => codes.has(villageOf[u.personCode]))
+  }
+  const arrivals = Object.fromEntries(Object.entries(d.arrivals || {}).filter(([c]) => codes.has(c)))
+  return { d: { ...d, result, arrivals }, persons: persons.filter((p) => codes.has(p.villageCode)) }
+}

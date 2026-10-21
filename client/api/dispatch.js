@@ -137,7 +137,18 @@ export function cleanReport(body, brief, h) {
   return null
 }
 
+// GPT 13차 M: 조회 경로(get, lrange, hgetall, del)의 저장소 예외도 미처리 500 대신 503 STORE_ERROR 로 돌려준다.
+// 화면은 503 을 받으면 이전 값을 유지하고 다시 시도한다
 export default async function handler(req, res) {
+  try {
+    return await handle(req, res)
+  } catch {
+    if (res.headersSent) return
+    return fail(res, 503, 'STORE_ERROR', '저장소에 잠시 연결되지 않습니다. 잠시 뒤 다시 시도합니다')
+  }
+}
+
+async function handle(req, res) {
   res.setHeader('Cache-Control', 'no-store')
   const r = sharedStore()
   const action = String(req.query?.action || '')

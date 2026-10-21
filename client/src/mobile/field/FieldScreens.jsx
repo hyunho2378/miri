@@ -27,7 +27,7 @@ import { readDocument } from '../../lib/intake.js'
 import { readNote } from '../../lib/notes.js'
 import { aiErrorMessage } from '../../lib/aiErrors.js'
 import { AppBar, DisplaySettings, Banner, Button, Card, Chip, Dialog, EmptyState, List, ListRow, Progress, Segmented, Sheet, Spinner, useMobileToast } from '../ui.jsx'
-import { ACTIVE, STATUS_LABEL, failedPending, fieldSummary, helperResponses, hm, searchPersons, stepLabel, unservedByReason, villageName, villageProgress, deadlineTag } from './fieldModel.js'
+import { ACTIVE, STATUS_LABEL, failedPending, scopeDispatch, fieldSummary, helperResponses, hm, searchPersons, stepLabel, unservedByReason, villageName, villageProgress, deadlineTag } from './fieldModel.js'
 
 // 발령 복원과 10초 주기 조회(콘솔 발령 운영과 같은 방식)
 function useDispatchLive() {
@@ -52,8 +52,11 @@ function useFieldScope() {
   const villages = useMiriStore((s) => s.villages)
   const isDong = user?.role === 'dong' && !!user.dong
   const codes = isDong ? new Set(villages.filter((v) => v.dongCode === user.dong).map((v) => v.code)) : null
-  return { user, isDong, inScope: (villageCode) => !codes || codes.has(villageCode) }
+  const inScope = (villageCode) => !codes || codes.has(villageCode)
+  return { user, isDong, inScope, scopeDispatch: (d, persons) => scopeDispatch(d, persons, codes) }
 }
+
+
 
 function Section({ title, children, trailing }) {
   return (
@@ -89,12 +92,14 @@ function Fresh({ res }) {
 export function FieldStatusPage() {
   const { d, vnow } = useDispatchLive()
   const data = useMiriStore()
+  const scope = useFieldScope()
   const navigate = useNavigate()
   const scenario = activeScenario(data)
   const fire = useOpenData('fire')
   const warning = useOpenData('warning')
   if (!ACTIVE.has(d.status)) return <PeaceStatus data={data} scenario={scenario} fire={fire} warning={warning} navigate={navigate} closed={d.status === 'closed'} />
-  const s = fieldSummary(d, data.persons, data.villages, vnow)
+  const sc = scope.scopeDispatch(d, data.persons)
+  const s = fieldSummary(sc.d, sc.persons, data.villages, vnow)
   const pct = s.total ? (s.counts.done / s.total) * 100 : 0
   return (
     <>
@@ -268,6 +273,8 @@ export function FieldVillageDetailPage() {
 // F3 도우미 응답 현황
 export function FieldHelpersPage() {
   const { d, vnow } = useDispatchLive()
+  const data = useMiriStore()
+  const scope = useFieldScope()
   const replaceHelper = useDispatchStore((s) => s.replaceHelper)
   const resendLink = useDispatchStore((s) => s.resendLink)
   const toast = useMobileToast()
@@ -282,7 +289,7 @@ export function FieldHelpersPage() {
     try { await navigator.clipboard.writeText(url); toast(`${h} 링크 복사`) } catch { toast('복사 실패, 링크를 길게 눌러 복사') }
   }
   if (!ACTIVE.has(d.status) || !d.result) return <NoDispatch title="도우미 응답" body="배정 계산 뒤 도우미 응답 표시" />
-  const g = helperResponses(d, vnow)
+  const g = helperResponses(scope.scopeDispatch(d, data.persons).d, vnow)
   const rows = g[tab]
   return (
     <>
@@ -328,8 +335,10 @@ export function FieldFirePage() {
   const toast = useMobileToast()
   const [open, setOpen] = useState(false)
   const [openFail, setOpenFail] = useState(false)
-  const u = unservedByReason(d)
-  const failed = failedPending(d, data.persons, vnow)
+  const scope = useFieldScope()
+  const sc = scope.scopeDispatch(d, data.persons)
+  const u = unservedByReason(sc.d)
+  const failed = failedPending(sc.d, sc.persons, vnow)
   return (
     <>
       <AppBar title="소방 지원 요청" onBack={() => navigate('/m/f/more')} backLabel="더보기" />
@@ -344,7 +353,9 @@ export function FieldFirePage() {
               {u.reasons.map((r) => <ListRow key={r.key} title={r.label} trailing={<span className="mob-t-body">{r.n}명</span>} />)}
             </List>
             <div className="mob-pad">
-              <Button block variant="danger" disabled={!u.total} onClick={() => setOpen(true)}>동해소방서 지원 요청</Button>
+              {scope.isDong
+                ? <p className="mob-t-sub">동해소방서 지원 요청은 시 관리자 계정에서 시 전체 미배정 인원으로 보냄</p>
+                : <Button block variant="danger" disabled={!u.total} onClick={() => setOpen(true)}>동해소방서 지원 요청</Button>}
             </div>
             <Section title="이송 실패 보고 대상자">
               {!failed.length ? <p className="mob-t-sub mob-pad">실패 보고 없음</p> : (
@@ -352,7 +363,7 @@ export function FieldFirePage() {
                   <List label="이송 실패 보고 대상자">
                     {failed.map((f) => <ListRow key={f.code} title={f.code} subtitle={[FAIL_REASONS[f.reason] || f.reason, f.memo].filter(Boolean).join(', ') || '사유 미기재'} meta={f.at ? `${hm(f.at)} 보고` : undefined} />)}
                   </List>
-                  <div className="mob-pad"><Button block variant="danger-tonal" onClick={() => setOpenFail(true)}>실패 {failed.length}명 소방 인계</Button></div>
+                  {!scope.isDong && <div className="mob-pad"><Button block variant="danger-tonal" onClick={() => setOpenFail(true)}>실패 {failed.length}명 소방 인계</Button></div>}
                 </>
               )}
             </Section>
@@ -629,7 +640,9 @@ export function FieldMorePage() {
   const navigate = useNavigate()
   const d = useDispatchStore()
   const account = { user: useAuthStore((st) => st.user), logout: useAuthStore((st) => st.logout) }
-  const u = unservedByReason(d)
+  const persons = useMiriStore((st) => st.persons)
+  const scope = useFieldScope()
+  const u = unservedByReason(scope.scopeDispatch(d, persons).d)
   return (
     <>
       <AppBar title="더보기" large />
