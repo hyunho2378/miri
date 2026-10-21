@@ -1,6 +1,8 @@
 // useMiriStore.js 미리 데이터 단일 저장소. 메모리 전용(localStorage 금지).
 // VITE_USE_MOCK=true 에서는 가상 데이터로 시작하고 새로고침하면 초기 상태로 돌아간다.
 import { create } from 'zustand'
+import { planningGrade } from '../lib/intake.js'
+const GRADE_OK = new Set(['walk', 'assist', 'wheelchair', 'bed'])
 import { buildSeed } from '../mock/seed.js'
 import { seedFieldNotes } from '../lib/notes.js'
 
@@ -35,9 +37,14 @@ export const useMiriStore = create((set, get) => ({
     return { persons, intakeDocs }
   }),
   addIntakeDoc: (doc) => set((s) => {
+    const planOf = (r) => {
+      const p = r.gradeUncertain !== undefined && GRADE_OK.has(r.grade) ? { grade: r.grade, uncertain: r.gradeUncertain } : planningGrade(r)
+      const tags = (r.tags || []).filter((t) => t !== 'gradeUncertain')
+      return { grade: p.grade, tags: p.uncertain ? [...tags, 'gradeUncertain'] : tags, aiGrade: r.aiGrade || r.grade }
+    }
     const persons = doc.results.map((r, i) => ({
-      code: r.personCode, villageCode: doc.villageCode, grade: r.grade === 'unknown' ? 'assist' : r.grade, tags: r.tags || [],
-      gradeSource: 'ai', review: 'pending', docId: doc.id, docPos: i + 1, updatedAt: s.today
+      // 등급 미확정은 낮은 쪽(부축) 대신 휠체어로 잡고 확인 필요 태그(회신 R36, lib/intake.planningGrade)
+      code: r.personCode, villageCode: doc.villageCode, ...planOf(r), gradeSource: 'ai', review: 'pending', docId: doc.id, docPos: i + 1, updatedAt: s.today
     }))
     return { intakeDocs: [doc, ...s.intakeDocs], persons: [...s.persons, ...persons] }
   }),

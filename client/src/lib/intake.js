@@ -6,13 +6,25 @@ import { GRADE_KEYS } from './shortage.js'
 const DOWN = { high: 'mid', mid: 'low', low: 'low' }
 const normalize = (s = '') => s.replace(/\s+/g, ' ').trim()
 
-export function verifyResult(transcript, r) {
+export function verifyResult(transcript, r0) {
+  const r = r0.aiGrade ? { ...r0, grade: r0.aiGrade } : r0
   const quoteMatched = !!r.quote && normalize(transcript).includes(normalize(r.quote))
   let confidence = GRADE_KEYS.includes(r.grade) ? r.confidence || 'mid' : 'low'
   if (!quoteMatched) confidence = 'low'
   const conflict = (r.grade === 'walk' || r.grade === 'assist') && (r.tags || []).includes('bedridden')
   if (conflict) confidence = DOWN[confidence]
-  return { ...r, quoteMatched, conflict, confidence }
+  const planned = planningGrade({ ...r, confidence })
+  return { ...r, quoteMatched, conflict, confidence, aiGrade: r.grade, grade: planned.grade, gradeUncertain: planned.uncertain }
+}
+
+// 등급 미확정 규칙(회신 R36): 낮게 판정하면 차가 가도 태우지 못하므로 위험 쪽 오류를 막는다.
+// 판독 불가(unknown), 근거 약함(low)인 도보와 부축 판정은 배정 계산에서 휠체어 등급으로 잡고 '등급 확인 필요'를 단다.
+// 담당자가 확인하거나 고치면 그 값으로 바뀐다. 휠체어와 침상 판정은 이미 높은 쪽이라 그대로 둔다.
+export const UNCERTAIN_PLAN_GRADE = 'wheelchair'
+export function planningGrade(r) {
+  if (!GRADE_KEYS.includes(r.grade)) return { grade: UNCERTAIN_PLAN_GRADE, uncertain: true }
+  if (r.confidence === 'low' && (r.grade === 'walk' || r.grade === 'assist')) return { grade: UNCERTAIN_PLAN_GRADE, uncertain: true }
+  return { grade: r.grade, uncertain: false }
 }
 
 export function verifyPage(page) {
@@ -60,7 +72,8 @@ export const TAGS = {
   pet: '반려동물 동반',
   wheelPower: '전동 휠체어',
   wheelManual: '수동 휠체어',
-  pressureSore: '욕창 확인 필요'
+  pressureSore: '욕창 확인 필요',
+  gradeUncertain: '등급 확인 필요'
 }
 
 export const CONF_LABEL = { high: '일치도 높음', mid: '일치도 보통', low: '확인 필요' }
