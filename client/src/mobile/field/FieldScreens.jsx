@@ -10,7 +10,16 @@ import { activeScenario, useMiriStore } from '../../store/useMiriStore.js'
 import { vnowOf, FAIL_REASONS, DECLINE_REASONS } from '../../lib/dispatchSim.js'
 import { computeShortage, optimizedUnserved } from '../../lib/shortageCalc.js'
 import { pendingCounts } from '../../lib/basis.js'
-import { OWNERS, VEHICLE_NOTE, vehicleLabel, gradeOf } from '../../lib/shortage.js'
+import { OWNERS, VEHICLE_NOTE, COMMITMENTS, commitmentOf, vehicleLabel, gradeOf } from '../../lib/shortage.js'
+
+// 소속별 차량 요약: 대수와 확인 상태별 대수, 차량 코드
+const ownerSummary = (list) => {
+  if (!list.length) return '없음'
+  const counts = {}
+  list.forEach((v) => { const c = COMMITMENTS[commitmentOf(v)]; counts[c] = (counts[c] || 0) + 1 })
+  const state = Object.entries(counts).map(([k, n]) => `${k} ${n}대`).join(', ')
+  return `${list.length}대(${state}), ${list.map((v) => v.code).join(', ')}`
+}
 import { personCare, ROUTE_NOTE } from '../../lib/tripChecks.js'
 import { readDocument } from '../../lib/intake.js'
 import { readNote } from '../../lib/notes.js'
@@ -145,7 +154,7 @@ function PeaceStatus({ data, scenario, fire, warning, navigate, closed }) {
             <ListRow lead={<Siren size={22} />} title={warning.data ? (warning.data.active?.length ? `동해 발효 특보 ${warning.data.active.join(', ')}` : '동해 발효 특보 없음') : warning.loading ? '조회 중' : '기상특보 조회 실패'} subtitle={<Fresh res={warning} />} />
           </List>
         </Section>
-        <Section title="차량 소속과 확인 상태"><p className="mob-t-foot">{VEHICLE_NOTE}</p><List>{Object.entries(OWNERS).map(([key, label]) => <ListRow key={key} title={label} subtitle={data.vehicles.filter((v) => v.owner === key).map(vehicleLabel).join(', ') || '없음'} />)}</List></Section>
+        <Section title="차량 소속과 확인 상태"><p className="mob-t-foot">{VEHICLE_NOTE}</p><List>{Object.entries(OWNERS).map(([key, label]) => <ListRow key={key} title={label} subtitle={ownerSummary(data.vehicles.filter((v) => v.owner === key))} />)}</List></Section>
         <Section title="확인할 일">
           <List label="확인할 일">
             <ListRow lead={<FileText size={22} />} title={`확인 대기 서류 ${pc.docsInScope}건`} subtitle="대피 대상 구역 기준, 판독 결과 원문 대조 필요" chevron onClick={() => navigate('/m/f/intake')} />
