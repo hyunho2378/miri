@@ -240,14 +240,14 @@ function useOverlay(open, onClose) {
 }
 
 // 하단 시트(iOS 손잡이 있는 시트, M3 모달 바텀 시트).
-export function Sheet({ open, onClose, title, hideTitle = false, children }) {
+export function Sheet({ open, onClose, title, hideTitle = false, center = false, children }) {
   const box = useOverlay(open, onClose)
   const id = useId()
   if (!open) return null
   return (
     <div className="mob-scrim" onClick={onClose}>
-      <div ref={box} tabIndex={-1} className="mob-sheet" role="dialog" aria-modal="true" aria-labelledby={id} onClick={(e) => e.stopPropagation()}>
-        <div className="mob-grabber" aria-hidden="true" />
+      <div ref={box} tabIndex={-1} className={`mob-sheet${center ? ' center' : ''}`} role="dialog" aria-modal="true" aria-labelledby={id} onClick={(e) => e.stopPropagation()}>
+        {!center && <div className="mob-grabber" aria-hidden="true" />}
         <h2 id={id} className={hideTitle ? 'mob-sr-only' : 'mob-t-headline mob-sheet-title'}>{title}</h2>
         {children}
       </div>
@@ -481,7 +481,7 @@ export function TimePicker({ value = '', onChange, disabled, label = '시각', .
     return (
       <span className="mob-time-control">
         <Button variant="gray" block disabled={disabled} onClick={choose} aria-label={`${label} 선택`}>{validTime(value) ? value : `${label} 선택`}</Button>
-        <Sheet open={open} onClose={() => setOpen(false)} title={`${label} 입력`} hideTitle>
+        <Sheet open={open} onClose={() => setOpen(false)} title={`${label} 입력`} hideTitle center>
           <div className="mob-m3-timepicker">
             <p className="mob-m3-tp-title" aria-hidden="true">{label} 입력</p>
             <DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={{ ...props, 'data-autofocus': true }} className="mob-m3-tp-digits" onEnter={() => ok && commit()} />

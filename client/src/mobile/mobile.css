@@ -569,3 +569,7 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 /* 옆 세로 막대 자리는 이동 막대가 있는 화면에서만 비운다(도우미 화면처럼 탭이 없으면 84 를 비우지 않음) */
 .mob-root.platform-ios.bar-side:not(:has(.mob-nav)) { --m-side-bar: 0px; }
 .mob-root.platform-android.bar-rail:not(:has(.mob-nav)) { --m-rail: 0px; }
+/* Android 시간 입력: M3 Keyboard picker(52949:28053)는 바닥 시트가 아닌 가운데 모달. 264 폭, 모서리 28.
+   키트 면 색(surfaceContainerHigh 옅은 보라)은 옅은 색 금지 규칙에 따라 대화상자와 같은 흰 면과 그림자 */
+.mob-root.platform-android .mob-sheet.center { margin: auto; width: auto; max-width: calc(100% - 48px); padding: 0; background: transparent; box-shadow: none; border-radius: 28px; animation: mob-pop 180ms ease; }
+.mob-root.platform-android .mob-sheet.center .mob-m3-timepicker { margin: 0; background: var(--m-page); box-shadow: var(--m-shadow-3); }
