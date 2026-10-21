@@ -544,12 +544,12 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 .mob-root.platform-ios .mob-h-big { font-size: 20px; line-height: 25px; font-weight: 590; letter-spacing: -0.45px; }   /* Title 3 강조 */
 .mob-root.platform-android .mob-h-big { font-size: 22px; line-height: 28px; font-weight: 500; letter-spacing: 0; }   /* Title Large */
 /* 키와 값 행(ListRow kv). iOS 키트 Lists 의 Detail 변형: 제목은 줄지 않는 최소 폭, 값은 남은 폭 전체를 오른쪽 정렬로 쓰고 단어 단위로 줄바꿈.
-   행 폭이 360 미만이면 Subtitle 변형처럼 값을 제목 아래 줄로 내린다(Duo 바깥 화면 카드 폭 342 등) */
+   행 폭이 300 미만이면(320 폭 화면 등) Subtitle 변형처럼 값을 제목 아래 줄로 내린다. 402 이상 화면은 값이 한 줄에 들어가 옆 배치 유지 */
 .mob-list > li:has(> .mob-row.kv) { container-type: inline-size; }
 .mob-row.kv .mob-row-main { flex: 0 0 auto; max-width: 45%; }
 .mob-row.kv .mob-row-trail { flex: 1 1 auto; min-width: 0; max-width: none; justify-content: flex-end; text-align: right; }
 .mob-h-kv { font-weight: var(--w-strong); word-break: keep-all; overflow-wrap: anywhere; }
-@container (max-width: 359px) {
+@container (max-width: 299px) {
   .mob-root .mob-row.kv { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding-top: 11px; padding-bottom: 11px; }   /* Subtitle 변형 pad 11 */
   .mob-row.kv .mob-row-main { max-width: none; }
   .mob-row.kv .mob-row-trail { justify-content: flex-start; text-align: left; width: 100%; }
