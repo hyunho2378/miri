@@ -543,7 +543,9 @@ button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0;
 .mob-root.platform-android .mob-h-time { font-size: 32px; line-height: 40px; font-weight: 400; letter-spacing: 0; }
 .mob-root.platform-ios .mob-h-big { font-size: 20px; line-height: 25px; font-weight: 590; letter-spacing: -0.45px; }   /* Title 3 강조 */
 .mob-root.platform-android .mob-h-big { font-size: 22px; line-height: 28px; font-weight: 500; letter-spacing: 0; }   /* Title Large */
-.mob-h-kv { max-width: 65%; font-weight: var(--w-strong); }
+/* 키와 값 행: 값 칸은 행 너비의 65%까지 늘어나고 그 안에서 줄바꿈(꼬리 칸이 내용 폭으로 고정되면 값이 한두 글자씩 꺾임) */
+.mob-row-trail:has(> .mob-h-kv) { flex: 0 1 auto; min-width: 0; max-width: 65%; }
+.mob-h-kv { font-weight: var(--w-strong); }
 /* 구획 머리 아래 설명과 목록 아래 설명: Grouped Table Footer 35:55757 pad 8/16/6/16, 13/18 자간 -0.08 */
 .mob-section > p.mob-t-foot, .mob-section > p.mob-t-sub { padding: 0 var(--m-row-pad-x); margin: 0; }
 /* 구획 제목: iOS Section Title 50:56535(17/22 w590 자간 -0.43, 아래 9, 보조 글자색. 대비 4.5 위해 #48484A), M3 목록 머리 Title Small 14/20 w500 자간 0.1 */

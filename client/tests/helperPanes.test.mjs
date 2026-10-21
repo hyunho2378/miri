@@ -35,3 +35,8 @@ test('화면 코드: 두 단에서 목록 고르기는 오른쪽만 바꾸고, �
   assert.match(src, /p\.current && !inPane && <Bottom>/)
   assert.match(src, /<TwoPane\s/)
 })
+
+test('키와 값 행: 값 칸이 내용 폭에 고정되지 않음(꼬리 칸 65%까지 늘어남)', () => {
+  const css = readFileSync(new URL('../src/mobile/mobile.css', import.meta.url), 'utf8')
+  assert.match(css, /\.mob-row-trail:has\(> \.mob-h-kv\) \{ flex: 0 1 auto; min-width: 0; max-width: 65%; \}/)
+})

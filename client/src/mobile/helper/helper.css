@@ -4,7 +4,7 @@
 .mob-root.platform-android .mob-h-bottom > .mob-btn { flex: 1; }
 .mob-h-lead { margin: 0; }
 .mob-h-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.mob-h-kv { color: var(--m-ink); font-weight: 600; text-align: right; max-width: 65%; overflow-wrap: anywhere; }
+.mob-h-kv { color: var(--m-ink); text-align: right; overflow-wrap: anywhere; word-break: keep-all; }
 .mob-h-deadline { display: flex; flex-direction: column; gap: 4px; }
 .mob-h-time { color: var(--m-ink); font-variant-numeric: tabular-nums; margin: 0; }
 .mob-h-over { color: var(--m-red-strong); font-weight: 600; }
