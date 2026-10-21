@@ -195,7 +195,10 @@ function useOverlay(open, onClose) {
     const scrim = box.current?.parentElement
     const siblings = scrim?.parentElement ? [...scrim.parentElement.children].filter((el) => el !== scrim && !el.hasAttribute('inert')) : []
     siblings.forEach((el) => el.setAttribute('inert', ''))
-    box.current?.querySelector(FOCUSABLE)?.focus()
+    // 처음 포커스: data-autofocus 가 있으면 그 칸, 없으면 덮개 자체(첫 버튼에 포커스 테두리가 뜨지 않게)
+    const first = box.current?.querySelector('[data-autofocus]')
+    if (first) first.focus()
+    else box.current?.focus({ preventScroll: true })
     return () => {
       document.removeEventListener('keydown', onKey)
       siblings.forEach((el) => el.removeAttribute('inert'))
@@ -206,15 +209,15 @@ function useOverlay(open, onClose) {
 }
 
 // 하단 시트(iOS 손잡이 있는 시트, M3 모달 바텀 시트).
-export function Sheet({ open, onClose, title, children }) {
+export function Sheet({ open, onClose, title, hideTitle = false, children }) {
   const box = useOverlay(open, onClose)
   const id = useId()
   if (!open) return null
   return (
     <div className="mob-scrim" onClick={onClose}>
-      <div ref={box} className="mob-sheet" role="dialog" aria-modal="true" aria-labelledby={id} onClick={(e) => e.stopPropagation()}>
+      <div ref={box} tabIndex={-1} className="mob-sheet" role="dialog" aria-modal="true" aria-labelledby={id} onClick={(e) => e.stopPropagation()}>
         <div className="mob-grabber" aria-hidden="true" />
-        <h2 id={id} className="mob-t-headline" style={{ marginBottom: 12 }}>{title}</h2>
+        <h2 id={id} className={hideTitle ? 'mob-sr-only' : 'mob-t-headline mob-sheet-title'}>{title}</h2>
         {children}
       </div>
     </div>
@@ -228,7 +231,7 @@ export function Dialog({ open, onClose, title, body, actions }) {
   if (!open) return null
   return (
     <div className="mob-scrim" onClick={onClose}>
-      <div ref={box} className="mob-dialog" role="alertdialog" aria-modal="true" aria-labelledby={id} onClick={(e) => e.stopPropagation()}>
+      <div ref={box} tabIndex={-1} className="mob-dialog" role="alertdialog" aria-modal="true" aria-labelledby={id} onClick={(e) => e.stopPropagation()}>
         <div className="mob-dialog-body">
           <h2 id={id} className="mob-t-headline">{title}</h2>
           {body && <p className="mob-t-sub">{body}</p>}
@@ -394,10 +397,10 @@ export function TimePicker({ value = '', onChange, disabled, label = '시각', .
     return (
       <span className="mob-time-control">
         <Button variant="gray" block disabled={disabled} onClick={choose} aria-label={`${label} 선택`}>{validTime(value) ? value : `${label} 선택`}</Button>
-        <Sheet open={open} onClose={() => setOpen(false)} title={`${label} 입력`}>
+        <Sheet open={open} onClose={() => setOpen(false)} title={`${label} 입력`} hideTitle>
           <div className="mob-m3-timepicker">
-            <p className="mob-m3-tp-title">시각 입력</p>
-            <DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={props} className="mob-m3-tp-digits" />
+            <p className="mob-m3-tp-title" aria-hidden="true">{label} 입력</p>
+            <DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={{ ...props, 'data-autofocus': true }} className="mob-m3-tp-digits" />
             <span className="mob-m3-tp-caption" aria-hidden="true"><span>시</span><span>분</span></span>
             {hint}
             <div className="mob-m3-tp-actions"><Button variant="plain" onClick={() => setOpen(false)}>취소</Button><Button variant="plain" disabled={!ok} onClick={commit}>확인</Button></div>

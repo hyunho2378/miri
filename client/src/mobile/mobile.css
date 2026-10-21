@@ -312,7 +312,7 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 /* iOS 키트 Date and time - Collapsed(30:53803), Pickers Inline(51:56014) */
 .mob-ios-collapsed { display:flex; gap:8px; }
 .mob-ios-pill { min-height:34px; padding:6px 11px; border:0; border-radius:6px; background:var(--m-fill); color:var(--m-ink); font:inherit; font-size:17px; line-height:22px; cursor:pointer; }
-.mob-ios-pill.is-selected { color:var(--m-blue); }
+.mob-ios-pill.is-selected { background:var(--m-page); color:var(--m-blue); }
 .mob-ios-collapsed .mob-ios-pill { min-height:var(--m-touch); }
 .mob-ios-inline { background:var(--m-page); border-radius:13px; padding:12px; box-shadow:var(--m-shadow-1); margin:8px 0 12px; }
 .mob-ios-cal-head { display:flex; align-items:center; justify-content:space-between; height:40px; }
@@ -339,3 +339,7 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-m3-tp-caption { display:flex; gap:24px; margin-top:7px; font-size:12px; line-height:16px; color:var(--m-ink-3); }
 .mob-m3-tp-caption span { width:96px; }
 .mob-m3-tp-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; min-height:48px; }
+
+.mob-sheet:focus, .mob-dialog:focus { outline: none; }
+.mob-sheet-title { margin-bottom: 12px; }
+.mob-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
