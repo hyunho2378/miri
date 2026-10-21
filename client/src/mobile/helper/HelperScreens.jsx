@@ -22,9 +22,10 @@ const store = {
   set: (k, v) => { try { localStorage.setItem(k, v) } catch { /* 저장 불가 브라우저는 이번 화면에서만 */ } },
   del: (k) => { try { localStorage.removeItem(k) } catch { /* 저장 불가 */ } }
 }
-const readConsent = (k) => store.get(CONSENT_KEY + k) === '1'
 const writeConsent = (k, roles) => { store.set(CONSENT_KEY + k, '1'); store.set(ROLES_KEY + k, JSON.stringify(roles)) }
 const readRoles = (k) => { try { const r = JSON.parse(store.get(ROLES_KEY + k) || '[]'); return Array.isArray(r) ? r.filter((x) => x in ROLE_OPTIONS) : [] } catch { return [] } }
+// 동의는 역할을 하나 이상 고른 경우에만 성립한다(동의 화면이 역할 없이는 진행되지 않음). 역할 없이 남은 옛 기록은 '아직'으로 보고 다시 묻는다.
+const readConsent = (k) => store.get(CONSENT_KEY + k) === '1' && readRoles(k).length > 0
 const roleText = (roles) => roles.map((r) => ROLE_OPTIONS[r]).filter(Boolean).join(', ')
 
 function Kv({ label, value }) {
