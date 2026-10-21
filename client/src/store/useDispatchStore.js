@@ -313,8 +313,9 @@ export const useDispatchStore = create((set, get) => ({
   reset: () => set({ ...EMPTY })
 }))
 
-// 발령 상태가 바뀌면 1.5초 뒤 서버에 저장(브라우저에서만)
+// 발령 상태가 바뀌면 1.5초 뒤 서버에 저장하고, 앱을 처음 열 때 어느 화면이든 서버의 발령을 복원(브라우저에서만, 도우미 링크 화면 제외)
 if (typeof window !== 'undefined') {
+  if (!window.location.pathname.startsWith('/h/')) setTimeout(() => { useDispatchStore.getState().restoreRemote() }, 0)
   let timer = null
   const WATCH = ['status', 'result', 'confirmedAt', 'ackOverride', 'events', 'handovers', 'arrivals']
   useDispatchStore.subscribe((s, prev) => {
