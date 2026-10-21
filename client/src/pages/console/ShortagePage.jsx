@@ -154,11 +154,11 @@ export default function ShortagePage() {
           <p className="mb-1.5 type-caption text-text-sec">발령 시간대</p>
           <SegmentControl label="발령 시간대" value={draft.timeBand || 'home'} onChange={(v) => set({ timeBand: v })}
             items={TIME_BANDS.map((b) => ({ value: b.value, label: b.label }))} />
-          <p className="mt-1.5 type-meta leading-5 text-text-meta">{bandOf(draft).desc} 주야간보호 이용 {LTC_DAYCARE.toLocaleString('ko-KR')}명은 공단 통계이고, 누가 이용자인지는 가상입니다(회신 R24).</p>
+          <p className="mt-1.5 type-meta leading-5 text-text-meta">{bandOf(draft).desc} 주야간보호 이용 {LTC_DAYCARE.toLocaleString('ko-KR')}명은 공단 통계이고, 누가 이용자인지는 시연 명부 기준입니다.</p>
         </div>
         <div>
           <NumberStepper label="차량 가용률" value={draft.availability ?? 100} min={30} max={100} step={10} unit="%" format={(v) => `${v}%`} onChange={(v) => set({ availability: v })}
-            hint="야간이나 휴일에 차량과 운전 인력을 다 모으지 못하는 경우를 봅니다. 기관 조사 전이라 담당자가 정하는 값입니다(회신 R27)." />
+            hint="야간이나 휴일에 차량과 운전 인력을 다 모으지 못하는 경우를 봅니다. 기관 조사 전 담당자 입력값입니다." />
         </div>
         <div>
           <p className="mb-1.5 type-caption text-text-sec">준비 시간</p>
@@ -237,7 +237,7 @@ export default function ShortagePage() {
 
           <ShortageTable basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} arrivals={result.arrivals} t0={today} />
 
-          <Card title="가정값 점검" meta="회신 R17, R24, R27">
+          <Card title="가정값 점검" meta="외부 자문 반영">
             <p className="mb-4 type-body-sm text-text-sec">자문 회신으로 받은 의견과 계산 가정을 나란히 둡니다. 근거가 한 곳뿐인 값은 가정을 바꾸지 않고 바꿨을 때의 결과만 보여 줍니다.</p>
             <div className="grid gap-5 lg:grid-cols-2">
               <section aria-labelledby="chk-band" className="min-w-0">
@@ -250,7 +250,7 @@ export default function ShortagePage() {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-2 type-meta leading-5 text-text-meta">회신 R24(개발자 자문): 주야간보호 이용자는 낮에 센터에 있고 센터는 송영 차량을 갖고 있어 시간대 변수가 필요함. 회신 R27(행정학 자문): 야간이나 휴일에는 인력과 차량 확보가 어려울 수 있어 별도 시나리오가 필요함.</p>
+                <p className="mt-2 type-meta leading-5 text-text-meta">개발자 자문: 주야간보호 이용자는 낮에 센터에 있고 센터는 송영 차량을 갖고 있어 시간대 변수가 필요함. 행정학 자문: 야간이나 휴일에는 인력과 차량 확보가 어려울 수 있어 별도 시나리오가 필요함.</p>
               </section>
               <section aria-labelledby="chk-board" className="min-w-0">
                 <h3 id="chk-board" className="type-h3 text-text-pri">탑승과 하차 시간</h3>
@@ -268,7 +268,7 @@ export default function ShortagePage() {
                     <dd className="mt-0.5 type-body-sm text-text-pri">휠체어는 리프트 승합차와 도우미 2명, 회차마다 탑승과 하차 {boardingNow}분</dd>
                   </div>
                   <div className="rounded-md bg-page px-3 py-2">
-                    <dt className="type-caption text-text-sec">회신 R17, 개인 경험 기준</dt>
+                    <dt className="type-caption text-text-sec">장애인 단체 자문, 개인 경험 기준</dt>
                     <dd className="mt-0.5 type-body-sm text-text-pri">특장차량은 슬로프와 안전벨트가 있어 운전자 1명으로 가능하고, 숙련자는 탑승과 안전벨트 착용이 5분 이내. 경수 장애는 보호자가 함께할 수 있고, 전동 휠체어는 경차 개조 특장차에 타기 어려울 수 있음</dd>
                   </div>
                 </dl>

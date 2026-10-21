@@ -14,7 +14,12 @@ function toneOf(g) {
   if (over51 >= 40) return 'text-warning-text bg-warning-soft'
   return 'text-text-sec bg-mute'
 }
-const fmtAt = (s) => {
+// 기상청 발표 시각(YYYYMMDDHHmm)
+export const fmtTmFc = (s) => {
+  const m = String(s || '').match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})/)
+  return m ? `${Number(m[2])}. ${Number(m[3])}. ${m[4]}:${m[5]} 발표` : ''
+}
+export const fmtAt = (s) => {
   const m = String(s || '').match(/(\d{4})-(\d{2})-(\d{2})\s*(\d{2})/)
   return m ? `${m[1]}. ${Number(m[2])}. ${Number(m[3])}. ${m[4]}시 분석` : s
 }
@@ -56,7 +61,7 @@ export function WeatherLine({ className }) {
   const hot = w.data?.related?.length
   return (
     <p className={clsx('type-meta leading-5', hot ? 'text-warning-text' : 'text-text-sec', className)}>
-      {parts.join(' / ')}<span className="text-text-meta">, 기상청</span>
+      {parts.join(' / ')}<span className="text-text-meta">, 기상청{w.data?.issuedAt ? ` ${fmtTmFc(w.data.issuedAt)}` : ''}</span>
     </p>
   )
 }
@@ -72,7 +77,7 @@ export default function FireRiskStrip({ className, compact = false }) {
       <Flame size={16} aria-hidden="true" className="text-warning" />
       <span>동해시 산불위험지수 평균 <strong className="tabular-nums">{data.mean}</strong>, 최고 <strong className="tabular-nums">{data.max}</strong></span>
       <span className={clsx('rounded-xs px-1.5 py-0.5 type-caption', toneOf(g))}>지수 51 이상 면적 {over51}%</span>
-      {!compact && <span className="type-meta text-text-meta">산림청 국립산림과학원, {fmtAt(data.analyzedAt)}</span>}
+      <span className="type-meta text-text-meta">{compact ? fmtAt(data.analyzedAt) : `산림청 국립산림과학원, ${fmtAt(data.analyzedAt)}`}</span>
     </p>
   )
 }
