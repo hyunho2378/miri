@@ -41,13 +41,15 @@ function KitBody({ platform }) {
           <Chip tone="blue">훈련</Chip>
         </div>
         <Button block onClick={() => setDialog(true)}>수락</Button>
-        <div className="mob-kit-grid">
-          <Button variant="tonal" size="sm" onClick={() => setSheet(true)}>불가 사유</Button>
-          <Button variant="gray" size="sm" onClick={() => toast('출발 보고 저장', { label: '되돌리기', onClick: () => {} })}>출발 보고</Button>
-          <Button variant="plain" size="sm">연락</Button>
-          <Button variant="danger-tonal" size="sm">실패 보고</Button>
-          <Spinner />
-        </div>
+        <Card>
+          <div className="mob-kit-grid">
+            <Button variant="tonal" size="sm" onClick={() => setSheet(true)}>불가 사유</Button>
+            <Button variant="gray" size="sm" onClick={() => toast('출발 보고 저장', { label: '되돌리기', onClick: () => {} })}>출발 보고</Button>
+            <Button variant="plain" size="sm">연락</Button>
+            <Button variant="danger-tonal" size="sm">실패 보고</Button>
+            <Spinner />
+          </div>
+        </Card>
         <label className="mob-h-field"><span className="mob-t-label">증상 시각</span><FilledInput type="time" value={time} onChange={(e) => setTime(e.target.value)} /></label>
         <EmptyState title="전송 대기 없음" body="보낸 보고가 모두 서버에 저장됨" />
         <DisplaySettings />
