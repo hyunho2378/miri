@@ -1,18 +1,60 @@
+import { ROLE_OPTIONS } from '../lib/helperConsent.js'
 // 미리 모바일 공용 부품. 같은 API, 플랫폼별 모양(docs/MOBILE_UI.md 5장 부품 대응).
 // 모양 차이는 mobile.css 의 .mob-root.platform-ios / .platform-android 토큰이 맡고,
 // 구조 차이(앱 바 큰 제목, 대화상자 버튼 배치, 토스트 위치, 물결)는 여기서 나눈다.
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react'
 import { ChevronLeft, ArrowLeft, ChevronRight, WifiOff, Inbox } from 'lucide-react'
 import { usePlatform } from './usePlatform.js'
+import { layoutFor } from './layout.js'
+import { HELPER_PHRASES, AVOID_PHRASES, EMERGENCY, PREDEPARTURE } from '../lib/helperGuidance.js'
+import { validTime, timeValue } from './time.js'
+import './tokens.css'
 import './mobile.css'
 
-// 셸 바깥 껍데기. 플랫폼과 큰 글자 클래스를 이 요소에 붙여 토큰을 고정한다.
+// 셸 바깥 껍데기. 플랫폼, 큰 글자, 화면 크기 등급(size-*), 이동 막대 위치(bar-*) 클래스를 이 요소에 붙여 토큰을 고정한다.
+// 접힘 구획 수: CSS viewport segments 미디어 쿼리(지원 브라우저만, 없으면 1)
+const segCount = (axis) => {
+  if (typeof window === 'undefined' || !window.matchMedia) return 1
+  return window.matchMedia(`(${axis}-viewport-segments: 2)`).matches ? 2 : 1
+}
+function useViewport() {
+  const read = () => (typeof window === 'undefined' ? { width: 402, height: 874 } : { width: window.innerWidth, height: window.innerHeight, hSegments: segCount('horizontal'), vSegments: segCount('vertical') })
+  const [vp, setVp] = useState(read)
+  useEffect(() => {
+    const on = () => setVp(read())
+    window.addEventListener('resize', on)
+    const posture = navigator.devicePosture   // Device Posture API(continuous, folded)
+    posture?.addEventListener?.('change', on)
+    return () => { window.removeEventListener('resize', on); posture?.removeEventListener?.('change', on) }
+  }, [])
+  return vp
+}
+
+const LayoutContext = createContext(layoutFor())
+export function useLayout() { return useContext(LayoutContext) }
+
 export function MobileRoot({ platform: forced, className = '', children, ...rest }) {
   const { platform, largeText } = usePlatform()
   const p = forced || platform
+  const vp = useViewport()
+  const layout = layoutFor({ platform: p, ...vp })
   return (
-    <div className={`mob-root platform-${p} ${largeText ? 'text-large' : ''} ${className}`} data-platform={p} {...rest}>
-      <ToastHost>{children}</ToastHost>
+    <LayoutContext.Provider value={layout}>
+      <div className={`mob-root platform-${p} size-${layout.size} bar-${layout.bar} ${layout.twoPane ? 'two-pane' : ''} ${layout.posture ? `posture-${layout.posture}` : ''} ${largeText ? 'text-large' : ''} ${className}`} data-platform={p} data-size={layout.size} data-bar={layout.bar} {...rest}>
+        <ToastHost>{children}</ToastHost>
+      </div>
+    </LayoutContext.Provider>
+  )
+}
+
+// 목록과 상세 두 단(medium 이상, iPhone Duo 안쪽). compact 에서는 상세가 있으면 상세만, 없으면 목록만 보인다.
+export function TwoPane({ list, detail, emptyDetail }) {
+  const { twoPane } = useLayout()
+  if (!twoPane) return detail || list
+  return (
+    <div className="mob-two">
+      <div className="mob-pane mob-pane-list">{list}</div>
+      <div className="mob-pane mob-pane-detail">{detail || emptyDetail}</div>
     </div>
   )
 }
@@ -47,7 +89,7 @@ export function AppBar({ title, large = false, onBack, backLabel = '뒤로', tra
         <div className={`mob-bar-slot ${onBack ? '' : 'empty'}`}>
           {onBack && <button type="button" className="mob-icon-btn" onClick={onBack} aria-label={backLabel}><BackIcon size={24} aria-hidden="true" /></button>}
         </div>
-        <h1 className="mob-bar-title" aria-hidden={showLarge && platform === 'ios' ? 'true' : undefined} style={showLarge && platform === 'ios' ? { opacity: 0 } : undefined}>{title}</h1>
+        <h1 className="mob-bar-title" aria-hidden={showLarge && platform === 'ios' ? 'true' : undefined} data-hidden={showLarge && platform === 'ios' ? 'true' : undefined}>{title}</h1>
         <div className="mob-bar-slot">{trailing}</div>
       </div>
       {showLarge && platform === 'ios' && <div className="mob-bar-large"><p className="mob-t-display" role="heading" aria-level={1}>{title}</p></div>}
@@ -93,16 +135,24 @@ export function List({ label, children }) {
   return <ul className="mob-list" aria-label={label}>{children}</ul>
 }
 
-export function ListRow({ lead, title, subtitle, meta, trailing, onClick, href, chevron, tall, ...rest }) {
+// 번호(V-18, MS-04-001, H-079)는 붙임표 뒤에서 줄이 바뀌지 않게 한 덩어리로 묶는다(글자는 그대로 두어 복사와 읽기 값은 같음)
+// 괄호가 붙은 어절(기관(요양시설,)도 괄호 앞뒤에서 꺾이지 않게 한 덩어리로 묶는다
+const CODE_RE = /([A-Z]{1,3}(?:-\d+)+,?|[^\s(),]+\([^\s()]*\)?,?)/g
+export function keepCodes(text) {
+  if (typeof text !== 'string' || !/[A-Z]-\d|\S\(/.test(text)) return text
+  return text.split(CODE_RE).map((part, i) => (i % 2 ? <span key={i} className="mob-nb">{part}</span> : part))
+}
+
+export function ListRow({ lead, title, subtitle, meta, trailing, onClick, href, chevron, tall, className = '', ...rest }) {
   const Tag = href ? 'a' : onClick ? 'button' : 'div'
   return (
     <li>
-      <Tag className={`mob-row ${tall || meta ? 'tall' : ''}`} onClick={onClick} href={href} type={Tag === 'button' ? 'button' : undefined} {...rest}>
+      <Tag className={`mob-row ${tall || meta ? 'tall' : ''} ${className.replace('mob-row', '').trim()}`.trim()} onClick={onClick} href={href} type={Tag === 'button' ? 'button' : undefined} {...rest}>
         {lead && <span className="mob-row-lead" aria-hidden="true">{lead}</span>}
         <span className="mob-row-main">
-          <span className="mob-t-body">{title}</span>
-          {subtitle && <span className="mob-t-sub">{subtitle}</span>}
-          {meta && <span className="mob-t-foot">{meta}</span>}
+          <span className="mob-t-body">{keepCodes(title)}</span>
+          {subtitle && <span className="mob-t-callout">{keepCodes(subtitle)}</span>}
+          {meta && <span className="mob-t-sub">{keepCodes(meta)}</span>}
         </span>
         {(trailing || chevron) && <span className="mob-row-trail">{trailing}{chevron && <ChevronRight size={20} aria-hidden="true" />}</span>}
       </Tag>
@@ -142,7 +192,7 @@ export function Segmented({ label, options, value, onChange }) {
   return (
     <div className="mob-seg" role="radiogroup" aria-label={label}>
       {options.map((o) => (
-        <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)} {...radioProps(options.map((x) => x.value), value, onChange, o.value)}>{o.label}</button>
+        <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)} {...radioProps(options.map((x) => x.value), value, onChange, o.value)}>{value === o.value && <svg className="mob-seg-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" fill="currentColor" /></svg>}{o.label}</button>
       ))}
     </div>
   )
@@ -185,13 +235,16 @@ function useOverlay(open, onClose) {
   useEffect(() => {
     if (!open) return undefined
     const before = document.activeElement
-    const onKey = (e) => { if (e.key === 'Escape') closeRef.current?.(); else trapTab(e, box.current) }
+    const onKey = (e) => { const overlays = document.querySelectorAll('.mob-sheet, .mob-dialog'); if (overlays.length && overlays[overlays.length - 1] !== box.current) return; if (e.key === 'Escape') closeRef.current?.(); else trapTab(e, box.current) }
     document.addEventListener('keydown', onKey)
     // 배경 inert: 덮개 바깥의 형제 요소를 잠시 비활성화
     const scrim = box.current?.parentElement
     const siblings = scrim?.parentElement ? [...scrim.parentElement.children].filter((el) => el !== scrim && !el.hasAttribute('inert')) : []
     siblings.forEach((el) => el.setAttribute('inert', ''))
-    box.current?.querySelector(FOCUSABLE)?.focus()
+    // 처음 포커스: data-autofocus 가 있으면 그 칸, 없으면 덮개 자체(첫 버튼에 포커스 테두리가 뜨지 않게)
+    const first = box.current?.querySelector('[data-autofocus]')
+    if (first) first.focus()
+    else box.current?.focus({ preventScroll: true })
     return () => {
       document.removeEventListener('keydown', onKey)
       siblings.forEach((el) => el.removeAttribute('inert'))
@@ -202,15 +255,15 @@ function useOverlay(open, onClose) {
 }
 
 // 하단 시트(iOS 손잡이 있는 시트, M3 모달 바텀 시트).
-export function Sheet({ open, onClose, title, children }) {
+export function Sheet({ open, onClose, title, hideTitle = false, center = false, children }) {
   const box = useOverlay(open, onClose)
   const id = useId()
   if (!open) return null
   return (
     <div className="mob-scrim" onClick={onClose}>
-      <div ref={box} className="mob-sheet" role="dialog" aria-modal="true" aria-labelledby={id} onClick={(e) => e.stopPropagation()}>
-        <div className="mob-grabber" aria-hidden="true" />
-        <h2 id={id} className="mob-t-headline" style={{ marginBottom: 12 }}>{title}</h2>
+      <div ref={box} tabIndex={-1} className={`mob-sheet${center ? ' center' : ''}`} role="dialog" aria-modal="true" aria-labelledby={id} onClick={(e) => e.stopPropagation()}>
+        {!center && <div className="mob-grabber" aria-hidden="true" />}
+        <h2 id={id} className={hideTitle ? 'mob-sr-only' : 'mob-t-headline mob-sheet-title'}>{title}</h2>
         {children}
       </div>
     </div>
@@ -224,7 +277,7 @@ export function Dialog({ open, onClose, title, body, actions }) {
   if (!open) return null
   return (
     <div className="mob-scrim" onClick={onClose}>
-      <div ref={box} className="mob-dialog" role="alertdialog" aria-modal="true" aria-labelledby={id} onClick={(e) => e.stopPropagation()}>
+      <div ref={box} tabIndex={-1} className="mob-dialog" role="alertdialog" aria-modal="true" aria-labelledby={id} onClick={(e) => e.stopPropagation()}>
         <div className="mob-dialog-body">
           <h2 id={id} className="mob-t-headline">{title}</h2>
           {body && <p className="mob-t-sub">{body}</p>}
@@ -252,7 +305,7 @@ function ToastHost({ children }) {
       <div className="mob-toast-wrap" role="status" aria-live="polite">
         {toast && (
           <div key={toast.key} className="mob-toast">
-            <span style={{ flex: 1 }}>{toast.message}</span>
+            <span className="mob-toast-text">{toast.message}</span>
             {toast.action && <Button variant="plain" size="sm" onClick={() => { toast.action.onClick(); setToast(null) }}>{toast.action.label}</Button>}
           </div>
         )}
@@ -262,7 +315,9 @@ function ToastHost({ children }) {
 }
 export function useMobileToast() { return useContext(ToastContext) }
 
-export function Banner({ tone = 'gray', icon, children }) {
+export function Banner({ tone = 'gray', icon, title, children }) {
+  // title 이 있으면 제목만 색 글자, 본문은 기본 글자색(긴 문장을 색 글자로 쓰지 않음)
+  if (title) return <div className={`mob-banner tone-${tone} has-title`} role={tone === 'red' ? 'alert' : 'status'}>{icon}<span><span className="mob-banner-title">{title}</span><span className="mob-banner-body">{children}</span></span></div>
   return <div className={`mob-banner tone-${tone}`} role={tone === 'red' ? 'alert' : 'status'}>{icon}{children}</div>
 }
 
@@ -295,20 +350,24 @@ export function EmptyState({ icon, title, body, action }) {
   )
 }
 
-// 하단 이동(iOS 탭 바, M3 내비게이션 바 알약). items: [{ key, label, icon, href|onClick, current, badge }]
+// 이동 막대. 위치는 화면 크기로 정한다(layout.js).
+// iOS 아래: 떠 있는 알약 탭 바(키트 Tab Bar - iPhone 3:70967, 402x95 pad 16/25/25/25, 탭 72x54)
+// iOS 옆: iPhone Duo 세로 탭 바(12887:20935, 막대 84 폭, 탭 48x48 아이콘만, 이름은 화면 낭독기 글자)
+// Android 아래: 내비게이션 바(58016:37259, 64 높이, 아이콘 칸 56x32), medium 이상: 내비게이션 레일(58016:36879, 96 폭)
 export function BottomNav({ items, label = '주요 화면' }) {
+  const { bar } = useLayout()
   return (
-    <nav className="mob-nav" aria-label={label}>
+    <nav className={`mob-nav nav-${bar}`} aria-label={label}>
       <div className="mob-nav-inner">
         {items.map((it) => {
           const Tag = it.href ? 'a' : 'button'
           return (
-            <Tag key={it.key} href={it.href} onClick={it.onClick} type={Tag === 'button' ? 'button' : undefined} aria-current={it.current ? 'page' : undefined}>
-              <span className="mob-nav-pill" style={{ position: 'relative' }}>
+            <Tag key={it.key} href={it.href} onClick={it.onClick} type={Tag === 'button' ? 'button' : undefined} aria-current={it.current ? 'page' : undefined} className="mob-nav-item">
+              <span className="mob-nav-pill">
                 {it.icon}
                 {it.badge ? <span className="mob-nav-badge" aria-label={`${it.badge}건`}>{it.badge}</span> : null}
               </span>
-              <span>{it.label}</span>
+              <span className="mob-nav-label">{it.label}</span>
             </Tag>
           )
         })}
@@ -323,9 +382,160 @@ export function DisplaySettings() {
   return (
     <List label="화면 설정">
       <ListRow title="화면 모양" subtitle="휴대폰 종류에 맞춤" trailing={
-        <div style={{ width: 168 }}><Segmented label="화면 모양" value={platform} onChange={setPlatform} options={[{ value: 'ios', label: '아이폰' }, { value: 'android', label: '안드로이드' }]} /></div>
+        <div className="mob-seg-fit"><Segmented label="화면 모양" value={platform} onChange={setPlatform} options={[{ value: 'ios', label: '아이폰' }, { value: 'android', label: '안드로이드' }]} /></div>
       } />
       <ListRow title="큰 글자" subtitle="본문 22, 버튼 56" trailing={<Toggle label="큰 글자" checked={largeText} onChange={setLargeText} />} />
     </List>
   )
+}
+
+// iOS text field / M3 filled text field. Native OS time picker is not invoked.
+export function FilledInput({className='', type='text', ...props}) {
+ if(type === 'time') return <TimePicker {...props} />
+ return <input {...props} type={type} className={`mob-filled-input ${className}`} />
+}
+
+// App-owned sheet, never input[type=time] or a native select.
+// iOS: 키트 'Date and time - Collapsed'(30:53803) 알약을 누르면 'Date and time - Pickers' Inline(51:56014) 카드가 시트로 열린다. 휠 없음.
+// Android: M3 키트 'Keyboard picker'(52949:28053) 24시간 입력형.
+const WEEK = ['일', '월', '화', '수', '목', '금', '토']
+// 날짜 격자: 행(row) 구조와 이동 가능한 칸 하나(roving tabindex). 좌우 하루, 위아래 한 주, Home과 End 주의 처음과 끝, PageUp과 PageDown 이전과 다음 달, Enter와 Space 선택(GPT 11차 L1)
+export function calendarKeyMove(date, key) {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const shiftMonth = (k) => { const last = new Date(d.getFullYear(), d.getMonth() + k + 1, 0).getDate(); return new Date(d.getFullYear(), d.getMonth() + k, Math.min(d.getDate(), last)) }
+  switch (key) {
+    case 'ArrowLeft': return new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1)
+    case 'ArrowRight': return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
+    case 'ArrowUp': return new Date(d.getFullYear(), d.getMonth(), d.getDate() - 7)
+    case 'ArrowDown': return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7)
+    case 'Home': return new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay())
+    case 'End': return new Date(d.getFullYear(), d.getMonth(), d.getDate() + (6 - d.getDay()))
+    case 'PageUp': return shiftMonth(-1)
+    case 'PageDown': return shiftMonth(1)
+    default: return null
+  }
+}
+function IosInlineCalendar({ day, onDay }) {
+  const [focus, setFocus] = useState(() => new Date(day.getFullYear(), day.getMonth(), day.getDate()))
+  const view = new Date(focus.getFullYear(), focus.getMonth(), 1)
+  const gridRef = useRef(null)
+  const moved = useRef(false)
+  const today = new Date()
+  const first = view.getDay()
+  const last = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate()
+  const cells = Array.from({ length: Math.ceil((first + last) / 7) * 7 }, (_, n) => (n < first || n >= first + last ? null : n - first + 1))
+  const rows = Array.from({ length: cells.length / 7 }, (_, r) => cells.slice(r * 7, r * 7 + 7))
+  const same = (a, d) => a.getFullYear() === view.getFullYear() && a.getMonth() === view.getMonth() && a.getDate() === d
+  const move = (k) => { const last2 = new Date(view.getFullYear(), view.getMonth() + k + 1, 0).getDate(); setFocus(new Date(view.getFullYear(), view.getMonth() + k, Math.min(focus.getDate(), last2))) }
+  useEffect(() => {
+    if (!moved.current) return
+    moved.current = false
+    gridRef.current?.querySelector('[tabindex="0"]')?.focus()
+  }, [focus])
+  const onKey = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDay(new Date(focus)); return }
+    const next = calendarKeyMove(focus, e.key)
+    if (!next) return
+    e.preventDefault()
+    moved.current = true
+    setFocus(next)
+  }
+  return (
+    <div className="mob-ios-cal">
+      <div className="mob-ios-cal-head">
+        <p className="mob-ios-cal-month" aria-live="polite">{view.getFullYear()}년 {view.getMonth() + 1}월<span className="mob-ios-cal-disc" aria-hidden="true"><ChevronRight size={13} strokeWidth={3} /></span></p>
+        <span className="mob-ios-cal-arrows">
+          <button type="button" className="mob-ios-cal-arrow" aria-label="이전 달" onClick={() => move(-1)}><ChevronLeft size={20} /></button>
+          <button type="button" className="mob-ios-cal-arrow" aria-label="다음 달" onClick={() => move(1)}><ChevronRight size={20} /></button>
+        </span>
+      </div>
+      <div className="mob-ios-cal-week" aria-hidden="true">{WEEK.map((w) => <span key={w}>{w}</span>)}</div>
+      <div ref={gridRef} className="mob-ios-cal-grid" role="grid" aria-label={`${view.getFullYear()}년 ${view.getMonth() + 1}월 날짜`} onKeyDown={onKey}>
+        {rows.map((row, r) => (
+          <div key={r} role="row" className="mob-ios-cal-row">
+            {row.map((d, c) => d === null ? <span key={'e' + c} role="gridcell" aria-hidden="true" /> : (
+              <span key={d} role="gridcell" aria-selected={same(day, d)}>
+                <button type="button" tabIndex={d === focus.getDate() ? 0 : -1} aria-label={`${view.getMonth() + 1}월 ${d}일${same(today, d) ? ', 오늘' : ''}`} className={`mob-ios-day ${same(today, d) ? 'is-today' : ''} ${same(day, d) ? 'is-selected' : ''}`} onClick={() => { const nd = new Date(view.getFullYear(), view.getMonth(), d); setFocus(nd); onDay(nd) }}>{d}</button>
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+// 시와 분 칸: Tab 외에도 시 칸 끝에서 오른쪽 방향키, 분 칸 처음에서 왼쪽 방향키로 옮겨 가고, 시 두 자리를 치면 분 칸으로 넘어간다(GPT 11차 L1)
+function DigitPair({ hour, minute, setHour, setMinute, inputProps, className, onEnter }) {
+  const hRef = useRef(null)
+  const mRef = useRef(null)
+  const atEnd = (el) => el.selectionStart === el.value.length && el.selectionEnd === el.value.length
+  const atStart = (el) => el.selectionStart === 0 && el.selectionEnd === 0
+  const keyH = (e) => { if (e.key === 'ArrowRight' && atEnd(e.currentTarget)) { e.preventDefault(); mRef.current?.focus(); mRef.current?.setSelectionRange(0, 0) } else if (e.key === 'Enter') { e.preventDefault(); onEnter?.() } }
+  const keyM = (e) => { if ((e.key === 'ArrowLeft' || e.key === 'Backspace') && atStart(e.currentTarget)) { e.preventDefault(); hRef.current?.focus() } else if (e.key === 'Enter') { e.preventDefault(); onEnter?.() } }
+  const changeH = (e) => { const v = e.target.value.replace(/\D/g, ''); setHour(v); if (v.length === 2) mRef.current?.focus() }
+  return (
+    <span className={className}>
+      <input {...inputProps} ref={hRef} aria-label="시" inputMode="numeric" maxLength={2} value={hour} onChange={changeH} onKeyDown={keyH} />
+      <span aria-hidden="true">:</span>
+      <input ref={mRef} aria-label="분" inputMode="numeric" maxLength={2} value={minute} onChange={(e) => setMinute(e.target.value.replace(/\D/g, ''))} onKeyDown={keyM} />
+    </span>
+  )
+}
+export function TimePicker({ value = '', onChange, disabled, label = '시각', ...props }) {
+  const { platform } = usePlatform()
+  const [open, setOpen] = useState(false)
+  const [hour, setHour] = useState('00')
+  const [minute, setMinute] = useState('00')
+  const [day, setDay] = useState(() => new Date())
+  const choose = () => { const [h, m] = (validTime(value) ? value : timeValue(new Date().getHours(), new Date().getMinutes())).split(':'); setHour(h); setMinute(m); setOpen(true) }
+  const result = timeValue(hour, minute)
+  const ok = validTime(result)
+  const commit = () => { onChange?.({ target: { value: result } }); setOpen(false) }
+  const hint = !ok && <p role="alert" className="mob-t-sub">시는 00부터 23, 분은 00부터 59까지 입력해 주세요.</p>
+  if (platform === 'android') {
+    return (
+      <span className="mob-time-control">
+        <Button variant="gray" block disabled={disabled} onClick={choose} aria-label={`${label} 선택`}>{validTime(value) ? value : `${label} 선택`}</Button>
+        <Sheet open={open} onClose={() => setOpen(false)} title={`${label} 입력`} hideTitle center>
+          <div className="mob-m3-timepicker">
+            <p className="mob-m3-tp-title" aria-hidden="true">{label} 입력</p>
+            <div className="mob-m3-tp-sel">
+              <DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={{ ...props, 'data-autofocus': true }} className="mob-m3-tp-digits" onEnter={() => ok && commit()} />
+              <span className="mob-m3-tp-caption" aria-hidden="true"><span>시</span><span>분</span></span>
+              {hint}
+            </div>
+            <div className="mob-m3-tp-actions"><Button variant="plain" onClick={() => setOpen(false)}>취소</Button><Button variant="plain" disabled={!ok} onClick={commit}>확인</Button></div>
+          </div>
+        </Sheet>
+      </span>
+    )
+  }
+  return (
+    <span className="mob-time-control">
+      <span className="mob-ios-collapsed">
+        <button type="button" className={`mob-ios-pill ${open ? 'is-selected' : ''}`} disabled={disabled} onClick={choose} aria-label={`${label} 날짜 선택`}>{day.getMonth() + 1}월 {day.getDate()}일</button>
+        <button type="button" className={`mob-ios-pill ${open ? 'is-selected' : ''}`} disabled={disabled} onClick={choose} aria-label={`${label} 선택`}>{validTime(value) ? value : '선택'}</button>
+      </span>
+      <Sheet open={open} onClose={() => setOpen(false)} title={label}>
+        <div className="mob-ios-inline">
+          <IosInlineCalendar day={day} onDay={setDay} />
+          <div className="mob-ios-inline-time"><span className="mob-t-body">시간</span><DigitPair hour={hour} minute={minute} setHour={setHour} setMinute={setMinute} inputProps={props} className="mob-ios-pill mob-ios-pill-input" onEnter={() => ok && commit()} /></div>
+        </div>
+        {hint}
+        <div className="mob-h-sheet-actions"><Button block disabled={!ok} onClick={commit}>완료</Button><Button variant="plain" block onClick={() => setOpen(false)}>취소</Button></div>
+      </Sheet>
+    </span>
+  )
+}
+export const FilledTextarea = ({className='', ...props}) => <textarea {...props} className={`mob-filled-input ${className}`} />
+export function BottomActions({children}) { return <div className="mob-h-bottom">{children}</div> }
+
+export function SafetyGuidance({beforeDeparture=false}) {
+ const [open,setOpen]=useState(false)
+ return <><Banner tone="red" title="상태가 나빠지면 이동 중단">{EMERGENCY}</Banner>{beforeDeparture&&<Banner tone="blue" title="출발 전 확인">{PREDEPARTURE}</Banner>}<List><ListRow href="tel:119" title="119 연결" subtitle="현재 위치와 의식 및 호흡 변화 전달" chevron /><ListRow title="상황별 안내 문구" subtitle="권장 문구 6개와 피할 표현" onClick={()=>setOpen(true)} chevron /></List><Sheet open={open} onClose={()=>setOpen(false)} title="상황별 안내 문구"><List>{HELPER_PHRASES.map(([title,subtitle])=><ListRow key={title} title={title} subtitle={subtitle} />)}<ListRow title="피할 표현" subtitle={AVOID_PHRASES.join(', ')} /><ListRow title="전달 방법" subtitle="천천히 말하고 한 번에 한 가지 정보만 전달해 주세요." /></List><Button block variant="plain" onClick={()=>setOpen(false)}>닫기</Button></Sheet></>
+}
+
+export function HelperConsent({onChange,withdraw=false}) {
+ const [roles,setRoles]=useState(['ride']);const [sent,setSent]=useState(false)
+ return <Card><p className="mob-t-headline">참여 동의</p><p className="mob-t-sub">참여와 역할은 본인이 선택합니다.</p><p className="mob-t-sub">참여를 거절하거나 동의를 철회해도 불이익이 없습니다. 배정 불가 응답과 등록 동의 철회는 별개입니다.</p><div className="mob-h-chips">{Object.entries(ROLE_OPTIONS).map(([value,label])=><Chip key={value} selected={roles.includes(value)} onClick={()=>setRoles(r=>r.includes(value)?r.filter(x=>x!==value):[...r,value])}>{label}</Chip>)}</div><div className="mob-h-sheet-actions"><Button block disabled={!roles.length} variant="tonal" onClick={()=>{onChange(true,roles);setSent(true)}}>선택한 역할로 참여 동의</Button>{withdraw&&<Button block variant="plain" onClick={()=>{onChange(false,roles);setSent(true)}}>등록 동의 철회 요청</Button>}</div>{sent&&<p role="status" className="mob-t-sub">요청을 기록했습니다. 연결이 없으면 전송 대기에 보관하며 담당자 화면과 동기화 후 다음 배정 후보에 반영합니다. 현재 배정은 담당자에게 연락해 조정해 주세요.</p>}</Card>
 }

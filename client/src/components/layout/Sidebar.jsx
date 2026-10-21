@@ -33,7 +33,7 @@ export function Rail({ group, onGroup }) {
                 type="button" aria-pressed={active} aria-label={g.label}
                 onClick={() => onGroup(g.key, firstLink(g, role))}
                 className={clsx('inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors duration-fast',
-                  active ? 'bg-page text-text-pri shadow-[0_1px_2px_rgba(16,24,40,0.08)]' : 'text-text-meta hover:bg-page hover:text-text-pri')}
+                  active ? 'bg-page text-text-pri shadow-sm' : 'text-text-meta hover:bg-page hover:text-text-pri')}
               >
                 <g.Icon size={18} aria-hidden="true" />
               </button>

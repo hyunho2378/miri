@@ -1,3 +1,4 @@
+import { preferencePatch } from '../lib/helperConsent.js'
 // useDispatchStore.js 발령 상태 머신. 평시 → 실행대기 발령 → 배정 → 전송 → 종료.
 // 가상 시계: 훈련 발령은 배속으로 진행해 8시간 창을 몇 분 안에 시연한다.
 import { create } from 'zustand'
@@ -11,6 +12,24 @@ import { MIN } from '../lib/time.js'
 import { clearRemote, loadRemote, newDispatchId, restoreSnapshot, saveRemote, snapshotOf } from '../lib/dispatchSync.js'
 import { mergeReports } from '../lib/reportQueue.js'
 import { activeScenario, useMiriStore } from './useMiriStore.js'
+
+// 도우미 참여 동의, 철회, 역할 변경을 명부 도우미에 반영(GPT 11차 M1, 12차)
+// 서버가 발령과 별도로 보관한 동의 상태(prefs, 도우미별 최신 한 건과 서버 접수 순번)를 받는다. 발령을 종료해도 지워지지 않는다
+// 이미 반영한 순번(prefSeq)보다 큰 것만 적용해, 늦게 도착한 옛 응답이 최신 동의를 되돌리지 못하게 한다
+export function applyPrefs(prefs) {
+  let n = 0
+  for (const [code, p] of Object.entries(prefs || {})) {
+    const seq = Number(p?.seq)
+    if (!Number.isSafeInteger(seq) || seq <= 0) continue
+    const helper = useMiriStore.getState().helpers.find((h) => h.code === code)
+    if (!helper || (Number(helper.prefSeq) || 0) >= seq) continue
+    const patch = preferencePatch(p, p.at)
+    if (!patch) continue
+    useMiriStore.getState().upsertHelper({ code, ...patch, prefSeq: seq })
+    n += 1
+  }
+  return n
+}
 
 const EMPTY = {
   status: 'idle', kind: 'drill', speed: 60, realStart: 0, vStart: 0, issuedAt: 0, arrivals: {},
@@ -141,7 +160,7 @@ export const useDispatchStore = create((set, get) => ({
     set({
       result,
       ackOverride: { ...d.ackOverride, [next.code]: { answer: 'none', at: vnow, requestedAt: vnow, replaced: oldCode } },
-      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 대체 배정 도착(${next.code}). 참여 의무 없음. 링크에서 수락 또는 불가 응답` }]
+      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 대체 배정 도착(${next.code}). 수락해야 확정. 어려우면 링크에서 불가 응답` }]
     })
     return next.code
   },
@@ -275,6 +294,8 @@ export const useDispatchStore = create((set, get) => ({
     if (get().status !== 'idle') return false
     try {
       const r = await loadRemote()
+      // 진행 중인 발령이 없어도(종료 뒤 새로고침) 서버의 도우미 동의 상태는 명부에 반영(GPT 12차)
+      applyPrefs(r?.prefs)
       if (!r?.state || get().status !== 'idle') return false
       const st = restoreSnapshot(r.state)
       const merged = mergeReports(st, r.reports)
@@ -296,6 +317,7 @@ export const useDispatchStore = create((set, get) => ({
       // 응답이 오는 사이 종료했거나 다른 발령으로 바뀌었으면 합치지 않는다(GPT 5차 M1)
       const now = get()
       if (!r || r.dispatchId !== d.remote.dispatchId || now.remote.dispatchId !== d.remote.dispatchId || now.status !== 'sent') return 0
+      applyPrefs(r.prefs)
       const merged = mergeReports(now, r.reports)
       skipSave = true // 도우미 보고는 서버에 따로 저장되어 있으므로 합친 결과를 다시 저장하지 않는다
       set((s) => ({ ...merged, remote: { ...s.remote, polledAt: Date.now() } }))
@@ -369,8 +391,11 @@ export const useDispatchStore = create((set, get) => ({
     const dispatchId = d.remote.dispatchId
     set({ ...EMPTY, status: 'closed', closedRecordId: id })
     if (dispatchId) {
+      // 동의 상태는 서버가 보고 접수와 같은 원자 실행 안에서 발령과 별도로 보관하고, 종료(원자 실행)는 그것을 지우지 않는다(GPT 12차)
+      // 그래서 삭제 전 조회가 필요 없고, 삭제 뒤 한 번 받아 마지막 주기 조회 이후 접수된 철회까지 명부에 반영한다. 실패해도 서버에 남아 다음 조회 때 반영
+      const syncPrefs = async () => { try { const r = await loadRemote(); applyPrefs(r?.prefs) } catch { /* 다음 복원이나 조회 때 반영 */ } }
       const tryClear = async (left) => {
-        try { await clearRemote(dispatchId) } catch (e) {
+        try { await clearRemote(dispatchId); await syncPrefs() } catch (e) {
           if (left > 0) return setTimeout(() => tryClear(left - 1), 2000)
           if (get().status === 'closed') set((s) => ({ remote: { ...s.remote, state: 'error', reason: `서버 발령 기록 삭제 실패(${e.message}). 도우미 링크는 12시간 뒤 만료` } }))
         }

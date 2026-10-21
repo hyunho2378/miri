@@ -121,3 +121,25 @@ export function deadlineTag(v, vnow) {
 
 export const stepLabel = (s) => STEP_LABEL[s] || (s === 'unassigned' ? '미배정' : s)
 export const hm = (ms) => { if (!ms) return '-'; const t = new Date(ms); return `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}` }
+
+// GPT 13차 H: 동 담당자는 상태, 도우미, 소방 화면도 자기 동 마을 기준으로 센다(마을, 대상자 화면과 같은 범위).
+// 화면 범위 제한이며 서버 강제가 아니다. 실서버는 서버 세션에 역할과 동을 담아 조회 응답에서 거르는 단계가 필요하다.
+export function scopeDispatch(d, persons, codes) {
+  if (!codes || !d?.result) return { d, persons: codes ? persons.filter((p) => codes.has(p.villageCode)) : persons }
+  const villageOf = Object.fromEntries(persons.map((p) => [p.code, p.villageCode]))
+  const result = {
+    ...d.result,
+    // 여러 마을을 도는 차량은 담당 동 회차만 남긴다(회차 수가 범위 밖 정보를 담지 않게)
+    assignments: d.result.assignments
+      .map((a) => ({ ...a, trips: a.trips.filter((tr) => codes.has(tr.village)) }))
+      .filter((a) => a.trips.length),
+    unassigned: d.result.unassigned.filter((u) => codes.has(villageOf[u.personCode]))
+  }
+  const arrivals = Object.fromEntries(Object.entries(d.arrivals || {}).filter(([c]) => codes.has(c)))
+  // 소방 요청 기록은 담당 동 마을 인원만 남긴다
+  const fireRequests = (d.fireRequests || []).map((q) => {
+    const villages = Object.fromEntries(Object.entries(q.villages || {}).filter(([c]) => codes.has(c)))
+    return { ...q, villages, count: Object.values(villages).reduce((a, b) => a + b, 0) }
+  }).filter((q) => q.count > 0)
+  return { d: { ...d, result, arrivals, fireRequests }, persons: persons.filter((p) => codes.has(p.villageCode)) }
+}

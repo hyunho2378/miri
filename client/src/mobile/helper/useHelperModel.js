@@ -1,3 +1,4 @@
+import { preferencePatch } from '../../lib/helperConsent.js'
 // 도우미 모바일 화면의 자료 모델. 시연(/m/h/demo)은 이 브라우저의 발령 상태, 실제 링크(/m/h/:token)는 서버 api 와 전송 대기열을 그대로 쓴다.
 // 두 경로가 같은 모양(model)을 돌려주므로 화면은 한 벌로 iOS와 Android 를 함께 그린다.
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -62,7 +63,8 @@ export function useDemoModel() {
       if (st !== 'wait') reports.push({ type: 'step', personCode: c, step: st, reason: d.events[c]?.reason, at: d.events[c]?.at || 0 })
     }
     return {
-      phase: 'ready', demo: true, helper: me, drill: d.kind === 'drill', now: vnow,
+      phase: 'ready', demo: true, helper: me,
+      preference: (consent,roles) => { const patch=preferencePatch({consent,roles},Date.now()); if(patch) data.upsertHelper({code:me,...patch}) }, drill: d.kind === 'drill', now: vnow,
       disaster: brief?.disaster || '산불', completeBy: brief?.completeBy ?? null, villages: brief?.villages || [],
       meetPlace: `${brief?.meetVillage || '-'} 첫 대상자 댁`, vehicle: vehicle ? `${vehicle.code}, ${typeOf(vehicle.type)?.label || ''}`.replace(/, $/, '') : mine.vehicleCode,
       coHelpers: brief?.coHelpers || [], officerContact: data.settings?.officerContact || '발령 담당자, 문자 회신',
@@ -152,7 +154,8 @@ export function useRemoteModel(token) {
     }
     const trips = (b.trips || []).map((t) => ({ index: t.index, village: t.village, departAt: t.departAt, finishAt: t.finishAt, personCodes: t.personCodes || [], routeCheck: !!t.routeCheck }))
     return {
-      phase: 'ready', demo: false, helper: res.helper, drill: !!b.drill, now: vclock || now,
+      phase: 'ready', demo: false, helper: res.helper,
+      preference: (consent,roles) => push({type:'preference',consent,roles}), drill: !!b.drill, now: vclock || now,
       disaster: b.disaster || '산불', completeBy: b.completeBy ?? null, villages: b.villages || [],
       meetPlace: `${b.meetVillage || '-'} 첫 대상자 댁`, vehicle: b.vehicleCode || '-', coHelpers: b.coHelpers || [],
       officerContact: b.officerContact || '발령 담당자, 문자 회신', notes: Array.isArray(b.notes) ? b.notes.filter((x) => typeof x === 'string').slice(0, 8) : [], trips,

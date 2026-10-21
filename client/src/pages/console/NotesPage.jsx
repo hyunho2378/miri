@@ -163,7 +163,7 @@ export default function NotesPage() {
                   <FileAudio size={32} aria-hidden="true" className="mx-auto text-text-meta" />
                   <p className="mt-2 type-body-sm text-text-sec">{file ? file.name : '휴대폰으로 녹음한 파일을 올립니다.'}</p>
                   <p className="mt-1 type-meta text-text-meta">6MB 이하의 음성 파일(mp3, wav, m4a 등)</p>
-                  <label className="pressable mt-4 inline-flex h-10 min-h-11 cursor-pointer items-center gap-2 rounded-md bg-page px-4 type-strong text-text-pri shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-mute md:min-h-0">
+                  <label className="pressable mt-4 inline-flex h-10 min-h-11 cursor-pointer items-center gap-2 rounded-md bg-page px-4 type-strong text-text-pri shadow-sm hover:bg-mute md:min-h-0">
                     <FileAudio size={16} aria-hidden="true" />파일 선택
                     <input type="file" accept="audio/*" className="sr-only" disabled={!!reading}
                       onChange={(e) => { setFile(e.target.files?.[0] || null); e.target.value = '' }} />

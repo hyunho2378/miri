@@ -5,7 +5,7 @@ import { Activity, MapPinned, Users, Menu, Car, Phone, Accessibility } from 'luc
 import { normalizePlatform } from './platform.js'
 import {
   MobileRoot, AppBar, Button, Card, List, ListRow, Chip, Segmented, Toggle, Progress, Spinner,
-  Sheet, Dialog, Banner, EmptyState, BottomNav, useMobileToast, DisplaySettings
+  Sheet, Dialog, Banner, EmptyState, BottomNav, useMobileToast, DisplaySettings, FilledInput
 } from './ui.jsx'
 
 function KitBody({ platform }) {
@@ -14,6 +14,7 @@ function KitBody({ platform }) {
   const [chip, setChip] = useState('wheel')
   const [sheet, setSheet] = useState(false)
   const [dialog, setDialog] = useState(false)
+  const [time, setTime] = useState('14:30')
   const toast = useMobileToast()
   const name = platform === 'android' ? '안드로이드' : '아이폰'
   return (
@@ -22,7 +23,7 @@ function KitBody({ platform }) {
       <main className="mob-content">
         <Banner tone="blue">이송 완료 기한 16:14까지, 남은 시간 2시간 10분</Banner>
         <Card>
-          <p className="mob-t-label" style={{ color: 'var(--m-ink-3)' }}>배정 차량 V-09</p>
+          <p className="mob-t-label mob-ink-3">배정 차량 V-09</p>
           <p className="mob-t-title" style={{ margin: '4px 0 8px' }}>괴란동, 묵호진동 4명</p>
           <Progress value={50} label="이송 진행 2명 중 4명" />
           <p className="mob-t-foot" style={{ marginTop: 8 }}>이송 2명 완료, 2명 남음</p>
@@ -40,13 +41,16 @@ function KitBody({ platform }) {
           <Chip tone="blue">훈련</Chip>
         </div>
         <Button block onClick={() => setDialog(true)}>수락</Button>
-        <div className="mob-kit-grid">
-          <Button variant="tonal" size="sm" onClick={() => setSheet(true)}>불가 사유</Button>
-          <Button variant="gray" size="sm" onClick={() => toast('출발 보고 저장', { label: '되돌리기', onClick: () => {} })}>출발 보고</Button>
-          <Button variant="plain" size="sm">연락</Button>
-          <Button variant="danger-tonal" size="sm">실패 보고</Button>
-          <Spinner />
-        </div>
+        <Card>
+          <div className="mob-kit-grid">
+            <Button variant="tonal" size="sm" onClick={() => setSheet(true)}>불가 사유</Button>
+            <Button variant="gray" size="sm" onClick={() => toast('출발 보고 저장', { label: '되돌리기', onClick: () => {} })}>출발 보고</Button>
+            <Button variant="plain" size="sm">연락</Button>
+            <Button variant="danger-tonal" size="sm">실패 보고</Button>
+            <Spinner />
+          </div>
+        </Card>
+        <label className="mob-h-field"><span className="mob-t-label">증상 시각</span><FilledInput type="time" value={time} onChange={(e) => setTime(e.target.value)} /></label>
         <EmptyState title="전송 대기 없음" body="보낸 보고가 모두 서버에 저장됨" />
         <DisplaySettings />
       </main>

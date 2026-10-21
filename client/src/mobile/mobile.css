@@ -4,24 +4,6 @@
 
 .mob-root {
   /* 공통: 미리 tokens.js 값 */
-  --m-blue: #256ef4;
-  --m-blue-strong: #0b50d0;
-  --m-blue-soft: #d8e5fd;
-  --m-blue-ink: #083891;
-  --m-red: #d63d4a;
-  --m-red-strong: #ab2b36;
-  --m-red-soft: #fbeff0;
-  --m-ink: #131416;
-  --m-ink-2: #464c53;
-  --m-ink-3: #58616a;
-  --m-ink-disabled: #58636d; /* GPT 8차 M6: #e6e8ea 위 5.0:1 */
-  --m-page: #ffffff;
-  --m-canvas: #f4f5f6;
-  --m-fill: #e6e8ea;
-  --m-sep: #e6e8ea;
-  --m-shadow-1: 0 2px 10px rgba(20, 23, 46, 0.07);
-  --m-shadow-2: 0 8px 28px rgba(20, 23, 46, 0.12);
-  --m-shadow-3: 0 16px 48px rgba(20, 23, 46, 0.18);
   --m-r-xs: 6px;
   --m-r-sm: 10px;
   --m-r-md: 12px;
@@ -43,62 +25,82 @@
 .mob-root.platform-ios {
   --m-touch: 44px;
   --m-bar-h: 44px;
-  --m-nav-h: 49px;
-  --m-row: 52px;
-  --m-row-tall: 68px;
-  --m-btn-h: 50px;
-  --m-btn-sm-h: 34px;
+  --m-nav-h: 95px;            /* Tab Bar - iPhone 3:70967 402x95, 떠 있는 알약 */
+  --m-row: 52px;              /* Row 550:50627 Regular */
+  --m-row-tall: 68px;         /* Row 550:50515 Tall */
+  --m-row-pad-x: 16px;        /* Row pad 0/16/0/16 */
+  --m-row-gap: 16px;          /* Contents - Trailing gap 16 */
+  --m-row-lead: 30px; --m-row-lead-r: 7px;   /* _Images/Regular Rounded 30x30 r7 */
+  --m-btn-h: 50px;            /* Button Large 50, pad 16/20 */
+  --m-btn-pad-x: 20px;
+  --m-btn-sm-h: 34px;         /* Button Medium 34, pad 8/12 */
+  --m-btn-sm-pad-x: 12px;
   --m-btn-r: var(--m-r-full);
   --m-card-r: var(--m-r-lg);
+  --m-chip-h: 28px; --m-chip-pad-x: 10px;    /* Button Small 28, pad 5/10 (키트에 칩 없음, 가장 가까운 작은 버튼) */
   --m-chip-r: var(--m-r-full);
-  --m-sheet-r: var(--m-r-xl);
+  --m-sheet-r: 38px;          /* Sheet - iPhone 10525:1632 위 모서리 38 */
   --m-dialog-r: var(--m-r-xl);
-  --m-dialog-w: 300px;
+  --m-dialog-w: 300px;        /* Alert 63:57121 폭 300 */
   --m-toast-r: var(--m-r-lg);
-  --m-seg-h: 32px;
-  --t-display: 34px; --l-display: 41px; --w-display: 700;
-  --t-title: 22px; --l-title: 28px; --w-title: 700;
-  --t-headline: 17px; --l-headline: 22px; --w-headline: 600;
-  --t-body: 17px; --l-body: 22px;
-  --t-callout: 16px; --l-callout: 21px;
-  --t-sub: 15px; --l-sub: 20px;
-  --t-foot: 13px; --l-foot: 18px;
-  --t-label: 12px; --l-label: 16px; --w-label: 500;
-  --m-press: rgba(19, 20, 22, 0.08);
+  --m-seg-h: 32px;            /* Segmented Small 32, 안쪽 2, 칸 사이 4 */
+  --m-seg-pad: 2px; --m-seg-gap: 4px;
+  --m-progress-h: 4px;        /* Progress 트랙 4 */
+  --m-icon: 22px;
+  --t-display: 34px; --l-display: 41px; --w-display: 700; --ls-display: 0.4px;   /* Large Title 강조 */
+  --t-title: 22px; --l-title: 28px; --w-title: 400; --ls-title: -0.26px;         /* Title 2 */
+  --t-headline: 17px; --l-headline: 22px; --w-headline: 590; --ls-headline: -0.43px;
+  --t-body: 17px; --l-body: 22px; --ls-body: -0.43px;
+  --t-callout: 16px; --l-callout: 21px; --ls-callout: -0.31px;
+  --t-sub: 15px; --l-sub: 20px; --ls-sub: -0.23px;
+  --t-foot: 13px; --l-foot: 18px; --ls-foot: -0.08px;
+  --t-label: 12px; --l-label: 16px; --w-label: 400; --ls-label: 0px;              /* Caption 1 */
+  --t-bar-title: 17px; --l-bar-title: 22px; --w-bar-title: 590; --ls-bar-title: -0.43px;
+  --w-strong: 590;
 }
 
 /* Material 3 키트 값(2장): Body Large 16/24, Title Large 22/28, 목록 56과 72, 버튼 터치 48, 앱 바 64, 내비게이션 바 80 */
 .mob-root.platform-android {
   --m-touch: 48px;
   --m-bar-h: 64px;
-  --m-nav-h: 80px;
+  --m-nav-h: 64px;            /* Navigation Bar: Vertical items 58016:37259 412x64 */
   --m-row: 56px;
   --m-row-tall: 72px;
-  --m-btn-h: 48px;
+  --m-row-pad-x: 16px;
+  --m-row-gap: 16px;
+  --m-row-lead: 40px; --m-row-lead-r: var(--m-r-full);
+  --m-btn-h: 40px;            /* 채움 버튼 보이는 높이 40, 누르는 영역 48 */
+  --m-btn-pad-x: 24px;
   --m-btn-sm-h: 40px;
+  --m-btn-sm-pad-x: 16px;
   --m-btn-r: var(--m-r-full);
   --m-card-r: var(--m-r-md);
-  --m-chip-r: var(--m-r-sm);
-  --m-sheet-r: var(--m-r-xl);
-  --m-dialog-r: var(--m-r-xl);
+  --m-chip-h: 32px; --m-chip-pad-x: 16px;    /* Filter chip 53923:28270 높이 32, 모서리 8 */
+  --m-chip-r: 8px;
+  --m-sheet-r: 28px;          /* Bottom sheet 51827:5865 위 모서리 28 */
+  --m-dialog-r: 28px;         /* Basic dialog 50723:10948 모서리 28 */
   --m-dialog-w: 312px;
-  --m-toast-r: var(--m-r-xs);
-  --m-seg-h: 40px;
-  --t-display: 28px; --l-display: 36px; --w-display: 400;
-  --t-title: 22px; --l-title: 28px; --w-title: 500;
-  --t-headline: 16px; --l-headline: 24px; --w-headline: 500;
-  --t-body: 16px; --l-body: 24px;
-  --t-callout: 16px; --l-callout: 24px;
-  --t-sub: 14px; --l-sub: 20px;
-  --t-foot: 14px; --l-foot: 20px;
-  --t-label: 12px; --l-label: 16px; --w-label: 500;
-  --m-press: rgba(37, 110, 244, 0.12);
+  --m-toast-r: 4px;           /* Snackbar 53977:33600 모서리 4, 344x48 */
+  --m-seg-h: 40px;            /* Segmented button Density=-2 40, 누르는 영역 48 */
+  --m-seg-pad: 0px; --m-seg-gap: 0px;
+  --m-progress-h: 4px;        /* Linear progress Thickness=4 */
+  --m-icon: 24px;
+  --t-display: 28px; --l-display: 36px; --w-display: 400; --ls-display: 0px;    /* Headline Medium */
+  --t-title: 22px; --l-title: 28px; --w-title: 400; --ls-title: 0px;            /* Title Large */
+  --t-headline: 16px; --l-headline: 24px; --w-headline: 500; --ls-headline: 0.15px;  /* Title Medium */
+  --t-body: 16px; --l-body: 24px; --ls-body: 0.5px;                               /* Body Large */
+  --t-callout: 16px; --l-callout: 24px; --ls-callout: 0.5px;
+  --t-sub: 14px; --l-sub: 20px; --ls-sub: 0.25px;                                 /* Body Medium */
+  --t-foot: 14px; --l-foot: 20px; --ls-foot: 0.25px;
+  --t-label: 12px; --l-label: 16px; --w-label: 500; --ls-label: 0.5px;           /* Label Medium */
+  --t-bar-title: 22px; --l-bar-title: 28px; --w-bar-title: 400; --ls-bar-title: 0px;
+  --w-strong: 500;
   /* M3 색 역할(미리 파랑 씨앗) */
   --m3-primary: var(--m-blue);
-  --m3-on-primary: #ffffff;
+  --m3-on-primary: var(--m-inverse);
   --m3-primary-container: var(--m-blue-soft);
   --m3-on-primary-container: var(--m-blue-ink);
-  --m3-surface: #ffffff;
+  --m3-surface: var(--m-inverse);
   --m3-surface-container: var(--m-canvas);
   --m3-surface-container-high: var(--m-fill);
 }
@@ -115,16 +117,29 @@
   --m-row: 64px;
   --m-row-tall: 84px;
 }
+/* iOS 큰 글자 = Dynamic Type xxxLarge(키트 Text Styles 0:2194 3-2 표). 자간은 단계와 상관없이 스타일별 같은 값 */
+.mob-root.platform-ios.text-large {
+  --t-display: 40px; --l-display: 48px;
+  --t-title: 26px; --l-title: 32px;
+  --t-headline: 23px; --l-headline: 29px;
+  --t-body: 23px; --l-body: 29px;
+  --t-callout: 22px; --l-callout: 28px;
+  --t-sub: 21px; --l-sub: 28px;
+  --t-foot: 19px; --l-foot: 24px;
+  --t-label: 18px; --l-label: 23px;
+  --t-bar-title: 23px; --l-bar-title: 29px;
+}
 
 /* 글자 스타일 */
-.mob-t-display { font-size: var(--t-display); line-height: var(--l-display); font-weight: var(--w-display); letter-spacing: -0.01em; }
-.mob-t-title { font-size: var(--t-title); line-height: var(--l-title); font-weight: var(--w-title); }
-.mob-t-headline { font-size: var(--t-headline); line-height: var(--l-headline); font-weight: var(--w-headline); }
-.mob-t-body { font-size: var(--t-body); line-height: var(--l-body); }
-.mob-t-callout { font-size: var(--t-callout); line-height: var(--l-callout); }
-.mob-t-sub { font-size: var(--t-sub); line-height: var(--l-sub); color: var(--m-ink-3); }
-.mob-t-foot { font-size: var(--t-foot); line-height: var(--l-foot); color: var(--m-ink-3); }
-.mob-t-label { font-size: var(--t-label); line-height: var(--l-label); font-weight: var(--w-label); }
+.mob-t-display { font-size: var(--t-display); line-height: var(--l-display); font-weight: var(--w-display); letter-spacing: var(--ls-display); }
+.mob-t-title { font-size: var(--t-title); line-height: var(--l-title); font-weight: var(--w-title); letter-spacing: var(--ls-title); }
+.mob-t-headline { font-size: var(--t-headline); line-height: var(--l-headline); font-weight: var(--w-headline); letter-spacing: var(--ls-headline); }
+.mob-t-body { font-size: var(--t-body); line-height: var(--l-body); letter-spacing: var(--ls-body); }
+.mob-t-callout { font-size: var(--t-callout); line-height: var(--l-callout); letter-spacing: var(--ls-callout); }
+.mob-t-sub { font-size: var(--t-sub); line-height: var(--l-sub); letter-spacing: var(--ls-sub); color: var(--m-ink-3); }
+.mob-t-callout { font-size: var(--t-callout); line-height: var(--l-callout); letter-spacing: var(--ls-callout); color: var(--m-ink-3); }   /* 목록 행 보조 글: iOS Callout 16/21, M3 Body Large 16/24 (한 단계 키움) */
+.mob-t-foot { font-size: var(--t-foot); line-height: var(--l-foot); letter-spacing: var(--ls-foot); color: var(--m-ink-3); }
+.mob-t-label { font-size: var(--t-label); line-height: var(--l-label); font-weight: var(--w-label); letter-spacing: var(--ls-label); }
 
 /* 셸 */
 .mob-screen { min-height: 100dvh; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; background: var(--m-canvas); position: relative; }
@@ -150,12 +165,12 @@
 .mob-btn.size-sm::after { content: ''; position: absolute; inset: calc((var(--m-touch) - var(--m-btn-sm-h)) / -2) 0; }
 /* GPT 8차 M5: 작은 버튼은 실제 누르는 영역을 터치 최소값으로 두고 보이는 면만 작게(overflow 로 잘리지 않게) */
 .mob-btn.size-sm { min-height: var(--m-touch); background-clip: content-box; padding-top: calc((var(--m-touch) - var(--m-btn-sm-h)) / 2); padding-bottom: calc((var(--m-touch) - var(--m-btn-sm-h)) / 2); overflow: visible; }
-.mob-btn.v-filled { background: var(--m-blue); color: #fff; }
+.mob-btn.v-filled { background: var(--m-blue); color: var(--m-on-primary); }
 .mob-btn.v-filled:active { background: var(--m-blue-strong); }
 .mob-btn.v-tonal { background: var(--m-blue-soft); color: var(--m-blue-ink); }
 .mob-btn.v-gray { background: var(--m-fill); color: var(--m-ink); }
 .mob-btn.v-plain { background: transparent; color: var(--m-blue-strong); padding: 0 12px; }
-.mob-btn.v-danger { background: var(--m-red); color: #fff; }
+.mob-btn.v-danger { background: var(--m-red); color: var(--m-on-danger); }
 .mob-btn.v-danger-tonal { background: var(--m-red-soft); color: var(--m-red-strong); }
 .mob-btn[disabled] { background: var(--m-fill); color: var(--m-ink-disabled); cursor: not-allowed; transform: none; }
 .mob-root.platform-android .mob-btn { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.01em; padding: 0 24px; }
@@ -175,6 +190,8 @@
 .mob-row { min-height: var(--m-row); display: flex; align-items: center; gap: 12px; padding: 8px 16px; position: relative; background: transparent; width: 100%; text-align: left; border: 0; font: inherit; color: inherit; }
 button.mob-row, a.mob-row { cursor: pointer; }
 button.mob-row:active, a.mob-row:active { background: var(--m-press); }
+/* 두 단에서 오른쪽에 열린 행: iOS 목록 선택 회색(systemGray5), M3 는 옅은 색조 대신 같은 무채색 면(사용자 규칙) */
+.mob-row.selected { background: var(--m-fill); }
 .mob-row.tall { min-height: var(--m-row-tall); }
 .mob-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .mob-row-lead { width: 32px; height: 32px; border-radius: var(--m-r-sm); display: flex; align-items: center; justify-content: center; background: var(--m-blue-soft); color: var(--m-blue-ink); flex: none; }
@@ -186,9 +203,8 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 .mob-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px; border-radius: var(--m-chip-r); background: var(--m-fill); color: var(--m-ink-2); font-size: var(--t-label); line-height: var(--l-label); font-weight: 600; border: 0; font-family: inherit; }
 button.mob-chip { cursor: pointer; position: relative; }
 button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
-.mob-chip.selected { background: var(--m-blue-soft); color: var(--m-blue-ink); }
-.mob-chip.tone-blue { background: var(--m-blue-soft); color: var(--m-blue-ink); }
-.mob-chip.tone-red { background: var(--m-red-soft); color: var(--m-red-strong); }
+.mob-chip.selected, .mob-chip.tone-blue { background: var(--m-blue); color: var(--m-on-primary); }
+.mob-chip.tone-red { background: var(--m-red); color: var(--m-on-danger); }
 .mob-seg { display: flex; background: var(--m-fill); border-radius: var(--m-r-full); padding: 2px; gap: 2px; }
 .mob-seg button { flex: 1; min-height: var(--m-seg-h); border: 0; background: transparent; border-radius: var(--m-r-full); font: inherit; font-size: var(--t-sub); font-weight: 600; color: var(--m-ink-2); cursor: pointer; position: relative; }
 .mob-seg button::after { content: ''; position: absolute; inset: calc((var(--m-touch) - var(--m-seg-h)) / -2) 0; }
@@ -197,9 +213,13 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-root.platform-android .mob-seg button { min-height: var(--m-touch); }
 .mob-root.platform-android .mob-seg button:first-child { border-radius: var(--m-r-full) 0 0 var(--m-r-full); }
 .mob-root.platform-android .mob-seg button:last-child { border-radius: 0 var(--m-r-full) var(--m-r-full) 0; }
-.mob-root.platform-android .mob-seg button[aria-checked='true'] { background: var(--m3-primary-container); color: var(--m3-on-primary-container); box-shadow: none; border-radius: 0; }
+.mob-root.platform-android .mob-seg button[aria-checked='true'] { background: var(--m-page); color: var(--m3-primary); box-shadow: none; border-radius: 0; }
+.mob-root.platform-android .mob-seg button[aria-checked='true']:first-child { border-radius: var(--m-r-full) 0 0 var(--m-r-full); }
+.mob-root.platform-android .mob-seg button[aria-checked='true']:last-child { border-radius: 0 var(--m-r-full) var(--m-r-full) 0; }
+.mob-seg-check { display: none; }
+.mob-root.platform-android .mob-seg button[aria-checked='true'] .mob-seg-check { display: inline-block; width: 18px; height: 18px; margin-right: 6px; vertical-align: -3px; }
 .mob-toggle { appearance: none; border: 0; width: 64px; height: 28px; border-radius: var(--m-r-full); background: var(--m-ink-disabled); position: relative; cursor: pointer; flex: none; transition: background-color 160ms ease; }
-.mob-toggle::before { content: ''; position: absolute; top: 2px; left: 2px; width: 36px; height: 24px; border-radius: var(--m-r-full); background: #fff; box-shadow: var(--m-shadow-1); transition: transform 160ms ease; }
+.mob-toggle::before { content: ''; position: absolute; top: 2px; left: 2px; width: 36px; height: 24px; border-radius: var(--m-r-full); background: var(--m-inverse); box-shadow: var(--m-shadow-1); transition: transform 160ms ease; }
 .mob-toggle::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-toggle[aria-checked='true'] { background: var(--m-blue); }
 .mob-toggle[aria-checked='true']::before { transform: translateX(24px); }
@@ -216,7 +236,7 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 @keyframes mob-spin { to { transform: rotate(360deg); } }
 
 /* 하단 이동(탭 바, 내비게이션 바) */
-.mob-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--m-page); box-shadow: 0 -2px 10px rgba(20, 23, 46, 0.07); padding-bottom: var(--m-safe-bottom); }
+.mob-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--m-page); box-shadow: 0 -2px 10px rgba(0,0,0,0.07); padding-bottom: var(--m-safe-bottom); }
 .mob-nav-inner { max-width: 480px; margin: 0 auto; height: var(--m-nav-h); display: flex; }
 .mob-nav a, .mob-nav button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--m-ink-3); text-decoration: none; font-size: 10px; font-weight: 600; border: 0; background: transparent; font-family: inherit; cursor: pointer; min-height: var(--m-touch); }
 .mob-nav [aria-current='page'] { color: var(--m-blue-strong); }
@@ -225,10 +245,10 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 .mob-nav-pill { width: 56px; height: 32px; border-radius: var(--m-r-full); display: flex; align-items: center; justify-content: center; }
 .mob-root.platform-android .mob-nav [aria-current='page'] .mob-nav-pill { background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
 .mob-root.platform-ios .mob-nav-pill { width: auto; height: auto; }
-.mob-nav-badge { min-width: 16px; height: 16px; padding: 0 4px; border-radius: var(--m-r-full); background: var(--m-red); color: #fff; font-size: 11px; line-height: 16px; font-weight: 700; position: absolute; transform: translate(12px, -10px); }
+.mob-nav-badge { min-width: 16px; height: 16px; padding: 0 4px; border-radius: var(--m-r-full); background: var(--m-red); color: var(--m-on-danger); font-size: 11px; line-height: 16px; font-weight: 700; position: absolute; transform: translate(12px, -10px); }
 
 /* 시트, 대화상자, 덮개 */
-.mob-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(19, 20, 22, 0.4); display: flex; animation: mob-fade 160ms ease; }
+.mob-scrim { position: fixed; inset: 0; z-index: 60; background: var(--m-scrim); display: flex; animation: mob-fade 160ms ease; }
 @keyframes mob-fade { from { opacity: 0; } }
 .mob-sheet { margin-top: auto; width: 100%; max-width: 480px; margin-left: auto; margin-right: auto; background: var(--m-page); border-radius: var(--m-sheet-r) var(--m-sheet-r) 0 0; box-shadow: var(--m-shadow-3); padding: 8px var(--m-margin) calc(var(--m-safe-bottom) + 16px); max-height: 90dvh; overflow: auto; animation: mob-up 220ms cubic-bezier(0.2, 0, 0, 1); }
 @keyframes mob-up { from { transform: translateY(100%); } }
@@ -246,11 +266,11 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 
 /* 스낵바와 토스트 */
 .mob-toast-wrap { position: fixed; left: 0; right: 0; z-index: 70; display: flex; justify-content: center; pointer-events: none; padding: 0 var(--m-margin); }
-.mob-root.platform-ios .mob-toast-wrap { top: calc(var(--m-safe-top) + 8px); }
+.mob-root.platform-ios .mob-toast-wrap { bottom: calc(var(--m-nav-h) + var(--m-safe-bottom) + 12px); }   /* 키트에 iOS 토스트 없음: 큰 제목을 가리지 않게 아래 탭 바 위 */
 .mob-root.platform-android .mob-toast-wrap { bottom: calc(var(--m-nav-h) + var(--m-safe-bottom) + 12px); }
-.mob-toast { pointer-events: auto; min-height: 48px; max-width: 344px; width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--m-toast-r); background: var(--m-ink); color: #fff; font-size: 15px; line-height: 20px; box-shadow: var(--m-shadow-2); animation: mob-fade 160ms ease; }
-.mob-root.platform-ios .mob-toast { background: rgba(255, 255, 255, 0.96); color: var(--m-ink); }
-.mob-toast .mob-btn.v-plain { color: #86aff9; min-height: 40px; padding: 0 8px; }
+.mob-toast { pointer-events: auto; min-height: 48px; max-width: 344px; width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--m-toast-r); background: var(--m-ink); color: var(--m-inverse); font-size: 15px; line-height: 20px; box-shadow: var(--m-shadow-2); animation: mob-fade 160ms ease; }
+.mob-root.platform-ios .mob-toast { background: var(--m-page); color: var(--m-ink); }
+.mob-toast .mob-btn.v-plain { color: var(--m-inverse); min-height: 40px; padding: 0 8px; }
 .mob-root.platform-ios .mob-toast .mob-btn.v-plain { color: var(--m-blue-strong); }
 
 /* 상태 띠와 빈 상태 */
@@ -269,9 +289,9 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 }
 
 /* 부품 견본(/m/kit): 390 폭 프레임 안에 고정 요소를 가둔다 */
-.mob-kit-page { min-height: 100dvh; background: #cdd1d5; display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; padding: 24px; }
-.mob-kit-page.single { padding: 0; gap: 0; background: var(--m-canvas, #f4f5f6); }
-.mob-frame { width: 390px; height: 844px; position: relative; overflow: hidden; border-radius: 20px; box-shadow: 0 16px 48px rgba(20, 23, 46, 0.18); flex: none; }
+.mob-kit-page { min-height: 100dvh; background: var(--m-fill); display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; padding: 24px; }
+.mob-kit-page.single { padding: 0; gap: 0; background: var(--m-canvas, var(--m-canvas)); }
+.mob-frame { width: 390px; height: 844px; position: relative; overflow: hidden; border-radius: 20px; box-shadow: var(--m-shadow-3); flex: none; }
 .mob-kit-page.single .mob-frame { border-radius: 0; box-shadow: none; }
 .mob-frame > .mob-root { height: 100%; overflow: auto; }
 .mob-frame .mob-nav, .mob-frame .mob-toast-wrap, .mob-frame .mob-scrim { position: absolute; }
@@ -307,3 +327,293 @@ button.mob-chip::after { content: ''; position: absolute; inset: -8px 0; }
 
 /* 화면 낭독기 전용 글자 */
 .mob-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* 共通キット入力と画面配置。画面側は色と寸法を定義しない。 */
+.mob-flex-1 { flex: 1; }
+.mob-inline-actions { display:inline-flex; gap:8px; }
+.mob-break { overflow-wrap:anywhere; word-break:break-all; }
+.mob-stack-8 { display:grid; gap:8px; }
+.mob-top-16 { margin-top:16px; }
+.mob-check-row { cursor:pointer; min-height:var(--m-touch); }
+.mob-filled-input { appearance:none; font:inherit; width:100%; min-height:var(--m-touch); padding:12px; color:var(--m-ink); background:var(--m-fill); border:0; border-radius:var(--m-r-md); }
+.mob-sheet > h2 { margin-bottom:12px; }
+.mob-grabber { width:60px; height:4px; }
+.mob-root.platform-android .mob-grabber { width:32px; }
+.mob-root.platform-android .mob-btn:focus-visible { background-image:linear-gradient(var(--m-press),var(--m-press)); }
+
+.mob-time-control { display:block; }
+/* Figma 52949:28053 keyboard picker 24-hour. Radius maps to shared 20 scale by project rule. */
+.mob-root.platform-android .mob-root.platform-android .mob-root.platform-android .mob-root.platform-ios .mob-time-control > .mob-btn { border-radius:var(--m-r-full); }
+.mob-ink-3 { color: var(--m-ink-3); }
+
+/* iOS 키트 Date and time - Collapsed(30:53803), Pickers Inline(51:56014) */
+.mob-ios-collapsed { display:flex; gap:8px; }
+.mob-ios-pill { min-height:34px; padding:6px 11px; border:0; border-radius:6px; background:var(--m-fill); color:var(--m-ink); font:inherit; font-size:17px; line-height:22px; cursor:pointer; }
+.mob-ios-pill.is-selected { background:var(--m-page); color:var(--m-blue); }
+.mob-ios-collapsed .mob-ios-pill { min-height:var(--m-touch); }
+.mob-ios-inline { background:var(--m-page); border-radius:13px; padding:12px; box-shadow:var(--m-shadow-1); margin:8px 0 12px; }
+.mob-ios-cal-head { display:flex; align-items:center; justify-content:space-between; height:40px; }
+.mob-ios-cal-month { display:flex; align-items:center; gap:4px; font-size:17px; line-height:22px; font-weight:590; color:var(--m-ink); margin:0; }
+.mob-ios-cal-disc { color:var(--m-blue); display:inline-flex; }
+.mob-ios-cal-arrows { display:flex; gap:4px; }
+.mob-ios-cal-arrow { width:var(--m-touch); height:var(--m-touch); display:inline-flex; align-items:center; justify-content:center; border:0; background:transparent; color:var(--m-blue); cursor:pointer; }
+.mob-ios-cal-week, .mob-ios-cal-row { display:grid; grid-template-columns:repeat(7, 1fr); justify-items:center; }
+.mob-ios-cal-grid { display:flex; flex-direction:column; }
+.mob-ios-day:focus-visible { outline:2px solid var(--m-blue); outline-offset:2px; }
+.mob-ios-cal-week span { font-size:13px; line-height:18px; font-weight:590; color:var(--m-ink-2); height:20px; }
+.mob-ios-cal-grid { row-gap:6px; margin-top:6px; }
+.mob-ios-day { width:44px; height:44px; border:0; border-radius:9999px; background:transparent; color:var(--m-ink); font:inherit; font-size:20px; line-height:24px; font-weight:400; cursor:pointer; }
+.mob-ios-day.is-today { color:var(--m-blue); }
+.mob-ios-day.is-selected { background:var(--m-blue); color:var(--m-on-primary); font-weight:590; }
+.mob-ios-inline-time { display:flex; align-items:center; justify-content:space-between; margin-top:12px; min-height:var(--m-touch); }
+.mob-ios-pill-input { display:inline-flex; align-items:center; gap:2px; }
+.mob-ios-pill-input input { width:2.2ch; border:0; background:transparent; color:inherit; font:inherit; font-size:17px; text-align:center; min-height:var(--m-touch); }
+/* M3 키트 Keyboard picker(52949:28053) 24시간 */
+.mob-m3-timepicker { width:264px; margin:8px auto; padding:24px 24px 12px; border-radius:28px; background:var(--m-fill); box-sizing:border-box; }   /* 키트 Format=24 hour 264x243 은 여백 포함 바깥 크기(시 96 + 콜론 24 + 분 96 = 216 + 좌우 24) */
+.mob-m3-tp-title { margin:0 0 20px; font-size:12px; line-height:16px; font-weight:500; letter-spacing:.5px; color:var(--m-ink-3); }
+.mob-m3-tp-digits { display:flex; align-items:center; gap:0; }
+.mob-m3-tp-digits input { width:96px; height:72px; border:0; border-radius:8px; background:var(--m-page); color:var(--m-ink); font:inherit; font-size:57px; line-height:64px; font-weight:400; text-align:center; }
+.mob-m3-tp-digits input:focus { outline:2px solid var(--m-blue); background:var(--m-blue-container, var(--m-page)); }
+.mob-m3-tp-digits > span { width:24px; font-size:57px; line-height:64px; text-align:center; color:var(--m-ink); }
+.mob-m3-tp-caption { display:flex; gap:24px; margin-top:7px; font-size:12px; line-height:16px; color:var(--m-ink-3); }
+.mob-m3-tp-caption span { width:96px; }
+.mob-m3-tp-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; min-height:48px; }
+
+.mob-sheet:focus, .mob-dialog:focus { outline: none; }
+.mob-sheet-title { margin-bottom: 12px; }
+.mob-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.mob-banner.has-title { align-items: flex-start; }
+.mob-banner-title { display: block; font-size: var(--t-headline); line-height: var(--l-headline); font-weight: 700; margin-bottom: 4px; }
+.mob-banner-body { display: block; color: var(--m-ink); font-weight: 400; }
+/* 누르는 영역: 스위치는 보이는 크기(iOS 64x28, Android 52x32)를 두고 위아래로 넓혀 44pt와 48dp 이상, iOS 시와 분 칸은 폭 44 이상 */
+.mob-toggle::after { content: ''; position: absolute; inset: -10px -4px; }
+.mob-ios-pill-input input { min-width: 44px; }
+
+/* =====================================================================================
+   규격 2차(2026. 10. 22.): iOS 27 키트 27.1.0(qjJ2EH6y1qJOEJAf95bZCv), M3 키트 V1.24(QNhGkHwMSJUyaqkTLPBxXU).
+   근거 표: 공모전/모바일UI/규격위배목록_20261021.md 2차 절. 이 블록이 앞의 같은 선택자 값을 대신한다.
+   ===================================================================================== */
+
+/* 크기 등급과 막대 위치(layout.js 가 .size-* .bar-* .two-pane 를 붙임) */
+.mob-root { --m-safe-left: env(safe-area-inset-left, 0px); --m-safe-right: env(safe-area-inset-right, 0px); --m-side-bar: 0px; --m-rail: 0px; --m-touch-bar: var(--m-touch); }
+.mob-root.platform-ios.bar-side, .mob-root.platform-ios.two-pane {
+  --m-margin: 20px;                                  /* Duo Layout Margin 20pt */
+  --m-bar-h: 48px; --m-touch-bar: 48px;              /* Toolbar - Top - iPhone Duo: 84 = pad 24 + 48 + pad 12, 단추 48x48 */
+  --t-display: 28px; --l-display: 34px; --ls-display: 0.38px;   /* _Title - iPhone Duo - Large Title 12884:8278 */
+}
+.mob-root.platform-ios.bar-side { --m-side-bar: 84px; --m-nav-h: 0px; }
+.mob-root.platform-android.size-medium { --m-margin: 32px; }      /* Layout grid Medium 여백 32 */
+.mob-root.platform-android.size-expanded { --m-margin: 24px; }    /* Layout grid Expanded 여백 24 */
+.mob-root.platform-android.bar-rail { --m-rail: 96px; --m-nav-h: 0px; }
+
+/* 화면 틀: 고정 폭 없음. 안전 영역 네 방향과 막대 자리만 비운다 */
+.mob-screen { max-width: none; margin: 0; padding-left: calc(var(--m-safe-left) + var(--m-rail)); padding-right: calc(var(--m-safe-right) + var(--m-side-bar)); }
+.mob-root.platform-ios .mob-content { padding-bottom: calc(var(--m-nav-h) + 16px); }
+.mob-root.bar-side .mob-content, .mob-root.bar-rail .mob-content, .mob-content.no-nav { padding-bottom: calc(var(--m-safe-bottom) + 24px); }
+
+/* 앱 바와 툴바 */
+.mob-root.platform-ios .mob-bar-row { padding: 0 var(--m-margin); gap: 8px; }
+.mob-root.platform-ios .mob-bar-title { font-size: var(--t-bar-title); line-height: var(--l-bar-title); font-weight: var(--w-bar-title); letter-spacing: var(--ls-bar-title); }
+.mob-root.platform-android .mob-bar-title { font-size: var(--t-bar-title); line-height: var(--l-bar-title); font-weight: var(--w-bar-title); letter-spacing: var(--ls-bar-title); }
+.mob-root.platform-ios.bar-side .mob-bar-title, .mob-root.platform-ios.two-pane .mob-bar-title { text-align: left; }   /* Duo 툴바 제목 앞쪽 정렬 */
+.mob-root.platform-ios .mob-bar-large { padding: 0 var(--m-margin) 10px; }   /* Large Title 묶음 pad 0/16, 아래 10 */
+.mob-root.platform-android .mob-bar-row { padding: 0 4px; }
+.mob-bar-title[data-hidden='true'] { opacity: 0; }
+.mob-icon-btn { width: var(--m-touch-bar); height: var(--m-touch-bar); }
+.mob-root .mob-row-lead svg, .mob-root .mob-icon-btn svg, .mob-root .mob-nav-pill svg { width: var(--m-icon); height: var(--m-icon); }
+
+/* 버튼: iOS Large 50 pad 20, Medium 34 pad 12, 알약. Android 보이는 면 40, 누르는 영역 48(위아래 투명 여백), Label Large 14/20 w500 자간 0.1 */
+.mob-btn { padding: 0 var(--m-btn-pad-x); letter-spacing: var(--ls-headline); font-weight: var(--w-strong); }
+.mob-btn.size-sm { padding-left: var(--m-btn-sm-pad-x); padding-right: var(--m-btn-sm-pad-x); }
+.mob-btn.size-sm, .mob-root.platform-android .mob-btn { min-height: var(--m-touch); padding-top: 0; padding-bottom: 0; background-clip: padding-box; border-style: solid; border-color: transparent; border-width: calc((var(--m-touch) - var(--m-btn-h)) / 2) 0; overflow: hidden; }
+.mob-btn.size-sm { border-width: calc((var(--m-touch) - var(--m-btn-sm-h)) / 2) 0; }
+.mob-btn.size-sm::after { content: none; }
+.mob-root.platform-android .mob-btn { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px; padding-left: var(--m-btn-pad-x); padding-right: var(--m-btn-pad-x); }
+.mob-root.platform-android .mob-btn.size-sm { padding-left: var(--m-btn-sm-pad-x); padding-right: var(--m-btn-sm-pad-x); }
+.mob-root.platform-ios .mob-btn.size-sm { font-size: var(--t-body); line-height: 18px; font-weight: 510; letter-spacing: var(--ls-body); }
+
+/* 목록 행: iOS Row 550:50430(52, 68, pad 0/16, 제목과 부제 사이 0, 뒤 요소 사이 16), M3 List item(56, 72, pad 16) */
+.mob-row { padding: 8px var(--m-row-pad-x); gap: var(--m-row-gap); }
+.mob-root.platform-ios .mob-row { padding-top: 0; padding-bottom: 0; }
+.mob-root.platform-ios .mob-row-main { gap: 0; }
+.mob-row-lead { width: var(--m-row-lead); height: var(--m-row-lead); border-radius: var(--m-row-lead-r); }
+.mob-root.platform-ios .mob-row.tall .mob-row-lead { width: 44px; height: 44px; border-radius: 11px; }   /* _Images/Tall Rounded 44 r11 */
+.mob-root.platform-ios .mob-list > li + li .mob-row::before { left: var(--m-row-pad-x); }
+.mob-row-trail { gap: 16px; }
+
+/* 칩: iOS 키트에 칩 없음, Button Small(28, pad 10, 15) 모양. Android Filter chip(32, 모서리 8, Label Large 14/20 w500 자간 0.1) */
+.mob-chip { min-height: var(--m-chip-h); padding: 0 var(--m-chip-pad-x); border-radius: var(--m-chip-r); font-size: var(--t-sub); line-height: var(--l-sub); letter-spacing: var(--ls-sub); font-weight: 510; }
+.mob-root.platform-android .mob-chip { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px; }
+button.mob-chip::after { inset: calc((var(--m-touch) - var(--m-chip-h)) / -2) 0; }
+
+/* 세그먼트: iOS Small 32(안쪽 2, 칸 사이 4, 13/18, 선택 590 기본 510, 자간 -0.08). Android 보이는 면 40, 누르는 영역 48 */
+.mob-seg { padding: var(--m-seg-pad); gap: var(--m-seg-gap); }
+.mob-root.platform-ios .mob-seg button { min-height: calc(var(--m-seg-h) - var(--m-seg-pad) * 2); font-size: 13px; line-height: 18px; font-weight: 510; letter-spacing: -0.08px; }
+.mob-root.platform-ios .mob-seg button[aria-checked='true'] { font-weight: 590; }
+.mob-root.platform-android .mob-seg button { min-height: var(--m-seg-h); font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px; }
+.mob-root.platform-android .mob-seg button::after { inset: calc((var(--m-touch) - var(--m-seg-h)) / -2) 0; }
+.mob-seg-fit { display: inline-flex; min-width: 0; }
+.mob-seg-fit .mob-seg button { padding: 0 12px; }
+
+/* 스위치: iOS 64x28 손잡이 38x24(Toggles 507:24690) */
+.mob-root.platform-ios .mob-toggle::before { width: 38px; }
+.mob-root.platform-ios .mob-toggle[aria-checked='true']::before { transform: translateX(22px); }
+
+/* 진행 표시: 트랙 4(iOS Progress 507:24682, M3 Thickness=4) */
+.mob-progress { height: var(--m-progress-h); }
+
+/* 시트: iOS Sheet - iPhone(위 모서리 38, Medium 은 좌우 6 떨어진 뜬 시트, 손잡이 60x4 위 6, 내용까지 16).
+   iPhone Duo 는 가운데 뜬 시트(바깥 세로 450, 안쪽 653, 모서리 20). Android Bottom sheet(위 모서리 28, 손잡이 32x4, 머리 pad 16) */
+.mob-sheet { max-width: none; padding-top: 0; }
+.mob-root.platform-ios .mob-sheet { width: auto; margin: auto 6px max(6px, var(--m-safe-bottom)); border-radius: var(--m-sheet-r); padding-bottom: 16px; }
+.mob-root.platform-ios .mob-grabber { width: 60px; height: 4px; margin: 6px auto 16px; }
+.mob-root.platform-ios.bar-side .mob-sheet, .mob-root.platform-ios.two-pane .mob-sheet { --m-sheet-r: 20px; margin: auto; width: min(450px, calc(100% - 16px)); max-height: calc(100dvh - 40px); }
+.mob-root.platform-ios.two-pane .mob-sheet { width: min(653px, calc(100% - 40px)); }
+.mob-root.platform-android .mob-sheet { border-radius: var(--m-sheet-r) var(--m-sheet-r) 0 0; }
+.mob-root.platform-android .mob-grabber { width: 32px; height: 4px; margin: 16px auto; }
+.mob-root.platform-android.two-pane .mob-sheet { width: min(640px, 100%); margin-left: auto; margin-right: auto; }
+
+/* 대화상자: iOS Alert(폭 300, pad 14, 글 묶음 pad 8/8/24/8 사이 10, 버튼 줄 48 사이 8, 알약). Android Basic dialog(모서리 28, pad 24, 제목 24/32) */
+.mob-root.platform-ios .mob-dialog-body { padding: 22px 22px 24px; gap: 10px; }
+.mob-root.platform-ios .mob-dialog-actions { padding: 0 14px 14px; gap: 8px; }
+.mob-root.platform-ios .mob-dialog-actions .mob-btn { min-height: 48px; }
+.mob-root.platform-android .mob-dialog-body h2 { font-size: 24px; line-height: 32px; font-weight: 400; letter-spacing: 0; }
+.mob-root.platform-android .mob-dialog-body p { font-size: 14px; line-height: 20px; letter-spacing: 0.25px; }
+
+/* 스낵바: Android 344x48, 모서리 4, pad 0/8/0/16, Body Medium 14/20 자간 0.25 */
+.mob-root.platform-android .mob-toast { max-width: 344px; min-height: 48px; padding: 0 8px 0 16px; gap: 4px; font-size: 14px; line-height: 20px; letter-spacing: 0.25px; border-radius: var(--m-toast-r); }
+.mob-root.platform-ios .mob-toast { font-size: var(--t-sub); line-height: var(--l-sub); letter-spacing: var(--ls-sub); }
+.mob-toast-text { flex: 1; min-width: 0; }
+
+/* 띠와 입력 칸 */
+.mob-banner { font-weight: var(--w-strong); letter-spacing: var(--ls-sub); }
+.mob-banner-title { font-weight: var(--w-headline); letter-spacing: var(--ls-headline); }
+.mob-input { width: auto; min-width: 0; max-width: 100%; inline-size: 9ch; letter-spacing: var(--ls-body); }
+.mob-textarea, .mob-filled-input { line-height: var(--l-body); letter-spacing: var(--ls-body); }
+.mob-root.platform-ios .mob-filled-input { min-height: 52px; padding: 0 16px; }      /* Text Fields 553:22762 높이 52, pad 0/16 */
+.mob-root.platform-android .mob-filled-input { min-height: 56px; padding: 0 16px; border-radius: 4px 4px 0 0; }  /* Text field 56, 위 모서리 4. 아래 선은 무테두리 규칙으로 생략 */
+.mob-section-title { padding: 0 var(--m-row-pad-x); margin: 8px 0 0; }
+
+/* M3 시간 입력(Keyboard picker 52949:28053): 입력 칸 96x72 모서리 8, 숫자 45/52, 가운데 쌍점 57/64, 캡션 12/16 자간 0.4 */
+.mob-m3-tp-digits input { font-size: 45px; line-height: 52px; }
+.mob-m3-tp-caption { font-weight: 400; letter-spacing: 0.4px; }
+
+/* 이동 막대 ---------------------------------------------------------------------------- */
+.mob-nav-item { position: relative; }
+.mob-nav-pill { position: relative; }
+.mob-nav-label { font-size: var(--t-label); line-height: var(--l-label); }
+
+/* iOS 아래: 떠 있는 알약(Tab Bar - iPhone 402x95, pad 16/25/25/25, 탭 72x54 pad 6/8/7/8, 글자 10/12 w590 자간 -0.1, 선택 배경 #EDEDED 원형) */
+.mob-root.platform-ios .mob-nav.nav-bottom { left: var(--m-safe-left); right: var(--m-safe-right); background: transparent; box-shadow: none; padding: 16px 25px max(25px, var(--m-safe-bottom)); pointer-events: none; }
+.mob-root.platform-ios .mob-nav.nav-bottom .mob-nav-inner { pointer-events: auto; max-width: none; height: 54px; margin: 0; background: var(--m-page); border-radius: var(--m-r-full); box-shadow: var(--m-shadow-2); justify-content: space-around; align-items: center; }
+.mob-root.platform-ios .mob-nav .mob-nav-item { flex: none; width: 72px; height: 54px; padding: 6px 8px 7px; gap: 0; border-radius: var(--m-r-full); color: var(--m-ink); }
+.mob-root.platform-ios .mob-nav .mob-nav-item .mob-nav-label { font-size: 10px; line-height: 12px; font-weight: 590; letter-spacing: -0.1px; }
+.mob-root.platform-ios .mob-nav [aria-current='page'] { background: var(--m-fill); color: var(--m-blue-strong); }
+.mob-root.platform-ios .mob-nav .mob-nav-pill svg { width: 24px; height: 28px; }
+
+/* iOS 옆: iPhone Duo 세로 막대(84 폭, pad 24/24/24/12), 세로 탭 바(48 폭, pad 6/0, 탭 48x48, 사이 2, 선택 44 원) */
+.mob-root.platform-ios .mob-nav.nav-side { top: 0; bottom: 0; left: auto; right: var(--m-safe-right); width: 84px; padding: 24px 24px 24px 12px; background: transparent; box-shadow: none; display: flex; align-items: flex-end; pointer-events: none; }
+.mob-root.platform-ios .mob-nav.nav-side .mob-nav-inner { pointer-events: auto; flex-direction: column; width: 48px; height: auto; max-width: none; margin: 0; padding: 6px 0; gap: 2px; background: var(--m-page); border-radius: var(--m-r-full); box-shadow: var(--m-shadow-2); align-items: center; }
+.mob-root.platform-ios .mob-nav.nav-side .mob-nav-item { width: 44px; height: 44px; padding: 0; }
+.mob-root.platform-ios .mob-nav.nav-side .mob-nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Android 아래: 내비게이션 바(64, 항목 pad 6/0 사이 4, 아이콘 칸 56x32 모서리 16, Label Medium 12/16 w500 자간 0.5) */
+.mob-root.platform-android .mob-nav.nav-bottom .mob-nav-inner { max-width: none; height: var(--m-nav-h); }
+.mob-root.platform-android .mob-nav .mob-nav-item { padding: 6px 0; gap: 4px; justify-content: flex-start; font-weight: 500; }
+.mob-root.platform-android .mob-nav .mob-nav-label { font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.5px; }
+.mob-root.platform-android .mob-nav-pill { width: 56px; height: 32px; border-radius: 16px; }
+.mob-root.platform-android .mob-nav [aria-current='page'] { color: var(--m-ink); }
+.mob-root.platform-android .mob-nav [aria-current='page'] .mob-nav-pill { background: var(--m-fill); color: var(--m3-primary); }
+
+/* Android medium 이상: 내비게이션 레일(96 폭, 위 정렬 pad 44/0/56/0, 항목 96x64 pad 6/0 사이 4) */
+.mob-root.platform-android .mob-nav.nav-rail { top: 0; bottom: 0; left: var(--m-safe-left); right: auto; width: 96px; padding: 44px 0 56px; box-shadow: none; }
+.mob-root.platform-android .mob-nav.nav-rail .mob-nav-inner { flex-direction: column; height: auto; max-width: none; margin: 0; gap: 4px; }
+.mob-root.platform-android .mob-nav.nav-rail .mob-nav-item { flex: none; width: 96px; min-height: 64px; }
+
+/* 두 단(목록과 상세). 경계는 접힘선이 있으면 접힘선에 맞춘다 */
+.mob-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); flex: 1; min-height: 0; }   /* 키트에 두 단 폭 예시 없음: 접힘선 기준 반반(Duo 안쪽 669 = 334 + 334) */
+.mob-pane { min-width: 0; display: flex; flex-direction: column; height: 100dvh; overflow: auto; }
+.mob-frame .mob-pane { height: 100%; }
+.mob-root.two-pane .mob-pane-detail .mob-bar-slot:first-child .mob-icon-btn { visibility: hidden; }
+/* 탁상 자세(갤럭시 폴드 반 접힘, 세로 두 구획): 위 구획은 내용, 아래 구획은 조작(하단 동작과 이동 막대).
+   내용이 접힘선 아래로 내려가지 않게 아래 구획 높이만큼 비운다 */
+@media (vertical-viewport-segments: 2) {
+  .mob-root.posture-tabletop .mob-content { padding-bottom: calc(100dvh - env(viewport-segment-top 0 1, 100dvh)); }
+  .mob-root.posture-tabletop .mob-h-bottom { min-height: calc(100dvh - env(viewport-segment-top 0 1, 100dvh)); display: flex; flex-direction: column; justify-content: flex-end; }
+}
+@media (horizontal-viewport-segments: 2) {
+  .mob-two { grid-template-columns: env(viewport-segment-width 0 0, 1fr) 1fr; column-gap: calc(env(viewport-segment-left 1 0, 0px) - env(viewport-segment-right 0 0, 0px)); }
+}
+
+/* 도우미 화면: 글자 역할(iOS Large Title 강조 34/41, Duo 28/34, Android Headline Large 32/40 w400) */
+.mob-h-time { font-size: var(--t-display); line-height: var(--l-display); letter-spacing: var(--ls-display); font-weight: 700; }
+.mob-root.platform-android .mob-h-time { font-size: 32px; line-height: 40px; font-weight: 400; letter-spacing: 0; }
+.mob-root.platform-ios .mob-h-big { font-size: 20px; line-height: 25px; font-weight: 590; letter-spacing: -0.45px; }   /* Title 3 강조 */
+.mob-root.platform-android .mob-h-big { font-size: 22px; line-height: 28px; font-weight: 500; letter-spacing: 0; }   /* Title Large */
+/* 키와 값 행(ListRow kv). iOS 키트 Lists 의 Detail 변형: 제목은 줄지 않는 최소 폭, 값은 남은 폭 전체를 오른쪽 정렬로 쓰고 단어 단위로 줄바꿈.
+   행 폭이 300 미만이면(320 폭 화면 등) Subtitle 변형처럼 값을 제목 아래 줄로 내린다. 402 이상 화면은 값이 한 줄에 들어가 옆 배치 유지 */
+.mob-list > li:has(> .mob-row.kv) { container-type: inline-size; }
+.mob-row.kv .mob-row-main { flex: 0 0 auto; max-width: 45%; }
+.mob-row.kv .mob-row-trail { flex: 1 1 auto; min-width: 0; max-width: none; justify-content: flex-end; text-align: right; }
+.mob-h-kv { font-size: var(--t-body); line-height: var(--l-body); letter-spacing: var(--ls-body); font-weight: var(--w-strong); word-break: keep-all; overflow-wrap: anywhere; }   /* Detail 값은 제목과 같은 Body 역할(큰 글자 설정도 함께 커짐) */
+@container (max-width: 299px) {
+  .mob-root .mob-row.kv { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding-top: 11px; padding-bottom: 11px; }   /* Subtitle 변형 pad 11 */
+  .mob-row.kv .mob-row-main { max-width: none; }
+  .mob-row.kv .mob-row-trail { justify-content: flex-start; text-align: left; width: 100%; }
+}
+/* 구획 머리 아래 설명과 목록 아래 설명: Grouped Table Footer 35:55757 pad 8/16/6/16, 13/18 자간 -0.08 */
+.mob-section > p.mob-t-foot, .mob-section > p.mob-t-sub { padding: 0 var(--m-row-pad-x); margin: 0; }
+/* 구획 제목: iOS Section Title 50:56535(17/22 w590 자간 -0.43, 아래 9, 보조 글자색. 대비 4.5 위해 #48484A), M3 목록 머리 Title Small 14/20 w500 자간 0.1 */
+.mob-root.platform-ios .mob-section-title { font-size: 17px; line-height: 22px; font-weight: 590; letter-spacing: -0.43px; color: var(--m-ink-2); padding-bottom: 1px; }
+.mob-root.platform-ios.text-large .mob-section-title { font-size: 23px; line-height: 29px; }
+.mob-root.platform-android .mob-section-title { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px; color: var(--m-ink-2); }
+
+/* 알림 위치 보정: 하단 고정 동작(도우미 화면)이 있으면 그 위, 옆 막대와 레일만큼 비킴, 두 단이면 목록 단 폭 안에 둔다(상세 단을 가리지 않음) */
+.mob-root:has(.mob-h-bottom) .mob-toast-wrap { bottom: calc(var(--m-safe-bottom) + var(--m-toast-above, 132px)); }
+.mob-root .mob-toast-wrap { left: calc(var(--m-safe-left) + var(--m-rail)); right: calc(var(--m-safe-right) + var(--m-side-bar)); }
+.mob-root.two-pane .mob-toast-wrap { right: calc(50% + var(--m-side-bar) / 2); justify-content: center; }
+.mob-root.platform-android { --m-toast-above: 84px; }
+/* 옆 세로 막대 자리는 이동 막대가 있는 화면에서만 비운다(도우미 화면처럼 탭이 없으면 84 를 비우지 않음) */
+.mob-root.platform-ios.bar-side:not(:has(.mob-nav)) { --m-side-bar: 0px; }
+.mob-root.platform-android.bar-rail:not(:has(.mob-nav)) { --m-rail: 0px; }
+/* Android 시간 입력: M3 Keyboard picker(52949:28053)는 바닥 시트가 아닌 가운데 모달. 264 폭, 모서리 28.
+   키트 면 색(surfaceContainerHigh 옅은 보라)은 옅은 색 금지 규칙에 따라 대화상자와 같은 흰 면과 그림자 */
+.mob-root.platform-android .mob-sheet.center { margin: auto; width: auto; max-width: calc(100% - 48px); padding: 0; background: transparent; box-shadow: none; border-radius: 28px; animation: mob-pop 180ms ease; }
+.mob-root.platform-android .mob-sheet.center .mob-m3-timepicker { margin: 0; background: var(--m-page); box-shadow: var(--m-shadow-3); }
+
+/* =====================================================================================
+   규격 3차(2026. 10. 22.) 캡처 검수 반영
+   ===================================================================================== */
+/* M3 Keyboard picker Format=24 hour(52949:28069) 264x243 그대로: 세로 묶음 pad 0, gap 20.
+   Header 264x40 pad 24/24/0/24, Input Selection 95(칸 72 + gap 7 + 라벨 16), Actions 68 pad 0/24/20/12.
+   선택 안 된 칸(키트 #E6E0E9 surfaceContainerHighest)은 옅은 보라 대신 무채색 채움 #E5E5EA(--m-fill),
+   선택 칸(키트 #EADDFF + 2 #6750A4)은 옅은 색 금지로 흰 면 + 2 파랑 안쪽 선, 글자는 파랑 잉크 */
+.mob-m3-timepicker { padding: 0; display: flex; flex-direction: column; gap: 20px; }
+.mob-m3-tp-title { margin: 0; padding: 24px 24px 0; height: 40px; box-sizing: border-box; }
+.mob-m3-tp-sel { padding: 0 24px; display: flex; flex-direction: column; gap: 7px; }
+.mob-m3-tp-digits { display: flex; align-items: flex-start; }
+.mob-m3-tp-digits input { width: 96px; height: 72px; padding: 0; box-sizing: border-box; background: var(--m-fill); color: var(--m-ink); outline: none; }
+.mob-m3-tp-digits input:focus { background: var(--m-page); color: var(--m-blue-ink); box-shadow: inset 0 0 0 2px var(--m-blue); outline: none; }
+.mob-m3-tp-digits > span { width: 24px; height: 72px; display: flex; align-items: center; justify-content: center; }
+.mob-m3-tp-caption { display: flex; gap: 24px; margin: 0; }
+.mob-m3-tp-caption span { width: 96px; text-align: left; }
+.mob-m3-tp-actions { margin: 0; padding: 0 24px 20px 12px; height: 68px; box-sizing: border-box; align-items: flex-end; }
+.mob-m3-tp-sel > p[role='alert'] { margin: 0; }
+
+/* 부품 견본 한 벌(?platform=) 은 창 전체를 쓴다. 크기 등급은 창 크기로 정하므로 틀도 창 크기와 같아야 한다 */
+.mob-kit-page.single .mob-frame { width: 100vw; height: 100dvh; }
+
+/* 목록 행: 제목이 한 글자씩 꺾이지 않게 제목 칸 최소 폭을 두고, 뒤쪽 부품이 안 들어가면 다음 줄로 내린다 */
+.mob-row:not(.kv) { flex-wrap: wrap; }
+.mob-row:not(.kv) .mob-row-main { flex: 1 1 6em; }   /* 6em: Duo 안쪽 두 단(334)에서 번호와 칩, 화살표가 한 줄에 들어가는 폭 */
+.mob-row-main, .mob-row-main * { word-break: keep-all; overflow-wrap: break-word; }
+.mob-row:not(.kv) .mob-row-trail { margin-left: auto; max-width: 100%; }
+
+/* 가림막: 창 전체(position fixed, inset 0, 안전 영역 포함). 견본 한 벌 화면은 틀이 곧 창이므로 창 전체를 덮는다 */
+.mob-kit-page.single .mob-frame .mob-scrim, .mob-kit-page.single .mob-frame .mob-nav, .mob-kit-page.single .mob-frame .mob-toast-wrap { position: fixed; }
+/* 세그먼트 항목 글자는 단어 중간에서 꺾지 않는다(iOS Segmented Control, M3 Segmented button 라벨은 한 줄). 들어가지 않으면 행이 줄을 바꿔 세그먼트를 아래로 내린다 */
+.mob-seg button, .mob-seg button * { white-space: nowrap; word-break: keep-all; }
+.mob-seg-fit { flex: none; max-width: 100%; }
+/* 한국어 줄바꿈: 음절 사이가 아니라 어절(띄어쓰기) 단위로. 한 어절이 줄보다 길 때만 그 안에서 나눈다. 번호는 한 덩어리 */
+.mob-root { word-break: keep-all; overflow-wrap: break-word; }
+.mob-nb { white-space: nowrap; }

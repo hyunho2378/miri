@@ -1,28 +1,27 @@
 /* 도우미 화면 전용 배치. 토큰은 mobile.css(--m-*) 만 쓴다. 테두리와 옆 강조선 없이 면 색과 그림자로 구분 */
-.mob-h-bottom { position: sticky; bottom: 0; z-index: 25; display: flex; flex-direction: column; gap: 8px; padding: 12px var(--m-margin) calc(var(--m-safe-bottom) + 12px); background: var(--m-canvas); box-shadow: 0 -2px 10px rgba(20, 23, 46, 0.07); }
+.mob-h-bottom { position: sticky; bottom: 0; z-index: 25; display: flex; flex-direction: column; gap: 8px; padding: 12px var(--m-margin) calc(var(--m-safe-bottom) + 12px); background: var(--m-canvas); box-shadow: var(--m-shadow-1); }
 .mob-root.platform-android .mob-h-bottom { flex-direction: row-reverse; }
 .mob-root.platform-android .mob-h-bottom > .mob-btn { flex: 1; }
 .mob-h-lead { margin: 0; }
 .mob-h-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.mob-h-kv { color: var(--m-ink); font-weight: 600; text-align: right; max-width: 60vw; overflow-wrap: anywhere; }
+.mob-h-kv { color: var(--m-ink); text-align: right; overflow-wrap: anywhere; word-break: keep-all; }
 .mob-h-deadline { display: flex; flex-direction: column; gap: 4px; }
-.mob-h-time { font-size: 32px; line-height: 40px; font-weight: 700; color: var(--m-ink); font-variant-numeric: tabular-nums; margin: 0; }
-.text-large .mob-h-time { font-size: 40px; line-height: 48px; }
+.mob-h-time { color: var(--m-ink); font-variant-numeric: tabular-nums; margin: 0; }
 .mob-h-over { color: var(--m-red-strong); font-weight: 600; }
 .mob-h-progress { display: flex; flex-direction: column; gap: 8px; }
 .mob-h-wrap { display: flex; flex-direction: column; flex: 1; word-break: keep-all; overflow-wrap: anywhere; }
 .mob-root.platform-android .mob-h-wrap .mob-bar-row > .mob-bar-slot:first-child:empty { display: none; }
 .mob-root.platform-android .mob-h-wrap .mob-bar-row > .mob-bar-slot:first-child:empty + .mob-bar-title { padding-left: 4px; }
 .mob-h-order { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: var(--m-r-full); background: transparent; color: var(--m-ink); font-weight: 700; font-variant-numeric: tabular-nums; }
-.mob-h-order.now { background: var(--m-blue); color: #fff; }
+.mob-h-order.now { background: var(--m-blue); color: var(--m-on-primary); }
 .mob-h-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .mob-h-steps li { display: flex; align-items: center; gap: 12px; min-height: var(--m-touch); padding: 8px 16px; border-radius: var(--m-card-r); background: var(--m-page); box-shadow: var(--m-shadow-1); color: var(--m-ink-2); }
 .mob-h-steps li.done { color: var(--m-ink); }
 .mob-h-steps li.next { background: var(--m-blue-soft); color: var(--m-blue-ink); font-weight: 700; }
 .mob-h-dot { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: var(--m-r-full); background: var(--m-fill); font-weight: 700; }
-.mob-h-steps li.done .mob-h-dot { background: var(--m-blue); color: #fff; }
-.mob-h-steps li.next .mob-h-dot { background: var(--m-blue); color: #fff; }
-.mob-h-big { min-height: 64px; font-size: 20px; }
+.mob-h-steps li.done .mob-h-dot { background: var(--m-blue); color: var(--m-on-primary); }
+.mob-h-steps li.next .mob-h-dot { background: var(--m-blue); color: var(--m-on-primary); }
+.mob-h-big { min-height: 64px; }
 .mob-h-field { display: flex; flex-direction: column; gap: 6px; }
 .mob-h-field input, .mob-h-field textarea { font: inherit; font-size: max(16px, var(--t-body)); line-height: var(--t-body-lh, 1.4); color: var(--m-ink); background: var(--m-fill); border: 0; border-radius: var(--m-r-md); padding: 12px; min-height: var(--m-touch); resize: vertical; }
 .mob-h-field input:focus-visible, .mob-h-field textarea:focus-visible { outline: 2px solid var(--m-blue); outline-offset: 2px; }

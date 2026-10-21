@@ -231,7 +231,7 @@ export default function RosterPage() {
               ] })(),
               { label: '근거 서류', value: open.docId || '없음' },
               { label: '갱신일', value: fmtDate(open.updatedAt) },
-              { label: '갱신 담당', value: <span>동 맞춤형복지 담당(사회복지 담당자). 이사, 입원, 거동 변화는 <Link to="/console/notes" className="text-primary-text underline underline-offset-2">현장 소식</Link>에서 승인해 반영합니다.</span> }
+              { label: '갱신 담당', value: <span>소식 전달: 요양보호사는 재가노인복지시설, 생활지원사는 노인맞춤돌봄 수행기관 소속입니다. 기관 관리: 각 기관 사회복지사가 소식을 확인합니다. 명부 승인: 읍면동 맞춤형복지 담당자가 이사, 입원, 거동 변화를 확인하고 <Link to="/console/notes" className="text-primary-text underline underline-offset-2">현장 소식</Link>에서 승인해 반영합니다.</span> }
             ]} />
             {evidence ? (
               <div className="space-y-3">

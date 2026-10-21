@@ -1,15 +1,14 @@
+import { ios, m3, kitShadow } from './kitTokens.js'
 // tokens.js G-Chat 디자인 토큰 단일 출처
 // tailwind.config.js가 이 파일을 import한다. 컴포넌트는 Tailwind 클래스로만 쓴다.
 // 이 파일 밖에서 hex와 px를 직접 쓰지 않는다. DESIGN.md와 값이 다르면 여기가 맞다.
 
-// 2026-10-06 KRDS(디지털 정부 디자인 시스템) 전사. 원본: github.com/KRDS-uiux/krds-uiux tokens/transformed_tokens.json
-// primitive.color.light 의 값을 그대로 옮기고, 미리의 의미 이름(text.pri 등)에 KRDS semantic 대응을 적는다.
-// 유채색은 파랑(KRDS primary)과 빨강 두 가지만 쓴다(사용자 지시). 빨강은 KRDS danger(#DE3412, 주황 기운)가 아니라
-// KRDS point 계열(#D63D4A)을 쓴다. 주황, 초록, 갈색 계열(warning, success)은 쓰지 않는다.
+// 2026-10-21 키트 색 역할 적용. 색 원본은 kitTokens.js.
+// 기존 소비자 이름은 호환 별칭. 실제 값은 kitTokens.js에서만 정의한다.
 export const krds = {
-  gray: { 0: '#ffffff', 5: '#f4f5f6', 10: '#e6e8ea', 20: '#cdd1d5', 30: '#b1b8be', 40: '#8a949e', 50: '#6d7882', 60: '#58616a', 70: '#464c53', 80: '#33363d', 90: '#1e2124', 95: '#131416' },
-  primary: { 5: '#ecf2fe', 10: '#d8e5fd', 20: '#b1cefb', 30: '#86aff9', 40: '#4c87f6', 50: '#256ef4', 60: '#0b50d0', 70: '#083891', 80: '#052561' },
-  point: { 5: '#fbeff0', 10: '#f5d6d9', 20: '#ebadb2', 30: '#e0858c', 40: '#d65c66', 50: '#d63d4a', 60: '#ab2b36', 70: '#7a1f26' }
+ gray: {0:ios.white,5:ios.grouped,10:ios.fill,20:ios.gray4,30:ios.gray3,40:ios.gray2,50:ios.secondaryText,60:ios.secondaryText,70:ios.secondaryText,80:ios.label,90:ios.label,95:ios.label},
+ primary: {5:ios.grouped,10:ios.fill,20:ios.blue,30:ios.blue,40:ios.blue,50:m3.primary,60:m3.primary,70:m3.primary,80:m3.primary},
+ point: {5:ios.grouped,10:ios.fill,20:ios.red,30:ios.red,40:ios.red,50:m3.error,60:m3.error,70:m3.error}
 }
 const g = krds.gray
 const p = krds.primary
@@ -46,11 +45,12 @@ export const colors = {
   // 위험과 부족. KRDS point 계열
   danger:  { DEFAULT: r[50], strong: r[60], soft: r[5], text: r[60] },
   // 이름만 남긴다. 값은 위험 빨강(warning) 과 무채색(success) 이다
-  warning: { DEFAULT: r[50], soft: r[5], text: r[60] },
-  success: { DEFAULT: g[70], soft: g[10], text: g[80] },
+  warning: { DEFAULT: ios.orange, soft: ios.fill, text: ios.label },
+  success: { DEFAULT: ios.green, soft: ios.fill, text: ios.label },
 
   // 문서함 종류 식별색(DAH Docs·Sheet·Form 규칙 준용: 흐린 틴트 금지, 진한 단색). 아이콘, 배지, 서식 카드 머리에만 쓴다
-  kind: { doc: '#256ef4', sheet: '#0f9d58', form: '#7a3cff' },
+  // 흰 글자 배지(11px 굵게)와 흰 면 위 글자 모두 4.5:1 이상이 되도록 HIG 고대비(Increased contrast, light) 값을 쓴다(GPT 11차 M2). 파랑 4.57, 초록 4.54, 보라 5.21
+  kind: { doc: ios.blueAccessible, sheet: ios.greenAccessible, form: ios.purpleAccessible },
   chart: {
     1: p[50],
     2: g[70],
@@ -116,12 +116,7 @@ export const radius = {
 // DESIGN_DELTA.md 변경 1·3 무보더 원칙. 깊이는 이 3단으로만.
 // 관리자 카드 기본 sm, hover md, 드로어 모달 시트 lg.
 // card 는 sm 별칭, float 는 lg 별칭으로 tailwind.config 에서 매핑한다(컴포넌트가 두 이름을 쓴다)
-export const shadow = {
-  none: 'none',
-  sm: '0 2px 10px rgba(20,23,46,0.07)',
-  md: '0 8px 28px rgba(20,23,46,0.12)',
-  lg: '0 16px 48px rgba(20,23,46,0.18)'
-}
+export const shadow = { none: 'none', ...kitShadow }
 
 export const screens = {
   xs: '320px',

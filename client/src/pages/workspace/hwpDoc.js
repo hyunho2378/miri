@@ -118,7 +118,7 @@ export function docCss(presetKey, { showMarks = false } = {}) {
   const h = (sel, o, extra = '') => o ? `.hwp-body ${sel}{${fontRule(o)}text-align:${al(o.align)};line-height:${(o.lineSpacing || 160) / 100};margin:${o.prev || 0}em 0 ${Math.max(o.next || 0, 0.3)}em;${extra}}` : ''
   const std = presetOf(presetKey).numbering === 'standard'
   return `
-.hwp-page{box-sizing:border-box;width:${p.width}mm;min-height:${p.height}mm;padding:${p.top}mm ${p.right}mm ${p.bottom}mm ${p.left}mm;background:#fff;color:#000;${fontRule(b)}line-height:${b.lineSpacing / 100};word-break:keep-all;overflow-wrap:anywhere;}
+.hwp-page{box-sizing:border-box;width:${p.width}mm;min-height:${p.height}mm;padding:${p.top}mm ${p.right}mm ${p.bottom}mm ${p.left}mm;background:#FFFFFF;color:#000000;${fontRule(b)}line-height:${b.lineSpacing / 100};word-break:keep-all;overflow-wrap:anywhere;}
 .hwp-body{outline:none;min-height:40mm;}
 .hwp-body p{margin:0;text-align:${al(b.align)};}
 .hwp-body p:empty::after{content:'\\200b';}
@@ -126,39 +126,39 @@ ${h('h1', m.h1)}
 ${std ? `.hwp-body h2{${fontRule(m.levels[0])}margin:0;padding-left:${r3(Math.abs(m.levels[0]?.intent || 0))}em;text-indent:-${r3(Math.abs(m.levels[0]?.intent || 0))}em;text-align:justify;}
 .hwp-body h2::before{content:attr(data-mark);display:inline-block;min-width:${r3(Math.abs(m.levels[0]?.intent || 0))}em;text-indent:0;}`
     : `${h('h2', m.h2)}
-.hwp-body h2::before{content:attr(data-mark);display:inline-block;min-width:1.6em;margin-right:.5em;padding:0 .2em;text-align:center;color:#fff;background:#083891;font-size:.9em;}`}
+.hwp-body h2::before{content:attr(data-mark);display:inline-block;min-width:1.6em;margin-right:.5em;padding:0 .2em;text-align:center;color:#FFFFFF;background:#1E6EF4;font-size:.9em;}`}
 ${lv}
 ${[80, 85, 90, 95, 105, 110, 120].map((r) => `.hwp-body [data-ratio="${r}"]{letter-spacing:${r3((r - 100) / 200)}em;}`).join('')}
 .hwp-body p.gm-note{padding-left:1.5em;text-indent:-1.5em;}
 .hwp-body p.gm-note::before{content:'※';display:inline-block;min-width:1.5em;text-indent:0;}
-.hwp-body blockquote{margin:.4em 0;padding:.4em .8em;border:1px solid #000;}
-.hwp-body table{border-collapse:collapse;width:100%;margin:.4em 0;border:1.5px solid #000;}
-.hwp-body th,.hwp-body td{border:1px solid #000;padding:2px 6px;text-align:center;vertical-align:middle;line-height:1.3;}
-.hwp-body th{${fontRule(m.th)}background:#dfe6f7;border-bottom:3px double #000;}
+.hwp-body blockquote{margin:.4em 0;padding:.4em .8em;border:1px solid #000000;}
+.hwp-body table{border-collapse:collapse;width:100%;margin:.4em 0;border:1.5px solid #000000;}
+.hwp-body th,.hwp-body td{border:1px solid #000000;padding:2px 6px;text-align:center;vertical-align:middle;line-height:1.3;}
+.hwp-body th{${fontRule(m.th)}background:#F2F2F7;border-bottom:3px double #000000;}
 .hwp-body td{${fontRule(m.td)}}
-.hwp-body tbody td:first-child{${fontRule(m.tdFirst || m.td)}background:#f2f2f2;}
-.hwp-body .dv{background:#e8effd;border-radius:2px;}
-.hwp-body .dv-block{display:block;background:none;box-shadow:none;outline:1px dashed #86aff9;outline-offset:2px;}
-.hwp-body hr.page-break{border:0;border-top:1px dashed #6d7882;margin:.6em 0;position:relative;overflow:visible;}
-.hwp-body hr.page-break::after{content:'쪽 나눔';position:absolute;right:0;top:-.75em;font:10px/1 'Pretendard GOV',sans-serif;color:#6d7882;background:#fff;padding:0 4px;}
-${showMarks ? `.hwp-body p::after,.hwp-body h1::after,.hwp-body h2::after{content:'↵';color:#8fb4f9;font:10px/1 sans-serif;margin-left:2px;}` : ''}
+.hwp-body tbody td:first-child{${fontRule(m.tdFirst || m.td)}background:#F2F2F7;}
+.hwp-body .dv{background:#E5E5EA;border-radius:2px;}
+.hwp-body .dv-block{display:block;background:none;box-shadow:none;outline:1px dashed #0088FF;outline-offset:2px;}
+.hwp-body hr.page-break{border:0;border-top:1px dashed #48484A;margin:.6em 0;position:relative;overflow:visible;}
+.hwp-body hr.page-break::after{content:'쪽 나눔';position:absolute;right:0;top:-.75em;font:10px/1 'Pretendard GOV',sans-serif;color:#48484A;background:#FFFFFF;padding:0 4px;}
+${showMarks ? `.hwp-body p::after,.hwp-body h1::after,.hwp-body h2::after{content:'↵';color:#0088FF;font:10px/1 sans-serif;margin-left:2px;}` : ''}
 .hwp-frame{font-family:${fontCss(b.font)};font-size:${b.pt}pt;line-height:1.6;user-select:none;}
 .gian-head .org{text-align:center;font-family:${fontCss('HY헤드라인M')};font-weight:700;font-size:${r3(b.pt * 1.75)}pt;letter-spacing:.9em;margin:.4em 0 1.4em;padding-left:.9em;}
 .gian-head .row{display:flex;}
 .gian-head .row b{font-weight:400;min-width:5.6em;letter-spacing:.35em;}
-.gian-head .row.title{border-bottom:1px solid #000;padding-bottom:.2em;margin-bottom:.4em;}
+.gian-head .row.title{border-bottom:1px solid #000000;padding-bottom:.2em;margin-bottom:.4em;}
 .gian-foot .end{padding-left:1.4em;margin:.6em 0 1em;}
 .gian-foot .sender{text-align:center;font-family:${fontCss('HY헤드라인M')};font-weight:700;font-size:${r3(b.pt * 1.6)}pt;margin:.6em 0 1em;}
-.gian-foot .bar{height:.9em;background:#cdd1d5;margin-bottom:.3em;}
+.gian-foot .bar{height:.9em;background:#C7C7CC;margin-bottom:.3em;}
 .gian-foot .line{display:flex;flex-wrap:wrap;gap:0 1.6em;font-size:.95em;}
 .gian-foot .line.sign{gap:0 2.4em;padding-left:1em;}
 .approval-box{float:right;border-collapse:collapse;margin:0 0 .6em 1em;font-size:.8em;}
-.approval-box td{border:1px solid #000;width:4.5em;height:1.5em;text-align:center;}
+.approval-box td{border:1px solid #000000;width:4.5em;height:1.5em;text-align:center;}
 .approval-box tr:last-child td{height:3em;}
 .notice-head{margin-bottom:.6em;}
 .notice-foot{text-align:center;margin-top:1.4em;}
 .notice-foot .sender{font-weight:700;font-size:1.3em;margin-top:.4em;}
-.press-head{border-top:3px solid #000;border-bottom:1px solid #000;padding:.2em 0;display:flex;justify-content:space-between;font-size:.85em;margin-bottom:.8em;}
+.press-head{border-top:3px solid #000000;border-bottom:1px solid #000000;padding:.2em 0;display:flex;justify-content:space-between;font-size:.85em;margin-bottom:.8em;}
 @media print{.hwp-page{width:auto;min-height:0;padding:0;}.hwp-body .dv{background:none;box-shadow:none;}.hwp-body .dv-block{outline:0;}.hwp-body hr.page-break{break-after:page;border:0;}.hwp-body hr.page-break::after{content:none;}}
 `
 }

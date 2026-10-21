@@ -57,13 +57,13 @@ function gradeSlots(r) {
 }
 
 // 대상자 돌봄과 의사소통 정보(가상). 의사소통 특성은 청각, 인지, 언어. 돌봄 담당자 유형만 두고 이름은 두지 않음
-function careOf(tags, grade, k) {
+export function careOf(tags, grade, k, ltcGrade) {
   const comm = []
   if (tags.includes('hearing')) comm.push('청각')
   if (tags.includes('dementia')) comm.push('인지')
   if (k % 11 === 0) comm.push('언어')
   // 회신 R37: 돌봄 있음 분기 안에서 유형만 구분. 난수와 연락 여부, 배정 수치는 유지한다
-  const caregiverType = tags.includes('guardian') ? '가족' : k % 3 === 0 ? (k % 2 === 0 ? '생활지원사' : '요양보호사') : k % 3 === 1 ? '이웃' : '없음'
+  const caregiverType = tags.includes('guardian') ? '가족' : k % 3 === 0 ? (ltcGrade ? '요양보호사' : '확인 필요') : k % 3 === 1 ? '이웃' : '없음'
   const caregiverReachable = caregiverType === '없음' ? null : k % 7 === 0 ? false : true
   const aids = []
   if (tags.includes('wheelPower')) aids.push('전동 휠체어')
@@ -121,7 +121,7 @@ export function buildSeed() {
         },
         // 치매 전문 언론 자문 회신: 평소 돌봄 담당자, 의사소통 특성, 보조기구. 모두 가상 값이고 이름은 두지 않음
         // 난수 순서를 바꾸지 않도록 태그와 k로 정함
-        care: careOf(tags, grade, k)
+        care: careOf(tags, grade, k, ltcGrade)
       })
       privateInfo[code] = {
         address: `동해시 ${v.name} (가상 대상자, 번지 없음)`,

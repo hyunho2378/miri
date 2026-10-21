@@ -86,10 +86,10 @@ await t('M4: Tab 이 덮개 밖으로 나가지 않는다(마지막에서 처음
   assert.equal(doc.activeElement, c)
 })
 await t('M6: 비활성 글자 대비 4.5:1 이상', async () => {
-  const css = await import('node:fs').then((f) => f.readFileSync(new URL('../src/mobile/mobile.css', import.meta.url), 'utf8'))
+  const css = await import('node:fs').then((f) => f.readFileSync(new URL('../src/mobile/tokens.css', import.meta.url), 'utf8'))
   const hex = css.match(/--m-ink-disabled:\s*(#[0-9a-f]{6})/i)[1]
   const L = (h) => { const c = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((x) => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] }
-  const ratio = (L('#e6e8ea') + 0.05) / (L(hex) + 0.05)
+  const ratio = (L('#e5e5ea') + 0.05) / (L(hex) + 0.05)
   assert.ok(ratio >= 4.5, `대비 ${ratio.toFixed(2)}`)
 })
 await t('M5, M7, M8, M9, H3 코드 확인: 터치 영역, 사유 radio, 큰 글자 입력, 실제 발령 표시, 판독 요청 고정', async () => {

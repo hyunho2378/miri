@@ -65,7 +65,8 @@ test('생활지원사 소식은 서버 검증을 통과하고 승인 뒤에만 �
 })
 test('생활지원사 돌봄 유형도 동행과 연락 판단에 사용', async () => {
  const { personCare } = await import('../src/lib/tripChecks.js')
- const p = seed.persons.find(p => p.care?.caregiverType === '생활지원사')
+ const source = seed.persons.find(p => p.care)
+ const p = {...source, ltcGrade:null, care:{...source.care, caregiverType:'생활지원사', caregiverReachable:true}} // 별도 가상 맞춤돌봄 사례, 등급 보유 시연 명부에 자동 부여하지 않음
  assert.ok(p)
  assert.equal(personCare(p).caregiverType, '생활지원사')
  assert.equal(personCare({ care:{ ...p.care, caregiverReachable:true } }).companionCall, true)

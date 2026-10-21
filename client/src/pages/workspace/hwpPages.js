@@ -17,7 +17,7 @@ export function splitPages(svgText, { pageCount = 1, width, height } = {}) {
   const inner = svg.innerHTML
   return Array.from({ length: n }, (_, i) => {
     const y = vb[1] + i * (H + gap)
-    return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="${vb[0]} ${y} ${W} ${H}" width="210mm" height="297mm"><style>text{white-space:pre}</style><rect x="${vb[0]}" y="${y}" width="${W}" height="${H}" fill="#fff"/>${inner}</svg>`
+    return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="${vb[0]} ${y} ${W} ${H}" width="210mm" height="297mm"><style>text{white-space:pre}</style><rect x="${vb[0]}" y="${y}" width="${W}" height="${H}" fill="#FFFFFF"/>${inner}</svg>`
   })
 }
 
@@ -27,7 +27,7 @@ export function printPages(pages, title) {
   const esc = (s) => String(s || '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
   w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${esc(title)}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@400;700;900&family=Nanum+Gothic+Coding&display=swap">
-<style>@page{size:A4;margin:0}html,body{margin:0;background:#fff}.pg{width:210mm;height:297mm;overflow:hidden;break-after:page}.pg:last-child{break-after:auto}.pg svg{display:block;width:210mm;height:297mm}</style></head>
+<style>@page{size:A4;margin:0}html,body{margin:0;background:#FFFFFF}.pg{width:210mm;height:297mm;overflow:hidden;break-after:page}.pg:last-child{break-after:auto}.pg svg{display:block;width:210mm;height:297mm}</style></head>
 <body>${pages.map((p) => `<div class="pg">${p}</div>`).join('')}</body></html>`)
   w.document.close()
   w.focus()
@@ -44,7 +44,7 @@ function svgToJpeg(svgText, px = 1654) {
       const c = document.createElement('canvas')
       c.width = px; c.height = Math.round(px * ratio)
       const g = c.getContext('2d')
-      g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height)
+      g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c.width, c.height)
       g.drawImage(img, 0, 0, c.width, c.height)
       c.toBlob((b) => (b ? b.arrayBuffer().then((ab) => resolve({ bytes: new Uint8Array(ab), w: c.width, h: c.height })) : reject(new Error('그림 변환 실패'))), 'image/jpeg', 0.92)
     }
@@ -139,7 +139,7 @@ export function printHtmlPages(pagesHtml, { pageCss, title }) {
   const esc = (s) => String(s || '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
   w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${esc(title)}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@400;700;900&family=Nanum+Gothic+Coding&display=swap">
-<style>@page{size:A4;margin:0}html,body{margin:0;background:#fff}${pageCss}
+<style>@page{size:A4;margin:0}html,body{margin:0;background:#FFFFFF}${pageCss}
 .hwp-page{height:297mm;min-height:0;overflow:hidden;break-after:page;box-shadow:none;background-image:none}.hwp-page:last-child{break-after:auto}
 .hwp-body .dv{background:none}.hwp-body hr.page-break{display:none}</style></head>
 <body>${pagesHtml.map((p) => `<div class="hwp-page"><div class="hwp-body">${p}</div></div>`).join('')}</body></html>`)
@@ -156,7 +156,7 @@ export async function htmlPagesToPdf(pagesHtml, { pageCss, title }) {
   const ser = new XMLSerializer()
   const svgs = pagesHtml.map((p) => {
     const div = document.createElement('div')
-    div.innerHTML = `<div class="hwp-page" style="width:210mm;height:297mm;min-height:0;overflow:hidden;background:#fff;background-image:none"><div class="hwp-body">${p}</div></div>`
+    div.innerHTML = `<div class="hwp-page" style="width:210mm;height:297mm;min-height:0;overflow:hidden;background:#FFFFFF;background-image:none"><div class="hwp-body">${p}</div></div>`
     const xhtml = ser.serializeToString(div.firstChild)
     const css = `${pageCss} .hwp-body .dv{background:none} .hwp-body hr.page-break{display:none}`
     return `<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="297mm" viewBox="0 0 ${W} ${H}"><foreignObject x="0" y="0" width="${W}" height="${H}"><div xmlns="http://www.w3.org/1999/xhtml"><style>${css.replace(/</g, '&lt;')}</style>${xhtml}</div></foreignObject></svg>`

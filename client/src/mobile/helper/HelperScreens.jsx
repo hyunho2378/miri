@@ -1,24 +1,25 @@
+import { FilledInput, FilledTextarea, IconButton, BottomActions, SafetyGuidance, HelperConsent, keepCodes } from '../ui.jsx'
 // 도우미 모바일 화면 H0~H9(docs/MOBILE_UI.md 4-2). 같은 화면 구조를 iOS와 Material 3 부품(ui.jsx)으로 그린다.
 // iOS: 큰 제목, 그룹 inset 목록, 하단 고정 버튼, 시트와 alert. Android: top app bar, list item, filled와 tonal 버튼, bottom sheet, snackbar.
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, CircleX, Clock, CloudOff, Link2Off, MapPin, Phone, RefreshCw, Send, ShieldCheck, Truck, Users } from 'lucide-react'
-import { radioProps, AppBar, Banner, Button, Card, Chip, Dialog, EmptyState, List, ListRow, Progress, Sheet, Spinner, Toggle, DisplaySettings, useMobileToast } from '../ui.jsx'
+import { radioProps, useLayout, TwoPane, AppBar, Banner, Button, Card, Chip, Dialog, EmptyState, List, ListRow, Progress, Sheet, Spinner, Toggle, DisplaySettings, useMobileToast } from '../ui.jsx'
 import { usePlatform } from '../usePlatform.js'
 import { fmtHM } from '../../lib/time.js'
-import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, STEP_LABEL, STEP_ORDER, lastAck, progressOf, remainText, screenOf, stepsByPerson, telOf } from './flow.js'
+import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, STEP_LABEL, STEP_ORDER, helperPaneOf, lastAck, progressOf, remainText, screenOf, stepsByPerson, telOf } from './flow.js'
 import { startDemoDispatch, useDemoModel, useRemoteModel } from './useHelperModel.js'
 import './helper.css'
 
 const readConsent = (k) => { try { return localStorage.getItem(CONSENT_KEY + k) === '1' } catch { return false } }
 const writeConsent = (k) => { try { localStorage.setItem(CONSENT_KEY + k, '1') } catch { /* 저장 불가 브라우저는 이번 화면에서만 */ } }
 
-function Bottom({ children }) { return <div className="mob-h-bottom">{children}</div> }
+const Bottom = BottomActions
 
 function KV({ rows }) {
   return (
     <List>
-      {rows.filter(Boolean).map((r) => <ListRow key={r.label} title={r.label} trailing={<span className="mob-h-kv">{r.value}</span>} />)}
+      {rows.filter(Boolean).map((r) => <ListRow key={r.label} className="kv" title={r.label} trailing={<span className="mob-h-kv">{keepCodes(r.value)}</span>} />)}
     </List>
   )
 }
@@ -52,9 +53,10 @@ function H0({ m, onDone }) {
           <ListRow title="발령 종료 뒤 삭제" subtitle="배정 정보와 연락처는 발령이 끝나면 지움" />
           <ListRow title="보고는 담당자에게만" subtitle="출발, 도착, 탑승, 인계, 실패 기록" />
         </List>
+        <HelperConsent onChange={(consent,roles)=>{m.preference(consent,roles);setRole(consent)}} />
         <p className="mob-t-label mob-section-title">확인</p>
         <List>
-          <ListRow title="차량 동행 역할 확인" subtitle="대상자와 같은 차량으로 이동" trailing={<Toggle label="차량 동행 역할 확인" checked={role} onChange={setRole} />} />
+          <ListRow title="차량 동행 역할 확인" subtitle="차량 동행을 선택한 사람만 차량 배정 후보입니다. 위 참여 동의에서 역할을 선택해 주세요." />
           <ListRow title="기본소생술 교육과 상해보험" subtitle="모르면 담당자에게 문의" trailing={<Toggle label="기본소생술 교육과 상해보험 확인" checked={cpr} onChange={setCpr} />} />
         </List>
         <p className="mob-t-label mob-section-title">화면 설정</p>
@@ -77,7 +79,7 @@ function H1({ m, onDecline }) {
           {m.drill && <Chip>훈련</Chip>}
           <Chip>도우미 {m.helper}</Chip>
         </div>
-        <Banner tone="blue">참여 의무는 없습니다. 불가를 누르면 다른 도우미에게 배정을 넘깁니다.</Banner>
+        <Banner tone="blue">수락해야 배정이 확정됩니다. 어려우면 불가를 눌러 주세요. 다른 도우미에게 넘어갑니다.</Banner>
         <Deadline m={m} />
         <KV rows={[
           { label: '마을', value: m.villages.join(', ') || '-' },
@@ -115,7 +117,7 @@ function H2({ m, onBack }) {
           {Object.entries(DECLINE_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)} {...radioProps(Object.keys(DECLINE_REASONS_M), reason, setReason, k)}>{v}</Chip>)}
         </div>
         <label className="mob-h-field"><span className="mob-t-label">메모(선택)</span>
-          <textarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="담당자에게 전할 말" />
+          <FilledTextarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="담당자에게 전할 말" />
         </label>
       </main>
       <Bottom><Button block variant="danger" disabled={!reason} onClick={() => m.ack('decline', reason, memo)}>불가 전송</Button></Bottom>
@@ -124,11 +126,11 @@ function H2({ m, onBack }) {
 }
 
 // H3 이송 목록(홈)
-function H3({ m, steps, go }) {
+function H3({ m, steps, go, selected = null, inPane = false }) {
   const p = progressOf(m.codes, steps)
   return (
     <>
-      <AppBar title="이송 목록" large trailing={<button type="button" className="mob-icon-btn" aria-label="연락" onClick={() => go({ name: 'H7' })}><Phone size={22} aria-hidden="true" /></button>} />
+      <AppBar title="이송 목록" large trailing={<IconButton label="연락" onClick={() => go({ name: 'H7' })}><Phone size={22} aria-hidden="true" /></IconButton>} />
       <main id="main" className="mob-content no-nav">
         <Deadline m={m} />
         <div className="mob-h-progress">
@@ -144,7 +146,7 @@ function H3({ m, steps, go }) {
                 const st = steps[c] || 'wait'
                 const isCurrent = c === p.current
                 return (
-                  <ListRow key={c} onClick={() => go({ name: isCurrent ? 'H5' : 'H4', code: c })} chevron
+                  <ListRow key={c} onClick={() => go({ name: isCurrent ? 'H5' : 'H4', code: c })} chevron aria-current={selected === c ? 'true' : undefined} className={selected === c ? 'mob-row selected' : undefined}
                     lead={<span className={`mob-h-order ${isCurrent ? 'now' : ''}`}>{i + 1}</span>}
                     title={c}
                     subtitle={isCurrent ? `지금 차례, ${STEP_LABEL[st]}` : STEP_LABEL[st]}
@@ -156,7 +158,7 @@ function H3({ m, steps, go }) {
           </section>
         ))}
       </main>
-      {p.current && <Bottom><Button block onClick={() => go({ name: 'H5', code: p.current })}>{p.current} {NEXT_STEP[steps[p.current] || 'wait']?.label || '보고'}</Button></Bottom>}
+      {p.current && !inPane && <Bottom><Button block onClick={() => go({ name: 'H5', code: p.current })}>{p.current} {NEXT_STEP[steps[p.current] || 'wait']?.label || '보고'}</Button></Bottom>}
     </>
   )
 }
@@ -209,8 +211,9 @@ function H5({ m, code, steps, go, onBack }) {
   }
   return (
     <>
-      <AppBar title={`${code} 보고`} onBack={onBack} trailing={<button type="button" className="mob-icon-btn" aria-label="대상자 상세" onClick={() => go({ name: 'H4', code })}><Users size={22} aria-hidden="true" /></button>} />
+      <AppBar title={`${code} 보고`} onBack={onBack} trailing={<IconButton label="대상자 상세" onClick={() => go({ name: 'H4', code })}><Users size={22} aria-hidden="true" /></IconButton>} />
       <main id="main" className="mob-content no-nav">
+        <SafetyGuidance beforeDeparture={st === 'wait'} />
         <ol className="mob-h-steps" aria-label="이송 단계">
           {STEP_ORDER.slice(1).map((s, i) => (
             <li key={s} className={i + 1 <= idx ? 'done' : i + 1 === idx + 1 ? 'next' : ''}>
@@ -232,9 +235,9 @@ function H5({ m, code, steps, go, onBack }) {
         {next?.step === 'handover' && (
           <div className="mob-h-care">
             <p className="mob-t-label">인계 기록(선택, 소방과 대피소에 전달)</p>
-            <label className="mob-h-field"><span className="mob-t-label">증상 시각</span><input type="time" value={care.symptomAt} onChange={(e) => setCare({ ...care, symptomAt: e.target.value })} /></label>
-            <label className="mob-h-field"><span className="mob-t-label">관찰 내용</span><textarea rows={2} maxLength={200} value={care.observation} onChange={(e) => setCare({ ...care, observation: e.target.value })} /></label>
-            <label className="mob-h-field"><span className="mob-t-label">수행한 조치</span><textarea rows={2} maxLength={200} value={care.action} onChange={(e) => setCare({ ...care, action: e.target.value })} /></label>
+            <label className="mob-h-field"><span className="mob-t-label">증상 시각</span><FilledInput type="time" value={care.symptomAt} onChange={(e) => setCare({ ...care, symptomAt: e.target.value })} /></label>
+            <label className="mob-h-field"><span className="mob-t-label">관찰 내용</span><FilledTextarea rows={2} maxLength={200} value={care.observation} onChange={(e) => setCare({ ...care, observation: e.target.value })} /></label>
+            <label className="mob-h-field"><span className="mob-t-label">수행한 조치</span><FilledTextarea rows={2} maxLength={200} value={care.action} onChange={(e) => setCare({ ...care, action: e.target.value })} /></label>
           </div>
         )}
         <div className="mob-h-sheet-actions">
@@ -256,11 +259,12 @@ function H6({ m, code, onBack, onDone }) {
     <>
       <AppBar title="이송 실패 보고" onBack={onBack} />
       <main id="main" className="mob-content no-nav">
+        <SafetyGuidance />
         <p className="mob-t-sub mob-h-lead">{code} 대상자. 실패로 보고하면 담당자 휴대폰의 소방 지원 요청 화면에 실패 대상자로 올라가요.</p>
         <div className="mob-h-chips" role="radiogroup" aria-label="실패 사유">
           {Object.entries(FAIL_REASONS_M).map(([k, v]) => <Chip key={k} role="radio" aria-checked={reason === k} aria-pressed={undefined} selected={reason === k} onClick={() => setReason(k)} {...radioProps(Object.keys(FAIL_REASONS_M), reason, setReason, k)}>{v}</Chip>)}
         </div>
-        <label className="mob-h-field"><span className="mob-t-label">메모(선택)</span><textarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="현장 상황" /></label>
+        <label className="mob-h-field"><span className="mob-t-label">메모(선택)</span><FilledTextarea rows={3} maxLength={200} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="현장 상황" /></label>
       </main>
       <Bottom><Button block variant="danger" disabled={!reason} onClick={() => setAsk(true)}>실패 보고</Button></Bottom>
       <Dialog open={ask} onClose={() => setAsk(false)} title="이송 실패로 보고할까요?" body={`${code}, ${FAIL_REASONS_M[reason] || ''}. 다음 대상자로 넘어가요.`} actions={
@@ -280,6 +284,7 @@ function H7({ m, onBack }) {
     <>
       <AppBar title="연락" onBack={onBack} />
       <main id="main" className="mob-content no-nav">
+        <HelperConsent withdraw onChange={m.preference} />
         <List>
           <ListRow lead={<Phone size={20} />} title="119" subtitle="생명이 위급할 때" href="tel:119" chevron />
           <ListRow lead={<Phone size={20} />} title="발령 담당자" subtitle={m.officerContact} href={officerTel || undefined} chevron={!!officerTel}
@@ -310,7 +315,7 @@ function H8({ m, onBack }) {
       <main id="main" className="mob-content no-nav">
         <p className="mob-t-sub mob-h-lead">{m.lastOk ? `마지막 연결 ${fmtHM(m.lastOk)}` : '아직 연결 기록 없음'}</p>
         {m.queue.length === 0 ? <EmptyState icon={<Send size={28} />} title="보낼 보고 없음" body="모든 보고를 담당자에게 보냈어요." /> : (
-          <List>{m.queue.map((q) => <ListRow key={q.key} lead={<Clock size={20} />} title={q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${q.personCode} ${STEP_LABEL[q.step] || q.step}`} subtitle="전송 대기" />)}</List>
+          <List>{m.queue.map((q) => <ListRow key={q.key} lead={<Clock size={20} />} title={q.type === 'preference' ? (q.consent ? '참여 동의와 역할 선택' : '등록 동의 철회 요청') : q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${q.personCode} ${STEP_LABEL[q.step] || q.step}`} subtitle="전송 대기" />)}</List>
         )}
         {/* GPT 8차 H1: 서버가 받지 않은 보고는 지우지 않고 사유와 함께 남김. 담당자에게 전화로 알림 */}
         {m.rejected?.length > 0 && (
@@ -360,6 +365,7 @@ function Notice({ icon, title, body, action }) {
 }
 
 function Flow({ m, consentKey }) {
+  const { twoPane } = useLayout()
   const [consented, setConsented] = useState(() => readConsent(consentKey))
   const [declining, setDeclining] = useState(false)
   const [stack, setStack] = useState([])
@@ -377,12 +383,27 @@ function Flow({ m, consentKey }) {
   if (base === 'H1') return <H1 m={m} onDecline={() => setDeclining(true)} />
   if (base === 'H2') return <H2 m={m} onBack={() => setDeclining(false)} />
   if (base === 'H9') return <H9 m={m} steps={steps} declined={ackR?.answer === 'decline'} />
-  if (view?.name === 'H4') return <H4 m={m} code={view.code} steps={steps} go={go} onBack={back} />
-  if (view?.name === 'H5') return <H5 m={m} code={view.code} steps={steps} go={go} onBack={back} />
-  if (view?.name === 'H6') return <H6 m={m} code={view.code} onBack={back} onDone={() => setStack((s) => s.filter((x) => x.code !== view.code))} />
-  if (view?.name === 'H7') return <H7 m={m} onBack={back} />
-  if (view?.name === 'H8') return <H8 m={m} onBack={back} />
-  return <H3 m={m} steps={steps} go={go} />
+  const detailOf = (v, goTo) => {
+    if (v?.name === 'H4') return <H4 m={m} code={v.code} steps={steps} go={goTo} onBack={back} />
+    if (v?.name === 'H5') return <H5 m={m} code={v.code} steps={steps} go={goTo} onBack={back} />
+    if (v?.name === 'H6') return <H6 m={m} code={v.code} onBack={back} onDone={() => setStack((s) => s.filter((x) => x.code !== v.code))} />
+    if (v?.name === 'H7') return <H7 m={m} onBack={back} />
+    if (v?.name === 'H8') return <H8 m={m} onBack={back} />
+    return null
+  }
+  if (twoPane) {
+    // 두 단: 목록에서 고르면 오른쪽만 바뀐다(쌓지 않고 바꿈). 오른쪽 안 이동은 쌓아서 뒤로 돌아올 수 있게 둔다.
+    const pick = (v) => setStack([v])
+    const pane = helperPaneOf({ twoPane, base, view, currentCode: progressOf(m.codes, steps).current })
+    return (
+      <TwoPane
+        list={<H3 m={m} steps={steps} go={pick} selected={pane.detail?.code || null} inPane />}
+        detail={detailOf(pane.detail, go)}
+        emptyDetail={<Notice icon={<CheckCircle2 size={28} />} title="모든 대상자 보고 끝" body="목록에서 대상자를 고르면 기록이 보여요." />}
+      />
+    )
+  }
+  return detailOf(view, go) || <H3 m={m} steps={steps} go={go} />
 }
 
 function DemoHelper() {
