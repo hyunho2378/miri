@@ -26,16 +26,21 @@ export const capOf = (vehicle, grade) => typeOf(vehicle.type)?.capacity?.[grade]
 // 부족분 해소용 추가 협약 차종 우선순위
 export const EXTRA_TYPE = { bed: 'bedVan', wheelchair: 'liftVan', assist: 'car', walk: 'bus' }
 
-export const OWNERS = { fire: '소방(별도 운용)', city: '시 보유', facility: '기관(요양시설, 주야간보호기관)', contract: '협약 승용차' }
-export const VEHICLE_NOTE = '개인 차량 등록은 쓰지 않음. 협약 대상(택시 운송조합 등)은 동해시와 협의'
+// 차량 소속(회신 R43, 지자체 재난안전 부서 서면 답변 2026. 10. 22.): 재난 때 시 공용차량(버스, 승합차)을 먼저 투입하고 택시와 버스는 교통 담당 부서가 그때 업체에 요청한다.
+// 요청 차량(request)은 사전 약속이 없어 기본 가용 확실성을 미확인으로 둔다. 협약 승용차(contract)는 부족분 근거로 사전 협약 규모를 제안하는 시나리오 항목이다.
+export const OWNERS = { fire: '소방(별도 운용)', city: '시 공용차량', facility: '기관(요양시설, 주야간보호기관)', request: '교통 부서 요청(택시, 버스 회사)', contract: '협약 승용차(제안)' }
+export const VEHICLE_NOTE = '개인 차량 등록은 쓰지 않음. 재난 때 시 공용차량을 먼저 쓰고 택시와 버스는 교통 부서가 업체에 요청(미확인으로 따로 셈). 협약 승용차는 부족분 근거 사전 협약 제안'
 export const vehicleLabel = (v) => `${v.code} ${OWNERS[v.owner] || '소속 확인 필요'}, ${COMMITMENTS[commitmentOf(v)]}`
 
 // 차량 가용 확실성(회신 R01): 소방 구급차는 지자체 가용 차량과 따로 보고, 협약이나 소유로 약속된 차량과 아직 확인하지 않은 차량을 나눈다
 export const COMMITMENTS = { agreed: '약속됨', unconfirmed: '미확인', fire: '소방 별도' }
-export const commitmentOf = (v) => v?.commitment || (v?.owner === 'fire' ? 'fire' : v?.owner === 'facility' ? 'unconfirmed' : 'agreed')
+export const commitmentOf = (v) => v?.commitment || (v?.owner === 'fire' ? 'fire' : (v?.owner === 'facility' || v?.owner === 'request') ? 'unconfirmed' : 'agreed')
 
 // 도우미 역할(회신 R12)
 export const HELPER_ROLES = { ride: '차량 동행', walk: '도보 지원', contact: '연락 지원', supply: '물품 전달' }
+// 도우미 소속(회신 R43): 시가 통반장, 자율방재단, 사회단체 인력을 거동불편자와 1대1로 지정한다. 지정만으로는 실제 인원을 알 수 없어 미리는 지정 짝을 기본 후보로 두고 수락해야 배정한다.
+export const HELPER_AFFILIATIONS = { leader: '통반장', disasterCorps: '자율방재단', civic: '사회단체', officer: '대피담당공무원', volunteer: '봉사자', other: '기타' }
+export const affiliationLabel = (h) => HELPER_AFFILIATIONS[h?.affiliation] || '소속 확인 필요'
 
 // 원문 공식(SOURCE B). 왕복 가능 횟수는 소수 버림
 export function tripsPossible(availableMinutes, roundTripMinutes) {

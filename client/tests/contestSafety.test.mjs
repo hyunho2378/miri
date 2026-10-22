@@ -16,7 +16,7 @@ test('차량 표시 변경 뒤 모든 기획안 수치 유지',()=>{
  assert.equal(run({}, {vehicles:seed.vehicles.filter(v=>commitmentOf(v)!=='unconfirmed')}).total,358)
  assert.deepEqual([10,20,30].map(boardingMinutes=>run({}, {settings:{...seed.settings,boardingMinutes}}).total),[183,291,402])
  const p=pendingCounts({persons:seed.persons,scopeVillageCodes:new Set(Object.keys(r.arrivals))}); assert.equal(p.docsInScope,4);assert.equal(p.docsAll,7)
- assert.equal(OWNERS.city,'시 보유')
+ assert.equal(OWNERS.city,'시 공용차량')
 })
 test('번호 없는 대상자 수와 표 행에서 모델 누락 보충',()=>{
  for(const lines of [['대상자 4명','자유 서술'],['1 [가림] 거동 불명','2 [가림] 보행'],['성명 [가림]','성명 [가림]']]){
