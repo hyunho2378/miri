@@ -17,6 +17,8 @@ import { clovaOcr, ocrFormat, imageSize, toLines, maskLines, residualPII, boxOf,
 import { guard } from './_guard.js'
 import { RUBRIC_SYSTEM, RUBRIC_FREE_SYSTEM, RUBRIC_VERSION, rubricItemsOf, rubricPerson } from '../src/lib/rubric.js'
 import { withFewShot, useFewShot, FEWSHOT_VERSION } from '../src/lib/rubricFewShot.js'
+import { quoteIn } from '../src/lib/quote.js'
+import { applySafeguard } from '../src/lib/safeguard.js'
 
 const MAX_BYTES = 6 * 1024 * 1024
 const LABEL = /거\s*동\s*상\s*태\s*[:：]?\s*/
@@ -62,7 +64,8 @@ export function segment(masked) {
       seg.lines.push(j); seg.text = one(`${seg.text} ${masked[j]}`)
     }
     // 표 머리줄(순번, 거동 상태, 비고)은 대상자가 아니므로 건너뛴다
-    const header = !seg.text && (/순\s*번/.test(masked[i - 1] || '') || /비\s*고/.test(masked[i + 1] || ''))
+    // 같은 줄에 다른 열 이름(번호, 인적사항, 연락처, 성명)이 있어도 머리줄로 본다(홀드아웃2 05번: 4명 표가 빈칸 1명으로 읽힘)
+    const header = !seg.text && (/순\s*번/.test(masked[i - 1] || '') || /비\s*고/.test(masked[i + 1] || '') || /번\s*호|인\s*적\s*사\s*항|연\s*락\s*처|성\s*명/.test(`${text.slice(0, m.index)} ${masked[i - 1] || ''}`))
     if (header) return
     if (!seg.text) seg.text = '(빈칸)'
     segs.push(seg)
@@ -143,7 +146,10 @@ export function detectedPersonCount(masked) {
   const text = masked.join(' ')
   const count = (re) => [...text.matchAll(re)].length
   const declared = [...text.matchAll(/(?:대상자|인원|총)\s*[:：]?\s*(\d{1,3})\s*명/g)].map((m) => Number(m[1]))
-  return Math.max(0, ...declared, count(/순\s*번\s*[:：]?\s*\d+/g), count(/(?:대상자|성명|이름)\s*[:：]?\s*\[가림\]/g), masked.filter((l) => /^\s*\d{1,3}\s+\[가림\]/.test(l)).length)
+  // 번호만 있는 줄 다음 줄이 가린 이름으로 시작하고 번호가 1부터 이어지는 표(홀드아웃2 05번)
+  let seq = 0
+  masked.forEach((l, i) => { const n = /^\s*(\d{1,2})\s*$/.exec(l); if (n && Number(n[1]) === seq + 1 && /^\s*\[(?:이름\s*)?가림\]/.test(masked[i + 1] || '')) seq++ })
+  return Math.max(0, ...declared, seq, count(/순\s*번\s*[:：]?\s*\d+/g), count(/(?:대상자|성명|이름)\s*[:：]?\s*\[가림\]/g), masked.filter((l) => /^\s*\d{1,3}\s+\[(?:이름\s*)?가림\]/.test(l)).length)
 }
 
 // 한 사람 판정. 근거 문구가 그 구간 원문에 없으면 원래 문구를 남기고 실패로 표시해 담당자 확인으로 넘긴다
@@ -152,7 +158,7 @@ export function judge(it, segText, personHint, box, free = false) {
   const base = { personHint, tags: [], quote, context: free ? undefined : segText, confidence: 'low', box }
   if (!it || !it.grade || !it.confidence) return { ...base, grade: 'unknown', reason: 'noResult' }
   if ((!free && UNREADABLE.test(segText)) || /판\s*독\s*불\s*가|읽\s*을\s*수\s*없|식\s*별\s*불\s*가|빈칸|(?:기록|정보|근거|기재|도움의 종류).{0,12}없/.test(quote)) return { ...base, grade: 'unknown', quote: quote || segText, reason: 'unreadable' }
-  if (!quote || !segText.includes(quote)) {
+  if (!quote || !quoteIn(segText, quote)) {
     return { ...base, grade: 'unknown', proposedGrade: it.grade === 'unknown' ? undefined : it.grade, quoteMismatch: true, reason: 'quoteMismatch' }
   }
   const grade = it.grade
@@ -177,7 +183,9 @@ export default async function handler(req, res) {
     // 글자를 하나도 못 읽었으면 언어 모델을 부르지 않고 확인 요청으로 돌려준다
     if (!transcript) return fail(res, 422, 'EMPTY_RESULT', '읽은 내용 없음. 담당자가 서류를 직접 확인해 주십시오')
     const size = imageSize(buf)
-    const segs = segment(masked)
+    // 구간이 대상자 표식 수보다 적으면 구간 나누기를 믿지 않고 문서 전체 판독으로 돌린다
+    const segs0 = segment(masked)
+    const segs = segs0.length && detectedPersonCount(masked) > segs0.length ? [] : segs0
 
     let persons
     const reqBody = readJsonBody(req)
@@ -207,6 +215,8 @@ export default async function handler(req, res) {
       persons = fillMissing(items.map((it, k) => judge(it, transcript, `순번 ${k + 1}`, null, true)), items, masked)
     }
     persons = fillMissing(persons, [], masked)
+    // 낮게 판정 막는 사후 검사: 원문에 더 높은 등급 단서가 있으면 올리고 확인 필요로 넘긴다(src/lib/safeguard.js)
+    persons = applySafeguard(persons, transcript)
     // 읽은 내용이 없으면 성공으로 넘기지 않는다
     if (!transcript || !persons.length) return fail(res, 422, 'EMPTY_RESULT', '읽은 내용 없음. 담당자가 서류를 직접 확인해 주십시오')
     return res.status(200).json({ transcript, persons, engine: { ocr: 'CLOVA OCR', llm: HCX_MODEL, region: 'KR', mode: rubric ? 'rubric' : 'grade', ...(rubric ? { rubricVersion: RUBRIC_VERSION } : {}), ...(fewshot ? { fewshot: FEWSHOT_VERSION } : {}) } })

@@ -2,13 +2,14 @@
 // 원문 대조: 판정 근거 문구가 전사문에 문자 그대로 없으면 일치도 하로 강제(환각 차단).
 // 규칙 대조: 등급과 특이사항이 모순이면 일치도 한 단계 하향.
 import { GRADE_KEYS } from './shortage.js'
+import { quoteIn } from './quote.js'
 
 const DOWN = { high: 'mid', mid: 'low', low: 'low' }
 const normalize = (s = '') => s.replace(/\s+/g, ' ').trim()
 
 export function verifyResult(transcript, r0) {
   const r = r0.aiGrade ? { ...r0, grade: r0.aiGrade } : r0
-  const quoteMatched = !!r.quote && normalize(transcript).includes(normalize(r.quote))
+  const quoteMatched = !!r.quote && quoteIn(transcript, r.quote)
   let confidence = GRADE_KEYS.includes(r.grade) ? r.confidence || 'mid' : 'low'
   if (!quoteMatched || /판\s*독\s*불\s*가|빈칸|(?:기록|정보|근거|기재|도움의 종류).{0,12}없/.test(r.quote || '')) confidence = 'low'
   const conflict = (r.grade === 'walk' || r.grade === 'assist') && (r.tags || []).includes('bedridden')

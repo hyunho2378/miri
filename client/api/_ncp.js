@@ -205,15 +205,24 @@ export async function hcxJson(system, user, maxTokens = 1200, opts = {}) {
 
 // 모델 글 응답에서 JSON 한 덩어리를 꺼낸다(다른 모델 비교 도구도 같은 해석을 쓴다)
 function closeBrackets(t) {
-  const stack = []; let inStr = false, esc = false
+  // 빠진 닫는 괄호를 채운다. 닫는 괄호 종류가 어긋나면("}}]}"처럼 항목을 닫기 전에 배열을 닫음) 앞에 빠진 괄호를 넣는다
+  // (10. 22. 판정 기준표 v0.1 출력에서 관찰). 글자 내용은 바꾸지 않고 괄호만 넣는다
+  const stack = []; let inStr = false, esc = false, out = '', fixed = 0
+  const closer = (c) => (c === '{' ? '}' : ']')
   for (const ch of t) {
-    if (inStr) { if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue }
+    if (inStr) { out += ch; if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue }
     if (ch === '"') inStr = true
     else if (ch === '{' || ch === '[') stack.push(ch)
-    else if (ch === '}' || ch === ']') { const o = stack.pop(); if ((ch === '}' && o !== '{') || (ch === ']' && o !== '[')) return null }
+    else if (ch === '}' || ch === ']') {
+      const want = ch === '}' ? '{' : '['
+      if (!stack.includes(want)) return null
+      while (stack[stack.length - 1] !== want) { out += closer(stack.pop()); fixed++ }
+      stack.pop()
+    }
+    out += ch
   }
-  if (inStr || !stack.length || stack.length > 3) return null
-  return t + stack.reverse().map((c) => (c === '{' ? '}' : ']')).join('')
+  if (inStr || stack.length > 3 || (!stack.length && !fixed)) return null
+  return out + stack.reverse().map(closer).join('')
 }
 export function parseModelJson(content) {
   const text = String(content || '').replace(/```(?:json)?/g, '').trim()

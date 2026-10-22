@@ -8,15 +8,18 @@ import { fileURLToPath } from 'node:url'
 import { callModel } from './model-adapter.mjs'
 import { DIMENSIONS, RUBRIC_VERSION } from '../../client/src/lib/rubric.js'
 import { answerKey } from './metrics.mjs'
+import { personChunks } from '../../client/src/lib/safeguard.js'
+// 판단 칸이 dims 안에 들어간 출력도 읽는다(10. 22. 1차 실행에서 C 7건, D 6건이 이 형식)
+export const gradeSupportedOf = (j) => j?.gradeSupported ?? j?.dims?.gradeSupported ?? null
 
 const rubricText = DIMENSIONS.map((d) => `- ${d.key} ${d.name}: ${d.levels.map((l, i) => `${i + 1}=${l}`).join(' / ')}`).join('\n')
 export const JUDGE_SYSTEM = `너는 판독 결과를 채점하는 검토자다. 등급을 새로 고르지 않는다.
 루브릭(${RUBRIC_VERSION}, 1: 도움 없음, 5: 완전 의존)
 ${rubricText}
 입력은 원문 글자와 판독 결과(차원 점수, 근거 문구, 계산된 등급)다.
-1. 차원마다 근거 문구가 그 점수를 뒷받침하는지 yes, partial, no 중 하나와 이유 한 줄을 낸다. 점수가 null 이면 원문에 그 차원 근거가 정말 없는지 본다(없으면 yes).
-2. 계산된 등급이 원문과 어긋나지 않는지 gradeSupported 를 yes 또는 no 로 낸다.
-3. 출력은 JSON 하나만: {"dims":{"D1":{"verdict":"yes","why":"…"}},"gradeSupported":"yes"}`
+1. 먼저 계산된 등급이 원문과 어긋나지 않는지 gradeSupported 를 yes 또는 no 로 낸다.
+2. 차원마다 근거 문구가 그 점수를 뒷받침하는지 yes, partial, no 중 하나를 낸다. 점수가 null 이면 원문에 그 차원 근거가 정말 없는지 본다(없으면 yes). 이유는 20자 안으로 쓴다.
+3. 출력은 JSON 하나만, gradeSupported 를 맨 앞, dims 바깥에 둔다: {"gradeSupported":"yes","dims":{"D1":{"verdict":"yes","why":"…"}}}`
 
 export const judgeUser = (source, p) => `원문: ${source}\n판독 결과: ${JSON.stringify({ dims: p.dims, quote: p.quote, grade: p.grade })}`
 
@@ -35,7 +38,9 @@ async function main() {
   for (const r of rows) {
     const doc = inputs.docs.find((d) => d.doc === r.doc)
     for (const [i, p] of r.persons.entries()) {
-      const src = doc.mode === 'segments' ? doc.segments.find((s) => s.id === p.id)?.text : doc.transcript
+      // 자유 서술 문서는 번호 단위로 나눠 그 사람 글만 보여 준다(대상자 수가 맞을 때만)
+      const ch = personChunks(doc.transcript)
+      const src = doc.mode === 'segments' ? doc.segments.find((s) => s.id === p.id)?.text : (ch.length === r.persons.length ? ch[i] : doc.transcript)
       try {
         await new Promise((r) => setTimeout(r, 1200))
         let res
@@ -47,8 +52,9 @@ async function main() {
     }
   }
   const ok = out.filter((x) => !x.error && x.readerCorrect != null)
-  const agree = ok.filter((x) => (x.judge?.gradeSupported === 'yes') === x.readerCorrect).length
-  console.log(JSON.stringify({ model: MODEL, cond: COND, judged: out.length, errors: out.filter((x) => x.error).length, judgeVsAnswerAgreement: `${agree}/${ok.length}` }, null, 1))
+  const withField = ok.filter((x) => gradeSupportedOf(x.judge) != null)
+  const agree = withField.filter((x) => (gradeSupportedOf(x.judge) === 'yes') === x.readerCorrect).length
+  console.log(JSON.stringify({ model: MODEL, cond: COND, judged: out.length, errors: out.filter((x) => x.error).length, judgeVsAnswerAgreement: `${agree}/${withField.length}`, missingField: ok.length - withField.length }, null, 1))
   fs.writeFileSync(file.replace(/\.json$/, `_judge_${COND}_${MODEL}.json`), JSON.stringify(out, null, 1))
 }
 // 경로에 한글과 띄어쓰기가 있으면 import.meta.url 이 퍼센트 부호로 바뀌므로 파일 경로끼리 비교한다
