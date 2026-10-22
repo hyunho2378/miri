@@ -9,6 +9,7 @@ import { usePlatform } from '../usePlatform.js'
 import { fmtHM } from '../../lib/time.js'
 import { ROLE_OPTIONS } from '../../lib/helperConsent.js'
 import { AVOID_PHRASES, EMERGENCY, HELPER_PHRASES, PREDEPARTURE } from '../../lib/helperGuidance.js'
+import { PLACE_TERMS } from '../../lib/aiCard.js'
 import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, PREDEPARTURE_ITEMS, STEP_ACTION, STEP_LABEL, STEP_NOW, UNDO_MS, helperPaneOf, lastAck, nextPlaceOf, progressOf, remainText, screenOf, sentencesOf, stepIndexOf, stepsByPerson, telOf, tripWord, withPending } from './flow.js'
 import { startDemoDispatch, useDemoModel, useRemoteModel } from './useHelperModel.js'
 import './helper.css'
@@ -117,7 +118,7 @@ function AlertScreen({ m, onDecline }) {
           <Kv label="마을" value={m.villages.join(', ') || '-'} />
           <Kv label="만나는 곳" value={m.meetPlace} />
           <Kv label="대상" value={`${m.codes.length}명, ${m.trips.length}번 이동`} />
-          <InfoSheet title="자세히" summary={`차량, 함께 가는 도우미${m.notes.length ? `, 확인할 점 ${m.notes.length}개` : ''}`} sheetTitle="배정 자세히">
+          <InfoSheet title="자세히" summary={`차량, 함께 가는 도우미${m.notes.length ? `, 확인할 점 ${m.notes.length}개` : ''}, 대피소 뜻`} sheetTitle="배정 자세히">
             <List label="배정 자세히">
               <Kv label="차량" value={m.vehicle} />
               <Kv label="함께 가는 도우미" value={m.coHelpers.length ? m.coHelpers.join(', ') : '없음'} />
@@ -125,6 +126,7 @@ function AlertScreen({ m, onDecline }) {
               <Kv label="도우미 번호" value={m.helper || '-'} />
             </List>
             {m.notes.length > 0 && <List label="확인할 점">{m.notes.map((n) => <ListRow key={n} title={n} />)}</List>}
+            <List label="장소 뜻">{Object.values(PLACE_TERMS).map((t) => <ListRow key={t.term} title={t.term} subtitle={t.text} />)}</List>
           </InfoSheet>
         </List>
         <p className="mob-t-callout mob-h-lead">{ACK_NOTE}</p>

@@ -1,12 +1,14 @@
 // 서류 1건 확인 화면(PATTERNS 35 개정, PRD v2 F2). 왼쪽 원본 이미지, 오른쪽 읽은 값과 근거. 조작은 확인, 수정, 제외 세 가지.
 import { useState } from 'react'
-import { personCare } from '../../lib/tripChecks.js'
+import { docCare, reviewReasons } from '../../lib/aiCard.js'
+import { DIMENSIONS } from '../../lib/rubric.js'
 import { GRADES } from '../../lib/shortage.js'
 import { TAGS } from '../../lib/intake.js'
 import Button from '../ui/Button.jsx'
 import Card from '../ui/Card.jsx'
 import MultiSelect from '../ui/MultiSelect.jsx'
 import Select from '../ui/Select.jsx'
+import AiCardButton from './AiCardButton.jsx'
 import EvidencePanel from './EvidencePanel.jsx'
 import GradeChip from './GradeChip.jsx'
 
@@ -46,21 +48,41 @@ export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdi
             <p className="type-h3 text-text-pri tabular-nums">{result.personCode}</p>
             <span className="type-body-sm text-text-meta">{villageLabel}</span>
             <span className="ml-auto inline-flex items-center gap-2">
+              <AiCardButton />
               <span className="type-meta text-text-meta">읽은 등급</span>
               <GradeChip grade={result.grade} />
             </span>
           </div>
-          {result.gradeUncertain && <p role="alert" className="type-body-sm text-warning-text">확인 필요. 침상 가능성 담당자 확인</p>}
+          {(() => { const rs = reviewReasons(result); return rs.length ? (
+            <div role="alert" className="rounded-md bg-warning-soft px-3 py-2 type-body-sm text-warning-text">
+              <p className="type-strong">확인 필요{result.gradeUncertain ? ', 확인 전까지 휠체어로 계산' : ''}</p>
+              <ul className="mt-1 list-disc pl-5">{rs.map((r) => <li key={r.key}>{r.label}</li>)}</ul>
+            </div>
+          ) : null })()}
           <Select label="이송 등급" value={grade} options={GRADE_OPTIONS} onChange={setGrade} disabled={!canEdit} />
           <MultiSelect label="특이사항" values={tags} options={TAG_OPTIONS} onChange={setTags} disabled={!canEdit} />
-          {(() => { const c = personCare(result); return (
+          {(() => { const c = docCare(result); return (
             <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-md bg-mute px-3 py-2 type-body-sm">
-              <dt className="text-text-sec">평소 돌봄 담당자</dt><dd className="text-text-pri">{c.caregiverType}{c.known && c.caregiverType !== '없음' ? `, ${c.reachableLabel}` : ''}</dd>
-              <dt className="text-text-sec">의사소통 특성</dt><dd className="text-text-pri">{!c.known ? '확인 필요' : c.comm.join(', ') || '없음'}</dd>
-              <dt className="text-text-sec">보조기구</dt><dd className="text-text-pri">{!c.known ? '확인 필요' : c.aids.join(', ') || '없음'}</dd>
-              {!c.known && <dd className="col-span-2 type-meta text-text-meta">서류에 칸이 없으면 확인 필요로 두고 사회복지 담당자가 명부에서 입력</dd>}
+              <dt className="text-text-sec">평소 돌봄 담당자</dt><dd className="text-text-pri">{c.caregiver}</dd>
+              <dt className="text-text-sec">의사소통 특성</dt><dd className="text-text-pri">{c.comm}</dd>
+              <dt className="text-text-sec">보조기구</dt><dd className="text-text-pri">{c.aids}</dd>
+              {c.missing > 0 && <dd className="col-span-2 type-meta text-text-meta">서류에 없는 칸은 확정 뒤 사회복지 담당자가 명부에서 입력</dd>}
             </dl>
           ) })()}
+          {result.rubric?.dims && (
+            <div className="rounded-md bg-subtle px-3 py-2">
+              <p className="type-caption text-text-sec">판정 기준 항목별 점수({result.rubric.status || '전문가 검증 전 초안'})</p>
+              <dl className="mt-1 grid grid-cols-[auto_auto_1fr] gap-x-3 gap-y-1 type-body-sm" aria-label="판정 기준 항목별 점수">
+                {DIMENSIONS.map((dim) => { const d = result.rubric.dims[dim.key] || {}; return (
+                  <div key={dim.key} className="contents">
+                    <dt className="text-text-sec">{dim.name}</dt>
+                    <dd className="tabular-nums text-text-pri">{d.score ?? '-'}</dd>
+                    <dd className="min-w-0 text-text-meta">{d.score ? dim.levels[d.score - 1] : '근거 없음'}{d.quote ? `, "${d.quote}"` : ''}</dd>
+                  </div>
+                ) })}
+              </dl>
+            </div>
+          )}
           {changed && <p className="type-meta text-primary-text">읽은 값에서 변경했습니다. 수정을 누르면 변경한 값으로 확정합니다.</p>}
           <EvidencePanel quote={result.quote} matched={result.quoteMatched} confidence={result.confidence} conflict={result.conflict} transcript={doc.transcript} docName={doc.name} />
           {canEdit && (

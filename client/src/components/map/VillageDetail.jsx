@@ -5,6 +5,7 @@ import KeyValue from '../ui/KeyValue.jsx'
 import { GRADES } from '../../lib/shortage.js'
 import { fmtHM } from '../../lib/time.js'
 import { fmtElapsed } from '../../lib/geo.js'
+import { placeLine } from '../../lib/aiCard.js'
 
 const byGrade = (obj) => {
   const parts = GRADES.filter((g) => obj?.[g.key]).map((g) => `${g.label} ${obj[g.key]}명`)
@@ -21,6 +22,7 @@ export default function VillageDetail({ village, onBack }) {
       <p className="mt-3 type-caption text-text-meta">{v.dongName}, {v.code}{v.inScope ? '' : ', 대피 대상 구역 밖'}</p>
       <h2 className="mt-1 type-h3 text-text-pri">{v.label}</h2>
       {v.pickup && <p className="mt-1 type-body-sm text-text-sec">집결지 {v.pickup.name}, {v.pickup.road.replace('동해시 ', '')}</p>}
+      <p className="mt-1 type-meta text-text-meta">{placeLine('pickup')}. {placeLine('shelter')}.</p>
 
       <div className="mt-4">
         <p className="type-caption text-text-sec">부족분</p>

@@ -1,6 +1,7 @@
 // 대상자 명부(IA 4.2). 이름 열 없음(원본 명부는 지자체 서버 보관 전제). ?person=코드 로 상세 드로어.
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { personCare } from '../../lib/tripChecks.js'
+import { NOT_ENTERED } from '../../lib/aiCard.js'
 import { MessageSquareText, ScanText, Trash2, UserRound } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
@@ -124,7 +125,7 @@ export default function RosterPage() {
     { key: 'grade', label: '이송 등급', sortable: true, sortValue: (p) => GRADE_RANK[p.grade], render: (p) => <GradeChip grade={p.grade} /> },
     { key: 'ltcGrade', label: '장기요양 등급', hideBelow: 'lg', sortable: true, render: (p) => <span className="type-meta text-text-sec">{p.ltcGrade || '미기재'}</span> },
     { key: 'tags', label: '특이사항', wrap: true, hideBelow: 'lg', render: (p) => <span className="type-meta text-text-sec">{p.tags.map((t) => TAGS[t]).join(', ') || '없음'}</span> },
-    { key: 'care', label: '동행과 소통', wrap: true, hideBelow: 'xl', render: (p) => { const c = personCare(p); return <span className="type-meta text-text-sec">{!c.known ? '확인 필요' : [c.companionCall && '동행 연락 필요', c.caregiverUnreachable && '돌봄 담당자 연락 불가', c.commCaution && `의사소통 유의(${c.comm.join(', ')})`].filter(Boolean).join(', ') || '없음'}</span> } },
+    { key: 'care', label: '동행과 소통', wrap: true, hideBelow: 'xl', render: (p) => { const c = personCare(p); return <span className="type-meta text-text-sec">{!c.known ? NOT_ENTERED : [c.companionCall && '동행 연락 필요', c.caregiverUnreachable && '돌봄 담당자 연락 불가', c.commCaution && `의사소통 유의(${c.comm.join(', ')})`].filter(Boolean).join(', ') || '없음'}</span> } },
     { key: 'source', label: '입력 방법', hideBelow: 'md', render: (p) => <SourceLabel source={p.gradeSource} /> },
     { key: 'review', label: '확인 상태', sortable: true, render: (p) => <StatusPill status={p.review} /> },
     { key: 'updatedAt', label: '갱신일', sortable: true, hideBelow: 'lg', render: (p) => fmtDate(p.updatedAt) },
@@ -224,10 +225,10 @@ export default function RosterPage() {
                 { label: '소통 방식', value: open.access.comm }
               ] : []),
               ...(() => { const c = personCare(open); return [
-                { label: '평소 돌봄 담당자', value: c.caregiverType },
-                { label: '돌봄 담당자 연락', value: c.reachableLabel },
-                { label: '의사소통 특성', value: !c.known ? '확인 필요' : c.comm.length ? c.comm.join(', ') : '없음' },
-                { label: '보조기구', value: !c.known ? '확인 필요' : c.aids.length ? c.aids.join(', ') : '없음' }
+                { label: '평소 돌봄 담당자', value: !c.known ? NOT_ENTERED : c.caregiverType },
+                { label: '돌봄 담당자 연락', value: !c.known ? NOT_ENTERED : c.reachableLabel },
+                { label: '의사소통 특성', value: !c.known ? NOT_ENTERED : c.comm.length ? c.comm.join(', ') : '없음' },
+                { label: '보조기구', value: !c.known ? NOT_ENTERED : c.aids.length ? c.aids.join(', ') : '없음' }
               ] })(),
               { label: '근거 서류', value: open.docId || '없음' },
               { label: '갱신일', value: fmtDate(open.updatedAt) },
