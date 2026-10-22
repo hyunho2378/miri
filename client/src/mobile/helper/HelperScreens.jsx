@@ -87,6 +87,9 @@ function IdleHome({ consentKey, onStart }) {
   const [consented, setConsented] = useState(() => readConsent(consentKey))
   const [roles, setRoles] = useState(() => readRoles(consentKey))
   const [editing, setEditing] = useState(false)
+  const [busy, setBusy] = useState(false)
+  // 배정 계산이 몇 초 걸려 화면이 멈춘 듯 보이지 않게, 먼저 '받는 중'을 그린 뒤 계산한다. 두 번 누름도 막는다
+  const begin = () => { if (busy) return; setBusy(true); setTimeout(() => { try { onStart() } finally { setBusy(false) } }, 60) }
   useExpScreen(editing ? 'idle.consent' : 'idle')
   if (editing) {
     return <ConsentScreen initialRoles={roles} onBack={() => setEditing(false)} onDone={(r) => { writeConsent(consentKey, r); store.set(`${ROLES_KEY}${consentKey}.pending`, '1'); setRoles(r); setConsented(true); setEditing(false) }} />
@@ -104,7 +107,7 @@ function IdleHome({ consentKey, onStart }) {
         <p className="mob-t-callout mob-h-lead">배정이 오면 문자로 링크를 보내 드려요.</p>
         {expSource() && <p className="mob-t-foot mob-pad">{EXP_NOTICE}</p>}
       </main>
-      <BottomAction primary={consented ? null : { label: '참여 동의하기', onClick: () => setEditing(true) }} secondary={{ label: '시연 배정 받기', onClick: onStart }} />
+      <BottomAction primary={consented ? null : { label: '참여 동의하기', onClick: () => setEditing(true) }} secondary={{ label: busy ? '배정을 받는 중이에요' : '시연 배정 받기', onClick: begin, disabled: busy }} />
     </>
   )
 }

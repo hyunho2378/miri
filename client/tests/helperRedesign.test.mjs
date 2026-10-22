@@ -73,6 +73,8 @@ test('수락 안내 한 문장 유지, 거절 불이익 없음은 동의 화면�
 test('평시 첫 화면: 누구용 한 줄, 내 상태, 할 일 하나, 시연 배정은 약한 글자 버튼', () => {
   assert.match(src, /title="미리 도우미" large/)
   assert.match(src, /title="이웃 대피를 돕는 화면" subtitle="혼자 대피하기 어려운 이웃을 대피소까지 함께 옮겨요"/)
-  assert.match(src, /secondary=\{\{ label: '시연 배정 받기', onClick: onStart \}\}/)
+  assert.match(src, /secondary=\{\{ label: busy \? '배정을 받는 중이에요' : '시연 배정 받기', onClick: begin, disabled: busy \}\}/)
+  // 두 번 누름 방지와 먼저 그린 뒤 계산
+  assert.match(src, /if \(busy\) return; setBusy\(true\); setTimeout\(/)
   assert.match(src, /primary=\{consented \? null : \{ label: '참여 동의하기'/)
 })

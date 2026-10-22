@@ -11,7 +11,7 @@ export const META = {
   serviceEn: 'MIRI',
   oneLine: '동해시 재난취약자 사전 이송 배정 서비스',
   team: 'Team 오아시스',
-  members: '주현호, 허준희, 김서환, 김채린, 김민준',
+  members: '주현호, 허준희, 김서환, 김채린',
   course: '2026-2 서비스디자인',
   school: '한림대학교',
   live: 'https://miri-indol.vercel.app',
