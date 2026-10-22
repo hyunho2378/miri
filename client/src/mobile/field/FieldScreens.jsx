@@ -214,7 +214,7 @@ export function FieldDocPage() {
           </section>
         ) : null })()}
         <List label="AI 정보">
-          <InfoSheet lead={<Info size={22} />} title="AI 정보" summary="하는 일, 시험 결과, 약점" sheetTitle="서류 읽기 AI 정보">
+          <InfoSheet lead={<Info size={22} />} title="AI 정보" summary="저장된 시연 결과, 하는 일, 시험 결과" sheetTitle="서류 읽기 AI 정보">
             {AI_CARD.map((sec) => (
               <section key={sec.title} className="mob-section" aria-label={sec.title}>
                 <h3 className="mob-section-title">{sec.title}</h3>
@@ -555,6 +555,7 @@ function VillagePicker({ villages, value, onChange }) {
 // AI 판독 오류 문구. 휴대폰 로그인에는 시연 코드 칸이 없으므로 콘솔 로그인으로 안내한다(막다른 안내 제거)
 const fieldAiError = (e, kind) => {
   const m = aiErrorMessage(e, kind)
+  if (e?.code === 'STORED_ONLY') return { title: '시연은 저장된 결과로 보여 드려요', desc: '실시간 AI 호출은 멈춰 두었어요. 확인할 서류의 저장된 판독을 봐 주세요' }
   if (e?.code === 'NEED_SESSION' || e?.code === 401) return { title: 'AI 판독은 시연 코드가 필요해요', desc: '같은 브라우저의 콘솔 로그인에서 시연 코드를 넣은 뒤 다시 시도' }
   return m
 }
