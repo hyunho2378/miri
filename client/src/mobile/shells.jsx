@@ -2,13 +2,15 @@
 // 도우미(/m/h/demo, /m/h/:token): 탭 없는 단일 흐름(H1 배정 알림 → H3 이송 목록 → H5 단계 보고).
 // 현장 담당자(/m/f): 탭 4개(상태, 마을, 도우미, 더보기).
 // 이번 단계는 셸과 화면 자리만 둔다. 화면 내용은 다음 작업이 채운다.
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Activity, MapPinned, Users, Menu, ClipboardList, Building2, Home, HandHeart } from 'lucide-react'
 import { shouldUseFrame } from './devices.js'
 import { useReportPathToFrame } from './DeviceFrame.jsx'
 import { PlatformProvider } from './usePlatform.js'
-import { MobileRoot, AppBar, EmptyState, OfflineBanner, BottomNav, DisplaySettings, TwoPane, List, ListRow } from './ui.jsx'
+import { MobileRoot, AppBar, EmptyState, OfflineBanner, BottomNav, DisplaySettings, TwoPane, List, ListRow, Dialog, Button } from './ui.jsx'
+import { expCapture, expConsent, expDecide, expScreen, expSource } from '../lib/expTrack.js'
+import { pathKeyOf } from '../lib/expSchema.js'
 import { USE_MOCK } from '../lib/api.js'
 import useAuthStore, { DEMO_USERS, ROLE_LABEL } from '../store/useAuthStore.js'
 import { FieldVillagesPage, FieldPeoplePage } from './field/FieldScreens.jsx'
@@ -24,18 +26,37 @@ function frameDecision() {
 }
 
 export function MobileProviderLayout() {
+  // 체험 링크(?exp=)의 출처를 이 탭에 기억한다. 틀(iframe) 안 화면도 같은 탭 저장소를 읽는다
+  useState(() => expCapture())
   const [framed] = useState(frameDecision)
   if (framed) return <Suspense fallback={null}><DeviceFrameHost /></Suspense>
   return (
     <PlatformProvider>
       <PathReporter />
       <Outlet />
+      <ExpConsent />
     </PlatformProvider>
   )
 }
 function PathReporter() {
-  useReportPathToFrame(useLocation())
+  const loc = useLocation()
+  useReportPathToFrame(loc)
+  useEffect(() => { const k = pathKeyOf(loc.pathname); if (k) expScreen(k) }, [loc.pathname])
   return null
+}
+
+// 체험 링크로 들어온 사람에게 한 번만 묻는다. 거절하면 아무것도 기록하지 않고 그대로 체험한다
+function ExpConsent() {
+  const [open, setOpen] = useState(() => !!expSource() && !expConsent())
+  const decide = (yes) => { expDecide(yes); setOpen(false) }
+  if (!open) return null
+  return (
+    <MobileRoot style={{ height: 0, minHeight: 0 }} data-exp-ignore="">
+      <Dialog open title="체험 기록 안내" onClose={() => {}}
+        body="더 좋은 화면을 만들려고 어느 화면에서 몇 초 머물렀는지, 어떤 버튼을 눌렀는지만 이름 없이 기록해요. 입력한 글과 연락처는 기록하지 않고, 90일 뒤 지워요."
+        actions={<><Button variant="plain" onClick={() => decide(false)}>기록 없이 체험</Button><Button onClick={() => decide(true)}>좋아요, 시작</Button></>} />
+    </MobileRoot>
+  )
 }
 
 // /m 시작 화면. 누가 쓰는 화면인지 먼저 고른다.

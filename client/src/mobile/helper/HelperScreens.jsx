@@ -1,6 +1,8 @@
 // 도우미 휴대폰 화면(docs/MOBILE_UI.md 4-2). 재구성 2a(공모전/모바일UI/퍼소나_사용성진단_20261022.md 도우미 절, 벤치마크_20261022.md 공통 규칙 8개).
 // 화면 하나에 할 일 하나, 주 버튼 하나(아래 전체 폭), 문단 없이 큰 값 하나와 한 줄 몇 개. 긴 설명은 한 줄 행 뒤 시트(InfoSheet),
 // 응급 대응은 늘 같은 자리의 작은 빨간 버튼(EmergencyButton) 뒤 시트. 부품은 부품표(kitParts.js)의 키트 부품만 쓴다.
+import { useExpScreen } from '../../lib/expTrack.js'
+import { helperKeyOf } from '../../lib/expSchema.js'
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { CheckCircle2, CircleX, ClipboardList, Route, Clock, CloudOff, HandHeart, Link2Off, Phone, RefreshCw, Send, User, Users } from 'lucide-react'
@@ -85,6 +87,7 @@ function IdleHome({ consentKey, onStart }) {
   const [consented, setConsented] = useState(() => readConsent(consentKey))
   const [roles, setRoles] = useState(() => readRoles(consentKey))
   const [editing, setEditing] = useState(false)
+  useExpScreen(editing ? 'idle.consent' : 'idle')
   if (editing) {
     return <ConsentScreen initialRoles={roles} onBack={() => setEditing(false)} onDone={(r) => { writeConsent(consentKey, r); store.set(`${ROLES_KEY}${consentKey}.pending`, '1'); setRoles(r); setConsented(true); setEditing(false) }} />
   }
@@ -420,6 +423,7 @@ function Flow({ m, consentKey }) {
   useEffect(() => { if (ackR) setDeclining(false) }, [ackR])
   useEffect(() => { window.scrollTo(0, 0) }, [base, view?.name, view?.code, current])
   const predepKey = `${consentKey}.${m.helper || ''}`
+  useExpScreen(helperKeyOf({ base, view: twoPane ? (view || (current ? { name: 'H5', code: current } : null)) : view, current, steps, declined: ackR?.answer === 'decline' }))
 
   if (base === 'H0') return <ConsentScreen initialRoles={readRoles(consentKey)} onDone={(roles) => { m.preference(true, roles); writeConsent(consentKey, roles); setConsented(true) }} />
   if (base === 'H1') return <AlertScreen m={m} onDecline={() => setDeclining(true)} />
@@ -453,6 +457,7 @@ function Flow({ m, consentKey }) {
 
 function DemoHelper() {
   const m = useDemoModel()
+  useExpScreen(m.phase === 'ready' || m.phase === 'idle' ? null : m.phase)
   useEffect(() => { document.title = '도우미 배정 | 미리' }, [])
   // 평시에 고른 동의와 역할은 시연 배정이 오면 이 도우미 기록에 한 번 반영한다
   useEffect(() => {
@@ -470,6 +475,8 @@ function DemoHelper() {
 
 function RemoteHelperM({ token }) {
   const m = useRemoteModel(token)
+  const errKey = m.phase === 'error' ? `err.${screenOf({ error: m.error })}` : null
+  useExpScreen(errKey === 'err.error' ? 'err.network' : errKey)
   useEffect(() => { document.title = '도우미 배정 | 미리' }, [])
   if (m.phase === 'loading') return <Notice icon={<Spinner />} title="배정 정보 불러오는 중" />
   if (m.phase === 'error') {
