@@ -197,7 +197,9 @@ export function buildSeed() {
     helpers.push({
       code: `H-${String(i + 1).padStart(3, '0')}`, villages: list, grades, channel: 'sms', active: true,
       consent: true, consentAt: TODAY - (30 + (i % 60)) * DAY,
-      roles: i % 5 === 0 ? ['ride', 'contact'] : ['ride', 'walk'], bls: i % 3 !== 1, insured: i % 7 !== 3
+      roles: i % 5 === 0 ? ['ride', 'contact'] : ['ride', 'walk'], bls: i % 3 !== 1, insured: i % 7 !== 3,
+      // 회신 R43: 시 지정 1대1 매칭 소속(가상 값, 난수 순서에 영향 없게 번호로 정함)
+      affiliation: ['leader', 'disasterCorps', 'civic', 'leader', 'volunteer'][i % 5]
     })
   })
 

@@ -14,7 +14,7 @@ import Drawer from '../../components/ui/Drawer.jsx'
 import Tabs from '../../components/ui/Tabs.jsx'
 import Toggle from '../../components/ui/Toggle.jsx'
 import useToast from '../../hooks/useToast.js'
-import { VEHICLE_NOTE, COMMITMENTS, GRADES, HELPER_ROLES, OWNERS, VEHICLE_TYPES, commitmentOf, gradeOf, typeOf } from '../../lib/shortage.js'
+import { VEHICLE_NOTE, COMMITMENTS, GRADES, HELPER_ROLES, HELPER_AFFILIATIONS, affiliationLabel, OWNERS, VEHICLE_TYPES, commitmentOf, gradeOf, typeOf } from '../../lib/shortage.js'
 import { fmtDate } from '../../lib/time.js'
 import { fmtKDate } from '../../components/miri/BasisLine.jsx'
 import useAuthStore from '../../store/useAuthStore.js'
@@ -65,6 +65,7 @@ export default function ResourcesPage() {
   const helperFields = [
     { key: 'code', label: '도우미 코드', kind: 'text', required: true, disabled: form?.mode === 'edit', placeholder: 'H-029' },
     { key: 'villages', label: '담당 마을', kind: 'multiselect', required: true, options: villages.map((v) => ({ value: v.code, label: v.label })) },
+    { key: 'affiliation', label: '소속', kind: 'select', options: Object.entries(HELPER_AFFILIATIONS).map(([value, label]) => ({ value, label })), hint: '시가 지정한 1대1 매칭 소속. 지정 짝도 수락해야 배정됩니다.' },
     { key: 'grades', label: '지원 가능 등급', kind: 'multiselect', required: true, options: GRADE_OPTIONS.filter((g) => g.value !== 'bed') },
     { key: 'roles', label: '역할', kind: 'multiselect', options: Object.entries(HELPER_ROLES).map(([value, label]) => ({ value, label })), hint: '차량 동행을 고른 사람만 차량 배정 후보입니다.' },
     { key: 'consent', label: '사전 동의', kind: 'toggle', hint: '동의를 철회하면 배정 후보에서 빠집니다. 호출을 거절해도 불이익 없음.' },
@@ -118,6 +119,7 @@ export default function ResourcesPage() {
   const helperColumns = [
     { key: 'code', label: '도우미 코드', sortable: true, render: (h) => <span className="type-strong tabular-nums">{h.code}</span> },
     { key: 'villages', label: '담당 마을', render: (h) => <span className="type-body-sm">{h.villages.map(vlabel).join(', ')}</span> },
+    { key: 'affiliation', label: '소속', sortable: true, sortValue: (h) => affiliationLabel(h), hideBelow: 'md', render: (h) => <span className="type-body-sm text-text-sec">{affiliationLabel(h)}</span> },
     { key: 'grades', label: '지원 등급', hideBelow: 'md', render: (h) => <span className="flex flex-wrap gap-1">{GRADES.filter((g) => h.grades.includes(g.key)).map((g) => <GradeChip key={g.key} grade={g.key} size="sm" />)}</span> },
     { key: 'channel', label: '연락 수단', hideBelow: 'lg', render: () => '문자' },
     {
@@ -145,7 +147,7 @@ export default function ResourcesPage() {
       {tab === 'vehicles' ? (
         <TableCard
           key="vehicles" title="차량" count={`가용 ${usable} / 전체 ${vehicles.length}대`} desc={`협약 만료는 ${fmtKDate(today)} 기준으로 판정합니다. 차종별 회차당 정원은 협의 전 가정값입니다. ${VEHICLE_NOTE}`}
-          actions={<InlineEditBar resource="vehicles" addLabel="차량 추가" onAdd={() => { setErrors({}); setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'contract', baseDong: 'MS', available: true, contractUntil: '', note: '', commitment: 'unconfirmed' } }) }} />}
+          actions={<InlineEditBar resource="vehicles" addLabel="차량 추가" onAdd={() => { setErrors({}); setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'request', baseDong: 'MS', available: true, contractUntil: '', note: '', commitment: 'unconfirmed' } }) }} />}
           columns={vehicleColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={vehicles} rowKey={(v) => v.code} caption="차량 목록"
         />
       ) : (
