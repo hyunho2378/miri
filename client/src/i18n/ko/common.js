@@ -98,7 +98,7 @@ export default {
     error: {
       loadTitle: "자료 불러오기 실패",
       loadDesc: "네트워크 상태 확인 후 다시 시도",
-      network: "서버 연결 실패. 잠시 후 다시 시도",
+      network: "서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요",
       notFound: "요청 자료 없음",
       unauthorized: "로그인 필요",
       notFoundPage: "화면 없음",

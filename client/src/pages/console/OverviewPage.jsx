@@ -54,7 +54,7 @@ function VillageBars({ rows }) {
   const max = Math.max(1, ...rows.map((r) => r.value))
   const top = rows.reduce((m, r) => (r.value > m.value ? r : m), { value: -1 })
   return (
-    <div className="flex h-44 gap-1 cq-xl:h-48" role="img" aria-label={`마을별 미이송 예상. ${rows.map((r) => `${r.name} ${r.value}명`).join(', ')}`}>
+    <div className="flex h-44 gap-1 cq-xl:h-48" role="img" aria-label={`마을별 미이송 예상 인원: ${rows.map((r) => `${r.name} ${r.value}명`).join(', ')}`}>
       {rows.map((r) => {
         const hot = r.key === top.key && r.value > 0
         const pct = Math.max(r.value > 0 ? 8 : 4, (r.value / max) * 100)

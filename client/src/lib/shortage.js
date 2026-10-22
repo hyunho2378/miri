@@ -29,7 +29,7 @@ export const EXTRA_TYPE = { bed: 'bedVan', wheelchair: 'liftVan', assist: 'car',
 // 차량 소속(회신 R43, 지자체 재난안전 부서 서면 답변 2026. 10. 22.): 재난 때 시 공용차량(버스, 승합차)을 먼저 투입하고 택시와 버스는 교통 담당 부서가 그때 업체에 요청한다.
 // 요청 차량(request)은 사전 약속이 없어 기본 가용 확실성을 미확인으로 둔다. 협약 승용차(contract)는 부족분 근거로 사전 협약 규모를 제안하는 시나리오 항목이다.
 export const OWNERS = { fire: '소방(별도 운용)', city: '시 공용차량', facility: '기관(요양시설, 주야간보호기관)', request: '교통 부서 요청(택시, 버스 회사)', contract: '협약 승용차(제안)' }
-export const VEHICLE_NOTE = '개인 차량 등록은 쓰지 않음. 재난 때 시 공용차량을 먼저 쓰고 택시와 버스는 교통 부서가 업체에 요청(미확인으로 따로 셈). 협약 승용차는 부족분 근거 사전 협약 제안'
+export const VEHICLE_NOTE = '개인 차량은 등록하지 않습니다. 재난 때는 시 공용차량을 먼저 쓰고, 택시와 버스는 교통 부서가 업체에 요청합니다(확인 전 차량으로 따로 셉니다). 협약 승용차는 부족분을 근거로 미리 협약을 맺도록 제안합니다'
 export const vehicleLabel = (v) => `${v.code} ${OWNERS[v.owner] || '소속 확인 필요'}, ${COMMITMENTS[commitmentOf(v)]}`
 
 // 차량 가용 확실성(회신 R01): 소방 구급차는 지자체 가용 차량과 따로 보고, 협약이나 소유로 약속된 차량과 아직 확인하지 않은 차량을 나눈다

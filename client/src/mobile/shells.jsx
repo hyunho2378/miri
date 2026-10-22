@@ -92,7 +92,7 @@ export function HelperHomeSlot() {
     <>
       <AppBar title="배정 알림" large />
       <main id="main" className="mob-content no-nav">
-        <EmptyState icon={<ClipboardList size={28} />} title="배정 알림 화면 자리" body={isDemo ? '시연 링크. 화면 내용은 다음 단계에서 연결' : '도우미 링크. 화면 내용은 다음 단계에서 연결'} />
+        <EmptyState icon={<ClipboardList size={28} />} title="배정 알림 화면 자리" body={isDemo ? '시연 링크입니다. 배정 알림을 불러오는 중입니다' : '도우미 링크입니다. 배정 알림을 불러오는 중입니다'} />
         <DisplaySettings />
       </main>
     </>
@@ -119,7 +119,7 @@ export function FieldLogin() {
       <div className="mob-screen">
         <AppBar title="계정 고르기" large />
         <main id="main" className="mob-content no-nav">
-          <p className="mob-t-callout mob-pad">미리 현장 담당자 화면. 동 행정복지센터와 시 재난부서 공무원이 씁니다.</p>
+          <p className="mob-t-callout mob-pad">미리 현장 담당자 화면입니다. 동 행정복지센터와 시 재난부서 공무원이 씁니다.</p>
           <List label="시연 계정 고르기">
             {LOGIN_ROLES.map(({ role, icon: Icon, desc }) => (
               <ListRow key={role} lead={<Icon size={22} />} title={ROLE_LABEL[role]} subtitle={`${DEMO_USERS[role].name}, ${desc}`} chevron onClick={() => setDemoUser(role)} />

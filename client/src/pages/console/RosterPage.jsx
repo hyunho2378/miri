@@ -170,7 +170,7 @@ export default function RosterPage() {
       </div>
       {view === 'list' ? (
       <TableCard
-        title="대상자" count={`${rows.length}명`} desc={`명부 ${fmtKDate(today)} 기준. 이름 없이 대상자 코드로 표시합니다. ${rosterSourceText(rosterBreakdown(persons))} ${DISABLED_NOTE}`}
+        title="대상자" count={`${rows.length}명`} desc={`${fmtKDate(today)} 명부 기준입니다. 이름 없이 대상자 코드로 표시합니다. ${rosterSourceText(rosterBreakdown(persons))} ${DISABLED_NOTE}`}
         actions={<InlineEditBar resource="persons" addLabel="대상자 추가" onAdd={() => { setErrors({}); setEditing({ mode: 'add', value: { villageCode: village !== 'all' ? village : villageOptions[1]?.value, grade: 'assist', tags: [] } }) }} />}
         filters={filterBar}
         columns={columns} rows={rows} rowKey={(p) => p.code} onRowClick={(p) => { setEditing(null); openPerson(p.code) }} emptyTitle="조건에 맞는 대상자가 없습니다" emptyDesc="필터 조건을 바꿔 다시 확인해 주십시오." caption="대상자 명부"

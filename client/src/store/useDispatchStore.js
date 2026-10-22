@@ -132,7 +132,7 @@ export const useDispatchStore = create((set, get) => ({
     const hz = HAZARD_KINDS[sc?.kind]?.label
     const smsLog = helpers.map((h) => {
       const sms = dispatchSms(helperBrief({ result: d.result, me: h, scenario: sc, villages: data.villages, hazardLabel: hz }), { drill: d.kind === 'drill' })
-      return { helper: h, at: vnow, text: sms?.text || `[미리] ${h} 배정 도착. 링크에서 수락 또는 불가 응답`, bytes: sms?.bytes, smsKind: sms?.kind }
+      return { helper: h, at: vnow, text: sms?.text || `[미리] ${h} 배정이 왔습니다. 링크에서 수락이나 불가를 눌러 주세요`, bytes: sms?.bytes, smsKind: sms?.kind }
     })
     set({ status: 'sent', confirmedAt: vnow, sentAt: vnow, ackPlan, failPlan, manualHelper, smsLog })
   },
@@ -160,7 +160,7 @@ export const useDispatchStore = create((set, get) => ({
     set({
       result,
       ackOverride: { ...d.ackOverride, [next.code]: { answer: 'none', at: vnow, requestedAt: vnow, replaced: oldCode } },
-      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 대체 배정 도착(${next.code}). 수락해야 확정. 거절해도 불이익 없음. 링크에서 불가 응답` }]
+      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 대체 배정이 왔습니다(${next.code}). 수락해야 확정되고, 거절해도 불이익은 없습니다. 링크에서 수락이나 불가를 눌러 주세요` }]
     })
     return next.code
   },

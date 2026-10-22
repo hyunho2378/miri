@@ -726,7 +726,7 @@ export function FieldNotePage() {
           {mode === 'text'
             ? <Button block disabled={!person || !text.trim() || busy} onClick={() => send(null)}>보내고 읽기</Button>
             : <Button block disabled={!person || busy} onClick={() => fileRef.current?.click()}>음성 파일 고르기</Button>}
-          <p className="mob-t-callout mob-pad">이름과 연락처를 가린 뒤 읽음. 명부는 담당자 확인 뒤 바뀜</p>
+          <p className="mob-t-callout mob-pad">이름과 연락처를 가린 뒤 읽습니다. 명부는 담당자가 확인한 뒤에 바뀝니다</p>
         </div>
       </main>
       <Sheet open={pickOpen} onClose={() => setPickOpen(false)} title="대상자 고르기">

@@ -77,7 +77,7 @@ export default function HelperAssignmentCard({
             <ul className="mt-1 space-y-1 type-body text-text-pri">
               <li>평소 돌봄 담당자: {care.caregiverType}{care.caregiverType !== '없음' && care.caregiverType !== '확인 필요' ? `, ${care.reachableLabel}` : ''}</li>
               {care.companionCall && <li className="text-primary-text">동행 연락 필요. 출발 전 돌봄 담당자에게 연락</li>}
-              {care.caregiverUnreachable && <li className="text-warning-text">돌봄 담당자 연락 불가. 담당자에게 알림</li>}
+              {care.caregiverUnreachable && <li className="text-warning-text">돌봄 담당자와 연락이 닿지 않습니다. 담당자에게 알려 주세요</li>}
               <li>의사소통 특성: {!care.known ? '확인 필요' : care.comm.length ? `${care.comm.join(', ')}, 천천히 짧게 설명` : '없음'}</li>
               <li>보조기구: {!care.known ? '확인 필요' : care.aids.length ? care.aids.join(', ') : '없음'}</li>
             </ul>

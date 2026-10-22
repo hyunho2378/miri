@@ -524,7 +524,7 @@ export default function MapCanvas({
 
   return (
     <div className="relative h-full w-full">
-      <div ref={boxRef} className="h-full w-full" role="region" aria-label="동해시 상황판 지도. 마을 표식은 Tab 키로 고를 수 있습니다" />
+      <div ref={boxRef} className="h-full w-full" role="region" aria-label="동해시 상황판 지도입니다. 마을 표식은 Tab 키로 고를 수 있습니다" />
       {tip && (
         <div
           role="presentation"
