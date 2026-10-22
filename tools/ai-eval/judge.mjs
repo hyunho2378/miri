@@ -3,6 +3,8 @@
 // 사용: NCP_CLOVASTUDIO_KEY=… node tools/ai-eval/judge.mjs <재현성시험_원자료.json> [--model HCX-007] [--answers answers_sealed.json]
 // 결과: 차원별 예/부분/아니오 비율, 그리고 judge 의 '등급이 원문에 맞음' 판정과 정답 일치 여부의 일치도
 import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { callModel } from './model-adapter.mjs'
 import { DIMENSIONS, RUBRIC_VERSION } from '../../client/src/lib/rubric.js'
 import { answerKey } from './metrics.mjs'
@@ -45,4 +47,5 @@ async function main() {
   console.log(JSON.stringify({ model: MODEL, judged: out.length, errors: out.filter((x) => x.error).length, judgeVsAnswerAgreement: `${agree}/${ok.length}` }, null, 1))
   fs.writeFileSync(file.replace(/\.json$/, `_judge_${MODEL}.json`), JSON.stringify(out, null, 1))
 }
-if (import.meta.url === `file://${process.argv[1]}`) main()
+// 경로에 한글과 띄어쓰기가 있으면 import.meta.url 이 퍼센트 부호로 바뀌므로 파일 경로끼리 비교한다
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) main()

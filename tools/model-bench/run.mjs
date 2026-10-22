@@ -1,7 +1,8 @@
 // model-bench/run.mjs 이송 등급 판정 후보 모델을 같은 입력, 같은 지표로 비교한다.
-// 실행(저장소 최상위): set -a; . client/.env.local; set +a; MODEL_BASE_URL=http://127.0.0.1:8089/v1 node tools/model-bench/run.mjs [--repeat 3]
+// 실행(저장소 최상위): set -a; . client/.env.local; set +a; node tools/model-bench/run.mjs [--repeat 3]
+//   후보: 규칙 기준선, 작은 분류기(가상 문장 학습), HyperCLOVA X 계열(HCX-005 기록값, 키가 있으면 HCX-005 실시간 등급 지시문, 루브릭 v0, 루브릭 v0 + 예시).
 //   NCP_CLOVASTUDIO_KEY 가 있으면 HCX-005 를 실시간으로 부르고, 없으면 10. 21. 시험 기록값만 쓴다.
-//   MODEL_BASE_URL 이 살아 있으면 내려받아 쓰는 공개 모델(llama.cpp llama-server)을 부른다. LOCAL_MODEL_NAME 으로 표에 쓸 이름을 준다.
+//   내려받아 쓰는 공개 모델과 해외 API 는 후보에서 뺐다(2026. 10. 22.).
 // 입력 묶음
 //  - ho2: 독립 판독 시험 홀드아웃2(가상 서류 15장 40명, 정답 봉인). 사람 단위 글은 10. 21. 시험 기록의 근거 구간(가린 글자)이다.
 //    근거 구간은 그 시험에서 HCX-005 가 고른 부분이라 다른 후보에게 유리하게 기울 수 있고, HCX 가 빠뜨린 5명은 빈 글이다.
@@ -34,11 +35,6 @@ async function pool(items, n, fn) {
   return out
 }
 
-async function alive(base) {
-  if (!base) return false
-  try { const r = await fetch(base.replace(/\/v1\/?$/, '') + '/health', { signal: AbortSignal.timeout(2000) }); return r.ok } catch { return false }
-}
-
 async function main() {
   const ho2 = loadHO2()
   const synTrain = makeSet('train', 400, 3)
@@ -52,15 +48,10 @@ async function main() {
     { a: hcxRecordedAdapter(recRows), sets: ['ho2'], repeat: 1, conc: 8 }
   ]
   const notRun = []
-  const localName = process.env.LOCAL_MODEL_NAME || 'local'
-  if (await alive(process.env.MODEL_BASE_URL)) {
-    for (const prompt of ['grade', 'rubric']) models.push({ a: llmAdapter({ id: `local-${localName}-${prompt}`, label: `${localName}(내려받아 쓰는 공개 모델, ${prompt === 'rubric' ? '루브릭 v0' : '등급 지시문'})`, kind: 'llm-local', model: `openai-compat:${localName}`, prompt }), sets: prompt === 'grade' ? ['ho2', 'syn-test'] : ['ho2'], repeat: REPEAT, conc: 4 })
-  } else notRun.push({ id: 'local', why: 'MODEL_BASE_URL 이 없거나 응답 없음' })
+  const LABEL = { grade: '등급 지시문', rubric: '루브릭 v0', 'rubric-fewshot': '루브릭 v0 + 가상 예시 6개(학습 없음)' }
   if (process.env.NCP_CLOVASTUDIO_KEY) {
-    for (const prompt of ['grade', 'rubric']) models.push({ a: llmAdapter({ id: `hcx-005-live-${prompt}`, label: `HCX-005(실시간, seed 고정, ${prompt === 'rubric' ? '루브릭 v0' : '등급 지시문'})`, kind: 'llm-domestic', model: 'HCX-005', prompt }), sets: prompt === 'grade' ? ['ho2', 'syn-test'] : ['ho2'], repeat: REPEAT, conc: 2 })
+    for (const prompt of ['grade', 'rubric', 'rubric-fewshot']) models.push({ a: llmAdapter({ id: `hcx-005-live-${prompt}`, label: `HCX-005(실시간, seed 고정, ${LABEL[prompt]})`, kind: 'llm-domestic', model: 'HCX-005', prompt }), sets: prompt === 'grade' ? ['ho2', 'syn-test'] : ['ho2'], repeat: REPEAT, conc: 2 })
   } else notRun.push({ id: 'hcx-005-live', why: 'NCP_CLOVASTUDIO_KEY 없음(client/.env.local 미작성, 공모전/AI검증/실행환경.md). 기록값 hcx-005-rec 로 대신함' })
-  if (process.env.FOREIGN_MODEL_ID) models.push({ a: llmAdapter({ id: 'foreign', label: '해외 API(가상 자료 비교 전용, 서비스 배포 대상 아님)', kind: 'llm-foreign', model: process.env.FOREIGN_MODEL_ID }), sets: ['ho2', 'syn-test'], repeat: REPEAT, conc: 4 })
-  else notRun.push({ id: 'foreign', why: '해외 API 설정 없음' })
 
   const results = []
   for (const m of models) {
