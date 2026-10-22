@@ -303,7 +303,7 @@ export default function ShortagePage() {
                   <Row key={m} label={`${m}분${m === boardingNow ? ' (지금 조건)' : ''}`} value={`${r.total}명`} strong />
                 ))}
               </ul>
-              <p className="mt-2 type-meta text-text-meta">근거: 장애인 단체 자문. 함께 탈 도우미가 모자라면 그 사람도 못 옮기는 사람에 들어가고, 발령 때 배정도 같은 조건을 씁니다.</p>
+              <p className="mt-2 type-meta text-text-meta">장애인 단체 자문을 근거로 했습니다. 함께 탈 도우미가 모자라면 그 사람도 못 옮기는 사람에 들어가고, 발령 때 배정도 같은 조건을 씁니다.</p>
             </section>
             <section aria-labelledby="chk-owner">
               <h3 id="chk-owner" className="type-h3 text-text-pri">차량을 나누는 기준</h3>

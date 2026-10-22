@@ -30,7 +30,7 @@ t('도우미 안내: 배정 없는 도우미는 null', () => {
 t('배정 문자: 훈련 표시, 재난 종류, 마을, 인원, 완료 기한 포함, 바이트와 단문 장문 구분', () => {
   const b = helperBrief({ result, me: 'H-084', scenario: { kind: 'fire' }, hazardLabel: '산불' })
   const sms = dispatchSms(b, { drill: true })
-  assert.match(sms.text, /^\[미리 훈련\] 산불 대피 이송 배정\. 망상동, 발한동, 3명 \d\d:\d\d까지 이송 완료\./)
+  assert.match(sms.text, /^\[미리 훈련\] 산불 대피 이송 배정입니다\. 망상동, 발한동, 3명 \d\d:\d\d까지 이송 완료\./)
   assert.equal(sms.bytes, smsBytes(sms.text))
   assert.equal(sms.kind, sms.bytes <= 90 ? '단문' : '장문')
 })

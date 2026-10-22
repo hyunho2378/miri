@@ -72,7 +72,7 @@ export default function SettingsPage() {
         <Card title="계산 기본값">
           <div className="divide-y divide-line-sub">
             <NumberStepper className="pb-3" label="준비 시간" unit="분" step={15} min={0} max={180} value={settings.prepMinutes} onChange={(v) => updateSettings({ prepMinutes: v })} hint="발령 후 첫 차량이 출발하기까지 걸리는 시간" />
-            <NumberStepper className="py-3" label="탑승과 하차 시간" unit="분" step={5} min={5} max={60} value={settings.boardingMinutes ?? 20} onChange={(v) => updateSettings({ boardingMinutes: v })} hint="왕복 시간 = 편도 주행 시간 × 2 + 이 값. 주행 시간은 OSRM 도로 경로 계산값. 장애인 단체 자문(개인 경험 기준): 휠체어 특장차 탑승과 안전벨트 착용은 숙련자 5분 이내." />
+            <NumberStepper className="py-3" label="탑승과 하차 시간" unit="분" step={5} min={5} max={60} value={settings.boardingMinutes ?? 20} onChange={(v) => updateSettings({ boardingMinutes: v })} hint="왕복 시간은 편도 주행 시간의 두 배에 이 값을 더해 셉니다. 주행 시간은 실제 도로 경로로 계산합니다. 장애인 단체 자문에 따르면 숙련자는 휠체어 특장차 탑승과 안전벨트 착용을 5분 안에 마칩니다." />
             <div className="pt-3">
               <p className="type-caption text-text-sec">이송 완료 기한</p>
               <SegmentControl

@@ -61,7 +61,7 @@ export async function readDocument(file) {
   }
   // 대상자가 한 명도 없으면 빈 성공으로 보이지 않게 확인 요청으로 바꾼다
   if (!body.transcript.trim() || !body.persons.length) {
-    throw Object.assign(new Error('읽은 내용 없음. 담당자가 서류를 직접 확인해 주십시오'), { code: 'EMPTY_RESULT' })
+    throw Object.assign(new Error('읽은 내용이 없습니다. 담당자가 서류를 직접 확인해 주십시오'), { code: 'EMPTY_RESULT' })
   }
   return verifyPage(body)
 }

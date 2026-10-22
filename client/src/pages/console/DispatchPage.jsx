@@ -248,7 +248,7 @@ function AssignedPanel({ meta }) {
       <SectionTitle
         className="mt-2"
         title="배정표"
-        desc={<span className="inline-flex items-center gap-1"><Route size={14} aria-hidden="true" className="text-text-sec" />추천 배정 기준. 차량별 회차와 대상자 순서입니다.</span>}
+        desc={<span className="inline-flex items-center gap-1"><Route size={14} aria-hidden="true" className="text-text-sec" />추천 배정에 따른 차량별 회차와 대상자 순서입니다.</span>}
       />
       <div className="grid gap-4 lg:grid-cols-2">
         {result.assignments.map((a) => (

@@ -82,7 +82,7 @@ export default function LayerPanel({
           <LayerRow label="행정동 고령화율" checked={layers.aging} onChange={(v) => onLayer('aging', v)} swatch="bg-chart-heat-3"
             desc={layers.aging ? `65세 이상 인구 비율입니다. 출처: ${src('population')}` : undefined} />
           <LayerRow label="차량 위치" checked={layers.vehicles} onChange={(v) => onLayer('vehicles', v)} swatch="bg-primary"
-            desc={layers.vehicles ? `차량 ${vehicleCount}대. 수량과 위치는 기관 조사 전 가정이며 소속 동 행정복지센터 둘레에 둡니다.` : undefined} />
+            desc={layers.vehicles ? `차량 ${vehicleCount}대를 표시합니다. 수량과 위치는 기관 조사 전 가정이며 소속 동 행정복지센터 둘레에 둡니다.` : undefined} />
         </ul>
       </section>
 

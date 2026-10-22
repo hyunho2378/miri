@@ -129,7 +129,7 @@ export default function MapPage() {
           ? `대기 ${p.waiting}명, 도달 시점 부족 ${row.total ? `${row.total}명` : '없음'}, 왕복 ${rt}분`
           : `대피 대상 구역 밖, 대상자 ${row.targetTotal}명`,
       ariaLabel: isNormal
-        ? `${v.label}. 대상자 ${row.targetTotal}명. 상세 보기`
+        ? `${v.label}, 대상자 ${row.targetTotal}명, 눌러서 자세히 보기`
         : `${v.label}. 선택 시점 대기 ${p.waiting}명, 도달 시점 부족 ${row.total ? `${row.total}명` : '없음'}. 상세 보기`
     }
   }), [villages, positions, result, effVillage, timeline, progress, dongName, shelterName, scenario, today, isNormal])
@@ -267,7 +267,7 @@ export default function MapPage() {
         {isNormal && !selectedVm ? (
           <section aria-label="평시 현황" className="lg:absolute lg:left-4 lg:top-4 lg:z-raised lg:w-[320px] rounded-lg bg-page p-4 shadow-md">
             <SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} />
-            <p className="mt-3 type-meta text-text-meta">평시. 지금 등록된 대상자와 자원, 오늘의 위험</p>
+            <p className="mt-3 type-meta text-text-meta">평시입니다. 지금 등록된 대상자와 자원, 오늘의 위험을 보여 줍니다</p>
             <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2.5">
               <div><dt className="type-meta text-text-meta">대상자</dt><dd className="type-h3 text-text-pri tabular-nums">{fmtN(normalStats.targets)}<span className="ml-0.5 type-body-sm">명</span></dd></div>
               <div><dt className="type-meta text-text-meta">마을</dt><dd className="type-h3 text-text-pri tabular-nums">{villages.length}<span className="ml-0.5 type-body-sm">곳</span></dd></div>

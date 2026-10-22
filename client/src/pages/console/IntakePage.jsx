@@ -219,7 +219,7 @@ export default function IntakePage() {
             villageLabel={vlabel(current.doc.villageCode)} canEdit={canEdit}
             onConfirm={() => { reviewResult(current.doc.id, current.result.personCode, 'confirm'); toast(`${current.result.personCode} 판독을 확인했습니다.`, 'primary') }}
             onEdit={(patch) => { reviewResult(current.doc.id, current.result.personCode, 'edit', patch); toast(`${current.result.personCode} 수정한 값으로 확인했습니다.`, 'primary') }}
-            onReject={() => { reviewResult(current.doc.id, current.result.personCode, 'reject'); toast(`${current.result.personCode} 제외. 재촬영 요청 대상입니다.`) }}
+            onReject={() => { reviewResult(current.doc.id, current.result.personCode, 'reject'); toast(`${current.result.personCode}을 제외했습니다. 서류를 다시 찍어 달라고 요청해 주세요.`) }}
           />
         </div>
       ) : (

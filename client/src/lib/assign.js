@@ -289,8 +289,8 @@ export function bundle(ctx, plan) {
     const villageCount = new Set(a.trips.map((tr) => tr.village)).size
     const persons = a.trips.reduce((s, tr) => s + tr.personCodes.length, 0)
     a.reasons = [
-      `${grades.map((g) => gradeOf(g).label).join('와 ')} 등급 담당. ${type.label} 회차당 정원 ${grades.map((g) => `${gradeOf(g).label} ${type.capacity[g]}명`).join(' ')}`,
-      `${a.trips.length}회차 ${persons}명 ${villageCount}개 마을. 마지막 완료 ${fmtHM(last.finishAt)}`,
+      `${grades.map((g) => gradeOf(g).label).join('와 ')} 등급을 맡습니다. ${type.label} 회차당 정원 ${grades.map((g) => `${gradeOf(g).label} ${type.capacity[g]}명`).join(' ')}`,
+      `${a.trips.length}회차로 ${villageCount}개 마을 ${persons}명을 옮깁니다. 마지막 완료 ${fmtHM(last.finishAt)}`,
       `이송 완료 기한까지 최소 여유 ${Math.round(slack)}분`,
       plan.rule === 'eft' ? '완료 시각이 가장 빠른 마을과 차량 조합부터 배정' : '도달 시각이 빠른 마을부터 순서대로 배정'
     ]

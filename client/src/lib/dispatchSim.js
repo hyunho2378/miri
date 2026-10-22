@@ -101,7 +101,7 @@ export function dispatchSms(brief, { drill = true, link = '' } = {}) {
   const head = drill ? '[미리 훈련]' : '[미리]'
   const where = brief.villages.slice(0, 2).join(', ') + (brief.villages.length > 2 ? ` 외 ${brief.villages.length - 2}곳` : '')
   const until = brief.completeBy ? ` ${fmtHM(brief.completeBy)}까지 이송 완료` : ''
-  const text = `${head} ${brief.disaster} 대피 이송 배정. ${where}, ${brief.persons}명${until}. 링크에서 수락 또는 불가 응답${link ? ' ' + link : ''}`
+  const text = `${head} ${brief.disaster} 대피 이송 배정입니다. ${where}, ${brief.persons}명${until}. 링크에서 수락이나 불가를 눌러 주세요${link ? ' ' + link : ''}`
   const bytes = smsBytes(text)
   return { text, bytes, kind: bytes <= 90 ? '단문' : '장문' }
 }

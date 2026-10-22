@@ -837,7 +837,7 @@ function PreviewPane({ preview, zoom, onBack, onRetry, onSave, onPrint, onPdf })
         <Eye size={14} className="shrink-0" aria-hidden="true" />
         <span className="min-w-0 flex-1 truncate" title="내보낼 HWPX 파일을 서버에서 실제로 만들어 kordoc 조판 엔진으로 그린 모양입니다">
           <span className="font-bold text-text-pri">한글 미리보기</span>
-          <span className="hidden md:inline">{preview?.state === 'ok' ? `, ${preview.pageCount}쪽, 구조 검사 통과. 표가 쪽을 넘는 자리는 미리보기 엔진에서 겹쳐 보일 수 있으나 한글은 파일을 열 때 다시 조판` : ''}</span>
+          <span className="hidden md:inline">{preview?.state === 'ok' ? `, ${preview.pageCount}쪽, 구조 검사를 통과했습니다. 표가 쪽을 넘는 자리는 미리보기에서 겹쳐 보일 수 있지만 한글에서 열면 다시 맞춰집니다` : ''}</span>
         </span>
         <span className="flex shrink-0 gap-1.5">
           <Button variant="ghost" size="sm" collapse="lg" leftIcon={<RefreshCw size={16} aria-hidden="true" />} onClick={onRetry}>다시 그리기</Button>

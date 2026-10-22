@@ -244,7 +244,7 @@ function DemoHelperPage() {
         open={!!failFor} personCode={failFor} onClose={() => setFailFor(null)}
         onSubmit={(reason, memo) => {
           useDispatchStore.getState().report(failFor, 'fail', reason, memo)
-          toast(`${failFor} 실패 보고 완료. 다음 대상자로 넘어갑니다.`, 'danger')
+          toast(`${failFor} 실패 보고를 보냈습니다. 다음 대상자로 넘어갑니다.`, 'danger')
           setFailFor(null)
         }}
       />
