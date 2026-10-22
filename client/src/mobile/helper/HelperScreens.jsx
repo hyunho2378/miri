@@ -1,7 +1,7 @@
 // 도우미 휴대폰 화면(docs/MOBILE_UI.md 4-2). 재구성 2a(공모전/모바일UI/퍼소나_사용성진단_20261022.md 도우미 절, 벤치마크_20261022.md 공통 규칙 8개).
 // 화면 하나에 할 일 하나, 주 버튼 하나(아래 전체 폭), 문단 없이 큰 값 하나와 한 줄 몇 개. 긴 설명은 한 줄 행 뒤 시트(InfoSheet),
 // 응급 대응은 늘 같은 자리의 작은 빨간 버튼(EmergencyButton) 뒤 시트. 부품은 부품표(kitParts.js)의 키트 부품만 쓴다.
-import { useExpScreen } from '../../lib/expTrack.js'
+import { EXP_NOTICE, expSource, useExpScreen } from '../../lib/expTrack.js'
 import { helperKeyOf } from '../../lib/expSchema.js'
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -102,6 +102,7 @@ function IdleHome({ consentKey, onStart }) {
           <Kv label="배정" value="아직 요청이 없어요" />
         </List>
         <p className="mob-t-callout mob-h-lead">배정이 오면 문자로 링크를 보내 드려요.</p>
+        {expSource() && <p className="mob-t-foot mob-pad">{EXP_NOTICE}</p>}
       </main>
       <BottomAction primary={consented ? null : { label: '참여 동의하기', onClick: () => setEditing(true) }} secondary={{ label: '시연 배정 받기', onClick: onStart }} />
     </>

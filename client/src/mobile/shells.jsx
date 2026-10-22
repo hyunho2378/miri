@@ -8,8 +8,8 @@ import { Activity, MapPinned, Users, Menu, ClipboardList, Building2, Home, HandH
 import { shouldUseFrame } from './devices.js'
 import { useReportPathToFrame } from './DeviceFrame.jsx'
 import { PlatformProvider } from './usePlatform.js'
-import { MobileRoot, AppBar, EmptyState, OfflineBanner, BottomNav, DisplaySettings, TwoPane, List, ListRow, Dialog, Button } from './ui.jsx'
-import { expCapture, expConsent, expDecide, expScreen, expSource } from '../lib/expTrack.js'
+import { MobileRoot, AppBar, EmptyState, OfflineBanner, BottomNav, DisplaySettings, TwoPane, List, ListRow } from './ui.jsx'
+import { EXP_NOTICE, expCapture, expScreen, expSource } from '../lib/expTrack.js'
 import { pathKeyOf } from '../lib/expSchema.js'
 import { USE_MOCK } from '../lib/api.js'
 import useAuthStore, { DEMO_USERS, ROLE_LABEL } from '../store/useAuthStore.js'
@@ -34,7 +34,6 @@ export function MobileProviderLayout() {
     <PlatformProvider>
       <PathReporter />
       <Outlet />
-      <ExpConsent />
     </PlatformProvider>
   )
 }
@@ -45,18 +44,10 @@ function PathReporter() {
   return null
 }
 
-// 체험 링크로 들어온 사람에게 한 번만 묻는다. 거절하면 아무것도 기록하지 않고 그대로 체험한다
-function ExpConsent() {
-  const [open, setOpen] = useState(() => !!expSource() && !expConsent())
-  const decide = (yes) => { expDecide(yes); setOpen(false) }
-  if (!open) return null
-  return (
-    <MobileRoot style={{ height: 0, minHeight: 0 }} data-exp-ignore="">
-      <Dialog open title="체험 기록 안내" onClose={() => {}}
-        body="더 좋은 화면을 만들려고 어느 화면에서 몇 초 머물렀는지, 어떤 버튼을 눌렀는지만 이름 없이 기록해요. 입력한 글과 연락처는 기록하지 않고, 90일 뒤 지워요."
-        actions={<><Button variant="plain" onClick={() => decide(false)}>기록 없이 체험</Button><Button onClick={() => decide(true)}>좋아요, 시작</Button></>} />
-    </MobileRoot>
-  )
+// 체험 모드(?exp=) 첫 화면 아래 안내 한 줄. 버튼과 선택지 없음
+export function ExpNotice() {
+  if (!expSource()) return null
+  return <p className="mob-t-foot mob-pad">{EXP_NOTICE}</p>
 }
 
 // /m 시작 화면. 누가 쓰는 화면인지 먼저 고른다.
@@ -73,6 +64,7 @@ export function MobileStart() {
             <ListRow lead={<HandHeart size={22} />} title="도우미용" subtitle="문자 링크로 이송을 돕는 이웃과 봉사자" chevron onClick={() => navigate('/m/h/demo')} />
           </List>
           <p className="mob-t-foot mob-pad">마을과 시설은 실제 공개 자료, 대상자 개인은 가상입니다.</p>
+          <ExpNotice />
         </main>
       </div>
     </MobileRoot>

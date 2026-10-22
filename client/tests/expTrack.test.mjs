@@ -1,4 +1,4 @@
-// expTrack.test.mjs 체험 기록(열림, 봉사센터 체험 링크 ?exp=) 시험: 체험 아님이나 거절이면 기록 0, 허용 칸 밖과 개인정보 꼴 거부, 집계
+// expTrack.test.mjs 체험 기록(열림, 봉사센터 체험 링크 ?exp=) 시험: 체험 모드면 항상 기록, 체험 아님이면 기록 0, 허용 칸 밖과 개인정보 꼴 거부, 집계
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 process.env.MIRI_DEMO_CODE = 'test-code-1234'
@@ -35,24 +35,13 @@ test('체험 링크가 아니면 화면을 옮겨도 아무것도 보내지 않�
   T._expReset()
 })
 
-test('체험 링크라도 기록 없이 체험을 고르면 보내지 않음', async () => {
-  const b = fakeBrowser('?exp=yeollim')
-  const T = await import('../src/lib/expTrack.js?a=2')
-  assert.equal(T.expCapture(), 'yeollim')
-  T.expDecide(false)
-  T.expScreen('start'); T.expScreen('H1')
-  assert.equal(T.flush(), false)
-  assert.equal(b.sent.length, 0)
-  T._expReset()
-})
-
-test('동의하면 화면 키와 시각만 묶어 보내고, 허용 형식을 통과', async () => {
+test('체험 모드면 동의 화면 없이 항상 기록: 화면 키와 시각만 묶어 보내고 허용 형식을 통과', async () => {
   const b = fakeBrowser('?exp=bongsa')
   const T = await import('../src/lib/expTrack.js?a=3')
-  T.expCapture()
+  assert.equal(T.expCapture(), 'bongsa')
   T.expScreen('start')
-  T.expDecide(true)
   T.expScreen('H1')
+  assert.equal(T.expActive(), true)
   assert.equal(T.flush(), true)
   assert.equal(b.sent.length, 1)
   const body = JSON.parse(b.sent[0].body)
@@ -60,6 +49,7 @@ test('동의하면 화면 키와 시각만 묶어 보내고, 허용 형식을 �
   assert.equal(body.src, 'bongsa'); assert.equal(body.dev, 'ios'); assert.equal(body.wb, 's')
   assert.deepEqual(body.ev.map((e) => e.s), ['start', 'H1'])
   assert.equal(S.validateBatch(body).ok, true)
+  assert.match(T.EXP_NOTICE, /이름 없이 기록/)
   T._expReset()
 })
 
