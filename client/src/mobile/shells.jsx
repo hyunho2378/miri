@@ -2,13 +2,15 @@
 // 도우미(/m/h/demo, /m/h/:token): 탭 없는 단일 흐름(H1 배정 알림 → H3 이송 목록 → H5 단계 보고).
 // 현장 담당자(/m/f): 탭 4개(상태, 마을, 도우미, 더보기).
 // 이번 단계는 셸과 화면 자리만 둔다. 화면 내용은 다음 작업이 채운다.
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Activity, MapPinned, Users, Menu, ClipboardList, Building2, Home, HandHeart } from 'lucide-react'
 import { shouldUseFrame } from './devices.js'
 import { useReportPathToFrame } from './DeviceFrame.jsx'
 import { PlatformProvider } from './usePlatform.js'
 import { MobileRoot, AppBar, EmptyState, OfflineBanner, BottomNav, DisplaySettings, TwoPane, List, ListRow } from './ui.jsx'
+import { EXP_NOTICE, expCapture, expScreen, expSource } from '../lib/expTrack.js'
+import { pathKeyOf } from '../lib/expSchema.js'
 import { USE_MOCK } from '../lib/api.js'
 import useAuthStore, { DEMO_USERS, ROLE_LABEL } from '../store/useAuthStore.js'
 import { FieldVillagesPage, FieldPeoplePage } from './field/FieldScreens.jsx'
@@ -24,6 +26,8 @@ function frameDecision() {
 }
 
 export function MobileProviderLayout() {
+  // 체험 링크(?exp=)의 출처를 이 탭에 기억한다. 틀(iframe) 안 화면도 같은 탭 저장소를 읽는다
+  useState(() => expCapture())
   const [framed] = useState(frameDecision)
   if (framed) return <Suspense fallback={null}><DeviceFrameHost /></Suspense>
   return (
@@ -34,8 +38,16 @@ export function MobileProviderLayout() {
   )
 }
 function PathReporter() {
-  useReportPathToFrame(useLocation())
+  const loc = useLocation()
+  useReportPathToFrame(loc)
+  useEffect(() => { const k = pathKeyOf(loc.pathname); if (k) expScreen(k) }, [loc.pathname])
   return null
+}
+
+// 체험 모드(?exp=) 첫 화면 아래 안내 한 줄. 버튼과 선택지 없음
+export function ExpNotice() {
+  if (!expSource()) return null
+  return <p className="mob-t-foot mob-pad">{EXP_NOTICE}</p>
 }
 
 // /m 시작 화면. 누가 쓰는 화면인지 먼저 고른다.
@@ -52,6 +64,7 @@ export function MobileStart() {
             <ListRow lead={<HandHeart size={22} />} title="도우미용" subtitle="문자 링크로 이송을 돕는 이웃과 봉사자" chevron onClick={() => navigate('/m/h/demo')} />
           </List>
           <p className="mob-t-foot mob-pad">마을과 시설은 실제 공개 자료, 대상자 개인은 가상입니다.</p>
+          <ExpNotice />
         </main>
       </div>
     </MobileRoot>
