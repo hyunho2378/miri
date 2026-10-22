@@ -251,7 +251,7 @@ export function buildSeed() {
 
   return {
     dongs: DONGS, shelters: SHELTERS, villages, persons, privateInfo, vehicles, helpers,
-    settings: { ...SETTINGS }, scenarios, activeScenarioId: 'S-1', intakeDocs: docs,
+    settings: { ...SETTINGS }, scenarios: scenarios.map((sc) => ({ ...sc, builtin: true })), activeScenarioId: 'S-1', intakeDocs: docs,
     records: [], today: TODAY
   }
 }

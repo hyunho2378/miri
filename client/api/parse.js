@@ -3,6 +3,7 @@
 // OCR 은 끈다(ocr: false). 스캔 PDF 는 글자를 읽지 못할 수 있다. Vercel 요청 본문 상한 4.5MB 때문에 4MB 로 제한한다.
 
 export const config = { maxDuration: 60 }
+import { accessLog, toolGuard } from './_guard.js'
 
 const fail = (res, status, code, message) => res.status(status).json({ error: { code, message } })
 
@@ -28,6 +29,14 @@ async function readBytes(req) {
 const baseName = (n) => String(n || '').replace(/\.[^.]+$/, '').trim()
 
 export default async function handler(req, res) {
+  const started = Date.now()
+  try {
+    if (!(await toolGuard(req, res, 'parse'))) return
+    return await handleTool(req, res)
+  } finally { accessLog(req, res, started) }
+}
+
+async function handleTool(req, res) {
   if (req.method !== 'POST') return fail(res, 405, 'METHOD', 'POST 만 허용')
   const name = String(req.query?.name || '')
   const ext = (name.match(/\.[^.]+$/)?.[0] || '').toLowerCase()

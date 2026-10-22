@@ -3,7 +3,7 @@
 // 컴퓨터 창이 아니라 고른 기기 크기로 정해진다. 창에 들어가지 않으면 틀 전체를 줄이되 틀 안 CSS 폭은 그대로다.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { DEVICES, DEFAULT_DEVICE, DEVICE_KEY, deviceById, deviceSize, fitScale, frameSrc } from './devices.js'
+import { DEVICES, DEFAULT_DEVICE, DEVICE_KEY, deviceById, deviceSize, fitScale, frameSrc, resolveDevice } from './devices.js'
 import './tokens.css'
 import './device-frame.css'
 
@@ -24,9 +24,11 @@ export default function DeviceFrameHost() {
   const loc = useLocation()
   const initialId = useMemo(() => {
     const q = new URLSearchParams(loc.search).get('device')
-    return DEVICES.some((d) => d.id === q) ? q : (readStore() || DEFAULT_DEVICE)
+    return resolveDevice(q) || (readStore() || DEFAULT_DEVICE)
   }, [])   // eslint-disable-line react-hooks/exhaustive-deps
   const [id, setId] = useState(initialId)
+  // 주소의 기기 이름을 알아보지 못하면 조용히 바꾸지 않고 위 기기 고르기에서 고르게 알린다
+  const unknownDevice = useMemo(() => { const q = new URLSearchParams(loc.search).get('device'); return q && !resolveDevice(q) ? q : null }, [])   // eslint-disable-line react-hooks/exhaustive-deps
   const [landscape, setLandscape] = useState(false)
   const device = deviceById(id)
   const size = deviceSize(device, landscape)
@@ -72,6 +74,7 @@ export default function DeviceFrameHost() {
         <div className="dev-title">
           <h1>미리 휴대폰 화면</h1>
           <p>{device.label}, {size.width} x {size.height}, {device.platform === 'ios' ? 'iOS 모양' : 'Material 3 모양'}{scale < 1 ? `, 창에 맞춰 ${Math.round(scale * 100)}%로 줄임` : ', 실제 크기'}</p>
+          {unknownDevice && <p role="status">주소의 기기 이름을 알 수 없어 오른쪽에서 기기를 골라 주세요</p>}
         </div>
         <div className="dev-pick" role="radiogroup" aria-label="기기">
           {DEVICES.map((d) => (

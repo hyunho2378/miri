@@ -9,10 +9,12 @@ import { cleanPreference } from '../src/lib/helperConsent.js'
 //   POST ?action=report&t=  { key, type: ack|step, ... } 수락, 불가, 단계 보고. key 로 중복 저장 방지
 // 훈련 발령만 저장한다. 저장소(Upstash)가 없으면 503.
 import { createHash, randomBytes } from 'node:crypto'
-import { guard, incr, sameSite, sharedStore } from './_guard.js'
+import { accessLog, guard, incr, sameSite, sharedStore } from './_guard.js'
+import { scopeReports, scopeState } from './_scope.js'
 import { HELPER_TTL_SEC, signHelperToken, validDispatchId, validHelperCode, verifyHelperToken } from './_helperToken.js'
 
 const MAX_STATE = 900_000
+const MAX_STATE_DRILL = 600_000 // 코드 없이 받은 훈련 전용 세션의 상태 크기 상한
 const MAX_REPORTS = 2000
 const STEPS = new Set(['depart', 'arrive', 'board', 'handover', 'fail'])
 const ANSWERS = new Set(['accept', 'decline'])
@@ -33,6 +35,9 @@ const K = {
   prefSeq: (sid) => `miri:pref:n:${sid}`
 }
 export const PREF_TTL_SEC = 30 * 24 * 3600
+// 훈련 전용 세션(drill)은 쿠키가 12시간이라 동의 기록도 같은 수명으로 둔다(아무도 읽지 못하는 기록을 남기지 않음)
+export const PREF_TTL_DRILL_SEC = 12 * 3600
+export const prefTtlOf = (sid) => (String(sid).startsWith('drill-') ? PREF_TTL_DRILL_SEC : PREF_TTL_SEC)
 // 저장값 "순번|JSON". 순번은 서버가 접수 순서대로 매겨, 화면은 이미 반영한 순번보다 큰 것만 적용한다(늦게 도착한 옛 응답이 최신 동의를 덮지 않음)
 export function parsePrefs(hash) {
   const out = {}
@@ -106,7 +111,40 @@ redis.call('SET', KEYS[1], '1', 'EX', ARGV[1])
 redis.call('DEL', KEYS[2], KEYS[3], KEYS[4], KEYS[5], KEYS[6])
 return 1`
 export const memberValue = (b) => `,${(Array.isArray(b?.personCodes) ? b.personCodes : []).map(String).filter((c) => !c.includes(',')).join(',')},`
-const hashOf = (rep) => `h:${createHash('sha256').update(JSON.stringify(rep)).digest('hex').slice(0, 32)}`
+// 도우미 배정 요약(brief) 서버 쪽 정리. 허용한 칸만, 정해진 길이로 받는다. 이름, 주소, 전화번호 꼴은 지운다
+const PHONE_RE = /\d{2,4}[- .]?\d{3,4}[- .]?\d{4}/g
+const ADDR_RE = /[가-힣]+(?:로|길)\s?\d+(?:-\d+)?(?:\s?\d+호)?/g
+const txt = (v, n) => (typeof v === 'string' ? v.replace(PHONE_RE, '[가림]').replace(ADDR_RE, '[가림]').slice(0, n) : undefined)
+const code = (v) => (typeof v === 'string' && /^[A-Za-z0-9-]{1,32}$/.test(v) ? v : undefined)
+const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : undefined)
+const BRIEF_KEYS = new Set(['disaster', 'vehicleCode', 'villages', 'completeBy', 'meetVillage', 'firstDepartAt', 'coHelpers', 'persons'])
+export function cleanBrief(b) {
+  if (!b || typeof b !== 'object') return null
+  const out = {}
+  for (const [k, v] of Object.entries(b)) {
+    if (!BRIEF_KEYS.has(k)) continue
+    if (typeof v === 'string') out[k] = txt(v, 120)
+    else if (typeof v === 'number' || typeof v === 'boolean') out[k] = v
+    else if (Array.isArray(v)) out[k] = v.slice(0, 20).map((x) => (typeof x === 'string' ? txt(x, 60) : typeof x === 'number' ? x : undefined)).filter((x) => x !== undefined)
+    else if (v && typeof v === 'object') out[k] = Object.fromEntries(Object.entries(v).slice(0, 20).filter(([, x]) => ['string', 'number', 'boolean'].includes(typeof x)).map(([kk, x]) => [kk, typeof x === 'string' ? txt(x, 120) : x]))
+  }
+  out.notes = Array.isArray(b.notes) ? b.notes.slice(0, 10).map((n) => txt(String(n), 120)) : []
+  out.drill = b.drill === true
+  out.officerContact = txt(b.officerContact, 60) || '발령 담당자, 문자 회신'
+  if (b.clock && typeof b.clock === 'object') out.clock = { realStart: num(b.clock.realStart), vStart: num(b.clock.vStart), speed: num(b.clock.speed) }
+  out.trips = (Array.isArray(b.trips) ? b.trips : []).slice(0, 30).map((t) => ({
+    index: num(t?.index), village: txt(t?.village, 40), grade: code(t?.grade),
+    personCodes: (Array.isArray(t?.personCodes) ? t.personCodes : []).map(code).filter(Boolean).slice(0, 60),
+    departAt: num(t?.departAt), finishAt: num(t?.finishAt),
+    shelters: (Array.isArray(t?.shelters) ? t.shelters : []).slice(0, 10).map((x) => (typeof x === 'string' ? txt(x, 60) : x && typeof x === 'object' ? { code: code(x.code), name: txt(x.name, 60), count: num(x.count) } : undefined)).filter(Boolean),
+    routeCheck: t?.routeCheck === true
+  }))
+  out.personCodes = (Array.isArray(b.personCodes) ? b.personCodes : []).map(code).filter(Boolean).slice(0, 300)
+  return out
+}
+
+// 같은 보고 번호의 재전송 판별은 내용으로 한다. 서버가 붙이는 시각(at 보정, receivedAt)은 재전송마다 달라 해시에서 뺀다
+const hashOf = (rep) => { const { at, receivedAt, ...body } = rep; return `h:${createHash('sha256').update(JSON.stringify(body)).digest('hex').slice(0, 32)}` }
 const asPair = (v) => (Array.isArray(v) ? [Number(v[0]), v[1]] : [0, null])
 
 // 도우미 보고 검사. 본인 배정 대상자만, 정해진 값만 받는다
@@ -114,16 +152,19 @@ export function cleanReport(body, brief, h) {
   if (!body || typeof body !== 'object') return null
   const key = typeof body.key === 'string' && /^[A-Za-z0-9_-]{8,64}$/.test(body.key) ? body.key : null
   if (!key) return null
-  const at = Number.isFinite(Number(body.at)) ? Number(body.at) : Date.now()
+  // 보고 시각은 서버 시각을 기준으로 받는다. 휴대폰 대기열에서 늦게 보낸 보고의 화면 시각은 12시간 안에서만 인정하고, 받은 시각을 따로 남긴다
+  const now = Date.now()
+  const raw = Number(body.at)
+  const at = Number.isFinite(raw) && raw <= now + 60_000 && raw >= now - 12 * 3600_000 ? raw : now
   if (body.type === 'preference') {
     const value = cleanPreference(body)
-    return value ? { key, type: 'preference', helper: h, ...value, at } : null
+    return value ? { key, type: 'preference', helper: h, ...value, at, receivedAt: now } : null
   }
   if (body.type === 'ack') {
     if (!ANSWERS.has(body.answer)) return null
     const reason = typeof body.reason === 'string' ? body.reason.slice(0, 40) : undefined
     const memo = typeof body.memo === 'string' && body.memo.trim() ? body.memo.slice(0, 200) : undefined
-    return { key, type: 'ack', helper: h, answer: body.answer, reason, ...(memo ? { memo } : {}), at }
+    return { key, type: 'ack', helper: h, answer: body.answer, reason, ...(memo ? { memo } : {}), at, receivedAt: now }
   }
   if (body.type === 'step') {
     if (!STEPS.has(body.step)) return null
@@ -132,7 +173,7 @@ export function cleanReport(body, brief, h) {
     const reason = typeof body.reason === 'string' ? body.reason.slice(0, 40) : undefined
     const memo = typeof body.memo === 'string' ? body.memo.slice(0, 200) : undefined
     const care = cleanCare(body.care)
-    return { key, type: 'step', helper: h, personCode: body.personCode, step: body.step, reason, memo, ...(care ? { care } : {}), at }
+    return { key, type: 'step', helper: h, personCode: body.personCode, step: body.step, reason, memo, ...(care ? { care } : {}), at, receivedAt: now }
   }
   return null
 }
@@ -140,11 +181,14 @@ export function cleanReport(body, brief, h) {
 // 조회 경로(get, lrange, hgetall, del)의 저장소 예외도 미처리 500 대신 503 STORE_ERROR 로 돌려준다.
 // 화면은 503 을 받으면 이전 값을 유지하고 다시 시도한다
 export default async function handler(req, res) {
+  const started = Date.now()
   try {
     return await handle(req, res)
   } catch {
     if (res.headersSent) return
     return fail(res, 503, 'STORE_ERROR', '저장소에 잠시 연결되지 않습니다. 잠시 뒤 다시 시도합니다')
+  } finally {
+    accessLog(req, res, started, { action: String(req.query?.action || '') || null })
   }
 }
 
@@ -182,7 +226,7 @@ async function handle(req, res) {
       let out
       try {
         out = asPair(await r.eval(APPEND_LUA, [K.key(tk.d, tk.h, rep.key), K.reports(tk.d), K.members(tk.d), K.closed(tk.d), K.pref(sid || '-'), K.prefSeq(sid || '-')],
-          [JSON.stringify(rep), h, String(HELPER_TTL_SEC), String(MAX_REPORTS), tk.h, rep.type === 'step' ? rep.personCode : '', prefValue, String(PREF_TTL_SEC)]))
+          [JSON.stringify(rep), h, String(HELPER_TTL_SEC), String(MAX_REPORTS), tk.h, rep.type === 'step' ? rep.personCode : '', prefValue, String(prefTtlOf(sid))]))
       } catch {
         // 저장 실패는 성공으로 돌려주지 않는다. 휴대폰 대기열에 남아 다시 보냄
         return fail(res, 503, 'STORE_ERROR', '보고를 저장하지 못했습니다. 연결되면 다시 보냅니다')
@@ -201,10 +245,14 @@ async function handle(req, res) {
   if (!r) return fail(res, 503, 'NO_STORE', '발령 저장소에 연결되지 않았습니다. 이 브라우저 안에서만 진행합니다')
   const sid = req.miriSession.id
   // 코드 없이 받은 훈련 전용 세션은 저장 횟수를 세션마다 분당 60회로 묶는다(저장소 남용 방지)
-  if (req.miriSession.scope === 'drill' && req.method === 'POST' && (await incr(`dsp:save:${sid}`, 60)) > 60) {
+  if (req.miriSession.scope === 'drill' && req.method === 'POST' && (await incr(`dsp:save:${sid}`, 60)) > 30) {
     res.setHeader('Retry-After', '60')
     return fail(res, 429, 'RATE_LIMIT', '저장이 너무 잦습니다. 잠시 뒤 다시 저장합니다')
   }
+
+  // 동 담당자 세션은 읽기 전용이다. 저장과 종료는 시 관리자 세션만(동 범위로 걸러 받은 상태를 저장해 시 전체를 덮지 않게)
+  const dong = req.miriSession.role === 'dong' ? req.miriSession.dong : null
+  if (dong && req.method !== 'GET') return fail(res, 403, 'ROLE_READONLY', '동 담당자 계정은 발령을 보기만 합니다. 저장과 종료는 시 관리자 계정에서 합니다')
 
   if (req.method === 'GET' && action === 'state') {
     // 도우미 동의 상태는 진행 중인 발령이 없어도 돌려준다(발령 종료 뒤 새로고침 복원)
@@ -215,12 +263,18 @@ async function handle(req, res) {
     const saved = await r.get(K.state(own))
     const rev = Number(await r.get(K.rev(own))) || 0
     const reports = ((await r.lrange(K.reports(own), 0, -1)) || []).map(parse).filter(Boolean)
-    return res.status(200).json({ dispatchId: own, rev, state: saved ? parse(saved) : null, reports, prefs })
+    const full = saved ? parse(saved) : null
+    if (dong) {
+      // 동 담당자에게는 담당 동 마을만 담아 돌려준다(서버 기준 범위)
+      const scoped = scopeState(full, dong)
+      return res.status(200).json({ dispatchId: own, rev, state: scoped, reports: scopeReports(reports, full, dong), prefs: {}, scope: { role: 'dong', dong } })
+    }
+    return res.status(200).json({ dispatchId: own, rev, state: full, reports, prefs })
   }
 
   if (req.method === 'POST' && action === 'save') {
     const raw = typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {})
-    if (raw.length > MAX_STATE) return fail(res, 413, 'TOO_LARGE', '발령 상태가 너무 큽니다')
+    if (raw.length > (req.miriSession.scope === 'drill' ? MAX_STATE_DRILL : MAX_STATE)) return fail(res, 413, 'TOO_LARGE', '발령 상태가 너무 큽니다')
     const body = parse(req.body)
     const state = body?.state
     if (!state || typeof state !== 'object' || state.kind !== 'drill') return fail(res, 400, 'BAD_INPUT', '훈련 발령 상태만 저장합니다')
@@ -231,7 +285,9 @@ async function handle(req, res) {
     const src = body.briefs && typeof body.briefs === 'object' ? body.briefs : {}
     for (const [h, b] of Object.entries(src).slice(0, 300)) {
       if (!validHelperCode(h) || !b || typeof b !== 'object') continue
-      briefs[h] = b
+      const cb = cleanBrief(b)
+      if (!cb) continue
+      briefs[h] = cb
       tokens[h] = signHelperToken(id, h)
     }
     let out
@@ -256,6 +312,8 @@ async function handle(req, res) {
     if (validDispatchId(id)) {
       const o = await r.get(K.idOwner(id))
       if (o && String(o) !== sid) return fail(res, 403, 'OWNER', '다른 세션의 발령입니다')
+      // 소유 기록이 없는(만료되었거나 없는) 발령 번호는 종료 표시를 남기지 않는다(남의 번호를 미리 막는 일 방지)
+      if (!o && own !== id) return res.status(200).json({ ok: true })
       // 종료 표시를 먼저 남겨 진행 중이던 저장 요청이 늦게 와도 되살리지 못하게 함
       // 종료 표시와 삭제는 한 번의 원자 실행. 도우미 동의 상태(K.pref)는 지우지 않는다
       try {

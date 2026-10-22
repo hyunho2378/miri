@@ -18,7 +18,7 @@ const { useDispatchStore, applyPrefs } = await import('../src/store/useDispatchS
 const { crewEligible } = await import('../src/lib/assign.js')
 
 const mkRes = () => { const r = { code: 0, body: null, headers: {} }; r.status = (c) => { r.code = c; return r }; r.json = (b) => { r.body = b; return r }; r.setHeader = (k, v) => { r.headers[k] = v }; return r }
-const call = async (req) => { const res = mkRes(); await handler({ headers: { host: 'miri.test', ...(req.headers || {}) }, ...req }, res); return res }
+const call = async (req) => { const res = mkRes(); await handler({ ...req, headers: { host: 'miri.test', origin: 'https://miri.test', ...(req.headers || {}) } }, res); return res }
 const sent = { status: 'sent', kind: 'drill', speed: 60, realStart: T0, vStart: T0, issuedAt: T0, arrivals: {}, result: { assignments: [], unassigned: [] }, events: {}, ackOverride: {}, handovers: [], fireRequests: [] }
 const helperOf = (code) => useMiriStore.getState().helpers.find((h) => h.code === code)
 const seedHelpers = useMiriStore.getState().helpers.map((h) => ({ ...h }))
