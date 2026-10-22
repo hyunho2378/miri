@@ -20,9 +20,11 @@ const fail = (res, status, code, message) => res.status(status).json({ error: { 
 // MIRI_WS_PREFIX 는 시험용 키 접두어다. 배포 환경에서는 설정하지 않는다(기본 miri:ws)
 const P = () => process.env.MIRI_WS_PREFIX || 'miri:ws'
 const KEY_ITEM = (id) => `${P()}:item:${id}`
-const KEY_INDEX = () => `${P()}:index`
+// 목록과 소유는 세션별로 나눈다(시연 코드를 아는 다른 세션이 남의 문서함을 보지 않게). 공개 설문 조회와 응답 제출은 항목 ID 로만 찾는다
+const KEY_INDEX = (sid) => `${P()}:index:${sid}`
+const KEY_OWNER = (id) => `${P()}:own:${id}`
 const KEY_RESP = (id) => `${P()}:resp:${id}`
-const KEY_SEEDED = () => `${P()}:seeded`
+const KEY_SEEDED = (sid) => `${P()}:seeded:${sid}`
 
 const KINDS = ['doc', 'sheet', 'form']
 const ID_RE = /^[A-Za-z][A-Za-z0-9_-]{1,63}$/
@@ -123,7 +125,7 @@ async function handleSubmit(req, res, redis) {
   return res.status(200).json({ ok: true, id: response.id, at: response.at })
 }
 
-async function handleSeed(req, res, redis) {
+async function handleSeed(req, res, redis, sid) {
   const body = readBody(req)
   const items = Array.isArray(body?.items) ? body.items : null
   if (!items || !items.length || items.length > 50) return fail(res, 400, 'BAD_INPUT', 'items 는 1~50개 배열')
@@ -133,13 +135,17 @@ async function handleSeed(req, res, redis) {
     if (c.error) return fail(res, c.status || 400, 'BAD_ITEM', c.error)
     cleaned.push(c.item)
   }
-  const existing = await redis.scard(KEY_INDEX())
+  const existing = await redis.scard(KEY_INDEX(sid))
   if (existing > 0) return res.status(200).json({ seeded: false })
-  const lock = await redis.set(KEY_SEEDED(), new Date().toISOString(), { nx: true })
+  const lock = await redis.set(KEY_SEEDED(sid), new Date().toISOString(), { nx: true })
   if (lock !== 'OK') return res.status(200).json({ seeded: false })
   for (const item of cleaned) {
-    await redis.set(KEY_ITEM(item.id), item)
-    await redis.sadd(KEY_INDEX(), item.id)
+    // 시연 항목 ID 가 다른 세션 것과 겹치면 세션 표시를 붙여 새 ID 로 저장한다
+    const owner = await redis.get(KEY_OWNER(item.id))
+    const it = owner && owner !== sid ? { ...item, id: `${item.id}_${sid.replace(/[^A-Za-z0-9]/g, '').slice(0, 8)}` } : item
+    await redis.set(KEY_ITEM(it.id), it)
+    await redis.set(KEY_OWNER(it.id), sid)
+    await redis.sadd(KEY_INDEX(sid), it.id)
   }
   return res.status(200).json({ seeded: true, count: cleaned.length })
 }
@@ -173,22 +179,26 @@ export default async function handler(req, res) {
     }
   }
   if (!publicSubmit && !(await guard(req, res, { requireSession: true }))) return
+  const sid = req.miriSession?.id || ''
+  // 항목 소유 확인. 소유 기록이 없는 옛 항목은 처음 접근한 세션에 묶지 않고 숨긴다
+  const owns = async (id) => String((await redis.get(KEY_OWNER(id))) || '') === sid
   try {
     if (req.method === 'GET') {
       if (q.action === 'responses') {
         const id = String(q.id || '')
         if (!ID_RE.test(id)) return fail(res, 400, 'BAD_ID', 'id 필요')
+        if (!(await owns(id))) return fail(res, 404, 'NOT_FOUND', '항목을 찾을 수 없습니다')
         return res.status(200).json({ responses: await loadResponses(redis, id) })
       }
       if (q.id) {
         const id = String(q.id)
         if (!ID_RE.test(id)) return fail(res, 400, 'BAD_ID', 'id 형식 오류')
-        const item = await redis.get(KEY_ITEM(id))
+        const item = (await owns(id)) ? await redis.get(KEY_ITEM(id)) : null
         if (!item) return fail(res, 404, 'NOT_FOUND', '항목을 찾을 수 없습니다')
         if (item.kind === 'form') item.responses = await loadResponses(redis, id)
         return res.status(200).json({ item })
       }
-      const ids = await redis.smembers(KEY_INDEX())
+      const ids = await redis.smembers(KEY_INDEX(sid))
       let items = ids.length ? (await redis.mget(...ids.map(KEY_ITEM))).filter(Boolean) : []
       if (q.kind) items = items.filter((x) => x.kind === q.kind)
       await Promise.all(items.filter((x) => x.kind === 'form').map(async (f) => { f.responses = await loadResponses(redis, f.id) }))
@@ -199,7 +209,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST' && q.action === 'seed') {
       if (!(await allow(redis, `seed:${clientIp(req)}`, 10))) return fail(res, 429, 'RATE_LIMIT', '요청이 너무 잦습니다')
-      return await handleSeed(req, res, redis)
+      return await handleSeed(req, res, redis, sid)
     }
 
     if (req.method === 'PUT' || req.method === 'POST') {
@@ -211,8 +221,11 @@ export default async function handler(req, res) {
       if (!body) return fail(res, 400, 'BAD_JSON', '요청 형식 오류')
       const c = cleanItem(body.item && typeof body.item === 'object' ? body.item : body)
       if (c.error) return fail(res, c.status || 400, 'BAD_ITEM', c.error)
+      const owner = await redis.get(KEY_OWNER(c.item.id))
+      if (owner && owner !== sid) return fail(res, 403, 'OWNER', '다른 세션의 항목입니다')
       await redis.set(KEY_ITEM(c.item.id), c.item)
-      await redis.sadd(KEY_INDEX(), c.item.id)
+      if (!owner) await redis.set(KEY_OWNER(c.item.id), sid)
+      await redis.sadd(KEY_INDEX(sid), c.item.id)
       return res.status(200).json({ ok: true, id: c.item.id })
     }
 
@@ -220,10 +233,11 @@ export default async function handler(req, res) {
       const id = String(q.id || '')
       if (!ID_RE.test(id)) return fail(res, 400, 'BAD_ID', 'id 필요')
       if (!(await allow(redis, `w:${clientIp(req)}`, WRITE_PER_MIN))) return fail(res, 429, 'RATE_LIMIT', '요청이 너무 잦습니다')
+      if (!(await owns(id))) return fail(res, 404, 'NOT_FOUND', '항목을 찾을 수 없습니다')
       const item = await redis.get(KEY_ITEM(id))
       if (item?.kind === 'form') await redis.del(KEY_RESP(id))
-      await redis.del(KEY_ITEM(id))
-      await redis.srem(KEY_INDEX(), id)
+      await redis.del(KEY_ITEM(id), KEY_OWNER(id))
+      await redis.srem(KEY_INDEX(sid), id)
       return res.status(200).json({ ok: true })
     }
 

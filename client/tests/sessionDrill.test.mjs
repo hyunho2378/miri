@@ -16,7 +16,7 @@ const { ensureDemoSession, resetDemoSessionForTest } = await import('../src/lib/
 const { scopeDispatch } = await import('../src/mobile/field/fieldModel.js')
 
 const mkRes = () => { const r = { code: 0, body: null, headers: {} }; r.status = (c) => { r.code = c; return r }; r.json = (b) => { r.body = b; return r }; r.setHeader = (k, v) => { r.headers[k] = v }; return r }
-const run = async (h, req) => { const res = mkRes(); await h({ headers: { host: 'miri.test', ...(req.headers || {}) }, ...req }, res); return res }
+const run = async (h, req) => { const res = mkRes(); await h({ ...req, headers: { host: 'miri.test', origin: 'https://miri.test', ...(req.headers || {}) } }, res); return res }
 const cookieOf = (res) => { const m = /miri_s=([^;]*)/.exec(String(res.headers['Set-Cookie'] || '')); return m ? m[1] : null }
 const withCookie = (t) => ({ cookie: `${COOKIE}=${t}` })
 
@@ -67,12 +67,12 @@ await ok('다른 브라우저(다른 drill 세션)는 남의 발령을 보지 �
 await ok('drill 세션은 AI 판독과 문서함에 쓰지 못함(401)', async () => {
   for (const opts of [{ requireSession: true }, { requireSession: true, allowDrill: true, ai: 'intake' }]) {
     const res = mkRes()
-    const pass = await guard({ headers: { host: 'miri.test', ...withCookie(drill) } }, res, opts)
+    const pass = await guard({ headers: { host: 'miri.test', origin: 'https://miri.test', ...withCookie(drill) } }, res, opts)
     assert.equal(pass, false)
     assert.equal(res.code, 401)
   }
   const full = mkRes()
-  assert.equal(await guard({ headers: { host: 'miri.test', ...withCookie(issueToken()) } }, full, { requireSession: true }), true)
+  assert.equal(await guard({ headers: { host: 'miri.test', origin: 'https://miri.test', ...withCookie(issueToken()) } }, full, { requireSession: true }), true)
 })
 
 await ok('범위 표시는 서명 안: drill 토큰의 nonce 를 바꾸면 무효', async () => {
@@ -120,10 +120,11 @@ await ok('화면: ensureDemoSession 은 세션이 없을 때만 drill 을 요청
 
 await ok('화면 연결: 401 이면 세션을 받아 한 번 다시 보냄, 로그인 고를 때 세션 요청', async () => {
   const sync = readFileSync(new URL('../src/lib/dispatchSync.js', import.meta.url), 'utf8')
-  assert.match(sync, /r\.status === 401 && j\?\.error\?\.code === 'NEED_SESSION' && !retried/)
+  assert.match(sync, /r\.status === 401 && j\?\.error\?\.code === 'NEED_SESSION'\) \|\| roleMismatch\) && !retried/)
   const auth = readFileSync(new URL('../src/store/useAuthStore.js', import.meta.url), 'utf8')
-  assert.match(auth, /if \(USE_MOCK\) setSessionRecover\(\(\) => ensureDemoSession\(\)\)/)
-  assert.match(auth, /setDemoUser: .*ensureDemoSession\(\)/)
+  assert.match(auth, /setSessionRecover\(\(\) => \{ forgetDemoRole\(\); return ensureDemoSession\(undefined, whoOf\(/)
+  assert.match(auth, /setRoleAlign\(\(\) => ensureDemoSession\(undefined, whoOf\(/)
+  assert.match(auth, /setDemoUser: .*ensureDemoSession\(undefined, whoOf\(DEMO_USERS\[role\]\)\)/)
   const fs = readFileSync(new URL('../src/mobile/field/FieldScreens.jsx', import.meta.url), 'utf8')
   assert.ok(!fs.includes('서버 저장은 콘솔 로그인 뒤'))
   assert.match(fs, /title="다시 로그인"/)

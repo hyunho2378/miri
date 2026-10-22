@@ -8,6 +8,7 @@
 import { applyHwpxStyles } from './_hwpxStyle.js'
 
 export const config = { maxDuration: 30 }
+import { accessLog, toolGuard } from './_guard.js'
 
 const fail = (res, status, code, message) => res.status(status).json({ error: { code, message } })
 const ALLOWED = ['docHead', 'docFoot', 'approval', 'noticeHead', 'press', 'bodyFont', 'bodyPt', 'numbering', 'cover', 'toc', 'summary', 'pageNumbers', 'endMark', 'bullet2', 'levels']
@@ -17,6 +18,14 @@ const safeName = (s) => (String(s || '문서').replace(/[\\/:*?"<>|\r\n]/g, '').
 const small = (o, n) => (o && typeof o === 'object' && Object.keys(o).length <= n ? o : {})
 
 export default async function handler(req, res) {
+  const started = Date.now()
+  try {
+    if (!(await toolGuard(req, res, 'hwpx'))) return
+    return await handleTool(req, res)
+  } finally { accessLog(req, res, started) }
+}
+
+async function handleTool(req, res) {
   if (req.method !== 'POST') return fail(res, 405, 'METHOD', 'POST 만 허용')
   let body = req.body
   if (Buffer.isBuffer(body)) body = body.toString('utf8')

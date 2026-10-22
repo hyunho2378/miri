@@ -14,7 +14,7 @@ const t = async (name, fn) => { await fn(); n += 1; console.log('ok', name) }
 // Upstash 대신 쓰는 메모리 저장소(Lua 원자 처리 흉내 포함)
 const { fakeRedis } = await import('./_fakeRedis.mjs')
 const mkRes = () => { const r = { code: 0, body: null, headers: {} }; r.status = (c) => { r.code = c; return r }; r.json = (b) => { r.body = b; return r }; r.setHeader = (k, v) => { r.headers[k] = v }; return r }
-const call = async (req) => { const res = mkRes(); await handler({ headers: { host: 'miri.test', ...(req.headers || {}) }, ...req }, res); return res }
+const call = async (req) => { const res = mkRes(); await handler({ ...req, headers: { host: 'miri.test', origin: 'https://miri.test', ...(req.headers || {}) } }, res); return res }
 
 await t('토큰: 위조, 다른 도우미, 형식 오류를 거부한다', () => {
   const tk = signHelperToken('Dabc12345', 'H-084')

@@ -15,6 +15,7 @@
 // 서버가 세션 없이 도구 호출을 받으므로 initialize 는 생략한다(실측 2026-10-06). 응답은 JSON 또는 SSE 틀을 모두 처리한다.
 
 export const config = { maxDuration: 40 }
+import { accessLog, toolGuard } from './_guard.js'
 
 import { parseAnnex, parseArticle, parseDecision, parseDecisions, parseHead, parseSearch, parseSystem, parseTermDetail, parseTermList, parseToc, upstreamError } from '../src/lib/lawParse.js'
 
@@ -158,6 +159,14 @@ async function dictionary(action, b, apikey, res) {
 }
 
 export default async function handler(req, res) {
+  const started = Date.now()
+  try {
+    if (!(await toolGuard(req, res, 'law'))) return
+    return await handleTool(req, res)
+  } finally { accessLog(req, res, started) }
+}
+
+async function handleTool(req, res) {
   if (req.method !== 'POST') return fail(res, 405, 'METHOD', 'POST 만 허용')
   let body = req.body
   if (Buffer.isBuffer(body)) body = body.toString('utf8')

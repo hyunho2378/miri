@@ -14,6 +14,22 @@ export const DEVICES = [
 export const DEFAULT_DEVICE = 'galaxy'
 export const DEVICE_KEY = 'miri.mobile.device'
 
+// 주소에 흔히 쓰는 다른 이름(캡처 파일 이름, 문서 표기)을 정식 이름으로 바꾼다. 모르는 이름은 null(시작 화면 기기 고르기로)
+const ALIASES = {
+  galaxys: 'galaxy', 'galaxy-s': 'galaxy', galaxy_s: 'galaxy', android: 'galaxy',
+  iphone18: 'iphone', 'iphone-18': 'iphone', ios: 'iphone',
+  fold_out: 'fold-cover', foldout: 'fold-cover', 'fold-out': 'fold-cover', fold_cover: 'fold-cover',
+  fold_in: 'fold-inner', foldin: 'fold-inner', 'fold-in': 'fold-inner', fold_inner: 'fold-inner', fold: 'fold-inner',
+  duo_out: 'duo-cover', duoout: 'duo-cover', 'duo-out': 'duo-cover', duo_cover: 'duo-cover',
+  duo_in: 'duo-inner', duoin: 'duo-inner', 'duo-in': 'duo-inner', duo_inner: 'duo-inner', duo: 'duo-inner'
+}
+export function resolveDevice(q) {
+  if (!q) return null
+  const k = String(q).trim().toLowerCase()
+  if (DEVICES.some((d) => d.id === k)) return k
+  return ALIASES[k] || null
+}
+
 export function deviceById(id) {
   return DEVICES.find((d) => d.id === id) || DEVICES.find((d) => d.id === DEFAULT_DEVICE)
 }

@@ -23,11 +23,19 @@ const sign = (payload) => createHmac('sha256', secret()).update(payload).digest(
 //   drill: 코드 없이 받는 훈련 발령 전용 세션. 콘솔과 휴대폰 현장 화면이 같은 브라우저에서 같은 훈련 발령을 보게 한다.
 //          AI 호출과 문서함은 열지 않는다. 범위 표시(nonce 앞 drill-)는 서명 안에 있어 바꿀 수 없다
 const DRILL = 'drill-'
-export function issueToken(now = Date.now(), scope = 'full') {
+// 역할 표시(claims): 시 관리자(city) 또는 동 담당자(dong:동코드). 서명 안에 들어가 바꿀 수 없다.
+// 토큰은 exp.nonce.claims.mac 4칸. 예전 3칸 토큰(claims 없음)은 시 관리자로 읽는다(하위 호환)
+const ROLE_RE = /^(city|dong:[A-Z]{2})$/
+export const claimsOf = (role, dong) => (role === 'dong' && /^[A-Z]{2}$/.test(String(dong || '')) ? `dong:${dong}` : 'city')
+export function issueToken(now = Date.now(), scope = 'full', { nonce: keep = null, role = 'city', dong = null } = {}) {
   const exp = Math.floor(now / 1000) + TTL_SEC
-  let nonce = scope === 'drill' ? `${DRILL}${randomBytes(9).toString('hex')}` : randomBytes(9).toString('base64url')
-  while (scope !== 'drill' && nonce.startsWith(DRILL)) nonce = randomBytes(9).toString('base64url')
-  const payload = `${exp}.${nonce}`
+  let nonce = keep
+  if (!nonce) {
+    nonce = scope === 'drill' ? `${DRILL}${randomBytes(9).toString('hex')}` : randomBytes(9).toString('base64url')
+    while (scope !== 'drill' && nonce.startsWith(DRILL)) nonce = randomBytes(9).toString('base64url')
+  }
+  const claims = scope === 'drill' ? claimsOf(role, dong) : 'city'
+  const payload = `${exp}.${nonce}.${claims}`
   return `${payload}.${sign(payload)}`
 }
 
@@ -39,11 +47,16 @@ const safeEq = (a, b) => {
 export function verifyToken(token, now = Date.now()) {
   if (!sessionConfigured() || typeof token !== 'string') return null
   const parts = token.split('.')
-  if (parts.length !== 3) return null
-  const [exp, nonce, mac] = parts
-  if (!/^\d{9,12}$/.test(exp) || !safeEq(mac, sign(`${exp}.${nonce}`))) return null
+  if (parts.length !== 3 && parts.length !== 4) return null
+  const [exp, nonce] = parts
+  const claims = parts.length === 4 ? parts[2] : 'city'
+  const mac = parts[parts.length - 1]
+  const payload = parts.length === 4 ? `${exp}.${nonce}.${claims}` : `${exp}.${nonce}`
+  if (!/^\d{9,12}$/.test(exp) || !ROLE_RE.test(claims) || !safeEq(mac, sign(payload))) return null
   if (Number(exp) * 1000 < now) return null
-  return { id: nonce, exp: Number(exp), scope: nonce.startsWith(DRILL) ? 'drill' : 'full' }
+  const scope = nonce.startsWith(DRILL) ? 'drill' : 'full'
+  const role = scope === 'drill' && claims.startsWith('dong:') ? 'dong' : 'city'
+  return { id: nonce, exp: Number(exp), scope, role, dong: role === 'dong' ? claims.slice(5) : null }
 }
 
 export const checkCode = (code) => sessionConfigured() && typeof code === 'string' && safeEq(code.trim(), process.env.MIRI_DEMO_CODE)
@@ -69,7 +82,11 @@ export function sameSite(req) {
   const h = req.headers || {}
   const host = h.host || ''
   const from = hostOf(h.origin || '') || hostOf(h.referer || '')
-  if (!from) return true // 서명 쿠키가 SameSite=Strict 라 다른 사이트 요청에는 실리지 않는다
+  if (!from) {
+    // 출처가 없으면 읽기(GET, HEAD)만 받는다. 브라우저는 같은 사이트 POST, DELETE 에 Origin 을 붙인다
+    const m = String(req.method || 'GET').toUpperCase()
+    return m === 'GET' || m === 'HEAD'
+  }
   if (from === host) return true
   const allow = String(process.env.MIRI_ALLOWED_ORIGINS || '').split(',').map((x) => hostOf(x.trim()) || x.trim()).filter(Boolean)
   return allow.includes(from)
@@ -99,13 +116,20 @@ export function memIncr(key, ttlSec, now = Date.now()) {
   b.n += 1
   return b.n
 }
+// 만료 시각을 먼저 붙인 뒤 올린다(SET NX EX 뒤 INCR). INCR 은 남은 만료 시각을 유지하므로
+// 올리기와 만료 붙이기 사이에 실패해도 만료 없는 키가 남지 않는다
+async function sharedIncr(r, key, ttlSec) {
+  const k = `miri:rl:${key}`
+  if (typeof r.set === 'function') await r.set(k, 0, { nx: true, ex: ttlSec })
+  const n = await r.incr(k)
+  if (Number(n) === 1) await r.expire(k, ttlSec) // 두 호출 사이 만료된 드문 경우 보정
+  return Number(n)
+}
 export async function incr(key, ttlSec) {
   const r = store()
   if (!r) return memIncr(key, ttlSec)
   try {
-    const n = await r.incr(`miri:rl:${key}`)
-    if (n === 1) await r.expire(`miri:rl:${key}`, ttlSec)
-    return n
+    return await sharedIncr(r, key, ttlSec)
   } catch {
     return memIncr(key, ttlSec)
   }
@@ -118,10 +142,9 @@ export async function incrShared(key, ttlSec) {
   const r = store()
   if (!r) throw new StoreUnavailable('공유 횟수 저장소 미연결')
   try {
-    const n = await r.incr(`miri:rl:${key}`)
-    if (n === 1) await r.expire(`miri:rl:${key}`, ttlSec)
-    if (!Number.isFinite(Number(n))) throw new Error('횟수 값 오류')
-    return Number(n)
+    const n = await sharedIncr(r, key, ttlSec)
+    if (!Number.isFinite(n)) throw new Error('횟수 값 오류')
+    return n
   } catch (e) {
     throw new StoreUnavailable(`공유 횟수 저장소 오류: ${e?.message || e}`)
   }
@@ -183,4 +206,36 @@ export async function guard(req, res, { requireSession = true, allowDrill = fals
     return deny(res, 429, 'RATE_LIMIT', '요청이 너무 잦거나 오늘 시연 사용량을 넘었습니다. 잠시 뒤 다시 시도해 주십시오')
   }
   return true
+}
+
+// 로그인 없이 쓰는 문서 도구(파일 읽기, 한글 변환, 표기 검사, 법령 확인)의 보호.
+// 출처 확인(미리 화면에서 보낸 요청만)과 IP별 분당 상한, 전체 하루 상한을 둔다. 세션은 요구하지 않는다(시연 콘솔이 세션 없이 쓴다)
+export const TOOL_LIMITS = {
+  parse: { ip: 10, day: 500 },
+  hwpx: { ip: 30, day: 2000 },
+  lint: { ip: 60, day: 5000 },
+  law: { ip: 30, day: 1000 }
+}
+export async function toolGuard(req, res, name) {
+  const h = req.headers || {}
+  const from = hostOf(h.origin || '') || hostOf(h.referer || '')
+  if (!from || !sameSite(req)) return deny(res, 403, 'FORBIDDEN', '미리 화면에서 보낸 요청만 처리합니다')
+  const L = TOOL_LIMITS[name]
+  const day = new Date().toISOString().slice(0, 10)
+  if ((await incr(`tool:${name}:ip:${clientIpOf(req)}`, 60)) > L.ip || (await incr(`tool:${name}:all:${day}`, 26 * 3600)) > L.day) {
+    res.setHeader('Retry-After', '60')
+    return deny(res, 429, 'RATE_LIMIT', '요청이 너무 잦습니다. 잠시 뒤 다시 시도해 주십시오')
+  }
+  return true
+}
+
+// 접근 기록: 경로, 방법, 상태, 지연, 역할만 남긴다. 본문, 쿼리 값, IP 원문, 쿠키는 남기지 않는다
+export function accessLog(req, res, started, extra = {}) {
+  try {
+    const path = String(req.url || '').split('?')[0]
+    const s = req.miriSession
+    const line = { t: new Date().toISOString(), path, method: req.method, status: res.statusCode, ms: Date.now() - started, scope: s?.scope || null, role: s?.role || null, ...extra }
+    if (process.env.MIRI_ACCESS_LOG !== '0') console.log(JSON.stringify({ miri_access: line }))
+    return line
+  } catch { return null }
 }

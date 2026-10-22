@@ -9,7 +9,7 @@ const { fakeRedis } = await import('./_fakeRedis.mjs')
 let n = 0
 const t = async (name, fn) => { await fn(); n += 1; console.log('ok', name) }
 const mkRes = () => { const r = { code: 0, body: null, headers: {} }; r.status = (c) => { r.code = c; return r }; r.json = (b) => { r.body = b; return r }; r.setHeader = (k, v) => { r.headers[k] = v }; return r }
-const call = async (req) => { const res = mkRes(); await handler({ headers: { host: 'miri.test', ...(req.headers || {}) }, ...req }, res); return res }
+const call = async (req) => { const res = mkRes(); await handler({ ...req, headers: { host: 'miri.test', origin: 'https://miri.test', ...(req.headers || {}) } }, res); return res }
 const sent = { kind: 'drill', status: 'sent' }
 
 async function setup() {

@@ -58,15 +58,20 @@ export function briefsOf(d, { scenario, villages = [], officerContact = '', pers
 // 세션이 없을 때(401 NEED_SESSION) 한 번 세션을 받아 다시 보낼 함수. 시연 모드에서만 앱이 등록한다(useAuthStore)
 let recoverSession = null
 export function setSessionRecover(fn) { recoverSession = typeof fn === 'function' ? fn : null }
+// 요청 전에 이 탭의 역할로 서버 세션을 맞출 함수(시연 모드). 실패해도 요청은 그대로 보낸다
+let alignRole = null
+export function setRoleAlign(fn) { alignRole = typeof fn === 'function' ? fn : null }
 
 async function call(method, action, body, query = {}, retried = false) {
+  if (alignRole && !retried) { try { await alignRole() } catch { /* 맞추기 실패는 무시 */ } }
   const qs = new URLSearchParams({ ...(action ? { action } : {}), ...query }).toString()
   const r = await fetch(`${API}${qs ? `?${qs}` : ''}`, {
     method, credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined
   })
   const j = await r.json().catch(() => ({}))
-  if (r.status === 401 && j?.error?.code === 'NEED_SESSION' && !retried && recoverSession && (await recoverSession())) {
+  const roleMismatch = r.status === 403 && j?.error?.code === 'ROLE_READONLY'
+  if (((r.status === 401 && j?.error?.code === 'NEED_SESSION') || roleMismatch) && !retried && recoverSession && (await recoverSession())) {
     return call(method, action, body, query, true)
   }
   if (!r.ok) throw Object.assign(new Error(j?.error?.message || `HTTP ${r.status}`), { status: r.status, code: j?.error?.code })

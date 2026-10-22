@@ -17,7 +17,7 @@ const { routeKind } = await import('../api/workspace.js')
 await ok('R1 시연 코드 설정이 없으면 비공개 기능을 닫는다', async () => {
   delete process.env.MIRI_DEMO_CODE; delete process.env.MIRI_SESSION_SECRET
   const res = mockRes()
-  assert.equal(await G.guard({ headers: { host: 'a' } }, res), false)
+  assert.equal(await G.guard({ headers: { host: 'a', origin: 'https://a' } }, res), false)
   assert.equal(res.code, 503)
 })
 
@@ -25,17 +25,17 @@ process.env.MIRI_DEMO_CODE = 'test-code-1234'
 process.env.MIRI_SESSION_SECRET = 'test-secret-0123456789abcdef'
 
 await ok('R1 서명 쿠키가 없거나 위조되면 401, 머리글만 꾸며서는 통과하지 못한다', async () => {
-  const forged = { headers: { host: 'a', 'sec-fetch-site': 'same-origin', 'x-forwarded-host': 'evil.example', origin: 'https://evil.example' } }
+  const forged = { headers: { host: 'a', origin: 'https://a', 'sec-fetch-site': 'same-origin', 'x-forwarded-host': 'evil.example', origin: 'https://evil.example' } }
   let res = mockRes(); assert.equal(await G.guard(forged, res), false); assert.ok([401, 403].includes(res.code))
-  res = mockRes(); assert.equal(await G.guard({ headers: { host: 'a', 'sec-fetch-site': 'same-origin' } }, res), false); assert.equal(res.code, 401)
+  res = mockRes(); assert.equal(await G.guard({ headers: { host: 'a', origin: 'https://a', 'sec-fetch-site': 'same-origin' } }, res), false); assert.equal(res.code, 401)
   const tok = G.issueToken()
   const bad = tok.slice(0, -2) + (tok.endsWith('AA') ? 'BB' : 'AA')
-  res = mockRes(); assert.equal(await G.guard({ headers: { host: 'a', cookie: `miri_s=${bad}` } }, res), false); assert.equal(res.code, 401)
+  res = mockRes(); assert.equal(await G.guard({ headers: { host: 'a', origin: 'https://a', cookie: `miri_s=${bad}` } }, res), false); assert.equal(res.code, 401)
   const expired = G.issueToken(Date.now() - 13 * 3600 * 1000)
-  res = mockRes(); assert.equal(await G.guard({ headers: { host: 'a', cookie: `miri_s=${expired}` } }, res), false)
-  res = mockRes(); assert.equal(await G.guard({ headers: { host: 'a', cookie: `miri_s=${tok}` } }, res), true)
+  res = mockRes(); assert.equal(await G.guard({ headers: { host: 'a', origin: 'https://a', cookie: `miri_s=${expired}` } }, res), false)
+  res = mockRes(); assert.equal(await G.guard({ headers: { host: 'a', origin: 'https://a', cookie: `miri_s=${tok}` } }, res), true)
   // 다른 사이트에서 온 요청은 쿠키가 있어도 막는다
-  res = mockRes(); assert.equal(await G.guard({ headers: { host: 'a', origin: 'https://evil.example', cookie: `miri_s=${tok}` } }, res), false); assert.equal(res.code, 403)
+  res = mockRes(); assert.equal(await G.guard({ headers: { host: 'a', origin: 'https://a', origin: 'https://evil.example', cookie: `miri_s=${tok}` } }, res), false); assert.equal(res.code, 403)
 })
 
 await ok('R1 공개 설문 경로에 action=responses 를 붙여도 비공개로 판정', () => {
@@ -48,8 +48,8 @@ await ok('R1 공개 설문 경로에 action=responses 를 붙여도 비공개로
 
 await ok('R1 시연 코드 발급: 틀린 코드는 401, 맞는 코드는 서명 쿠키', async () => {
   const h = (await import('../api/session.js')).default
-  let res = mockRes(); await h({ method: 'POST', headers: { host: 'a', 'x-real-ip': '1.1.1.1' }, body: { code: 'nope' } }, res); assert.equal(res.code, 401)
-  res = mockRes(); await h({ method: 'POST', headers: { host: 'a', 'x-real-ip': '1.1.1.2' }, body: { code: 'test-code-1234' } }, res)
+  let res = mockRes(); await h({ method: 'POST', headers: { host: 'a', origin: 'https://a', 'x-real-ip': '1.1.1.1' }, body: { code: 'nope' } }, res); assert.equal(res.code, 401)
+  res = mockRes(); await h({ method: 'POST', headers: { host: 'a', origin: 'https://a', 'x-real-ip': '1.1.1.2' }, body: { code: 'test-code-1234' } }, res)
   assert.equal(res.code, 200)
   const cookie = res.headers['Set-Cookie']
   assert.match(cookie, /HttpOnly/); assert.match(cookie, /SameSite=Strict/); assert.match(cookie, /Secure/)
@@ -107,7 +107,7 @@ await ok('R4 가상 자료 확인이 없거나 개인정보가 남으면 언어 
     return { ok: true, status: 200, json: async () => ({ images: [{ inferResult: 'SUCCESS', fields: [{ inferText: '거동 상태 혼자 걷습니다', lineBreak: true }, { inferText: '연락 kim@test.co.kr', lineBreak: true }] }] }) }
   }
   try {
-    const base = { method: 'POST', headers: { host: 'a', cookie: `miri_s=${tok}`, 'x-real-ip': '4.4.4.4' } }
+    const base = { method: 'POST', headers: { host: 'a', origin: 'https://a', cookie: `miri_s=${tok}`, 'x-real-ip': '4.4.4.4' } }
     let res = mockRes(); await I.default({ ...base, body: { mimeType: 'image/png', data: png } }, res)
     assert.equal(res.code, 400); assert.equal(res.body.error.code, 'VIRTUAL_ONLY'); assert.equal(calls.length, 0)
     res = mockRes(); await I.default({ ...base, body: { mimeType: 'image/png', data: png, virtualOnly: true } }, res)

@@ -19,12 +19,12 @@ await ok('R2 공유 저장소가 없으면 AI 호출을 503으로 막는다(인�
   const tok = A.issueToken()
   for (const M of [A, B]) {
     const res = mockRes()
-    assert.equal(await M.guard({ headers: { host: 'a', cookie: `miri_s=${tok}`, 'x-real-ip': '7.7.7.7' } }, res, { ai: 'intake' }), false)
+    assert.equal(await M.guard({ headers: { host: 'a', origin: 'https://a', cookie: `miri_s=${tok}`, 'x-real-ip': '7.7.7.7' } }, res, { ai: 'intake' }), false)
     assert.equal(res.code, 503); assert.equal(res.body.error.code, 'NO_LIMIT_STORE')
   }
   // AI 가 아닌 기능은 그대로 열린다
   const res = mockRes()
-  assert.equal(await A.guard({ headers: { host: 'a', cookie: `miri_s=${tok}` } }, res), true)
+  assert.equal(await A.guard({ headers: { host: 'a', origin: 'https://a', cookie: `miri_s=${tok}` } }, res), true)
 })
 
 await ok('R2 저장소 오류도 막고, 공유 저장소를 쓰면 인스턴스가 둘이어도 전체 상한을 넘지 않는다', async () => {
@@ -128,7 +128,7 @@ await ok('R9 읽은 내용이 없으면 성공이 아니라 확인 필요(422)�
   const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489', 'hex').toString('base64')
   process.env.NCP_OCR_INVOKE_URL = 'https://ocr.example'; process.env.NCP_OCR_SECRET = 'x'; process.env.NCP_CLOVASTUDIO_KEY = 'y'
   const orig = globalThis.fetch
-  const base = { method: 'POST', headers: { host: 'a', cookie: `miri_s=${tok}`, 'x-real-ip': '5.5.5.5' }, body: { mimeType: 'image/png', data: png, virtualOnly: true } }
+  const base = { method: 'POST', headers: { host: 'a', origin: 'https://a', cookie: `miri_s=${tok}`, 'x-real-ip': '5.5.5.5' }, body: { mimeType: 'image/png', data: png, virtualOnly: true } }
   // 1) 글자는 읽었지만 모델이 대상자를 하나도 내지 않음
   globalThis.fetch = async (url) => /clovastudio/.test(String(url))
     ? { ok: true, status: 200, json: async () => ({ status: { code: '20000' }, result: { message: { content: '{"items":[]}' } } }) }

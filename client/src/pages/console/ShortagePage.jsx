@@ -29,6 +29,8 @@ import { LTC } from '../../mock/donghaeData.js'
 const LTC_DAYCARE = LTC.dayCareUsers?.['계'] || 0
 
 const MAX_SCENARIOS = 5
+// 기본 시나리오(시드)는 저장 한도에서 빼고 사용자가 저장한 것만 센다
+export const userScenarioCount = (list) => list.filter((x) => !x.builtin).length
 // 탑승과 하차 시간 민감도. 현재 가정값(설정)을 가운데에 두고 앞뒤로 본다
 const BOARDING_STEPS = [10, 15, 20, 25, 30]
 const EXTRA_TYPES = [...new Set(Object.values(EXTRA_TYPE))]
@@ -88,7 +90,7 @@ export default function ShortagePage() {
   const setExtra = (type, n) => setDraft((d) => ({ ...d, extraVehicles: { ...d.extraVehicles, [type]: n } }))
 
   const saveAsNew = () => {
-    if (scenarios.length >= MAX_SCENARIOS) { toast(`시나리오는 최대 ${MAX_SCENARIOS}개까지 저장합니다. 기존 시나리오를 삭제한 뒤 저장해 주십시오.`, 'danger'); return }
+    if (userScenarioCount(scenarios) >= MAX_SCENARIOS) { toast(`시나리오는 최대 ${MAX_SCENARIOS}개까지 저장합니다. 기존 시나리오를 삭제한 뒤 저장해 주십시오.`, 'danger'); return }
     const id = `S-${Math.max(0, ...scenarios.map((s) => Number(s.id.split('-')[1]) || 0)) + 1}`
     saveScenario({ ...draft, id, name: name.trim() || `${base.name} 변형` })
     setSelectedId(id)
@@ -312,9 +314,9 @@ export default function ShortagePage() {
             <p className="mt-4 rounded-md bg-page px-3 py-2 type-meta leading-5 text-text-sec">{DISABLED_NOTE}</p>
           </Card>
 
-          <Disclosure summary={`시나리오 저장과 비교 (${scenarios.length} / ${MAX_SCENARIOS}개)`}>
+          <Disclosure summary={`시나리오 저장과 비교 (기본 ${scenarios.length - userScenarioCount(scenarios)}개, 저장 ${userScenarioCount(scenarios)} / ${MAX_SCENARIOS}개)`}>
             <TableCard
-              title="시나리오 비교" count={`${scenarios.length} / ${MAX_SCENARIOS}개`}
+              title="시나리오 비교" count={`저장 ${userScenarioCount(scenarios)} / ${MAX_SCENARIOS}개`}
               actions={canEdit && (
                 <>
                   {dirty && <Button variant="secondary" onClick={overwrite}>현재 시나리오 갱신</Button>}
@@ -322,7 +324,7 @@ export default function ShortagePage() {
                 </>
               )}
               filters={canEdit && <Input compact label="새 시나리오 이름" value={name} onChange={(e) => setName(e.target.value)} placeholder={`${base.name} 변형`} className="w-full max-w-md" />}
-              columns={compareCols} rows={compare} rowKey={({ sc }) => sc.id} pageSize={MAX_SCENARIOS} caption="시나리오 비교"
+              columns={compareCols} rows={compare} rowKey={({ sc }) => sc.id} pageSize={10} caption="시나리오 비교"
             />
           </Disclosure>
         </div>
