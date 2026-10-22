@@ -171,11 +171,19 @@ export function scorePlan(plan) {
   }
 }
 
-const better = (a, b) => {
+// 목적함수(회신 R45): 기본은 등급 가중 미이송 최소(침상, 휠체어를 먼저). 비교용 'count' 는 옮기는 인원 최대(미이송 인원 최소)를 먼저 본다.
+// 차량 정원과 회차, 도우미 수락과 자격, 대피소 자리, 마을 기한은 목적이 아니라 지켜야 할 제약으로 simulate 안에서만 다룬다
+const betterWeighted = (a, b) => {
   if (a.weightedUnserved !== b.weightedUnserved) return a.weightedUnserved < b.weightedUnserved
   if (a.unserved !== b.unserved) return a.unserved < b.unserved
   return a.lastFinishAt < b.lastFinishAt
 }
+const betterCount = (a, b) => {
+  if (a.unserved !== b.unserved) return a.unserved < b.unserved
+  if (a.weightedUnserved !== b.weightedUnserved) return a.weightedUnserved < b.weightedUnserved
+  return a.lastFinishAt < b.lastFinishAt
+}
+export const OBJECTIVES = { weighted: '등급 가중 미이송 최소(기본)', count: '이송 인원 최대' }
 
 function orderBy(ctx, cmp) {
   const order = {}
@@ -198,7 +206,8 @@ export function runBaseline(ctx) {
 // 탐색 횟수와 난수 씨앗이 같으면 기기 속도와 상관없이 같은 결과(회신 R34: 화면마다 추천 배정 효과가 다르던 원인이 시간 제한이었음).
 // budgetMs 는 안전장치로만 남기고 기본값은 제한 없음
 export const OPT_ITERATIONS = 300
-export function runOptimize(ctx, { iterations = OPT_ITERATIONS, seed = 20261214, budgetMs = Infinity } = {}) {
+export function runOptimize(ctx, { iterations = OPT_ITERATIONS, seed = 20261214, budgetMs = Infinity, objective = 'weighted' } = {}) {
+  const better = objective === 'count' ? betterCount : betterWeighted
   const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
   const t = now()
   const rt = (q) => (Number.isFinite(ctx.vmap[q.village].roundTripMin) ? ctx.vmap[q.village].roundTripMin : 1e9)
@@ -231,7 +240,7 @@ export function runOptimize(ctx, { iterations = OPT_ITERATIONS, seed = 20261214,
       if (better(m, best.metrics)) best = { ...plan, order, rule, metrics: m }
     }
   }
-  return { trips: best.trips, unserved: best.unserved, crew: best.crew, rule: best.rule, metrics: best.metrics, elapsedMs: Math.round(now() - t), iterations }
+  return { trips: best.trips, unserved: best.unserved, crew: best.crew, rule: best.rule, metrics: best.metrics, elapsedMs: Math.round(now() - t), iterations, objective }
 }
 
 // 차량 단위 묶음 + 도우미 매칭 + 배정 사유(계산 사실만 문장화. 생성 모델 아님)

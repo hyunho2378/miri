@@ -18,7 +18,7 @@ import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
 import { OWNERS, VEHICLE_NOTE, EXTRA_TYPE, GRADES, commitmentOf, typeOf } from '../../lib/shortage.js'
-import { TIME_BANDS, bandOf, computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
+import { BOTTLENECK_LABEL, TIME_BANDS, bandOf, bottleneck, computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import { DISABLED_NOTE } from '../../lib/rosterCount.js'
 import { fireScenario } from '../../lib/scenario.js'
 import { fmtElapsed } from '../../lib/geo.js'
@@ -74,6 +74,8 @@ export default function ShortagePage() {
     const agreed = vehicles.filter((v) => commitmentOf(v) !== 'unconfirmed')
     return { all: result.total, agreed: computeShortage({ ...input, vehicles: agreed }).total, unconfirmed: vehicles.length - agreed.length }
   }, [result, persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 병목 확인(회신 R45): 차량 1대와 도우미 1명을 각각 더해 같은 규칙으로 다시 계산
+  const neck = useMemo(() => bottleneck(input), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
   const dirty = JSON.stringify(draft) !== JSON.stringify(base)
 
   const set = (patch) => setDraft((d) => ({ ...d, ...patch }))
@@ -292,6 +294,18 @@ export default function ShortagePage() {
                     <span className="type-strong text-text-pri tabular-nums">미이송 예상 {agreedCompare.agreed}명</span>
                   </li>
                 </ul>
+                <h3 id="chk-neck" className="mt-4 type-h3 text-text-pri">무엇이 모자라 막히는지</h3>
+                <ul aria-labelledby="chk-neck" className="mt-2 grid gap-2">
+                  <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">
+                    <span className="type-body-sm text-text-sec">차량 1대 더({typeOf(neck.vehicleType)?.label || neck.vehicleType})</span>
+                    <span className="type-strong text-text-pri tabular-nums">{neck.vehicleGain}명 줄어 {neck.plusVehicle}명</span>
+                  </li>
+                  <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">
+                    <span className="type-body-sm text-text-sec">도우미 1명 더(모든 등급 지원)</span>
+                    <span className="type-strong text-text-pri tabular-nums">{neck.helperGain}명 줄어 {neck.plusHelper}명</span>
+                  </li>
+                </ul>
+                <p className="mt-2 type-strong text-text-pri">{BOTTLENECK_LABEL[neck.limit]}</p>
                 <p className="mt-2 type-meta leading-5 text-text-meta">재난안전 자문: 소방 구급차는 지자체 가용 차량과 따로 봄. 요양시설과 주야간보호기관 차량은 협약 전까지 미확인으로 두고, 협약을 맺으면 차량 관리에서 약속됨으로 바꿈.</p>
               </section>
             </div>
