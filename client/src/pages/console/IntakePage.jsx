@@ -18,6 +18,7 @@ import { readDocument, verifyPage, verifyResult } from '../../lib/intake.js'
 import { aiErrorMessage } from '../../lib/aiErrors.js'
 import { fmtDate } from '../../lib/time.js'
 import { SAMPLE_UPLOAD } from '../../mock/seed.js'
+import { REAL_READINGS, REAL_READ_SOURCE } from '../../mock/realReadings.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
 import { gradeOf } from '../../lib/shortage.js'
@@ -111,8 +112,19 @@ export default function IntakePage() {
     const page = await progress(SAMPLE_UPLOAD.name, Promise.resolve(verifyPage({ ...SAMPLE_UPLOAD, persons: SAMPLE_UPLOAD.persons || SAMPLE_UPLOAD.results })))
     const codes = uniqueCodes(SAMPLE_UPLOAD.villageCode, page.persons.length)
     finish({
-      id: nextDocId(), kind: SAMPLE_UPLOAD.kind, name: SAMPLE_UPLOAD.name, villageCode: SAMPLE_UPLOAD.villageCode,
+      id: nextDocId(), kind: SAMPLE_UPLOAD.kind, name: `${SAMPLE_UPLOAD.name}(예시)`, source: 'example', villageCode: SAMPLE_UPLOAD.villageCode,
       image: SAMPLE_UPLOAD.image, uploadedAt: Date.now(), status: 'pending', transcript: page.transcript,
+      results: page.persons.map((r, i) => ({ ...r, personCode: codes[i] }))
+    })
+  }
+
+  // 실제 판독 사례: 저장된 HCX-005 결과를 외부 호출 없이 불러옴
+  const onReal = async (c) => {
+    const page = await progress(c.name, Promise.resolve(verifyPage({ ...c, persons: c.results })))
+    const codes = uniqueCodes(c.villageCode, page.persons.length)
+    finish({
+      id: nextDocId(), kind: c.kind, name: c.name, villageCode: c.villageCode, source: REAL_READ_SOURCE,
+      image: c.image, uploadedAt: Date.now(), status: 'pending', transcript: page.transcript,
       results: page.persons.map((r, i) => ({ ...r, personCode: codes[i] }))
     })
   }
@@ -155,7 +167,7 @@ export default function IntakePage() {
       {uploadOpen && (
         <Card title="서류 올리기" className="mb-4">
           {canEdit ? (
-            <IntakeUploader villages={villages} onFile={onFile} onSample={onSample} busy={!!reading && !reading.failed} />
+            <IntakeUploader villages={villages} onFile={onFile} onSample={onSample} onReal={onReal} realCases={REAL_READINGS} busy={!!reading && !reading.failed} />
           ) : <p className="type-body-sm text-text-meta">서류 읽기 권한이 없습니다.</p>}
           {reading && <div className="mt-4"><ReadTimeline name={reading.name} step={reading.step} failed={reading.failed} /></div>}
           {error && (

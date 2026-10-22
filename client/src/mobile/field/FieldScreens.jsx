@@ -18,6 +18,7 @@ import { readDocument, verifyResult } from '../../lib/intake.js'
 import { readNote, sourceLabel } from '../../lib/notes.js'
 import { AI_CARD, NOT_ENTERED, placeLine, reviewReasons } from '../../lib/aiCard.js'
 import { aiErrorMessage } from '../../lib/aiErrors.js'
+import { REAL_READ_SOURCE } from '../../mock/realReadings.js'
 import { AppBar, DisplaySettings, Button, Dialog, EmptyState, Figure, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, Segmented, Sheet, Spinner, Toggle, useMobileToast } from '../ui.jsx'
 import { ACTIVE, failedPending, scopeDispatch, fieldSummary, helperResponses, hm, searchPersons, stepLabel, unservedByReason, villageName, villageProgress, deadlineTag, scopedShortage, lateVillages, docQueue, noteQueue } from './fieldModel.js'
 
@@ -205,6 +206,7 @@ export function FieldDocPage() {
         </Figure>
         <List label="근거">
           <ListRow title={v.quote ? `“${v.quote}”` : '근거 문구 없음'} subtitle={v.quoteMatched ? '서류 원문에 있는 문구' : '원문에서 찾지 못함, 원본 사진 확인'} />
+          <ListRow title={q.doc.source === REAL_READ_SOURCE ? '10. 22. HCX-005 실제 판독 저장본' : '예시 결과'} subtitle={q.doc.source === REAL_READ_SOURCE ? '실시간 호출 없이 저장된 결과를 보여 줌' : '시연용으로 미리 써 둔 결과'} />
           {q.doc.image && <ListRow title="원본 사진 보기" chevron href={q.doc.image} target="_blank" rel="noreferrer" />}
         </List>
         {(() => { const rs = reviewReasons(v); return rs.length ? (
@@ -214,7 +216,7 @@ export function FieldDocPage() {
           </section>
         ) : null })()}
         <List label="AI 정보">
-          <InfoSheet lead={<Info size={22} />} title="AI 정보" summary="저장된 시연 결과, 하는 일, 시험 결과" sheetTitle="서류 읽기 AI 정보">
+          <InfoSheet lead={<Info size={22} />} title="AI 정보" summary="하는 일, 시험 결과, 시연 방식" sheetTitle="서류 읽기 AI 정보">
             {AI_CARD.map((sec) => (
               <section key={sec.title} className="mob-section" aria-label={sec.title}>
                 <h3 className="mob-section-title">{sec.title}</h3>

@@ -5,6 +5,7 @@ import { CircleAlert, CircleCheck, ScanText } from 'lucide-react'
 import { CONF_LABEL } from '../../lib/intake.js'
 import StatusPill from '../dashboard/StatusPill.jsx'
 import Disclosure from '../ui/Disclosure.jsx'
+import { REAL_READ_SOURCE, REAL_READ_LABEL, EXAMPLE_READ_LABEL } from '../../mock/realReadings.js'
 
 function Highlighted({ transcript, quote }) {
   const i = quote ? transcript.indexOf(quote) : -1
@@ -18,12 +19,12 @@ function Highlighted({ transcript, quote }) {
   )
 }
 
-export default function EvidencePanel({ quote, matched, confidence, conflict, transcript, docName, className, subject = '서류' }) {
+export default function EvidencePanel({ quote, matched, confidence, conflict, transcript, docName, className, subject = '서류', source }) {
   return (
     <aside className={clsx('rounded-md bg-subtle p-4 min-w-0', className)} aria-label="판독 근거">
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1 type-caption text-text-sec">
-          <ScanText size={16} aria-hidden="true" />자동 판독 결과(저장된 시연 결과)
+          <ScanText size={16} aria-hidden="true" />{source === REAL_READ_SOURCE ? REAL_READ_LABEL : `자동 판독 결과(${EXAMPLE_READ_LABEL})`}
         </span>
         {confidence && <StatusPill status={confidence} label={`${CONF_LABEL[confidence]}`} />}
       </div>

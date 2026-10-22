@@ -84,7 +84,7 @@ export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdi
             </div>
           )}
           {changed && <p className="type-meta text-primary-text">읽은 값에서 변경했습니다. 수정을 누르면 변경한 값으로 확정합니다.</p>}
-          <EvidencePanel quote={result.quote} matched={result.quoteMatched} confidence={result.confidence} conflict={result.conflict} transcript={doc.transcript} docName={doc.name} />
+          <EvidencePanel quote={result.quote} matched={result.quoteMatched} confidence={result.confidence} conflict={result.conflict} transcript={doc.transcript} docName={doc.name} source={doc.source} />
           {canEdit && (
             <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
               <Button variant="ghost" size="lg" onClick={onReject}>제외</Button>

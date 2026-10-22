@@ -32,6 +32,9 @@ test('AI_LIVE 꺼짐: 현장 소식은 외부 호출 0회, STORED_ONLY 안내', 
 
 test('AI 정보 창에 시연 방식 한 줄, 80자 이하', async () => {
   const { AI_CARD } = await import('../src/lib/aiCard.js')
-  const row = AI_CARD.flatMap((s) => s.rows).find((r) => r.k === '실시간 호출')
-  assert.ok(row && /저장된 판독 결과/.test(row.v) && row.v.length <= 80)
+  const rows = AI_CARD.flatMap((s) => s.rows)
+  const live = rows.find((r) => r.k === '실시간 호출')
+  const demo = rows.find((r) => r.k === '시연 결과')
+  assert.ok(live && /멈춤/.test(live.v) && live.v.length <= 80)
+  assert.ok(demo && /실제 판독/.test(demo.v) && /예시/.test(demo.v) && demo.v.length <= 80)
 })
