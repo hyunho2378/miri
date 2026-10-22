@@ -205,7 +205,7 @@ export default function ShortagePage() {
   const headline = result.total > 0
     ? `이 조건이면 기한 안에 옮기지 못하는 사람이 ${result.total}명입니다.`
     : `이 조건이면 대피 대상 ${result.scopeTargets}명을 기한 안에 모두 옮길 수 있습니다.`
-  const fixLine = result.total > 0 && extraLine ? `${extraLine}${unresolved ? ' 이상' : ''}을 더 확보하면 ${unresolved ? '크게 줄어듭니다' : '0명이 됩니다'}.` : null
+  const fixLine = result.total > 0 && extraLine ? `${extraLine}${unresolved ? ' 이상을' : '를'} 더 확보하면 ${unresolved ? '크게 줄어듭니다' : '0명이 됩니다'}.` : null
   const agreedCount = vehicles.length - agreedCompare.unconfirmed
   const firstMinutes = Math.max(0, Math.round((draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes))
   const neckSentence = {
