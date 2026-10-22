@@ -563,7 +563,7 @@ export default function DispatchPage() {
 
   return (
     <PageShell title="발령 운영" desc="발령을 열고, 배정을 확인해 보내고, 이송이 끝나면 발령을 종료합니다.">
-      <Card as="div" className="mb-5" bodyClassName="flex flex-wrap items-center justify-between gap-4">
+      <Card as="div" className="mb-5" bodyClassName="flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
         <div className="min-w-0 flex-1"><StepIndicator status={status} /></div>
         {status !== 'sent' && <CloseControl status={status} />}
       </Card>
