@@ -7,7 +7,7 @@
 // 원문 대조와 신뢰도 강제 하향은 프론트 lib/notes.verifyNote 가 다시 수행한다(서버 응답을 그대로 믿지 않음).
 // 키가 없으면 503 NO_KEY. 키는 서버 환경변수(NCP_CLOVASTUDIO_KEY, NCP_CSR_CLIENT_ID, NCP_CSR_CLIENT_SECRET)에만 둔다.
 
-import { hcxJson, clovaStt, csrSupported, maskLines, residualPII, pick, pickTags, GRADES, TAGS, CONFS, HCX_MODEL, B64, readJsonBody, VIRTUAL_ONLY_MSG } from './_ncp.js'
+import { hcxJson, clovaStt, csrSupported, maskLines, residualPII, pick, pickTags, GRADES, TAGS, CONFS, HCX_MODEL, B64, readJsonBody, VIRTUAL_ONLY_MSG, aiLive, STORED_ONLY_MSG } from './_ncp.js'
 import { guard } from './_guard.js'
 import { NOTE_SOURCES } from '../src/lib/notes.js'
 
@@ -91,6 +91,8 @@ export function judgeNote(p, transcript) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return fail(res, 405, 'METHOD', 'POST 만 허용')
+  // 실시간 호출이 꺼져 있으면 외부 AI 를 부르지 않고 저장된 결과 안내로 돌려준다(사무국 안내, 2026. 10. 22.)
+  if (!aiLive()) return fail(res, 409, 'STORED_ONLY', STORED_ONLY_MSG)
   if (!(await guard(req, res, { requireSession: true, ai: 'note' }))) return
   const v = validateRequest(readJsonBody(req))
   if (v.error) return fail(res, v.status, v.code, v.error)

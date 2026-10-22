@@ -1,6 +1,8 @@
 // node tests/fixes2.test.mjs 서버 요청 검사 회귀 시험. 외부 호출은 모두 모의 fetch
 import assert from 'node:assert/strict'
 
+// 이 파일은 실시간 판독 경로(외부 호출을 흉내 냄)를 시험하므로 스위치를 켠다. 공개 배포 기본값은 꺼짐(aiLiveOff.test.mjs)
+process.env.AI_LIVE = '1'
 let n = 0
 const ok = async (name, fn) => { await fn(); n += 1; console.log('ok', name) }
 const mockRes = () => { const r = { status(c) { r.code = c; return r }, json(j) { r.body = j; return r }, setHeader(k, v) { (r.headers = r.headers || {})[k] = v } }; return r }

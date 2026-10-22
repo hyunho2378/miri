@@ -186,6 +186,10 @@ export function hcxBody(system, user, maxTokens = 1200, opts = {}) {
     ...(seed == null ? {} : { seed })
   }
 }
+// 실시간 AI 호출 스위치. 민관협력 플랫폼 사무국 안내(2026. 10. 22.)에 따라 기본은 꺼짐.
+// 환경변수 AI_LIVE=1 일 때만 공개 경로(서류 읽기, 현장 소식)가 CLOVA OCR, HyperCLOVA X, CLOVA Speech 를 부른다
+export const aiLive = () => process.env.AI_LIVE === '1'
+export const STORED_ONLY_MSG = '시연에서는 저장된 판독 결과만 보여 드립니다. 아래 샘플 서류(소식) 읽기를 골라 주세요'
 export async function hcxJson(system, user, maxTokens = 1200, opts = {}) {
   const key = env.hcxKey()
   if (!key) throw Object.assign(new Error('문구 분류 서버 미연결'), { code: 'NO_KEY' })
