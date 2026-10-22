@@ -8,6 +8,7 @@
 //   5. 근거 문구가 원문에 그대로 있는지 코드로 대조하고, 없으면 등급을 비우고 실패로 표시해 담당자 확인으로 넘긴다.
 //   루브릭 방식(요청 rubric:true 또는 환경변수 INTAKE_RUBRIC=1): 4번에서 등급 대신 6개 차원 점수와 근거를 받고,
 //   차원별로 원문 대조한 뒤 등급은 src/lib/rubric.js 규칙으로 계산한다(루브릭 v0, 전문가 검증 전 초안). 기본은 기존 방식.
+//   예시 넣기(루브릭 방식에서 요청 fewshot:true 또는 INTAKE_FEWSHOT=1): 지시문 뒤에 가상 예시 6개를 붙인다(src/lib/rubricFewShot.js, 학습 없음).
 //   가린 뒤에도 개인정보로 보이는 글자가 남으면 4번 전에 멈춘다. 서류 사진 원본은 1번 글자 인식에는 그대로 간다.
 // 원문 대조와 신뢰도 강제 하향은 프론트 lib/intake.verifyPage 가 다시 수행한다(서버 응답을 그대로 믿지 않음).
 // 키가 없으면 503 NO_KEY. 키는 서버 환경변수(NCP_OCR_INVOKE_URL, NCP_OCR_SECRET, NCP_CLOVASTUDIO_KEY)에만 둔다.
@@ -15,6 +16,7 @@
 import { clovaOcr, ocrFormat, imageSize, toLines, maskLines, residualPII, boxOf, hcxJson, pick, pickTags, GRADES, CONFS, HCX_MODEL, B64, readJsonBody, VIRTUAL_ONLY_MSG } from './_ncp.js'
 import { guard } from './_guard.js'
 import { RUBRIC_SYSTEM, RUBRIC_FREE_SYSTEM, RUBRIC_VERSION, rubricItemsOf, rubricPerson } from '../src/lib/rubric.js'
+import { withFewShot, useFewShot, FEWSHOT_VERSION } from '../src/lib/rubricFewShot.js'
 
 const MAX_BYTES = 6 * 1024 * 1024
 const LABEL = /거\s*동\s*상\s*태\s*[:：]?\s*/
@@ -178,17 +180,19 @@ export default async function handler(req, res) {
     const segs = segment(masked)
 
     let persons
-    const rubric = useRubric(readJsonBody(req))
+    const reqBody = readJsonBody(req)
+    const rubric = useRubric(reqBody)
+    const fewshot = useFewShot(reqBody, rubric)
     if (rubric && segs.length) {
       const user = segs.map((s, k) => `S${k + 1}: ${s.text}`).join('\n')
-      const items = await askRubric(RUBRIC_SYSTEM, user)
+      const items = await askRubric(fewshot ? withFewShot(RUBRIC_SYSTEM) : RUBRIC_SYSTEM, user)
       persons = segs.map((s, k) => {
         const it = items.find((x) => x.id === `S${k + 1}`) || (items.length === segs.length && !items.some((x) => x.id) ? items[k] : undefined)
         const idx = s.lines.flatMap((li) => lines[li].idx)
         return judgeRubric(it, s.text, `순번 ${k + 1}`, boxOf(fields, idx, size))
       })
     } else if (rubric) {
-      const items = await askRubric(RUBRIC_FREE_SYSTEM, transcript)
+      const items = await askRubric(fewshot ? withFewShot(RUBRIC_FREE_SYSTEM) : RUBRIC_FREE_SYSTEM, transcript)
       persons = fillMissing(items.map((it, k) => judgeRubric(it, transcript, `순번 ${k + 1}`, null, true)), items, masked)
     } else if (segs.length) {
       const user = segs.map((s, k) => `S${k + 1}: ${s.text}`).join('\n')
@@ -205,7 +209,7 @@ export default async function handler(req, res) {
     persons = fillMissing(persons, [], masked)
     // 읽은 내용이 없으면 성공으로 넘기지 않는다
     if (!transcript || !persons.length) return fail(res, 422, 'EMPTY_RESULT', '읽은 내용 없음. 담당자가 서류를 직접 확인해 주십시오')
-    return res.status(200).json({ transcript, persons, engine: { ocr: 'CLOVA OCR', llm: HCX_MODEL, region: 'KR', mode: rubric ? 'rubric' : 'grade', ...(rubric ? { rubricVersion: RUBRIC_VERSION } : {}) } })
+    return res.status(200).json({ transcript, persons, engine: { ocr: 'CLOVA OCR', llm: HCX_MODEL, region: 'KR', mode: rubric ? 'rubric' : 'grade', ...(rubric ? { rubricVersion: RUBRIC_VERSION } : {}), ...(fewshot ? { fewshot: FEWSHOT_VERSION } : {}) } })
   } catch (e) {
     if (e.code === 'NO_KEY') return fail(res, 503, 'NO_KEY', `판독 서버 미연결. ${e.message}`)
     if (e.code === 'MODEL_FORMAT') return fail(res, 422, 'MODEL_FORMAT', '판독 결과 형식이 맞지 않아 담당자 확인이 필요합니다. 서류를 직접 확인해 주십시오')

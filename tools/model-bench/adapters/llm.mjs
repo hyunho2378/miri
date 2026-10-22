@@ -1,13 +1,13 @@
-// 지시문 LLM 어댑터(A, B, C). 모델 호출은 공용 어댑터 tools/ai-eval/model-adapter.mjs 의 callModel 만 쓴다(중복 구현 없음).
+// 지시문 LLM 어댑터. 모델 호출은 공용 어댑터 tools/ai-eval/model-adapter.mjs 의 callModel 만 쓴다(중복 구현 없음).
 //  - HCX-005, HCX-007: CLOVA Studio(국내). NCP_CLOVASTUDIO_KEY 가 있을 때만
-//  - openai-compat:<이름>: 내려받아 쓰는 공개 모델을 llama.cpp llama-server 로 띄운 주소(MODEL_BASE_URL), 또는 해외 API(가상 자료 비교 전용)
-//  - ollama:<이름>: 로컬 Ollama
-// 두 가지 지시문을 같은 입력에 돌린다.
+// 세 가지 지시문을 같은 입력에 돌린다.
 //  - grade: 서비스 판독 지시문(client/api/intake.js SYSTEM)과 같은 등급 정의, 등급을 직접 고름
 //  - rubric: 루브릭 v0(client/src/lib/rubric.js RUBRIC_SYSTEM), 모델은 6차원 점수와 근거만, 등급은 코드 규칙(rubricPerson)
+//  - rubric-fewshot: 루브릭 v0 뒤에 가상 예시 6개를 붙인 지시문(client/src/lib/rubricFewShot.js). 학습 없음
 // 입력은 이미 가린 글자와 가상 문장뿐이다.
 import { callModel } from '../../ai-eval/model-adapter.mjs'
 import { RUBRIC_SYSTEM, rubricItemsOf, rubricPerson } from '../../../client/src/lib/rubric.js'
+import { withFewShot } from '../../../client/src/lib/rubricFewShot.js'
 
 export const GRADE_SYSTEM = `너는 재난취약자 대피 서류의 거동 상태 문구를 이송 등급으로 분류하는 판독 보조기다.
 담당자가 최종 확인하므로 추측하지 말고, 문구에 적힌 것만 근거로 쓴다.
@@ -40,7 +40,9 @@ export function fromRubricOut(out, text) {
   return { pred: p.grade, conf: p.confidence, quote: p.quote, dims: p.rubric?.dims }
 }
 
-// prompt: 'grade' | 'rubric'
+// prompt: 'grade' | 'rubric' | 'rubric-fewshot'
+export const systemOf = (prompt) => (prompt === 'rubric' ? RUBRIC_SYSTEM : prompt === 'rubric-fewshot' ? withFewShot(RUBRIC_SYSTEM) : GRADE_SYSTEM)
+const isRubric = (prompt) => prompt === 'rubric' || prompt === 'rubric-fewshot'
 export function llmAdapter({ id, label, kind, model, prompt = 'grade', temperature = 0.1, topP = 0.8, seed = 20261022 }) {
   return {
     id, label, kind, prompt,
@@ -48,8 +50,8 @@ export function llmAdapter({ id, label, kind, model, prompt = 'grade', temperatu
       const t0 = Date.now()
       if (!String(item.text || '').trim()) return { pred: 'unknown', conf: 'low', quote: '', ms: 0 }
       try {
-        const { out } = await callModel(model, { system: prompt === 'rubric' ? RUBRIC_SYSTEM : GRADE_SYSTEM, user: user(item.text) }, { temperature, topP, seed, maxTokens: prompt === 'rubric' ? 900 : 300 })
-        return { ...(prompt === 'rubric' ? fromRubricOut(out, item.text) : fromGradeOut(out)), ms: Date.now() - t0 }
+        const { out } = await callModel(model, { system: systemOf(prompt), user: user(item.text) }, { temperature, topP, seed, maxTokens: isRubric(prompt) ? 900 : 300 })
+        return { ...(isRubric(prompt) ? fromRubricOut(out, item.text) : fromGradeOut(out)), ms: Date.now() - t0 }
       } catch (e) { return { pred: 'unknown', conf: 'low', quote: '', error: String(e.code || e.message || e), ms: Date.now() - t0 } }
     }
   }

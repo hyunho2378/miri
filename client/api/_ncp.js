@@ -204,6 +204,17 @@ export async function hcxJson(system, user, maxTokens = 1200, opts = {}) {
 }
 
 // 모델 글 응답에서 JSON 한 덩어리를 꺼낸다(다른 모델 비교 도구도 같은 해석을 쓴다)
+function closeBrackets(t) {
+  const stack = []; let inStr = false, esc = false
+  for (const ch of t) {
+    if (inStr) { if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue }
+    if (ch === '"') inStr = true
+    else if (ch === '{' || ch === '[') stack.push(ch)
+    else if (ch === '}' || ch === ']') { const o = stack.pop(); if ((ch === '}' && o !== '{') || (ch === ']' && o !== '[')) return null }
+  }
+  if (inStr || !stack.length || stack.length > 3) return null
+  return t + stack.reverse().map((c) => (c === '{' ? '}' : ']')).join('')
+}
 export function parseModelJson(content) {
   const text = String(content || '').replace(/```(?:json)?/g, '').trim()
   // 모델이 객체 대신 배열만 내는 경우가 있어 둘 다 받는다. 배열이면 { items } 로 감싼다
@@ -211,6 +222,9 @@ export function parseModelJson(content) {
   const os = text.indexOf('{'), oe = text.lastIndexOf('}'), as = text.indexOf('['), ae = text.lastIndexOf(']')
   if (as >= 0 && ae > as && (os < 0 || as < os)) tries.push(text.slice(as, ae + 1))
   if (os >= 0 && oe > os) tries.push(text.slice(os, oe + 1))
+  // 모델이 마지막 닫는 괄호를 빠뜨리는 경우(루브릭 출력에서 관찰)만 짝을 맞춰 한 번 더 시도한다. 내용은 고치지 않는다
+  const start = [os, as].filter((x) => x >= 0).sort((a, b) => a - b)[0]
+  if (start != null) { const fixed = closeBrackets(text.slice(start)); if (fixed) tries.push(fixed) }
   for (const t of tries) {
     let v
     try { v = JSON.parse(t) } catch { continue }
