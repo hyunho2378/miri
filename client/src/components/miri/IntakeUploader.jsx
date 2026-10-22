@@ -30,7 +30,7 @@ export function ReadTimeline({ name, step, failed, steps = READ_STEPS, title = '
   )
 }
 
-export default function IntakeUploader({ villages, onFile, onSample, busy }) {
+export default function IntakeUploader({ villages, onFile, onSample, onReal, realCases = [], busy }) {
   const inputId = useId()
   const fileRef = useRef(null)
   const [village, setVillage] = useState(villages[0]?.code)
@@ -65,9 +65,20 @@ export default function IntakeUploader({ villages, onFile, onSample, busy }) {
           </label>
           <input id={inputId} ref={fileRef} type="file" accept="image/png,image/jpeg,image/tiff,application/pdf" className="sr-only" disabled={busy || !virtualOk}
             onChange={(e) => { take(e.target.files?.[0]); e.target.value = '' }} />
-          <Button variant="primary" onClick={onSample} disabled={busy} leftIcon={<ScanText size={16} aria-hidden="true" />}>샘플 서류 읽기</Button>
+          <Button variant="secondary" onClick={onSample} disabled={busy} leftIcon={<ScanText size={16} aria-hidden="true" />}>예시 서류 읽기</Button>
         </div>
       </div>
+      {realCases.length > 0 && (
+        <div className="mt-4">
+          <p className="type-strong text-text-pri">실제 판독 사례</p>
+          <p className="mt-1 type-meta text-text-meta">2026. 10. 22. HyperCLOVA X HCX-005가 가상 서류를 실제로 읽은 결과입니다. 개인정보는 가렸습니다.</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {realCases.map((c) => (
+              <Button key={c.id} variant="primary" onClick={() => onReal?.(c)} disabled={busy}>{c.name.replace('실제 판독 사례 ', '')}</Button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

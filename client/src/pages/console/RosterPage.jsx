@@ -238,7 +238,7 @@ export default function RosterPage() {
               <div className="space-y-3">
                 <h3 className="type-h3 text-text-pri">판독 근거</h3>
                 <DocImage src={doc.image} alt={`${doc.name} 판독 영역`} box={evidence.box} />
-                <EvidencePanel quote={evidence.quote} matched={evidence.quoteMatched} confidence={evidence.confidence} conflict={evidence.conflict} transcript={doc.transcript} docName={doc.name} />
+                <EvidencePanel quote={evidence.quote} matched={evidence.quoteMatched} confidence={evidence.confidence} conflict={evidence.conflict} transcript={doc.transcript} docName={doc.name} source={doc.source} />
               </div>
             ) : (
               <p className="rounded-md bg-subtle p-4 type-meta text-text-meta">
