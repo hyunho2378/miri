@@ -50,7 +50,7 @@ async function main() {
   const notRun = []
   const LABEL = { grade: '등급 지시문', rubric: '루브릭 v0', 'rubric-fewshot': '루브릭 v0 + 가상 예시 6개(학습 없음)' }
   if (process.env.NCP_CLOVASTUDIO_KEY) {
-    for (const prompt of ['grade', 'rubric', 'rubric-fewshot']) models.push({ a: llmAdapter({ id: `hcx-005-live-${prompt}`, label: `HCX-005(실시간, seed 고정, ${LABEL[prompt]})`, kind: 'llm-domestic', model: 'HCX-005', prompt }), sets: prompt === 'grade' ? ['ho2', 'syn-test'] : ['ho2'], repeat: REPEAT, conc: 2 })
+    for (const prompt of ['grade', 'rubric', 'rubric-fewshot']) models.push({ a: llmAdapter({ id: `hcx-005-live-${prompt}`, label: `HCX-005(실시간, seed 고정, ${LABEL[prompt]})`, kind: 'llm-domestic', model: 'HCX-005', prompt }), sets: prompt === 'grade' && !process.argv.includes('--ho2-only') ? ['ho2', 'syn-test'] : ['ho2'], repeat: REPEAT, conc: 2 })
   } else notRun.push({ id: 'hcx-005-live', why: 'NCP_CLOVASTUDIO_KEY 없음(client/.env.local 미작성, 공모전/AI검증/실행환경.md). 기록값 hcx-005-rec 로 대신함' })
 
   const results = []

@@ -14,9 +14,12 @@ import { summarize } from './metrics.mjs'
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d }
 const RUNS = Number(arg('--runs', 5))
 const MODEL = arg('--model', 'HCX-005')
-const ANS = arg('--answers', new URL('../../../../공모전/반영기록/홀드아웃2/answers_sealed.json', import.meta.url).pathname)
-const OUT = arg('--out', new URL('../../../../공모전/AI검증/', import.meta.url).pathname)
+const ANS = arg('--answers', fileURLToPath(new URL('../../../../공모전/반영기록/홀드아웃2/answers_sealed.json', import.meta.url)))
+const OUT = arg('--out', fileURLToPath(new URL('../../../../공모전/AI검증/', import.meta.url)))
 const SEED = 20261022
+const GAP_MS = Number(arg('--gap', 1200))
+const ONLY = arg('--cond', null)
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const inputs = JSON.parse(fs.readFileSync(new URL('./holdout2-inputs.json', import.meta.url), 'utf8'))
 
 export const CONDITIONS = [
@@ -48,17 +51,28 @@ export function personsOf(doc, out, rubric) {
 async function main() {
   if (!process.env.NCP_CLOVASTUDIO_KEY && /^HCX-/.test(MODEL)) { console.error('NCP_CLOVASTUDIO_KEY 가 없어 실행하지 않음'); process.exit(2) }
   const raw = []
-  for (const c of CONDITIONS) for (const doc of inputs.docs) for (let n = 0; n < RUNS; n++) {
+  let errRun = 0
+  const conds = ONLY ? CONDITIONS.filter((c) => ONLY.split(',').includes(c.id)) : CONDITIONS
+  outer: for (const c of conds) for (const doc of inputs.docs) for (let n = 0; n < RUNS; n++) {
     const p = promptOf(doc, c.rubric, c.fewshot)
+    await sleep(GAP_MS)
     try {
-      const { out, ms } = await callModel(MODEL, p, { seed: c.seed, temperature: 0.1, topP: 0.8 })
+      let res
+      try { res = await callModel(MODEL, p, { seed: c.seed, temperature: 0.1, topP: 0.8 }) } catch (e1) { process.stderr.write(`retry after ${e1.code || e1.message}\n`); await sleep(15000); res = await callModel(MODEL, p, { seed: c.seed, temperature: 0.1, topP: 0.8 }) }
+      const { out, ms } = res
+      errRun = 0
+      process.stderr.write(`${c.id} ${doc.doc} ${n} ok\n`)
       raw.push({ cond: c.id, doc: doc.doc, run: n, ms, persons: personsOf(doc, out, c.rubric).map((x) => ({ id: x.id, grade: x.grade, quote: x.quote, dims: x.rubric ? Object.fromEntries(DIM_KEYS.map((k) => [k, x.rubric.dims[k].score])) : undefined })) })
-    } catch (e) { raw.push({ cond: c.id, doc: doc.doc, run: n, error: e.code || e.message }) }
+    } catch (e) {
+      raw.push({ cond: c.id, doc: doc.doc, run: n, error: e.code || e.message })
+      process.stderr.write(`${c.id} ${doc.doc} ${n} ERR ${e.code || e.message}\n`)
+      if (++errRun >= 3) { process.stderr.write('연속 오류 3회, 중단\n'); break outer }
+    }
   }
   const answers = fs.existsSync(ANS) ? JSON.parse(fs.readFileSync(ANS, 'utf8')) : null
   const summary = summarize(raw, CONDITIONS, answers)
   fs.mkdirSync(OUT, { recursive: true })
-  fs.writeFileSync(`${OUT}/재현성시험_원자료_${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ model: MODEL, runs: RUNS, seed: SEED, conditions: CONDITIONS, raw }, null, 1))
+  fs.writeFileSync(`${OUT}/재현성시험_원자료_${new Date().toISOString().slice(0, 10)}${ONLY ? '_' + ONLY.replace(/,/g, '') : ''}.json`, JSON.stringify({ model: MODEL, runs: RUNS, seed: SEED, conditions: CONDITIONS, raw }, null, 1))
   console.log(JSON.stringify(summary, null, 1))
 }
 // 경로에 한글과 띄어쓰기가 있으면 import.meta.url 이 퍼센트 부호로 바뀌므로 파일 경로끼리 비교한다

@@ -27,16 +27,20 @@ async function main() {
   if (!file) { console.error('재현성시험 원자료 json 경로 필요'); process.exit(2) }
   const data = JSON.parse(fs.readFileSync(file, 'utf8'))
   const inputs = JSON.parse(fs.readFileSync(new URL('./holdout2-inputs.json', import.meta.url), 'utf8'))
-  const answers = JSON.parse(fs.readFileSync(arg('--answers', new URL('../../../../공모전/반영기록/홀드아웃2/answers_sealed.json', import.meta.url).pathname), 'utf8'))
+  const answers = JSON.parse(fs.readFileSync(arg('--answers', fileURLToPath(new URL('../../../../공모전/반영기록/홀드아웃2/answers_sealed.json', import.meta.url))), 'utf8'))
   const key = answerKey(answers)
-  const rows = data.raw.filter((r) => r.cond === 'C' && r.run === 0 && !r.error)
+  const COND = arg('--cond', 'C')
+  const rows = data.raw.filter((r) => r.cond === COND && r.run === 0 && !r.error)
   const out = []
   for (const r of rows) {
     const doc = inputs.docs.find((d) => d.doc === r.doc)
     for (const [i, p] of r.persons.entries()) {
       const src = doc.mode === 'segments' ? doc.segments.find((s) => s.id === p.id)?.text : doc.transcript
       try {
-        const { out: j } = await callModel(MODEL, { system: JUDGE_SYSTEM, user: judgeUser(src, p) }, { seed: 20261022 })
+        await new Promise((r) => setTimeout(r, 1200))
+        let res
+        try { res = await callModel(MODEL, { system: JUDGE_SYSTEM, user: judgeUser(src, p) }, { seed: 20261022 }) } catch (e1) { await new Promise((r) => setTimeout(r, 15000)); res = await callModel(MODEL, { system: JUDGE_SYSTEM, user: judgeUser(src, p) }, { seed: 20261022 }) }
+        const j = res.out
         const truth = key[r.doc]?.[i]
         out.push({ doc: r.doc, id: p.id, grade: p.grade, judge: j, truth: truth?.grade, readerCorrect: truth?.determinable ? p.grade === truth.grade : null })
       } catch (e) { out.push({ doc: r.doc, id: p.id, error: e.code || e.message }) }
@@ -44,8 +48,8 @@ async function main() {
   }
   const ok = out.filter((x) => !x.error && x.readerCorrect != null)
   const agree = ok.filter((x) => (x.judge?.gradeSupported === 'yes') === x.readerCorrect).length
-  console.log(JSON.stringify({ model: MODEL, judged: out.length, errors: out.filter((x) => x.error).length, judgeVsAnswerAgreement: `${agree}/${ok.length}` }, null, 1))
-  fs.writeFileSync(file.replace(/\.json$/, `_judge_${MODEL}.json`), JSON.stringify(out, null, 1))
+  console.log(JSON.stringify({ model: MODEL, cond: COND, judged: out.length, errors: out.filter((x) => x.error).length, judgeVsAnswerAgreement: `${agree}/${ok.length}` }, null, 1))
+  fs.writeFileSync(file.replace(/\.json$/, `_judge_${COND}_${MODEL}.json`), JSON.stringify(out, null, 1))
 }
 // 경로에 한글과 띄어쓰기가 있으면 import.meta.url 이 퍼센트 부호로 바뀌므로 파일 경로끼리 비교한다
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) main()
