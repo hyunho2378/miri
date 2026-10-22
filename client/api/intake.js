@@ -6,19 +6,22 @@
 //   3. "거동 상태" 칸을 코드로 나눠 대상자 단위를 정한다(누락 방지).
 //   4. 가린 글자만 HyperCLOVA X(HCX-005)에 보내 이송 등급 초안과 근거 문구를 받는다.
 //   5. 근거 문구가 원문에 그대로 있는지 코드로 대조하고, 없으면 등급을 비우고 실패로 표시해 담당자 확인으로 넘긴다.
+//   루브릭 방식(요청 rubric:true 또는 환경변수 INTAKE_RUBRIC=1): 4번에서 등급 대신 6개 차원 점수와 근거를 받고,
+//   차원별로 원문 대조한 뒤 등급은 src/lib/rubric.js 규칙으로 계산한다(루브릭 v0, 전문가 검증 전 초안). 기본은 기존 방식.
 //   가린 뒤에도 개인정보로 보이는 글자가 남으면 4번 전에 멈춘다. 서류 사진 원본은 1번 글자 인식에는 그대로 간다.
 // 원문 대조와 신뢰도 강제 하향은 프론트 lib/intake.verifyPage 가 다시 수행한다(서버 응답을 그대로 믿지 않음).
 // 키가 없으면 503 NO_KEY. 키는 서버 환경변수(NCP_OCR_INVOKE_URL, NCP_OCR_SECRET, NCP_CLOVASTUDIO_KEY)에만 둔다.
 
 import { clovaOcr, ocrFormat, imageSize, toLines, maskLines, residualPII, boxOf, hcxJson, pick, pickTags, GRADES, CONFS, HCX_MODEL, B64, readJsonBody, VIRTUAL_ONLY_MSG } from './_ncp.js'
 import { guard } from './_guard.js'
+import { RUBRIC_SYSTEM, RUBRIC_FREE_SYSTEM, RUBRIC_VERSION, rubricItemsOf, rubricPerson } from '../src/lib/rubric.js'
 
 const MAX_BYTES = 6 * 1024 * 1024
 const LABEL = /거\s*동\s*상\s*태\s*[:：]?\s*/
 const STOP = /가상\s*데이터|실제\s*개인정보|순\s*번|비\s*고|대피\s*계획서|대피\s*카드|\[가림\]|^\s*\d{1,3}\s*$/
 const UNREADABLE = /판\s*독\s*불\s*가|읽\s*을\s*수\s*없|식\s*별\s*불\s*가/
 
-const SYSTEM = `너는 지자체 재난취약자 대피계획서와 대피카드의 거동 상태 문구를 이송 등급으로 분류하는 판독 보조기다.
+export const SYSTEM = `너는 지자체 재난취약자 대피계획서와 대피카드의 거동 상태 문구를 이송 등급으로 분류하는 판독 보조기다.
 담당자가 최종 확인하므로 추측하지 말고, 문구에 적힌 것만 근거로 쓴다.
 
 이송 등급
@@ -40,7 +43,7 @@ const SYSTEM = `너는 지자체 재난취약자 대피계획서와 대피카드
 7. 출력은 아래 JSON 하나만 쓴다. 다른 글은 쓰지 않는다.
 {"items":[{"id":"S1","grade":"assist","tags":[],"quote":"…","confidence":"mid"}]}`
 
-const FREE_SYSTEM = SYSTEM.replace('입력의 각 구간(S1, S2 …)마다 결과를 하나씩 반드시 낸다. 구간을 빼거나 합치지 않는다.', '문서 전체에서 대상자별 거동 상태 문구를 찾아 대상자마다 결과를 하나씩 낸다. id 는 P1, P2 … 로 붙인다.')
+export const FREE_SYSTEM = SYSTEM.replace('입력의 각 구간(S1, S2 …)마다 결과를 하나씩 반드시 낸다. 구간을 빼거나 합치지 않는다.', '문서 전체에서 대상자별 거동 상태 문구를 찾아 대상자마다 결과를 하나씩 낸다. id 는 P1, P2 … 로 붙인다.')
 
 const fail = (res, status, code, message) => res.status(status).json({ error: { code, message } })
 const one = (s) => String(s || '').replace(/\s+/g, ' ').trim()
@@ -104,6 +107,25 @@ export async function askItems(system, user, ask = hcxJson) {
   }
 }
 
+// 루브릭 응답도 형식 오류는 한 번만 다시 묻는다
+export async function askRubric(system, user, ask = hcxJson) {
+  for (let k = 0; k < 2; k++) {
+    try { return rubricItemsOf(await ask(system, user)) } catch (e) {
+      if (!['PARSE', 'BAD_MODEL_OUTPUT'].includes(e.code)) throw e
+      if (k === 1) throw Object.assign(new Error('루브릭 결과 형식 오류(재요청 뒤에도)'), { code: 'MODEL_FORMAT' })
+    }
+  }
+}
+
+// 루브릭 방식 한 사람 판정. 판독 불가 구간은 기존 규칙대로 unknown. 화면이 쓰는 기존 필드는 그대로 둔다
+export function judgeRubric(it, segText, personHint, box, free = false) {
+  const base = { personHint, context: free ? undefined : segText, box }
+  if (!free && UNREADABLE.test(segText)) return { ...base, grade: 'unknown', tags: [], quote: segText, confidence: 'low', reason: 'unreadable', rubric: rubricPerson(null, '').rubric }
+  return { ...base, ...rubricPerson(it, segText) }
+}
+
+export const useRubric = (body) => body?.rubric === true || process.env.INTAKE_RUBRIC === '1'
+
 // 자유 서술 문서에서 모델이 빠뜨린 대상자를 확인 필요로 채운다(회신 R36). 근거: 번호 매긴 줄 수, P 번호 빈자리
 export function fillMissing(persons, items, masked) {
   const ids = items.map((x) => /^P(\d+)$/.exec(x.id || '')?.[1]).filter(Boolean).map(Number)
@@ -156,7 +178,19 @@ export default async function handler(req, res) {
     const segs = segment(masked)
 
     let persons
-    if (segs.length) {
+    const rubric = useRubric(readJsonBody(req))
+    if (rubric && segs.length) {
+      const user = segs.map((s, k) => `S${k + 1}: ${s.text}`).join('\n')
+      const items = await askRubric(RUBRIC_SYSTEM, user)
+      persons = segs.map((s, k) => {
+        const it = items.find((x) => x.id === `S${k + 1}`) || (items.length === segs.length && !items.some((x) => x.id) ? items[k] : undefined)
+        const idx = s.lines.flatMap((li) => lines[li].idx)
+        return judgeRubric(it, s.text, `순번 ${k + 1}`, boxOf(fields, idx, size))
+      })
+    } else if (rubric) {
+      const items = await askRubric(RUBRIC_FREE_SYSTEM, transcript)
+      persons = fillMissing(items.map((it, k) => judgeRubric(it, transcript, `순번 ${k + 1}`, null, true)), items, masked)
+    } else if (segs.length) {
       const user = segs.map((s, k) => `S${k + 1}: ${s.text}`).join('\n')
       const items = await askItems(SYSTEM, user)
       persons = segs.map((s, k) => {
@@ -171,7 +205,7 @@ export default async function handler(req, res) {
     persons = fillMissing(persons, [], masked)
     // 읽은 내용이 없으면 성공으로 넘기지 않는다
     if (!transcript || !persons.length) return fail(res, 422, 'EMPTY_RESULT', '읽은 내용 없음. 담당자가 서류를 직접 확인해 주십시오')
-    return res.status(200).json({ transcript, persons, engine: { ocr: 'CLOVA OCR', llm: HCX_MODEL, region: 'KR' } })
+    return res.status(200).json({ transcript, persons, engine: { ocr: 'CLOVA OCR', llm: HCX_MODEL, region: 'KR', mode: rubric ? 'rubric' : 'grade', ...(rubric ? { rubricVersion: RUBRIC_VERSION } : {}) } })
   } catch (e) {
     if (e.code === 'NO_KEY') return fail(res, 503, 'NO_KEY', `판독 서버 미연결. ${e.message}`)
     if (e.code === 'MODEL_FORMAT') return fail(res, 422, 'MODEL_FORMAT', '판독 결과 형식이 맞지 않아 담당자 확인이 필요합니다. 서류를 직접 확인해 주십시오')
