@@ -3,7 +3,10 @@
 // 언어 모델은 차원별 점수와 근거 문구(원문 그대로)만 낸다. 네 등급은 이 파일의 규칙으로 코드가 계산한다.
 // 같은 지시문과 출력 형식을 다른 모델 비교(tools/model-bench)에서도 그대로 쓴다. 출력 형식은 공모전/AI검증/판독출력형식_v1.md.
 
-export const RUBRIC_VERSION = 'v0-draft'
+import { quoteIn } from './quote.js'
+
+// v0.1(10. 22.): 점수 방향 주의 규칙 추가, 근거 없는 차원은 출력에서 빼서 응답을 짧게(닫는 괄호 누락 C 55/75, D 69/75 대응). 차원과 단계 문구는 v0 그대로
+export const RUBRIC_VERSION = 'v0.1-draft'
 export const RUBRIC_STATUS = '전문가 검증 전 초안'
 
 export const DIMENSIONS = [
@@ -27,13 +30,14 @@ ${table}
 
 규칙
 1. 입력의 각 구간(S1, S2 …)마다 결과를 하나씩 반드시 낸다. 구간을 빼거나 합치지 않는다.
-2. 차원마다 score(1~5 정수)와 quote 를 낸다. quote 는 그 구간 글자에서 점수 근거가 된 부분을 한 글자도 바꾸지 않고 그대로 복사한다.
-3. 문구에 그 차원의 근거가 없으면 score 는 null, quote 는 빈 글자로 둔다. 근거 없이 1점을 주지 않는다.
-4. 두 단계 사이에서 애매하면 더 높은 점수를 고른다. 낮게 매기면 차가 가도 태우지 못한다.
-5. "판독 불가", 얼룩, 빈칸처럼 읽을 수 없으면 모든 차원을 null 로 둔다.
-6. [가림] 표시는 개인정보를 가린 자리다. 추측해서 채우지 않는다.
-7. 출력은 아래 JSON 하나만 쓴다. 다른 글은 쓰지 않는다.
-{"items":[{"id":"S1","dims":{"D1":{"score":3,"quote":"…"},"D2":{"score":null,"quote":""},"D3":{"score":3,"quote":"…"},"D4":{"score":null,"quote":""},"D5":{"score":null,"quote":""},"D6":{"score":null,"quote":""}}}]}`
+2. 근거가 있는 차원만 score(1~5 정수)와 quote 를 낸다. quote 는 그 구간 글자에서 점수 근거가 된 부분을 한 글자도 바꾸지 않고 그대로 복사한다.
+3. 문구에 그 차원의 근거가 없으면 그 차원은 쓰지 않는다. 근거 없이 1점을 주지 않는다.
+4. 점수 방향: 1은 도움 없음, 5는 완전 의존이다. "못함", "안 됨", "불가", "없이는 못"이 붙은 문구는 높은 점수다(예: "걷는 것이 안 됨"은 D1 5점).
+5. 두 단계 사이에서 애매하면 더 높은 점수를 고른다. 낮게 매기면 차가 가도 태우지 못한다.
+6. "판독 불가", 얼룩, 빈칸처럼 읽을 수 없으면 dims 를 빈 객체로 둔다.
+7. [가림] 표시는 개인정보를 가린 자리다. 추측해서 채우지 않는다.
+8. 출력은 아래 JSON 하나만 쓴다. 다른 글은 쓰지 않는다.
+{"items":[{"id":"S1","dims":{"D1":{"score":3,"quote":"…"},"D3":{"score":3,"quote":"…"}}}]}`
 
 export const RUBRIC_FREE_SYSTEM = RUBRIC_SYSTEM.replace('입력의 각 구간(S1, S2 …)마다 결과를 하나씩 반드시 낸다. 구간을 빼거나 합치지 않는다.', '문서 전체에서 대상자별 거동 상태 문구를 찾아 대상자마다 결과를 하나씩 낸다. id 는 P1, P2 … 로 붙인다.')
 
@@ -63,7 +67,9 @@ export function verifyDims(dims, sourceText) {
     const quote = one(d.quote)
     const score = intScore(d.score)
     if (score == null) { out[k] = { score: null, quote: '', verified: false, reason: 'noEvidence' }; continue }
-    if (!quote || !src.includes(quote)) { out[k] = { score: null, quote, proposedScore: score, verified: false, reason: 'quoteMismatch' }; continue }
+    if (!quote || !quoteIn(src, quote)) { out[k] = { score: null, quote, proposedScore: score, verified: false, reason: 'quoteMismatch' }; continue }
+    // 점수 방향 모순: 근거가 "못함, 안 됨, 불가, 불편, 어려움"인데 1~2점(도움 거의 없음)이면 그 차원을 비운다(홀드아웃2 12번 1)
+    if (score <= 2 && /못\s*(?:함|하|해|걷|앉|움직)|안\s*됨|불\s*가|불\s*편|어려/.test(quote) && !/없이도|필요\s*없/.test(quote)) { out[k] = { score: null, quote, proposedScore: score, verified: false, reason: 'directionConflict' }; continue }
     out[k] = { score, quote, verified: true }
   }
   return out

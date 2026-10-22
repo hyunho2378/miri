@@ -14,6 +14,10 @@ test('문자열 안 괄호는 세지 않음', () => {
   const v = parseModelJson('{"q":"원문 {괄호] 포함","n":1')
   assert.equal(v.q, '원문 {괄호] 포함')
 })
-test('짝이 어긋난 글은 보정하지 않고 실패', () => {
-  assert.throws(() => parseModelJson('{"a":[1,2}'))
+test('닫는 괄호 종류가 어긋나면 빠진 괄호만 넣어 읽음(판정 기준표 v0.1 출력 "}}]}" 관찰)', () => {
+  assert.deepEqual(parseModelJson('{"a":[1,2}'), { a: [1, 2] })
+  assert.deepEqual(parseModelJson('{"items":[{"id":"P1","dims":{"D1":{"score":5,"quote":"x"}}]}').items[0].dims.D1.score, 5)
+})
+test('여는 괄호가 없는 닫는 괄호는 실패', () => {
+  assert.throws(() => parseModelJson('"a"]}'))
 })

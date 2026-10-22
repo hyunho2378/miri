@@ -8,15 +8,24 @@ import { hcxBody, parseModelJson } from '../../client/api/_ncp.js'
 // 측정 전용 괄호 보정: 루브릭 출력에서 HCX-005 가 마지막 닫는 괄호를 빠뜨리는 경우가 관찰됐다(2026. 10. 22.).
 // 서비스 해석기(parseModelJson)는 그대로 두고, 시험 도구만 짝을 맞춰 한 번 더 읽고 repaired 로 표시한다. 내용은 고치지 않는다
 export function closeBrackets(t) {
-  const stack = []; let inStr = false, esc = false
+  // 빠진 닫는 괄호를 채운다. 닫는 괄호 종류가 어긋나면("}}]}"처럼 항목을 닫기 전에 배열을 닫음) 앞에 빠진 괄호를 넣는다
+  // (10. 22. 판정 기준표 v0.1 출력에서 관찰). 글자 내용은 바꾸지 않고 괄호만 넣는다
+  const stack = []; let inStr = false, esc = false, out = '', fixed = 0
+  const closer = (c) => (c === '{' ? '}' : ']')
   for (const ch of t) {
-    if (inStr) { if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue }
+    if (inStr) { out += ch; if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue }
     if (ch === '"') inStr = true
     else if (ch === '{' || ch === '[') stack.push(ch)
-    else if (ch === '}' || ch === ']') { const o = stack.pop(); if ((ch === '}' && o !== '{') || (ch === ']' && o !== '[')) return null }
+    else if (ch === '}' || ch === ']') {
+      const want = ch === '}' ? '{' : '['
+      if (!stack.includes(want)) return null
+      while (stack[stack.length - 1] !== want) { out += closer(stack.pop()); fixed++ }
+      stack.pop()
+    }
+    out += ch
   }
-  if (inStr || !stack.length || stack.length > 3) return null
-  return t + stack.reverse().map((c) => (c === '{' ? '}' : ']')).join('')
+  if (inStr || stack.length > 3 || (!stack.length && !fixed)) return null
+  return out + stack.reverse().map(closer).join('')
 }
 export function parseWithRepair(content) {
   try { return { out: parseModelJson(content), repaired: false } } catch (e) {
@@ -34,7 +43,7 @@ async function hcx005(system, user, opts) {
   const r = await fetch('https://clovastudio.stream.ntruss.com/v3/chat-completions/HCX-005', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }, body: JSON.stringify(hcxBody(system, user, opts.maxTokens ?? 1600, { model: 'HCX-005', temperature: opts.temperature, topP: opts.topP, seed: opts.seed })) })
   const out = await r.json().catch(() => null)
   if (!r.ok || !out || (out?.status?.code && out.status.code !== '20000')) throw Object.assign(new Error(`HCX-005 오류 ${r.status} ${out?.status?.code || ''}`), { code: 'UPSTREAM' })
-  return parseWithRepair(out?.result?.message?.content)
+  return { ...parseWithRepair(out?.result?.message?.content), content: out?.result?.message?.content, usage: out?.result?.usage }
 }
 
 async function hcx007(system, user, opts) {
@@ -49,12 +58,12 @@ async function hcx007(system, user, opts) {
   const r = await fetch('https://clovastudio.stream.ntruss.com/v3/chat-completions/HCX-007', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }, body: JSON.stringify(body) })
   const out = await r.json().catch(() => null)
   if (!r.ok || !out || (out?.status?.code && out.status.code !== '20000')) throw Object.assign(new Error(`HCX-007 오류 ${r.status} ${out?.status?.code || ''}`), { code: 'UPSTREAM' })
-  return parseWithRepair(out?.result?.message?.content)
+  return { ...parseWithRepair(out?.result?.message?.content), content: out?.result?.message?.content, usage: out?.result?.usage }
 }
 
 export async function callModel(modelId, { system, user }, opts = {}) {
   const t0 = Date.now()
   if (!/^HCX-/.test(modelId)) throw Object.assign(new Error(`모르는 모델 ${modelId}`), { code: 'BAD_MODEL' })
-  const { out, repaired } = modelId === 'HCX-007' ? await hcx007(system, user, opts) : await hcx005(system, user, opts)
-  return { out, repaired, ms: Date.now() - t0 }
+  const { out, repaired, content, usage } = modelId === 'HCX-007' ? await hcx007(system, user, opts) : await hcx005(system, user, opts)
+  return { out, repaired, content, usage, ms: Date.now() - t0 }
 }
