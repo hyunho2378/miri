@@ -138,7 +138,7 @@ export default function ResourcesPage() {
 
   const usable = vehicles.filter((v) => v.available !== false).length
   return (
-    <PageShell title="차량과 도우미">
+    <PageShell title="차량과 도우미" desc="재난 때 쓸 수 있는 차량과 함께 갈 도우미를 평소에 등록하고, 약속이 확인됐는지 관리합니다.">
       <Tabs
         className="mb-4" value={tab}
         onChange={(t) => setParams(t === 'helpers' ? { tab: 'helpers' } : {})}

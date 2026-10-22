@@ -1,4 +1,4 @@
-// 부족분 계산(IA 4.5). 결과를 먼저 보이고, 계산 조건은 오른쪽 접이식 패널에 둔다(PRD v2 F2).
+// 부족분 계산(IA 4.5). 위에서 아래 한 흐름: 결론 문장, 왜 그런지, 무엇을 늘리면 줄어드는지, 마을별 표, 접힌 계산 방법과 근거.
 // 마을별 값은 배정 규칙으로 시뮬레이션한 미이송 수. 조건을 바꾸면 결과가 바로 다시 계산된다.
 import { useEffect, useId, useMemo, useState } from 'react'
 import { Save, SlidersHorizontal, Star } from 'lucide-react'
@@ -17,7 +17,7 @@ import NumberStepper from '../../components/ui/NumberStepper.jsx'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
-import { OWNERS, VEHICLE_NOTE, EXTRA_TYPE, GRADES, commitmentOf, typeOf } from '../../lib/shortage.js'
+import { OWNERS, EXTRA_TYPE, GRADES, commitmentOf, typeOf } from '../../lib/shortage.js'
 import { BOTTLENECK_LABEL, TIME_BANDS, bandOf, bottleneck, computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import { DISABLED_NOTE } from '../../lib/rosterCount.js'
 import { fireScenario } from '../../lib/scenario.js'
@@ -67,7 +67,7 @@ export default function ShortagePage() {
   const result = useMemo(() => computeShortage(input), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
   const extra = useMemo(() => requiredExtraVehicles(input, result), [result]) // eslint-disable-line react-hooks/exhaustive-deps
   const compare = useMemo(() => scenarios.map((sc) => ({ sc, r: computeShortage({ ...input, scenario: sc }) })), [scenarios, persons, villages, vehicles, helpers, settings, today]) // eslint-disable-line react-hooks/exhaustive-deps
-  // 가정값 점검(회신 R17, R24, R27). 지금 조건에서 시간대와 탑승 시간만 바꿔 다시 계산한다
+  // 계산 방법과 근거(회신 R17, R24, R27). 지금 조건에서 시간대와 탑승 시간만 바꿔 다시 계산한다
   const bandCompare = useMemo(() => TIME_BANDS.map((b) => ({ b, r: computeShortage({ ...input, scenario: { ...draft, timeBand: b.value } }) })), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
   const boardingNow = settings.boardingMinutes ?? 20
   const boardingCompare = useMemo(() => [...new Set([...BOARDING_STEPS, boardingNow])].sort((a, b) => a - b).map((m) => ({ m, r: computeShortage({ ...input, settings: { ...settings, boardingMinutes: m } }) })), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -142,8 +142,7 @@ export default function ShortagePage() {
     <Card
       as="aside" id={panelId} title="계산 조건" aria-label="계산 조건"
       actions={<Button size="sm" variant="ghost" onClick={() => setPanelOpen(false)}>닫기</Button>}
-      className="xl:sticky xl:top-20"
-    >
+          >
       <div className="space-y-5">
         <div>
           <Select label="시나리오" value={selectedId} onChange={setSelectedId}
@@ -182,7 +181,7 @@ export default function ShortagePage() {
         </div>
         <div>
           <p className="mb-1.5 type-caption text-text-sec">추가 협약 차량</p>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+          <div className="grid gap-4 sm:grid-cols-2">
             {EXTRA_TYPES.map((t) => (
               <NumberStepper key={t} label={typeOf(t).label} value={draft.extraVehicles?.[t] || 0} min={0} max={20} unit="대" onChange={(n) => setExtra(t, n)} />
             ))}
@@ -201,133 +200,133 @@ export default function ShortagePage() {
     </Card>
   )
 
+  // 담당자가 읽을 결론 문장. 숫자를 먼저, 짧게
+  const unresolved = extra.some((e) => !e.resolved)
+  const headline = result.total > 0
+    ? `이 조건이면 기한 안에 옮기지 못하는 사람이 ${result.total}명입니다.`
+    : `이 조건이면 대피 대상 ${result.scopeTargets}명을 기한 안에 모두 옮길 수 있습니다.`
+  const fixLine = result.total > 0 && extraLine ? `${extraLine}${unresolved ? ' 이상' : ''}을 더 확보하면 ${unresolved ? '크게 줄어듭니다' : '0명이 됩니다'}.` : null
+  const agreedCount = vehicles.length - agreedCompare.unconfirmed
+  const firstMinutes = Math.max(0, Math.round((draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes))
+  const neckSentence = {
+    vehicle: '지금은 차량이 모자라 막혀 있습니다. 도우미를 늘려도 줄지 않고, 차량을 늘려야 줄어듭니다.',
+    helper: '지금은 함께 탈 도우미가 모자랍니다. 도우미를 늘려야 줄어듭니다.',
+    both: '차량과 도우미가 함께 모자랍니다. 둘 다 늘려야 줄어듭니다.',
+    other: '차량과 도우미를 더해도 줄지 않습니다. 남은 시간이나 대피소 자리가 막고 있습니다.',
+    none: '못 옮기는 사람이 없습니다.'
+  }[neck.limit] || BOTTLENECK_LABEL[neck.limit]
+  const Row = ({ label, value, strong }) => (
+    <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-4 py-3">
+      <span className="type-body-sm text-text-sec">{label}</span>
+      <span className={`tabular-nums ${strong ? 'type-strong text-text-pri' : 'type-body-sm text-text-pri'}`}>{value}</span>
+    </li>
+  )
+
   return (
-    <PageShell title="부족분 계산">
-      <Card as="div" padding="sm" className="mb-4" bodyClassName="flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="type-caption text-text-sec">계산 조건</p>
-          <p className="mt-0.5 type-body-sm text-text-pri tabular-nums">{summary}</p>
-          <p className="mt-1 type-meta text-text-sec">입력 기준: 장기요양 재가 수급자 2025년 통계, 명부는 가상 자료. 등록장애인은 명부 확인 뒤 포함. 계산 규칙 1.2판(2026. 10. 20.)</p>
-        </div>
-        <Button
-          variant={panelOpen ? 'primary' : 'secondary'} aria-expanded={panelOpen} aria-controls={panelId}
-          leftIcon={<SlidersHorizontal size={16} aria-hidden="true" />} onClick={() => setPanelOpen((v) => !v)}
-        >
-          계산 조건
-        </Button>
-      </Card>
+    <PageShell title="부족분 계산" desc="산불이 번지는 조건을 정하면, 지금 있는 차량과 도우미로 기한 안에 못 옮기는 사람이 몇 명인지 계산합니다.">
+      {panelOpen && <div className="mb-4">{conditions}</div>}
 
-      <div className={panelOpen ? 'grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,380px)] xl:items-start' : ''}>
-        {panelOpen && <div className="xl:order-2">{conditions}</div>}
-
-        <div className="grid gap-4 content-start min-w-0 xl:order-1">
-          <Card aria-live="polite">
-            <div className="grid gap-5 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
-              <ShortageValue value={result.total} byGrade={result.byGrade} provisional={result.provisional} label="미이송 예상">
-                <BasisLine scenario={draft.name} today={today} />
-              </ShortageValue>
-              <div className="min-w-0">
-                <p className="type-caption text-text-sec">필요 추가 차량</p>
-                <p className="mt-2 type-h3 text-text-pri">{extraLine || '없음'}</p>
-                <p className="mt-1 type-meta text-text-meta">{extraLine ? '필요 추가 차량을 모두 더하면 미이송 예상이 0명이 됩니다.' : '현재 보유 차량으로 미이송 예상이 0명입니다.'}</p>
-                {extra.length > 0 && (
-                  <ul className="mt-3 flex flex-wrap gap-2">
-                    {extra.map((e) => (
-                      <li key={e.grade} className="inline-flex items-center gap-2 rounded-md bg-subtle px-3 py-2">
-                        <GradeChip grade={e.grade} size="sm" />
-                        <span className="type-meta text-text-sec tabular-nums">미이송 {result.byGrade[e.grade]}명, 추가 {e.typeLabel} {e.count}대{e.resolved ? '' : ' 이상'}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          </Card>
-
-          <ShortageTable basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} arrivals={result.arrivals} t0={today} />
-
-          <Card title="가정값 점검" meta="외부 자문 반영">
-            <p className="mb-4 type-body-sm text-text-sec">자문 회신으로 받은 의견과 계산 가정을 나란히 둡니다. 근거가 한 곳뿐인 값은 가정을 바꾸지 않고 바꿨을 때의 결과만 보여 줍니다.</p>
-            <div className="grid gap-5 lg:grid-cols-2">
-              <section aria-labelledby="chk-band" className="min-w-0">
-                <h3 id="chk-band" className="type-h3 text-text-pri">발령 시간대</h3>
-                <ul className="mt-2 grid gap-2">
-                  {bandCompare.map(({ b, r }) => (
-                    <li key={b.value} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">
-                      <span className="type-body-sm text-text-sec">{b.label}{b.value === (draft.timeBand || 'home') ? ' (지금 조건)' : ''}</span>
-                      <span className="type-strong text-text-pri tabular-nums">미이송 예상 {r.total}명{r.dayCareAway ? <span className="ml-1 type-meta text-text-sec">센터 대피 {r.dayCareAway}명 제외</span> : null}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-2 type-meta leading-5 text-text-meta">개발자 자문: 주야간보호 이용자는 낮에 센터에 있고 센터는 송영 차량을 갖고 있어 시간대 변수가 필요함. 행정학 자문: 야간이나 휴일에는 인력과 차량 확보가 어려울 수 있어 별도 시나리오가 필요함.</p>
-              </section>
-              <section aria-labelledby="chk-board" className="min-w-0">
-                <h3 id="chk-board" className="type-h3 text-text-pri">탑승과 하차 시간</h3>
-                <ul className="mt-2 grid gap-2">
-                  {boardingCompare.map(({ m, r }) => (
-                    <li key={m} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">
-                      <span className="type-body-sm text-text-sec tabular-nums">회차당 {m}분{m === boardingNow ? ' (지금 가정)' : ''}</span>
-                      <span className="type-strong text-text-pri tabular-nums">미이송 예상 {r.total}명</span>
-                    </li>
-                  ))}
-                </ul>
-                <dl className="mt-3 grid gap-2">
-                  <div className="rounded-md bg-page px-3 py-2">
-                    <dt className="type-caption text-text-sec">계산 가정</dt>
-                    <dd className="mt-0.5 type-body-sm text-text-pri">휠체어는 리프트 승합차와 도우미 2명, 회차마다 탑승과 하차 {boardingNow}분</dd>
-                  </div>
-                  <div className="rounded-md bg-page px-3 py-2">
-                    <dt className="type-caption text-text-sec">장애인 단체 자문, 개인 경험 기준</dt>
-                    <dd className="mt-0.5 type-body-sm text-text-pri">특장차량은 슬로프와 안전벨트가 있어 운전자 1명으로 가능하고, 숙련자는 탑승과 안전벨트 착용이 5분 이내. 경수 장애는 보호자가 함께할 수 있고, 전동 휠체어는 경차 개조 특장차에 타기 어려울 수 있음</dd>
-                  </div>
-                </dl>
-                <p className="mt-2 type-meta leading-5 text-text-meta">근거가 한 곳뿐이라 가정값은 바꾸지 않았습니다. 도우미 수와 지원 등급도 차량과 함께 계산 조건이며, 함께 탈 도우미가 모자란 대상자는 '도우미 부족'으로 미이송 예상에 들어갑니다. 발령 배정도 같은 조건을 씁니다.</p>
-              </section>
-              <section aria-labelledby="chk-commit" className="min-w-0">
-                <p className="type-body-sm text-text-sec">{Object.values(OWNERS).join(', ')}</p><p className="type-meta text-text-meta">{VEHICLE_NOTE}</p>
-                <h3 id="chk-commit" className="type-h3 text-text-pri">차량 가용 확실성</h3>
-                <ul className="mt-2 grid gap-2">
-                  <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">
-                    <span className="type-body-sm text-text-sec">가용 차량 전체(지금 조건)</span>
-                    <span className="type-strong text-text-pri tabular-nums">미이송 예상 {agreedCompare.all}명</span>
+      <div className="grid gap-4 min-w-0">
+        <Card aria-live="polite" title="결론" meta={draft.name}>
+          <p className="type-h2 text-text-pri">{headline}</p>
+          {fixLine && <p className="mt-2 type-body text-text-pri">{fixLine}</p>}
+          <div className="mt-5 flex flex-wrap items-end gap-x-10 gap-y-4">
+            <ShortageValue value={result.total} byGrade={result.byGrade} provisional={result.provisional} label="기한 안에 못 옮기는 사람">
+              <BasisLine scenario={draft.name} today={today} />
+            </ShortageValue>
+            {extra.length > 0 && (
+              <ul aria-label="등급별 더 필요한 차량" className="flex flex-wrap gap-2">
+                {extra.map((e) => (
+                  <li key={e.grade} className="inline-flex items-center gap-2 rounded-md bg-subtle px-3 py-2">
+                    <GradeChip grade={e.grade} size="sm" />
+                    <span className="type-meta text-text-sec tabular-nums">{result.byGrade[e.grade]}명, {e.typeLabel} {e.count}대{e.resolved ? '' : ' 이상'} 더 필요</span>
                   </li>
-                  <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">
-                    <span className="type-body-sm text-text-sec tabular-nums">약속된 차량만(미확인 {agreedCompare.unconfirmed}대 제외)</span>
-                    <span className="type-strong text-text-pri tabular-nums">미이송 예상 {agreedCompare.agreed}명</span>
-                  </li>
-                </ul>
-                <h3 id="chk-neck" className="mt-4 type-h3 text-text-pri">무엇이 모자라 막히는지</h3>
-                <ul aria-labelledby="chk-neck" className="mt-2 grid gap-2">
-                  <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">
-                    <span className="type-body-sm text-text-sec">차량 1대 더({typeOf(neck.vehicleType)?.label || neck.vehicleType})</span>
-                    <span className="type-strong text-text-pri tabular-nums">{neck.vehicleGain}명 줄어 {neck.plusVehicle}명</span>
-                  </li>
-                  <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2">
-                    <span className="type-body-sm text-text-sec">도우미 1명 더(모든 등급 지원)</span>
-                    <span className="type-strong text-text-pri tabular-nums">{neck.helperGain}명 줄어 {neck.plusHelper}명</span>
-                  </li>
-                </ul>
-                <p className="mt-2 type-strong text-text-pri">{BOTTLENECK_LABEL[neck.limit]}</p>
-                <p className="mt-2 type-meta leading-5 text-text-meta">재난안전 자문: 소방 구급차는 지자체 가용 차량과 따로 봄. 요양시설과 주야간보호기관 차량은 협약 전까지 미확인으로 두고, 협약을 맺으면 차량 관리에서 약속됨으로 바꿈.</p>
-              </section>
-            </div>
-            <p className="mt-4 rounded-md bg-page px-3 py-2 type-meta leading-5 text-text-sec">{DISABLED_NOTE}</p>
-          </Card>
+                ))}
+              </ul>
+            )}
+          </div>
+        </Card>
 
-          <Disclosure summary={`시나리오 저장과 비교 (기본 ${scenarios.length - userScenarioCount(scenarios)}개, 저장 ${userScenarioCount(scenarios)} / ${MAX_SCENARIOS}개)`}>
-            <TableCard
-              title="시나리오 비교" count={`저장 ${userScenarioCount(scenarios)} / ${MAX_SCENARIOS}개`}
-              actions={canEdit && (
-                <>
-                  {dirty && <Button variant="secondary" onClick={overwrite}>현재 시나리오 갱신</Button>}
-                  <Button variant="primary" onClick={saveAsNew} leftIcon={<Save size={16} aria-hidden="true" />}>시나리오 저장</Button>
-                </>
-              )}
-              filters={canEdit && <Input compact label="새 시나리오 이름" value={name} onChange={(e) => setName(e.target.value)} placeholder={`${base.name} 변형`} className="w-full max-w-md" />}
-              columns={compareCols} rows={compare} rowKey={({ sc }) => sc.id} pageSize={10} caption="시나리오 비교"
-            />
-          </Disclosure>
-        </div>
+        <Card title="왜 이런 결과가 나오나">
+          <ul className="grid gap-2">
+            <Row label="대피해야 하는 사람" value={`${result.scopeVillages}개 마을 ${result.scopeTargets}명`} strong />
+            <Row label="쓸 수 있는 차량" value={`${vehicles.length}대(약속된 차량 ${agreedCount}대, 확인 전 ${agreedCompare.unconfirmed}대)`} />
+            <Row label="첫 마을에 산불이 닿기까지" value={`발령 후 ${fmtElapsed(draft.windowHours)}, 출발 준비 ${prepText(draft.prepMinutes)} 빼면 ${firstMinutes}분`} />
+            <Row label="이송을 끝내야 하는 때" value={completeText(draft.completeBeforeHours ?? 0)} />
+            <Row label="발령 시간대" value={`${bandOf(draft).label}${(draft.availability ?? 100) < 100 ? `, 차량 ${draft.availability}%만 모임` : ''}`} />
+          </ul>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="type-meta text-text-meta">조건을 바꾸면 결과가 바로 다시 계산됩니다.</p>
+            <Button
+              variant={panelOpen ? 'primary' : 'secondary'} aria-expanded={panelOpen} aria-controls={panelId}
+              leftIcon={<SlidersHorizontal size={16} aria-hidden="true" />} onClick={() => setPanelOpen((v) => !v)}
+            >
+              계산 조건 바꾸기
+            </Button>
+          </div>
+        </Card>
+
+        <Card title="무엇을 늘리면 줄어드나">
+          <p className="type-strong text-text-pri">{neckSentence}</p>
+          <ul aria-label="하나씩 더했을 때" className="mt-3 grid gap-2">
+            <Row label={`차량 1대 더(${typeOf(neck.vehicleType)?.label || neck.vehicleType})`} value={`${neck.vehicleGain}명 줄어 ${neck.plusVehicle}명`} strong />
+            <Row label="도우미 1명 더" value={`${neck.helperGain}명 줄어 ${neck.plusHelper}명`} strong />
+            <Row label={`확인 전 차량 ${agreedCompare.unconfirmed}대가 오지 않으면`} value={`${agreedCompare.agreed}명`} strong />
+          </ul>
+          <p className="mt-3 type-meta leading-5 text-text-meta">택시와 버스는 재난 때 교통 부서가 그때 요청하므로, 확정되기 전까지 확인 전 차량으로 따로 셉니다. 평소에 협약해 두면 약속된 차량으로 바뀝니다.</p>
+        </Card>
+
+        <ShortageTable basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} arrivals={result.arrivals} t0={today} />
+
+        <Disclosure summary="계산 방법과 근거">
+          <div className="grid gap-6">
+            <section aria-labelledby="chk-cond">
+              <h3 id="chk-cond" className="type-h3 text-text-pri">지금 계산 조건</h3>
+              <p className="mt-2 type-body-sm text-text-pri tabular-nums">{summary}</p>
+              <p className="mt-1 type-meta text-text-meta">대상자 수는 장기요양 재가 수급자 2025년 통계, 명부는 시연용 자료입니다. 계산 규칙 1.2판(2026. 10. 20.)</p>
+            </section>
+            <section aria-labelledby="chk-band">
+              <h3 id="chk-band" className="type-h3 text-text-pri">발령 시간대에 따라</h3>
+              <p className="mt-1 type-body-sm text-text-sec">낮에는 주야간보호 이용자가 센터에 있어 센터 차량으로 대피합니다. 밤과 휴일에는 차량과 운전 인력을 다 모으기 어렵습니다.</p>
+              <ul className="mt-2 grid gap-2">
+                {bandCompare.map(({ b, r }) => (
+                  <Row key={b.value} label={`${b.label}${b.value === (draft.timeBand || 'home') ? ' (지금 조건)' : ''}`} value={`${r.total}명${r.dayCareAway ? `, 센터 대피 ${r.dayCareAway}명 제외` : ''}`} strong />
+                ))}
+              </ul>
+              <p className="mt-2 type-meta text-text-meta">근거: 재난문자 서비스 개발자, 행정학 교수 자문</p>
+            </section>
+            <section aria-labelledby="chk-board">
+              <h3 id="chk-board" className="type-h3 text-text-pri">한 번 태우고 내리는 시간에 따라</h3>
+              <p className="mt-1 type-body-sm text-text-sec">휠체어 이용자는 리프트 승합차와 도우미 2명으로 옮기고, 한 번에 태우고 내리는 데 {boardingNow}분으로 계산합니다. 숙련된 운전자는 5분 안에 태운다는 의견이 있어 시간을 바꿨을 때도 함께 보여 드립니다.</p>
+              <ul className="mt-2 grid gap-2">
+                {boardingCompare.map(({ m, r }) => (
+                  <Row key={m} label={`${m}분${m === boardingNow ? ' (지금 조건)' : ''}`} value={`${r.total}명`} strong />
+                ))}
+              </ul>
+              <p className="mt-2 type-meta text-text-meta">근거: 장애인 단체 자문. 함께 탈 도우미가 모자라면 그 사람도 못 옮기는 사람에 들어가고, 발령 때 배정도 같은 조건을 씁니다.</p>
+            </section>
+            <section aria-labelledby="chk-owner">
+              <h3 id="chk-owner" className="type-h3 text-text-pri">차량을 나누는 기준</h3>
+              <p className="mt-1 type-body-sm text-text-sec">{Object.values(OWNERS).join(', ')}</p>
+              <p className="mt-1 type-meta leading-5 text-text-meta">개인 차량은 등록하지 않습니다. 소방 구급차는 시 차량과 따로 운용합니다. 요양시설과 주야간보호기관 차량은 협약 전까지 확인 전 차량으로 둡니다. 근거: 동해시 재난안전 담당 부서 답변, 재난안전 자문</p>
+            </section>
+            <p className="rounded-md bg-page px-4 py-3 type-meta leading-5 text-text-sec">{DISABLED_NOTE}</p>
+          </div>
+        </Disclosure>
+
+        <Disclosure summary={`시나리오 저장과 비교 (기본 ${scenarios.length - userScenarioCount(scenarios)}개, 저장 ${userScenarioCount(scenarios)} / ${MAX_SCENARIOS}개)`}>
+          <TableCard
+            title="시나리오 비교" count={`저장 ${userScenarioCount(scenarios)} / ${MAX_SCENARIOS}개`}
+            actions={canEdit && (
+              <>
+                {dirty && <Button variant="secondary" onClick={overwrite}>현재 시나리오 갱신</Button>}
+                <Button variant="primary" onClick={saveAsNew} leftIcon={<Save size={16} aria-hidden="true" />}>시나리오 저장</Button>
+              </>
+            )}
+            filters={canEdit && <Input compact label="새 시나리오 이름" value={name} onChange={(e) => setName(e.target.value)} placeholder={`${base.name} 변형`} className="w-full max-w-md" />}
+            columns={compareCols} rows={compare} rowKey={({ sc }) => sc.id} pageSize={10} caption="시나리오 비교"
+          />
+        </Disclosure>
       </div>
     </PageShell>
   )

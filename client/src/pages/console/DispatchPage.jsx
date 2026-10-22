@@ -525,6 +525,33 @@ function SentPanel({ now, meta }) {
   )
 }
 
+// 발령 종료 버튼(배정 전과 전송 전 단계). 전송 뒤에는 이송 진행 카드 머리에 같은 버튼과 결과 요약 확인 창이 있다
+// 시 관리자에게만 보이고, 동 담당자에게는 누가 종료하는지 한 줄로 알린다
+function CloseControl({ status }) {
+  const role = useAuthStore((s) => s.user?.role)
+  const close = useDispatchStore((s) => s.close)
+  const toast = useToast()
+  const [open, setOpen] = useState(false)
+  if (status !== 'standby' && status !== 'assigned') return null
+  if (role !== 'city') return <p className="type-meta text-text-sec">발령 종료는 시 관리자가 합니다.</p>
+  return (
+    <>
+      <Button variant="danger" onClick={() => setOpen(true)}>발령 종료</Button>
+      <Modal
+        open={open} onClose={() => setOpen(false)} title="발령 종료"
+        footer={(
+          <>
+            <Button variant="ghost" onClick={() => setOpen(false)}>취소</Button>
+            <Button variant="danger" onClick={() => { setOpen(false); close(); toast('발령을 종료했습니다. 이송 기록에 저장했습니다.', 'primary') }}>발령 종료</Button>
+          </>
+        )}
+      >
+        <p className="type-body-sm text-text-sec">{status === 'standby' ? '배정을 계산하기 전입니다.' : '배정을 도우미에게 보내기 전입니다.'} 종료하면 이번 발령은 끝나고 기록에 남습니다.</p>
+      </Modal>
+    </>
+  )
+}
+
 export default function DispatchPage() {
   const restoreRemote = useDispatchStore((s) => s.restoreRemote)
   // 새로고침 뒤 서버에 저장한 발령 복원(회신 R34)
@@ -535,9 +562,10 @@ export default function DispatchPage() {
   const meta = useVillageMeta()
 
   return (
-    <PageShell title="발령 운영">
-      <Card as="div" className="mb-5">
-        <StepIndicator status={status} />
+    <PageShell title="발령 운영" desc="발령을 열고, 배정을 확인해 보내고, 이송이 끝나면 발령을 종료합니다.">
+      <Card as="div" className="mb-5" bodyClassName="flex flex-wrap items-center justify-between gap-4">
+        <div className="min-w-0 flex-1"><StepIndicator status={status} /></div>
+        {status !== 'sent' && <CloseControl status={status} />}
       </Card>
       {(status === 'idle' || status === 'closed') && <StartPanel />}
       {status === 'standby' && <StandbyPanel now={now} meta={meta} />}

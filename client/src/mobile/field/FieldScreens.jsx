@@ -103,7 +103,33 @@ export function FieldStatusPage() {
         )}
         {scope.isDong ? null : u.total > 0 && <Button block variant="danger" onClick={() => navigate('/m/f/fire')}>동해소방서 지원 요청</Button>}
         {d.remote?.state !== 'saved' && <ServerLink remote={d.remote} />}
+        <CloseDispatch isDong={scope.isDong} left={left} />
       </main>
+    </>
+  )
+}
+
+// 발령 종료(시 관리자만). 동 담당자에게는 누가 종료하는지 한 줄로 알린다. 확인 창 하나, 종료 뒤 평시 홈에 '발령 종료' 표시
+function CloseDispatch({ isDong, left }) {
+  const close = useDispatchStore((s) => s.close)
+  const toast = useMobileToast()
+  const [open, setOpen] = useState(false)
+  if (isDong) return <p className="mob-t-callout mob-pad">발령 종료는 시 관리자가 합니다.</p>
+  return (
+    <>
+      <List label="발령 마치기">
+        <ListRow title="발령 종료" subtitle={left ? `아직 옮기지 못한 사람 ${left}명` : '모두 대피소에 도착'} chevron onClick={() => setOpen(true)} />
+      </List>
+      <Dialog
+        open={open} onClose={() => setOpen(false)} title="발령을 종료할까요?"
+        body={`도우미 화면의 배정이 지워지고 결과는 이송 기록에 남습니다.${left ? ` 아직 옮기지 못한 ${left}명은 소방 인계 여부를 먼저 확인해 주세요.` : ''}`}
+        actions={(
+          <>
+            <Button variant="plain" onClick={() => setOpen(false)}>취소</Button>
+            <Button variant="danger" onClick={() => { setOpen(false); close(); toast('발령을 종료했습니다.') }}>종료</Button>
+          </>
+        )}
+      />
     </>
   )
 }
