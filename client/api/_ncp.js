@@ -174,21 +174,38 @@ export function boxOf(fields, idx, size) {
 }
 
 // HyperCLOVA X 대화 호출. JSON 한 덩어리를 받아 파싱한다
-export async function hcxJson(system, user, maxTokens = 1200) {
+// 재현성: CLOVA Studio Chat Completions v3 의 seed(1~4294967295, 0 또는 미입력은 무작위)로 같은 입력의 결과를 고정한다
+// (네이버 클라우드 API 문서 clovastudio-chatcompletionsv3). 기본값은 환경변수 HCX_SEED, 없으면 아래 상수. temperature 와 topP 는 재현성 시험 결과 전까지 그대로 둔다
+export const HCX_DEFAULTS = { temperature: 0.1, topP: 0.8, seed: 20261022 }
+export const hcxSeed = () => { const v = Number(process.env.HCX_SEED); return Number.isInteger(v) && v >= 0 && v <= 4294967295 ? v : HCX_DEFAULTS.seed }
+export function hcxBody(system, user, maxTokens = 1200, opts = {}) {
+  const seed = opts.seed === undefined ? hcxSeed() : opts.seed
+  return {
+    messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+    temperature: opts.temperature ?? HCX_DEFAULTS.temperature, topP: opts.topP ?? HCX_DEFAULTS.topP, maxTokens, repetitionPenalty: 1.0,
+    ...(seed == null ? {} : { seed })
+  }
+}
+export async function hcxJson(system, user, maxTokens = 1200, opts = {}) {
   const key = env.hcxKey()
   if (!key) throw Object.assign(new Error('문구 분류 서버 미연결'), { code: 'NO_KEY' })
   let r
   try {
-    r = await fetch(`https://clovastudio.stream.ntruss.com/v3/chat-completions/${HCX_MODEL}`, {
+    r = await fetch(`https://clovastudio.stream.ntruss.com/v3/chat-completions/${opts.model || HCX_MODEL}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'X-NCP-CLOVASTUDIO-REQUEST-ID': rid() },
-      body: JSON.stringify({ messages: [{ role: 'system', content: system }, { role: 'user', content: user }], temperature: 0.1, topP: 0.8, maxTokens, repetitionPenalty: 1.0 }),
+      body: JSON.stringify(hcxBody(system, user, maxTokens, opts)),
       signal: timeoutSignal(TIMEOUT_MS.hcx)
     })
   } catch (e) { throw upstream(e, '문구 분류') }
   const out = await r.json().catch(() => null)
   if (!r.ok || !out || (out?.status?.code && out.status.code !== '20000')) throw Object.assign(new Error(`문구 분류 오류 ${r.status}`), { code: 'UPSTREAM' })
-  const text = String(out?.result?.message?.content || '').replace(/```(?:json)?/g, '').trim()
+  return parseModelJson(out?.result?.message?.content)
+}
+
+// 모델 글 응답에서 JSON 한 덩어리를 꺼낸다(다른 모델 비교 도구도 같은 해석을 쓴다)
+export function parseModelJson(content) {
+  const text = String(content || '').replace(/```(?:json)?/g, '').trim()
   // 모델이 객체 대신 배열만 내는 경우가 있어 둘 다 받는다. 배열이면 { items } 로 감싼다
   const tries = [text]
   const os = text.indexOf('{'), oe = text.lastIndexOf('}'), as = text.indexOf('['), ae = text.lastIndexOf(']')

@@ -4,7 +4,7 @@
 // 평시 홈(할 일), 발령 홈(늦는 마을), 확인할 서류(목록과 한 건), 확인할 소식, 서류 올리기, 소식 남기기, 마을, 도우미, 소방 요청, 대상자, 더보기
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Camera, Clock, Flame, PhoneOutgoing, Truck, UserCheck, FileText, MessageSquare, Search, Users, Play } from 'lucide-react'
+import { Camera, Clock, Flame, Info, PhoneOutgoing, Truck, UserCheck, FileText, MessageSquare, Search, Users, Play } from 'lucide-react'
 import { useRealNow } from '../../hooks/useNow.js'
 import useOpenData from '../../hooks/useOpenData.js'
 import { useDispatchStore } from '../../store/useDispatchStore.js'
@@ -16,6 +16,7 @@ import { OWNERS, COMMITMENTS, GRADES, commitmentOf, gradeOf } from '../../lib/sh
 import { personCare, ROUTE_NOTE } from '../../lib/tripChecks.js'
 import { readDocument, verifyResult } from '../../lib/intake.js'
 import { readNote, sourceLabel } from '../../lib/notes.js'
+import { AI_CARD, NOT_ENTERED, placeLine, reviewReasons } from '../../lib/aiCard.js'
 import { aiErrorMessage } from '../../lib/aiErrors.js'
 import { AppBar, DisplaySettings, Button, Dialog, EmptyState, Figure, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, Segmented, Sheet, Spinner, Toggle, useMobileToast } from '../ui.jsx'
 import { ACTIVE, failedPending, scopeDispatch, fieldSummary, helperResponses, hm, searchPersons, stepLabel, unservedByReason, villageName, villageProgress, deadlineTag, scopedShortage, lateVillages, docQueue, noteQueue } from './fieldModel.js'
@@ -206,6 +207,22 @@ export function FieldDocPage() {
           <ListRow title={v.quote ? `“${v.quote}”` : '근거 문구 없음'} subtitle={v.quoteMatched ? '서류 원문에 있는 문구' : '원문에서 찾지 못함, 원본 사진 확인'} />
           {q.doc.image && <ListRow title="원본 사진 보기" chevron href={q.doc.image} target="_blank" rel="noreferrer" />}
         </List>
+        {(() => { const rs = reviewReasons(v); return rs.length ? (
+          <section className="mob-section" aria-label="확인할 까닭">
+            <h2 className="mob-section-title">확인할 까닭</h2>
+            <List label="확인할 까닭">{rs.map((r) => <ListRow key={r.key} title={r.label} />)}</List>
+          </section>
+        ) : null })()}
+        <List label="AI 정보">
+          <InfoSheet lead={<Info size={22} />} title="AI 정보" summary="하는 일, 시험 결과, 약점" sheetTitle="서류 읽기 AI 정보">
+            {AI_CARD.map((sec) => (
+              <section key={sec.title} className="mob-section" aria-label={sec.title}>
+                <h3 className="mob-section-title">{sec.title}</h3>
+                <List label={sec.title}>{sec.rows.map((r) => <ListRow key={r.k} title={r.k} subtitle={r.v} />)}</List>
+              </section>
+            ))}
+          </InfoSheet>
+        </List>
         <div className="mob-stack-8">
           <Button block onClick={confirm}>{plan?.label || '이 등급'}으로 확정</Button>
           <Button block variant="plain" onClick={() => setPick(true)}>다른 등급</Button>
@@ -327,7 +344,7 @@ export function FieldVillageDetailPage() {
               <Progress value={v.total ? (v.done / v.total) * 100 : 0} label="마을 이송 완료 비율" />
             </Figure>
             <List label="만나는 곳과 차량">
-              <ListRow title={village?.pickup?.name || '집결지 확인 필요'} subtitle={village?.pickup?.road || undefined} />
+              <ListRow title={village?.pickup?.name || '집결지 확인 필요'} subtitle={village?.pickup?.road || undefined} meta={placeLine('pickup')} />
               <InfoSheet lead={<Truck size={22} />} title={`차량 ${vehicles.length}대, 도우미 ${v.helpers.length}명`} sheetTitle="차량과 도우미">
                 {!vehicles.length ? <EmptyState title="배정 차량 없음" /> : (
                   <List label="배정 차량">
@@ -507,9 +524,9 @@ export function FieldPersonPage() {
           <p className="mob-t-callout">{row ? `${stepLabel(row.step)}${row.stop ? `, 차량 ${row.stop.vehicleCode}` : ''}${row.step === 'fail' ? `, ${FAIL_REASONS[d.events[p.code]?.reason] || ''}` : ''}` : g?.need || ''}</p>
         </Figure>
         <List label="동행과 소통">
-          <ListRow title="평소 돌봄 담당자" subtitle={`${care.caregiverType}, ${care.reachableLabel}${care.companionCall ? ', 동행 연락' : ''}`} />
-          <ListRow title="의사소통" subtitle={care.comm.length ? care.comm.join(', ') : care.known ? '특이 없음' : '확인 필요'} />
-          <ListRow title="보조기구" subtitle={care.aids.length ? care.aids.join(', ') : care.known ? '없음' : '확인 필요'} />
+          <ListRow title="평소 돌봄 담당자" subtitle={!care.known ? NOT_ENTERED : `${care.caregiverType}, ${care.reachableLabel}${care.companionCall ? ', 동행 연락' : ''}`} />
+          <ListRow title="의사소통" subtitle={care.comm.length ? care.comm.join(', ') : care.known ? '특이 없음' : NOT_ENTERED} />
+          <ListRow title="보조기구" subtitle={care.aids.length ? care.aids.join(', ') : care.known ? '없음' : NOT_ENTERED} />
           <InfoSheet title="경로 확인 기준" sheetTitle="경로 확인 기준"><p className="mob-t-body mob-pad">{ROUTE_NOTE}</p></InfoSheet>
         </List>
       </main>
