@@ -182,3 +182,37 @@ export function optimizedUnserved(result) {
   if (!optCache.has(result.ctx)) optCache.set(result.ctx, runOptimize(result.ctx).metrics.unserved)
   return optCache.get(result.ctx)
 }
+
+// 병목 확인(회신 R45): 계산이 끝난 뒤 차량 1대와 도우미 1명을 각각 더했을 때 미이송이 얼마나 줄어드는지 같은 규칙으로 다시 계산한다.
+// 차량은 미이송이 가장 많은 등급에 맞는 차종(EXTRA_TYPE), 도우미는 모든 등급을 지원하고 미이송이 있는 마을을 맡는 가상 1명. 결정적 계산
+export function bottleneck(input) {
+  const base = computeShortage(input)
+  const g = Object.entries(base.byGrade).sort((a, b) => b[1] - a[1])[0]?.[0] || 'assist'
+  const type = EXTRA_TYPE[g] || 'car'
+  const extra = { ...(input.scenario?.extraVehicles || {}) }
+  extra[type] = (extra[type] || 0) + 1
+  const plusVehicle = computeShortage({ ...input, scenario: { ...input.scenario, extraVehicles: extra } }).total
+  const shortVillages = Object.entries(base.byVillage).filter(([, v]) => v.total > 0).map(([k]) => k)
+  const helper = { code: 'H-EXTRA', villages: shortVillages, grades: GRADES.map((x) => x.key), active: true, consent: true, roles: ['ride'], affiliation: 'other' }
+  const plusHelper = computeShortage({ ...input, helpers: [...(input.helpers || []), helper] }).total
+  const reasons = {}
+  for (const u of base.baselineUnserved || []) reasons[u.reason] = (reasons[u.reason] || 0) + 1
+  const dv = base.total - plusVehicle
+  const dh = base.total - plusHelper
+  const limit = base.total === 0 ? 'none' : dv > dh ? 'vehicle' : dh > dv ? 'helper' : dv === 0 ? 'other' : 'both'
+  return { base: base.total, vehicleType: type, plusVehicle, plusHelper, vehicleGain: dv, helperGain: dh, limit, reasons }
+}
+export const BOTTLENECK_LABEL = { vehicle: '차량이 병목', helper: '도우미가 병목', both: '차량과 도우미가 함께 병목', other: '차량과 도우미를 더해도 줄지 않음(시간 또는 대피소)', none: '미이송 없음' }
+
+// 목적 비교(회신 R45): 같은 입력으로 등급 가중 우선과 이송 인원 최대 우선의 추천 배정 결과를 나란히 낸다. 서비스 기본은 등급 가중 우선
+export function objectiveCompare(input) {
+  const r = computeShortage(input)
+  const out = {}
+  for (const objective of ['weighted', 'count']) {
+    const plan = runOptimize(r.ctx, { objective })
+    const byGrade = emptyByGrade()
+    for (const u of plan.unserved) byGrade[u.grade] += 1
+    out[objective] = { unserved: plan.metrics.unserved, weighted: plan.metrics.weightedUnserved, byGrade }
+  }
+  return out
+}
