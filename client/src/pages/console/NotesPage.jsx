@@ -135,7 +135,7 @@ export default function NotesPage() {
   }
 
   return (
-    <PageShell title="현장 소식" desc="명부 갱신은 동 맞춤형복지 담당(사회복지 담당자)이 맡습니다. 이사와 거주 변화를 가장 먼저 아는 사회복지 담당자가 요양보호사, 생활지원사, 이장, 가족의 소식을 확인해 승인합니다.">
+    <PageShell title="현장 소식" desc="돌봄 담당자, 이장, 가족이 전한 상태 변화를 확인하고, 승인한 것만 명부에 반영합니다.">
       <section aria-label="현장 소식 단계" className="mb-4 flex flex-col gap-3 lg:flex-row">
         <StepCard n={1} Icon={MessageSquareText} title="소식 받기" desc="요양보호사, 생활지원사, 이장, 가족이 전한 말을 글로 붙여 넣거나 음성 녹음을 올립니다." count={`${notes.length}건`}
           active={inputOpen} onClick={canEdit ? () => setShowInput((v) => !v) : undefined} />

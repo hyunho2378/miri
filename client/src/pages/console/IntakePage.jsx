@@ -156,7 +156,7 @@ export default function IntakePage() {
   }
 
   return (
-    <PageShell title="서류 읽기">
+    <PageShell title="서류 읽기" desc="동에서 받은 대피 관련 서류를 AI가 읽은 결과와 원본을 맞춰 보고, 이송 등급을 확정합니다.">
       <section aria-label="서류 읽기 단계" className="mb-4 flex flex-col gap-3 lg:flex-row">
         <StepCard n={1} Icon={FileUp} title="서류 올리기" desc="동 담당자가 받은 대피계획서나 대피카드를 찍거나 스캔해 올립니다." count={`${docs.length}건`}
           active={uploadOpen} onClick={canEdit ? () => setShowUpload((v) => !v) : undefined} />
