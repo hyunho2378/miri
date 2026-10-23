@@ -153,8 +153,11 @@ function simulate(ctx, order, rule) {
 
     for (const qid of qs) {
       if (!remaining[qid].length) continue
-      const noShelter = !Number.isFinite(ctx.vmap[ctx.qmap[qid].village].roundTripMin)
-      const reason = !vs.length ? 'noCompatibleVehicle' : noShelter ? 'noShelter' : bestVehicle(qid, true) ? 'noHelper' : 'capacity'
+      // 왕복 시간이 없는 마을: 구역 밖 안전한 대피소가 없으면 noShelter, 대피소는 있는데 경로 자료가 없으면 noRoute 로 나눈다(플랫폼 AI 코딩 검토 지적 반영)
+      const vv = ctx.vmap[ctx.qmap[qid].village]
+      const noRt = !Number.isFinite(vv.roundTripMin)
+      const noRtReason = vv.shelterNote === 'noSafeShelter' || vv.shelterNote === 'overflow' ? 'noShelter' : 'noRoute'
+      const reason = !vs.length ? 'noCompatibleVehicle' : noRt ? noRtReason : bestVehicle(qid, true) ? 'noHelper' : 'capacity'
       for (const code of remaining[qid]) {
         unserved.push({ personCode: code, grade: g.key, village: ctx.qmap[qid].village, reason })
       }
@@ -336,7 +339,7 @@ export function crewEligible(h) {
   return !Array.isArray(h.roles) || h.roles.length === 0 || h.roles.includes('ride')
 }
 
-export const UNSERVED_REASON = { capacity: '차량 부족', noCompatibleVehicle: '호환 차량 없음', noHelper: '도우미 부족', noShelter: '안전한 대피소 없음', noShelterRoom: '대피소 자리 부족' }
+export const UNSERVED_REASON = { capacity: '차량 부족', noCompatibleVehicle: '필요 차종 없음', noHelper: '도우미 부족', noShelter: '안전한 대피소 없음', noRoute: '경로 정보 없음', noShelterRoom: '대피소 자리 부족' }
 
 // 사람별 목적지 시설 코드. 배정 때 정한 목적지를 먼저 쓰고, 없으면 회차 목적지가 하나일 때 그것을, 그다음 마을 기본 대피소를 쓴다
 export function personDest(code, trip, ctx) {

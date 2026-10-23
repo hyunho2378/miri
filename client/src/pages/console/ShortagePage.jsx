@@ -208,6 +208,10 @@ export default function ShortagePage() {
   const fixLine = result.total > 0 && extraLine ? `${extraLine}${unresolved ? ' 이상을' : '를'} 더 확보하면 ${unresolved ? '크게 줄어듭니다' : '0명이 됩니다'}.` : null
   const agreedCount = vehicles.length - agreedCompare.unconfirmed
   const firstMinutes = Math.max(0, Math.round((draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes))
+  // 계산 경고: 경로 정보 없는 마을, 필요 차종이 없는 등급(숫자 산식은 그대로, 까닭만 따로 보임)
+  const routeMissing = result.routeMissing || []
+  const noType = result.noVehicleType || {}
+  const noTypeTotal = Object.values(noType).reduce((s, x) => s + x, 0)
   const neckSentence = {
     vehicle: '지금은 차량이 모자라 막혀 있습니다. 도우미를 늘려도 줄지 않고, 차량을 늘려야 줄어듭니다.',
     helper: '지금은 함께 탈 도우미가 모자랍니다. 도우미를 늘려야 줄어듭니다.',
@@ -254,6 +258,12 @@ export default function ShortagePage() {
             <Row label="첫 마을에 산불이 닿기까지" value={`발령 후 ${fmtElapsed(draft.windowHours)}, 출발 준비 ${prepText(draft.prepMinutes)} 빼면 ${firstMinutes}분`} />
             <Row label="이송을 끝내야 하는 때" value={completeText(draft.completeBeforeHours ?? 0)} />
             <Row label="발령 시간대" value={`${bandOf(draft).label}${(draft.availability ?? 100) < 100 ? `, 차량 ${draft.availability}%만 모임` : ''}`} />
+            {routeMissing.length > 0 && (
+              <Row label="경로 정보가 없어 못 옮기는 것으로 센 마을" value={`${routeMissing.map((v) => v.name).join(', ')}, ${routeMissing.reduce((s, v) => s + v.persons, 0)}명`} />
+            )}
+            {noTypeTotal > 0 && (
+              <Row label="태울 차종이 없어 못 옮기는 것으로 센 사람" value={GRADES.filter((g) => noType[g.key] > 0).map((g) => `${g.label} ${noType[g.key]}명`).join(', ')} />
+            )}
           </ul>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <p className="type-meta text-text-meta">조건을 바꾸면 결과가 바로 다시 계산됩니다.</p>
