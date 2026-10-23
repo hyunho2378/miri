@@ -23,3 +23,13 @@ test('근거 문구는 회차 확인 결과로: 도로 경로면 도로 경로 �
   const c = tripChecks({ trip: { village: 'MS-04', grade: 'assist', personCodes: [] }, shelters, villages: seed.villages, scenario: seed.scenarios[0], villageShelter: () => v.shelterCode })
   assert.equal(c.routeBasis, 'road')
 })
+
+test('여러 회차를 합칠 때 근거는 경로 확인이 걸린 회차로, 도우미 화면 두 곳도 같은 합치기 함수 사용', async () => {
+  const { mergeChecks, tripCheckNotes } = await import('../src/lib/tripChecks.js')
+  const base = { companionCall: [], caregiverUnreachable: [], commCaution: [], liftUnchecked: [] }
+  const m = mergeChecks([{ ...base, routeCheck: true, routeBasis: 'road' }, { ...base, routeCheck: false, routeBasis: 'line' }])
+  assert.equal(m.routeBasis, 'road')
+  assert.match(tripCheckNotes(m).at(-1).text, /도로 경로 기준/)
+  const fs = await import('node:fs')
+  for (const f of ['src/mobile/helper/useHelperModel.js', 'src/pages/helper/HelperPage.jsx']) assert.match(fs.readFileSync(new URL('../' + f, import.meta.url), 'utf8'), /mergeChecks\(Object\.values/)
+})

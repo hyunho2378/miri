@@ -23,7 +23,7 @@ import RemoteHelper from './RemoteHelper.jsx'
 import { mobilePathFor } from '../../mobile/helper/flow.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { tripChecks } from '../../lib/tripChecks.js'
-import { tripCheckNotes } from '../../lib/tripChecks.js'
+import { mergeChecks, tripCheckNotes } from '../../lib/tripChecks.js'
 
 const NEXT = {
   wait: { step: 'depart', label: '출발' },
@@ -124,11 +124,7 @@ function DemoHelperPage() {
     villageShelter: (code) => villageOf(code)?.shelterCode
   }
   const tripCheck = Object.fromEntries(trips.map((tr) => [tr.index, tripChecks({ trip: tr, ...checkCtx })]))
-  const merged = Object.values(tripCheck).reduce((m, c) => ({
-    companionCall: [...m.companionCall, ...c.companionCall], caregiverUnreachable: [...m.caregiverUnreachable, ...c.caregiverUnreachable],
-    commCaution: [...m.commCaution, ...c.commCaution], liftUnchecked: [...new Set([...m.liftUnchecked, ...c.liftUnchecked])], routeCheck: m.routeCheck || c.routeCheck,
-    routeBasis: m.routeBasis === 'line' || c.routeBasis === 'line' ? 'line' : 'road'
-  }), { companionCall: [], caregiverUnreachable: [], commCaution: [], liftUnchecked: [], routeCheck: false, routeBasis: 'road' })
+  const merged = mergeChecks(Object.values(tripCheck))
   const allNotes = tripCheckNotes(merged)
   const summary = (
     <Card>
