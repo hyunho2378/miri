@@ -6,7 +6,7 @@ import { STEP_LABEL, FAIL_REASONS } from '../../lib/dispatchSim.js'
 import { TAGS } from '../../lib/intake.js'
 import { gradeOf } from '../../lib/shortage.js'
 import { fmtHM } from '../../lib/time.js'
-import { personCare } from '../../lib/tripChecks.js'
+import { personCare, routeBasisText } from '../../lib/tripChecks.js'
 import StatusPill from '../dashboard/StatusPill.jsx'
 import Badge from '../ui/Badge.jsx'
 import Card from '../ui/Card.jsx'
@@ -16,7 +16,7 @@ const DONE = new Set(['handover', 'fail', 'handedToFire'])
 
 export default function HelperAssignmentCard({
   order, person, step, info, villageLabel, shelterName, tripIndex,
-  current = false, expanded = false, onToggle, doneAt, failReason, routeCheck = false
+  current = false, expanded = false, onToggle, doneAt, failReason, routeCheck = false, villageCode
 }) {
   const done = DONE.has(step)
   const open = current || expanded
@@ -70,7 +70,7 @@ export default function HelperAssignmentCard({
             </a>
           )}
           {routeCheck && (
-            <p role="note" className="rounded-md bg-warning-soft px-3 py-2 type-body-sm text-warning-text">경로 확인 필요. 집결지와 대피소를 잇는 직선이 산불 영향 범위를 지남(직선 기준, 도로 경로 아님). 출발 전 담당자 확인</p>
+            <p role="note" className="rounded-md bg-warning-soft px-3 py-2 type-body-sm text-warning-text">경로 확인 필요. 대피소로 가는 길이 산불 영향 범위를 지남({routeBasisText(villageCode)}). 출발 전 담당자 확인</p>
           )}
           <div>
             <p className="type-caption text-text-sec">동행과 소통</p>

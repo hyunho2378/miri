@@ -1,11 +1,31 @@
 // tripChecks.js 배정표와 도우미 화면의 확인 표시. 순수 함수. 배정 계산(부족분, 회차)은 바꾸지 않고 표시만 만든다.
 // - 대상자: 평소 돌봄 담당자 동행 연락, 의사소통 유의, 보조기구(치매 전문 언론 자문 회신)
 // - 대피소: 리프트 차량 진입, 야간과 휴일 개방 담당(재난문자 지도 서비스 개발자 자문 회신). 값이 없으면 확인 필요
-// - 경로: 상업 길찾기를 쓰지 않으므로 마을 집결지와 대피소를 잇는 직선만 본다. 도로 경로 판단이 아님
+// - 경로: 카카오모빌리티 길찾기로 미리 계산한 도로 경로 선(src/data/roadRoutes.js)으로 본다. 경로가 없는 짝만 직선으로 본다
 import { distKm, spreadGeometry } from './scenario.js'
+import { ROAD_ROUTES as ROAD } from '../data/roadRoutes.js'
 
 export const UNKNOWN = '확인 필요'
-export const ROUTE_NOTE = '직선 기준, 도로 경로 아님'
+export const ROUTE_NOTE = '도로 경로 기준(카카오모빌리티 길찾기로 미리 계산). 도로 경로가 없는 마을은 집결지와 대피소를 잇는 직선으로 봄'
+export const ROAD_SOURCE = ROAD.source
+
+// 이 마을에서 출발하는 도로 경로가 미리 계산돼 있는지
+export function hasRoadRoutes(villageCode) {
+  if (!villageCode) return false
+  const prefix = `${villageCode}>`
+  return Object.keys(ROAD.routes).some((k) => k.startsWith(prefix))
+}
+
+// 도우미 화면의 경로 확인 근거 문구
+export function routeBasisText(villageCode) {
+  return hasRoadRoutes(villageCode) ? '도로 경로 기준, 산불 영향 범위를 지남' : '직선 기준, 이 마을은 도로 경로 미계산'
+}
+
+// 마을 코드와 대피소 코드로 미리 계산한 도로 경로 좌표. 없으면 null
+export function roadPath(villageCode, shelterCode) {
+  const r = ROAD.routes[`${villageCode}>${shelterCode}`]
+  return r?.path?.length >= 2 ? r.path : null
+}
 
 // 대상자 돌봄과 의사소통 정보. 값이 없는 대상자(판독 확인 대기 등)는 확인 필요로 본다
 export function personCare(person) {
@@ -37,6 +57,17 @@ export function shelterAccess(shelter) {
 
 const NEEDS_LIFT = new Set(['wheelchair', 'bed'])
 
+// 도로 경로 선(좌표 배열)을 따라 고르게 점을 뽑는다
+function samplePath(path, stepKm = 0.1) {
+  const pts = []
+  for (let i = 0; i + 1 < path.length; i += 1) {
+    const a = path[i], b = path[i + 1]
+    const n = Math.max(1, Math.ceil(distKm(a, b) / stepKm))
+    for (let k = 1; k <= n; k += 1) pts.push([a[0] + (b[0] - a[0]) * (k / n), a[1] + (b[1] - a[1]) * (k / n)])
+  }
+  return pts
+}
+
 function sample(a, b, n = 24) {
   const pts = []
   for (let i = 1; i <= n; i += 1) {
@@ -62,15 +93,17 @@ function pointSegKm(p, a, b) {
 // 확산 시나리오: 확산 띠 안에서 출발 마을보다 발화 가정 지점 쪽으로 0.3km 넘게 들어가는 점이 있거나,
 //   도착 대피소가 띠 안 대피 대상 구역 범위(가장 먼 대상 마을까지)에 있으면 경로 확인 필요
 // 그 밖의 시나리오: 출발 마을이 아닌 대피 대상 마을 기준점 0.5km 안을 지나면 경로 확인 필요
-export function routeCrossesHazard({ from, to, fromVillage, scenario, villages = [] }) {
+// path 가 있으면 도로 경로 선을, 없으면 직선을 본다
+export function routeCrossesHazard({ from, to, fromVillage, scenario, villages = [], path = null }) {
   if (!from || !to || !scenario) return false
+  const pts = path ? samplePath(path) : sample(from, to)
   if (scenario.kind === 'fire' && scenario.origin && Number.isFinite(scenario.heading)) {
     const half = scenario.halfWidthKm ?? 4
     const affected = new Set(scenario.affected || [])
     const alongs = villages.filter((v) => affected.has(v.code)).map((v) => spreadGeometry(scenario.origin, scenario.heading, v.lngLat).along)
     const maxAlong = alongs.length ? Math.max(...alongs) : 0
     const start = spreadGeometry(scenario.origin, scenario.heading, from)
-    for (const pt of sample(from, to)) {
+    for (const pt of pts) {
       const g = spreadGeometry(scenario.origin, scenario.heading, pt)
       if (g.along >= 0 && g.lateral <= half && g.along < start.along - 0.3) return true
     }
@@ -78,7 +111,8 @@ export function routeCrossesHazard({ from, to, fromVillage, scenario, villages =
     return end.along >= 0 && end.lateral <= half && end.along <= maxAlong
   }
   const affected = new Set(scenario.affected || [])
-  return villages.some((v) => v.code !== fromVillage && affected.has(v.code) && v.lngLat && pointSegKm(v.lngLat, from, to) <= 0.5 && distKm(v.lngLat, from) > 0.5)
+  const segs = path ? path.slice(1).map((b, i) => [path[i], b]) : [[from, to]]
+  return villages.some((v) => v.code !== fromVillage && affected.has(v.code) && v.lngLat && segs.some(([a, b]) => pointSegKm(v.lngLat, a, b) <= 0.5) && distKm(v.lngLat, from) > 0.5)
 }
 
 // 회차 하나의 확인 표시. shelterCodes 는 회차 목적지(분산이면 여럿), 없으면 마을 기본 대피소
@@ -89,13 +123,16 @@ export function tripChecks({ trip, persons = {}, shelters = {}, villages = [], s
   const dests = destCodes.map((c) => shelters[c]).filter(Boolean)
   const cares = trip.personCodes.map((c) => ({ code: c, ...personCare(persons[c]) }))
   const liftUnchecked = NEEDS_LIFT.has(trip.grade) ? dests.filter((s) => shelterAccess(s).liftUnchecked).map((s) => s.name) : []
-  const routeCheck = dests.some((s) => routeCrossesHazard({ from: village?.lngLat, to: s.lngLat, fromVillage: trip.village, scenario, villages }))
+  const paths = dests.map((s) => roadPath(trip.village, s.code))
+  const routeCheck = dests.some((s, i) => routeCrossesHazard({ from: village?.lngLat, to: s.lngLat, fromVillage: trip.village, scenario, villages, path: paths[i] }))
+  const routeBasis = dests.length && paths.every(Boolean) ? 'road' : 'line'
   return {
     companionCall: cares.filter((c) => c.companionCall).map((c) => c.code),
     caregiverUnreachable: cares.filter((c) => c.caregiverUnreachable).map((c) => c.code),
     commCaution: cares.filter((c) => c.commCaution).map((c) => c.code),
     liftUnchecked,
-    routeCheck
+    routeCheck,
+    routeBasis
   }
 }
 
@@ -112,7 +149,7 @@ export function tripCheckNotes(checks) {
   if (checks.caregiverUnreachable.length) notes.push({ tone: 'warning', text: `돌봄 담당자 연락 불가 ${checks.caregiverUnreachable.length}명` })
   if (checks.commCaution.length) notes.push({ tone: 'primary', text: `의사소통 유의 ${checks.commCaution.length}명` })
   if (checks.liftUnchecked.length) notes.push({ tone: 'warning', text: `리프트 차량 진입 확인 필요: ${checks.liftUnchecked.join(', ')}` })
-  if (checks.routeCheck) notes.push({ tone: 'warning', text: '경로 확인 필요(직선 기준, 도로 경로 아님)' })
+  if (checks.routeCheck) notes.push({ tone: 'warning', text: checks.routeBasis === 'road' ? '경로 확인 필요(도로 경로 기준, 산불 영향 범위 통과)' : '경로 확인 필요(직선 기준, 이 마을은 도로 경로 미계산)' })
   return notes
 }
 
@@ -120,6 +157,7 @@ export function tripCheckNotes(checks) {
 export function mergeChecks(list) {
   return list.reduce((m, c) => ({
     companionCall: [...m.companionCall, ...c.companionCall], caregiverUnreachable: [...m.caregiverUnreachable, ...c.caregiverUnreachable],
-    commCaution: [...m.commCaution, ...c.commCaution], liftUnchecked: [...new Set([...m.liftUnchecked, ...c.liftUnchecked])], routeCheck: m.routeCheck || c.routeCheck
-  }), { companionCall: [], caregiverUnreachable: [], commCaution: [], liftUnchecked: [], routeCheck: false })
+    commCaution: [...m.commCaution, ...c.commCaution], liftUnchecked: [...new Set([...m.liftUnchecked, ...c.liftUnchecked])], routeCheck: m.routeCheck || c.routeCheck,
+    routeBasis: m.routeBasis === 'line' || c.routeBasis === 'line' ? 'line' : 'road'
+  }), { companionCall: [], caregiverUnreachable: [], commCaution: [], liftUnchecked: [], routeCheck: false, routeBasis: 'road' })
 }

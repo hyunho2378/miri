@@ -231,7 +231,7 @@ function DemoHelperPage() {
                 shelterName={personDest(code, trip, d.result?.ctx) ? shelterName(personDest(code, trip, d.result?.ctx)) : shelterOf(trip.village)}
                 current={i === currentIdx} expanded={!!expanded[code]}
                 onToggle={() => setExpanded((x) => ({ ...x, [code]: !x[code] }))}
-                doneAt={ev?.at} failReason={ev?.reason} routeCheck={!!tripCheck[trip.index]?.routeCheck}
+                doneAt={ev?.at} failReason={ev?.reason} routeCheck={!!tripCheck[trip.index]?.routeCheck} villageCode={trip.village}
               />
             )
           })}
