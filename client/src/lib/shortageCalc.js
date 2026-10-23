@@ -118,6 +118,16 @@ export function computeShortage({ persons, villages: allVillages, vehicles, help
     if (timeShort(u.village)) { timeByGrade[u.grade] += 1; byVillage[u.village].timeOnly = (byVillage[u.village].timeOnly || 0) + 1 }
   }
   const timeTotal = Object.values(timeByGrade).reduce((s, x) => s + x, 0)
+  // 계산 경고(플랫폼 AI 코딩 검토 지적 반영). 숫자 산식은 그대로 두고, 미이송으로 셈한 까닭을 따로 보여 준다
+  // routeMissing: 대피소는 정해졌는데 왕복 시간(경로 자료)이 없어 회차를 만들 수 없는 마을
+  // noVehicleType: 태울 수 있는 차종이 한 대도 없어 미이송으로 쌓인 등급
+  const routeMissing = villages
+    .filter((v) => !Number.isFinite(v.roundTripMin) && v.shelterNote !== 'noSafeShelter' && v.shelterNote !== 'overflow')
+    .map((v) => ({ code: v.code, name: v.label || v.name || v.code, persons: base.unserved.filter((u) => u.village === v.code && u.reason === 'noRoute').length }))
+  const noVehicleType = emptyByGrade()
+  for (const u of base.unserved) if (u.reason === 'noCompatibleVehicle') noVehicleType[u.grade] += 1
+  const unservedReasons = {}
+  for (const u of base.unserved) unservedReasons[u.reason] = (unservedReasons[u.reason] || 0) + 1
   const total = base.unserved.length
   const provisional = params.persons.filter((p) => p.review === 'pending').length
 
@@ -138,6 +148,7 @@ export function computeShortage({ persons, villages: allVillages, vehicles, help
 
   return {
     byVillage, byGrade, timeByGrade, timeTotal, total, provisional, formula, arrivals, ctx, baselineUnserved: base.unserved,
+    routeMissing, noVehicleType, unservedReasons,
     villages: scope.all, shelterLoad: scope.shelterLoad, scopeVillages: villages.length, scopeTargets: params.persons.length,
     // 평일 낮에 센터에 있어 마을 이송에서 뺀 주야간보호 이용자(대피 대상 구역 안)
     dayCareAway: scenario?.timeBand === 'day' ? persons.filter((p) => p.dayCare && p.review !== 'rejected' && villages.some((v) => v.code === p.villageCode)).length : 0
