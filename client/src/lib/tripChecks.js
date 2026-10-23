@@ -18,7 +18,12 @@ export function hasRoadRoutes(villageCode) {
 
 // 도우미 화면의 경로 확인 근거 문구
 export function routeBasisText(villageCode) {
-  return hasRoadRoutes(villageCode) ? '도로 경로 기준, 산불 영향 범위를 지남' : '직선 기준, 이 마을은 도로 경로 미계산'
+  return routeBasisLabel(hasRoadRoutes(villageCode) ? 'road' : 'line')
+}
+
+// 회차 확인 결과(routeBasis)로 정한 근거 문구. 화면에는 마을 이름이 오므로 코드 대신 이 값을 쓴다
+export function routeBasisLabel(basis) {
+  return basis === 'road' ? '도로 경로 기준, 산불 영향 범위를 지남' : '직선 기준, 이 마을은 도로 경로 미계산'
 }
 
 // 마을 코드와 대피소 코드로 미리 계산한 도로 경로 좌표. 없으면 null

@@ -71,7 +71,7 @@ export function useDemoModel() {
       notes: tripCheckNotes(merged).map((n) => n.text),
       trips: trips.map((t) => ({
         index: t.index, village: villageOf(t.village)?.label || t.village, departAt: t.departAt, finishAt: t.finishAt,
-        personCodes: t.personCodes, routeCheck: !!checks[t.index]?.routeCheck
+        personCodes: t.personCodes, routeCheck: !!checks[t.index]?.routeCheck, routeBasis: checks[t.index]?.routeBasis === 'road' ? 'road' : 'line'
       })),
       codes: trips.flatMap((t) => t.personCodes),
       detail: (code) => {
@@ -152,7 +152,7 @@ export function useRemoteModel(token) {
       setQueue(readQueue(scope))
       return send()
     }
-    const trips = (b.trips || []).map((t) => ({ index: t.index, village: t.village, departAt: t.departAt, finishAt: t.finishAt, personCodes: t.personCodes || [], routeCheck: !!t.routeCheck }))
+    const trips = (b.trips || []).map((t) => ({ index: t.index, village: t.village, departAt: t.departAt, finishAt: t.finishAt, personCodes: t.personCodes || [], routeCheck: !!t.routeCheck, routeBasis: t.routeBasis === 'road' ? 'road' : 'line' }))
     return {
       phase: 'ready', demo: false, helper: res.helper,
       preference: (consent,roles) => push({type:'preference',consent,roles}), drill: !!b.drill, now: vclock || now,

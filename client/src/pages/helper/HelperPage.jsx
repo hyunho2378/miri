@@ -126,8 +126,9 @@ function DemoHelperPage() {
   const tripCheck = Object.fromEntries(trips.map((tr) => [tr.index, tripChecks({ trip: tr, ...checkCtx })]))
   const merged = Object.values(tripCheck).reduce((m, c) => ({
     companionCall: [...m.companionCall, ...c.companionCall], caregiverUnreachable: [...m.caregiverUnreachable, ...c.caregiverUnreachable],
-    commCaution: [...m.commCaution, ...c.commCaution], liftUnchecked: [...new Set([...m.liftUnchecked, ...c.liftUnchecked])], routeCheck: m.routeCheck || c.routeCheck
-  }), { companionCall: [], caregiverUnreachable: [], commCaution: [], liftUnchecked: [], routeCheck: false })
+    commCaution: [...m.commCaution, ...c.commCaution], liftUnchecked: [...new Set([...m.liftUnchecked, ...c.liftUnchecked])], routeCheck: m.routeCheck || c.routeCheck,
+    routeBasis: m.routeBasis === 'line' || c.routeBasis === 'line' ? 'line' : 'road'
+  }), { companionCall: [], caregiverUnreachable: [], commCaution: [], liftUnchecked: [], routeCheck: false, routeBasis: 'road' })
   const allNotes = tripCheckNotes(merged)
   const summary = (
     <Card>
@@ -231,7 +232,7 @@ function DemoHelperPage() {
                 shelterName={personDest(code, trip, d.result?.ctx) ? shelterName(personDest(code, trip, d.result?.ctx)) : shelterOf(trip.village)}
                 current={i === currentIdx} expanded={!!expanded[code]}
                 onToggle={() => setExpanded((x) => ({ ...x, [code]: !x[code] }))}
-                doneAt={ev?.at} failReason={ev?.reason} routeCheck={!!tripCheck[trip.index]?.routeCheck} villageCode={trip.village}
+                doneAt={ev?.at} failReason={ev?.reason} routeCheck={!!tripCheck[trip.index]?.routeCheck} routeBasis={tripCheck[trip.index]?.routeBasis}
               />
             )
           })}
