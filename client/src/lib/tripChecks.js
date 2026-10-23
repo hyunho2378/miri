@@ -163,6 +163,7 @@ export function mergeChecks(list) {
   return list.reduce((m, c) => ({
     companionCall: [...m.companionCall, ...c.companionCall], caregiverUnreachable: [...m.caregiverUnreachable, ...c.caregiverUnreachable],
     commCaution: [...m.commCaution, ...c.commCaution], liftUnchecked: [...new Set([...m.liftUnchecked, ...c.liftUnchecked])], routeCheck: m.routeCheck || c.routeCheck,
-    routeBasis: m.routeBasis === 'line' || c.routeBasis === 'line' ? 'line' : 'road'
+    // 근거는 경로 확인이 걸린 회차만 본다. 걸린 회차 중 하나라도 직선이면 직선
+    routeBasis: m.routeBasis === 'line' || (c.routeCheck && c.routeBasis !== 'road') ? 'line' : 'road'
   }), { companionCall: [], caregiverUnreachable: [], commCaution: [], liftUnchecked: [], routeCheck: false, routeBasis: 'road' })
 }

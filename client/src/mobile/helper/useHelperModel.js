@@ -10,7 +10,7 @@ import { personDest } from '../../lib/assign.js'
 import { HAZARD_KINDS } from '../../lib/scenario.js'
 import { gradeOf, typeOf } from '../../lib/shortage.js'
 import { personCare, shelterAccess, tripChecks } from '../../lib/tripChecks.js'
-import { tripCheckNotes } from '../../lib/tripChecks.js'
+import { mergeChecks, tripCheckNotes } from '../../lib/tripChecks.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { errorCodeOf } from './flow.js'
@@ -43,10 +43,7 @@ export function useDemoModel() {
     const trips = [...mine.trips].sort((a, b) => a.index - b.index)
     const checkCtx = { persons: personsBy, shelters: shelterBy, villages: data.villages, scenario: sc, villageShelter: (c) => villageOf(c)?.shelterCode }
     const checks = Object.fromEntries(trips.map((t) => [t.index, tripChecks({ trip: t, ...checkCtx })]))
-    const merged = Object.values(checks).reduce((m, c) => ({
-      companionCall: [...m.companionCall, ...c.companionCall], caregiverUnreachable: [...m.caregiverUnreachable, ...c.caregiverUnreachable],
-      commCaution: [...m.commCaution, ...c.commCaution], liftUnchecked: [...new Set([...m.liftUnchecked, ...c.liftUnchecked])], routeCheck: m.routeCheck || c.routeCheck
-    }), { companionCall: [], caregiverUnreachable: [], commCaution: [], liftUnchecked: [], routeCheck: false })
+    const merged = mergeChecks(Object.values(checks))
     const tripOf = {}
     for (const t of trips) for (const c of t.personCodes) tripOf[c] = t
     const shelterFor = (code) => {
