@@ -12,6 +12,7 @@ import { fmtHM } from '../../lib/time.js'
 import { ROLE_OPTIONS } from '../../lib/helperConsent.js'
 import { AVOID_PHRASES, EMERGENCY, HELPER_PHRASES, PREDEPARTURE } from '../../lib/helperGuidance.js'
 import { PLACE_TERMS } from '../../lib/aiCard.js'
+import { routeBasisText } from '../../lib/tripChecks.js'
 import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, PREDEPARTURE_ITEMS, STEP_ACTION, STEP_LABEL, STEP_NOW, UNDO_MS, helperPaneOf, lastAck, nextPlaceOf, progressOf, remainText, screenOf, sentencesOf, stepIndexOf, stepsByPerson, telOf, tripWord, withPending } from './flow.js'
 import { startDemoDispatch, useDemoModel, useRemoteModel } from './useHelperModel.js'
 import './helper.css'
@@ -231,7 +232,7 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
         <Figure value={place} caption={[code, d?.grade, trip ? `${tripWord(trip.index)}${st === 'wait' && trip.departAt ? ` ${fmtHM(trip.departAt)} 출발` : ''}` : ''].filter(Boolean).join(', ')} />
         <List label="이 대상자">
           {d?.care?.companionCall && <ListRow lead={<Phone size={20} />} title="평소 돌봄 담당자에게 연락" subtitle={d.care.caregiverType} href={d.guardianPhone ? `tel:${d.guardianPhone}` : undefined} chevron={!!d.guardianPhone} />}
-          {(d?.routeCheck || trip?.routeCheck) && <ListRow lead={<Route size={20} />} title="경로 확인 필요" subtitle="직선 기준, 도로 경로 아님" />}
+          {(d?.routeCheck || trip?.routeCheck) && <ListRow lead={<Route size={20} />} title="경로 확인 필요" subtitle={routeBasisText(trip?.village)} />}
           <InfoSheet lead={<User size={20} />} title="대상자 정보" summary={d ? '돌봄 담당자, 보조기구, 대피소' : '이름과 주소는 휴대폰으로 보내지 않음'}>
             {d ? (
               <List label="대상자 정보">
