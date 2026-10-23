@@ -47,7 +47,7 @@ export function briefsOf(d, { scenario, villages = [], officerContact = '', pers
       clock: { realStart: d.realStart, vStart: d.vStart, speed: d.speed },
       trips: [...a.trips].sort((x, y) => x.index - y.index).map((t) => ({
         index: t.index, village: label(t.village), grade: t.grade, personCodes: t.personCodes,
-        departAt: t.departAt, finishAt: t.finishAt, shelters: t.shelters || [], routeCheck: !!checks?.[t.index]?.routeCheck
+        departAt: t.departAt, finishAt: t.finishAt, shelters: t.shelters || [], routeCheck: !!checks?.[t.index]?.routeCheck, routeBasis: checks?.[t.index]?.routeBasis === 'road' ? 'road' : 'line'
       })),
       personCodes: a.trips.flatMap((t) => t.personCodes)
     }
