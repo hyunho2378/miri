@@ -20,9 +20,11 @@ import { ANOMALY_RULES } from '../../lib/anomaly.js'
 import { GRADES, emptyByGrade } from '../../lib/shortage.js'
 import { computeShortage, optimizedUnserved } from '../../lib/shortageCalc.js'
 import { fmtElapsed } from '../../lib/geo.js'
-import { peaceBasisText, pendingCounts } from '../../lib/basis.js'
+import { calcStamp, peaceBasisText, pendingCounts, rosterDateNote } from '../../lib/basis.js'
+import Disclosure from '../../components/ui/Disclosure.jsx'
 import { staleRosterCount, STALE_DAYS } from '../../lib/handoverRows.js'
 import { todoSummaryLine } from '../../lib/todoSummary.js'
+import { vehicleSummaryShort } from '../../lib/vehicleSummary.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 
@@ -194,9 +196,13 @@ export default function OverviewPage() {
             <span className="whitespace-nowrap type-meta text-text-sec">추천 배정 적용 시</span>
             <span className="whitespace-nowrap type-strong text-text-pri tabular-nums">{fmt(optUnserved)}명{diff < 0 ? <span className="ml-1 type-meta text-text-sec">{-diff}명 감소</span> : null}</span>
           </div>
-          <p className="mt-1.5 type-meta text-text-meta">{peaceBasisText({ villages: inScope.length, targets: scopeTargets })}</p>
-          {scopeProvisional > 0 && <p className="mt-2 type-meta text-text-meta">대피 대상 구역 확인 대기 서류 {scopeProvisional}건 포함 잠정값</p>}
-          <p className="mt-2 type-meta leading-5 text-text-meta">명부 {fmt(active.length)}건: {rosterPartsText(rosterBreakdown(active))}. 재가 장기요양 수급자 추정(2025, 국민건강보험공단)에 맞춘 가상 명부이며 등록장애인은 명부 확인 뒤 포함합니다.</p>
+          <p className="mt-1.5 type-meta text-text-meta tabular-nums">({calcStamp({ at: now, rosterAt: today })})</p>
+          <Disclosure className="mt-1" summary="계산 근거" summaryClassName="type-meta">
+            <p className="type-meta text-text-meta">{peaceBasisText({ villages: inScope.length, targets: scopeTargets })}</p>
+            {scopeProvisional > 0 && <p className="mt-2 type-meta text-text-meta">대피 대상 구역 확인 대기 서류 {scopeProvisional}건 포함 잠정값</p>}
+            <p className="mt-2 type-meta leading-5 text-text-meta">명부 {fmt(active.length)}건: {rosterPartsText(rosterBreakdown(active))}. 재가 장기요양 수급자 추정(2025, 국민건강보험공단)에 맞춘 가상 명부이며 등록장애인은 명부 확인 뒤 포함합니다.</p>
+            <p className="mt-2 type-meta text-text-meta">{rosterDateNote(today)}</p>
+          </Disclosure>
           <div className="mt-auto grid grid-cols-2 gap-3 pt-5">
             <Stat label="명부" value={fmt(active.length)} unit="건" />
             <Stat label="부족 마을" value={shortVillages.length} unit="곳" tone={shortVillages.length ? 'danger' : undefined} />
@@ -342,7 +348,7 @@ export default function OverviewPage() {
           >
             <p className="type-h2 text-text-pri tabular-nums">{availVehicles}<span className="ml-0.5 type-body-sm">대</span></p>
             <Meter value={availVehicles} max={vehicles.length} />
-            <p className="mt-2 type-meta text-text-meta tabular-nums">전체 {vehicles.length}대 중 {vehicles.length ? Math.round((availVehicles / vehicles.length) * 100) : 0}%, 도우미 {helpers.filter((h) => h.active).length}명</p>
+            <p className="mt-2 type-meta text-text-meta tabular-nums">{vehicleSummaryShort(vehicles)}, 도우미 {helpers.filter((h) => h.active).length}명</p>
           </Card>
         </div>
         <PublicFactsCard className="cq-md:col-span-6 cq-xl:col-span-12" />

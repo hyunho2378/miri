@@ -19,6 +19,10 @@ import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
 import { OWNERS, EXTRA_TYPE, GRADES, commitmentOf, typeOf } from '../../lib/shortage.js'
 import { BOTTLENECK_LABEL, TIME_BANDS, bandOf, bottleneck, computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
+import { vehicleSummaryLong } from '../../lib/vehicleSummary.js'
+import { calcStamp } from '../../lib/basis.js'
+import useNow from '../../hooks/useNow.js'
+import { Link } from 'react-router-dom'
 import { DISABLED_NOTE } from '../../lib/rosterCount.js'
 import { fireScenario } from '../../lib/scenario.js'
 import { fmtElapsed } from '../../lib/geo.js'
@@ -47,6 +51,7 @@ export default function ShortagePage() {
   const settings = useMiriStore((s) => s.settings)
   const dongs = useMiriStore((s) => s.dongs)
   const today = useMiriStore((s) => s.today)
+  const now = useNow(60000)
   const scenarios = useMiriStore((s) => s.scenarios)
   const activeId = useMiriStore((s) => s.activeScenarioId)
   const saveScenario = useMiriStore((s) => s.saveScenario)
@@ -206,7 +211,6 @@ export default function ShortagePage() {
     ? `이 조건이면 기한 안에 옮기지 못하는 사람이 ${result.total}명입니다.`
     : `이 조건이면 대피 대상 ${result.scopeTargets}명을 기한 안에 모두 옮길 수 있습니다.`
   const fixLine = result.total > 0 && extraLine ? `${extraLine}${unresolved ? ' 이상을' : '를'} 더 확보하면 ${unresolved ? '크게 줄어듭니다' : '0명이 됩니다'}.` : null
-  const agreedCount = vehicles.length - agreedCompare.unconfirmed
   const firstMinutes = Math.max(0, Math.round((draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes))
   // 계산 경고: 경로 정보 없는 마을, 필요 차종이 없는 등급(숫자 산식은 그대로, 까닭만 따로 보임)
   const routeMissing = result.routeMissing || []
@@ -234,9 +238,16 @@ export default function ShortagePage() {
         <Card aria-live="polite" title="결론" meta={draft.name}>
           <p className="type-h2 text-text-pri">{headline}</p>
           {fixLine && <p className="mt-2 type-body text-text-pri">{fixLine}</p>}
+          {fixLine && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button as={Link} to="/console/resources" size="sm">차량과 도우미에서 협약 차량 확인</Button>
+              <Button as={Link} to="/console/workspace?kind=doc" size="sm" variant="secondary">문서함에서 협약 추진 기안 작성</Button>
+            </div>
+          )}
           <div className="mt-5 flex flex-wrap items-end gap-x-10 gap-y-4">
             <ShortageValue value={result.total} byGrade={result.byGrade} provisional={result.provisional} label="기한 안에 못 옮기는 사람">
-              <BasisLine scenario={draft.name} today={today} />
+              <BasisLine scenario={draft.name} />
+              <p className="type-meta text-text-meta tabular-nums">({calcStamp({ at: now, rosterAt: today })})</p>
             </ShortageValue>
             {extra.length > 0 && (
               <ul aria-label="등급별 더 필요한 차량" className="flex flex-wrap gap-2">
@@ -254,7 +265,7 @@ export default function ShortagePage() {
         <Card title="왜 이런 결과가 나오나">
           <ul className="grid gap-2">
             <Row label="대피해야 하는 사람" value={`${result.scopeVillages}개 마을 ${result.scopeTargets}명`} strong />
-            <Row label="쓸 수 있는 차량" value={`${vehicles.length}대(약속된 차량 ${agreedCount}대, 확인 전 ${agreedCompare.unconfirmed}대)`} />
+            <Row label="쓸 수 있는 차량" value={vehicleSummaryLong(vehicles)} />
             <Row label="첫 마을에 산불이 닿기까지" value={`발령 후 ${fmtElapsed(draft.windowHours)}, 출발 준비 ${prepText(draft.prepMinutes)} 빼면 ${firstMinutes}분`} />
             <Row label="이송을 끝내야 하는 때" value={completeText(draft.completeBeforeHours ?? 0)} />
             <Row label="발령 시간대" value={`${bandOf(draft).label}${(draft.availability ?? 100) < 100 ? `, 차량 ${draft.availability}%만 모임` : ''}`} />

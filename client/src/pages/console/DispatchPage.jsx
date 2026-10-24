@@ -22,6 +22,7 @@ import Disclosure from '../../components/ui/Disclosure.jsx'
 import KeyValue from '../../components/ui/KeyValue.jsx'
 import SectionTitle from '../../components/ui/SectionTitle.jsx'
 import Modal from '../../components/ui/Modal.jsx'
+import { vehicleSummaryShort } from '../../lib/vehicleSummary.js'
 import { sendConfirmLines } from '../../lib/confirmSummary.js'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import useNow from '../../hooks/useNow.js'
@@ -35,7 +36,6 @@ import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { scopeSummary } from '../../lib/shortageCalc.js'
 
 const SPEEDS = [{ value: 1, label: '1배' }, { value: 60, label: '60배' }, { value: 240, label: '240배' }]
-const KINDS = [{ value: 'drill', label: '훈련 발령' }, { value: 'real', label: '실제 발령' }]
 const COUNT_ORDER = ['wait', 'depart', 'arrive', 'board', 'handover', 'fail', 'handedToFire', 'unassigned']
 const COUNT_LABEL = { ...STEP_LABEL, unassigned: '미배정' }
 const ISSUE = ['fail', 'handedToFire', 'unassigned']
@@ -95,6 +95,7 @@ function StartPanel() {
   const vehicles = useMiriStore((s) => s.vehicles)
   const helpers = useMiriStore((s) => s.helpers)
   const [kind, setKind] = useState('drill')
+  const [realAsk, setRealAsk] = useState(false)
   const [speed, setSpeed] = useState(60)
   const villages = useMiriStore((s) => s.villages)
   const settings = useMiriStore((s) => s.settings)
@@ -122,9 +123,24 @@ function StartPanel() {
       >
         <div>
           <p className="mb-1.5 type-caption text-text-sec">발령 종류</p>
-          <SegmentControl label="발령 종류" items={KINDS} value={kind} onChange={(v) => { setKind(v); if (v === 'real') setSpeed(1) }} />
+          {/* 검수 반영: 훈련과 실제 발령을 한 묶음 버튼에 두지 않는다. 실제 발령은 따로 누르고 앱 안 확인을 거친다 */}
+          <p className="type-strong text-text-pri">{kind === 'drill' ? '훈련 발령' : '실제 발령'}</p>
+          {kind === 'drill'
+            ? <Button className="mt-1.5" size="sm" variant="ghost" onClick={() => setRealAsk(true)}>실제 발령으로 바꾸기</Button>
+            : <Button className="mt-1.5" size="sm" variant="ghost" onClick={() => setKind('drill')}>훈련 발령으로 돌아가기</Button>}
           {kind === 'real' && <p className="mt-1.5 type-meta text-text-meta">실제 발령은 도우미 휴대폰 보고를 받는 서버를 연결한 뒤 엽니다. 지금 시안은 훈련 발령만 진행하며, 훈련의 수락과 이송 진행은 시연용 자동 진행입니다.</p>}
         </div>
+        <Modal
+          open={realAsk} onClose={() => setRealAsk(false)} title="실제 발령으로 바꿀까요?"
+          footer={(
+            <>
+              <Button variant="ghost" onClick={() => setRealAsk(false)}>취소</Button>
+              <Button variant="danger" onClick={() => { setRealAsk(false); setKind('real'); setSpeed(1) }}>실제 발령으로 바꾸기</Button>
+            </>
+          )}
+        >
+          <p className="type-body text-text-pri">실제 발령은 도우미 휴대폰으로 실제 배정표가 나가고, 소방 인계 목록이 실제 대상자로 만들어집니다. 훈련이라면 취소를 누르세요.</p>
+        </Modal>
         {kind === 'drill' && <SpeedControl value={speed} onChange={setSpeed} />}
       </TaskCard>
       <Card title="발령 기준" desc="현황판 기준 시나리오">
@@ -132,7 +148,7 @@ function StartPanel() {
           { label: '시나리오', value: scenario?.name, strong: true },
           { label: '이송 대상(대피 대상 구역)', value: <>{sum.villages}개 마을 {sum.targets.toLocaleString('ko-KR')}명{sum.pending > 0 && <span className="text-primary-text">, 확인 대기 서류 {sum.pending}건 포함</span>}</> },
           { label: '명부 전체', value: `${sum.roster.toLocaleString('ko-KR')}건(확인 대기 ${sum.rosterPending}건 포함)` },
-          { label: '가용 차량', value: `${vehicles.filter((v) => v.available !== false).length}대 / 전체 ${vehicles.length}대` },
+          { label: '가용 차량', value: vehicleSummaryShort(vehicles) },
           { label: '도우미', value: `${helpers.filter((h) => h.active !== false).length}명` }
         ]} />
         <BasisLine className="mt-3" today={today} />

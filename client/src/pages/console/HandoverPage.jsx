@@ -29,7 +29,9 @@ import { dispatchBasisText } from '../../lib/basis.js'
 import { handoverConfirmLines } from '../../lib/confirmSummary.js'
 import { fmtDateTime, fmtHM } from '../../lib/time.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
-import useMiriStore from '../../store/useMiriStore.js'
+import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
+import { computeShortage, optimizedUnserved, requiredExtraVehicles } from '../../lib/shortageCalc.js'
+import { handoverPreview } from '../../lib/handoverPreview.js'
 
 const REASON = { ...UNSERVED_REASON, ...FAIL_REASONS }
 
@@ -41,12 +43,30 @@ export default function HandoverPage() {
   const privateInfo = useMiriStore((s) => s.privateInfo)
   const today = useMiriStore((s) => s.today)
   const orgName = useMiriStore((s) => s.settings.orgName)
+  const vehicles = useMiriStore((s) => s.vehicles)
+  const helpers = useMiriStore((s) => s.helpers)
+  const settings = useMiriStore((s) => s.settings)
+  const scenario = useMiriStore(activeScenario)
   const now = useNow()
   const toast = useToast()
   const [selected, setSelected] = useState(() => new Set())
   const [handOpen, setHandOpen] = useState(false)
 
   const dname = (code) => dongs.find((x) => x.code === code)?.name || code
+
+  // 평시 미리보기(셀 58): 발령 전에도 소방에 넘어갈 예상 구조 대상을 보인다. 값은 현황판과 같은 부족분 계산에서 가져온다
+  const preview = useMemo(() => {
+    if (['assigned', 'sent'].includes(d.status) && d.result) return null
+    const input = { persons, villages, vehicles, helpers, settings, scenario, t0: today }
+    const r = computeShortage(input)
+    const extra = r.total > 0 ? requiredExtraVehicles(input, r) : []
+    const resolved = extra.length > 0 && extra.every((e) => e.resolved)
+    const vname = (code) => villages.find((v) => v.code === code)?.label || code
+    return handoverPreview({
+      baseline: r.total, recommended: optimizedUnserved(r), byVillage: r.byVillage, villageName: vname,
+      extraLine: resolved ? extra.map((e) => `${e.typeLabel} ${e.count}대`).join(', ') : null
+    })
+  }, [d.status, d.result, persons, villages, vehicles, helpers, settings, scenario, today])
 
   const rows = useMemo(() => {
     if (!d.result) return []
@@ -122,6 +142,13 @@ export default function HandoverPage() {
   return (
     <PageShell title="소방 인계" desc="기한 안에 옮기지 못한 구조 대상(거동불편자)을 동해소방서에 넘기고, 넘긴 기록을 남깁니다.">
       {!live ? (
+        <div className="space-y-4">
+        {preview && (
+          <Card title="평시 예상" meta={`기준 시나리오 ${scenario.name}`}>
+            <p className="type-h3 text-text-pri tabular-nums">{preview.line1}</p>
+            {preview.line2 && <p className="mt-1.5 type-body-sm text-text-sec tabular-nums">{preview.line2}</p>}
+          </Card>
+        )}
         <Card as="div" padding="none">
           <EmptyState
             title="진행 중인 발령이 없습니다"
@@ -129,6 +156,7 @@ export default function HandoverPage() {
             action={<Button as={Link} to="/console/dispatch">발령 운영</Button>}
           />
         </Card>
+        </div>
       ) : (
         <div className="space-y-4">
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
