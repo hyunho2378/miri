@@ -26,6 +26,7 @@ import { TAGS, verifyResult } from '../../lib/intake.js'
 import { GRADE_RANK } from '../../lib/shortage.js'
 import { fmtDate } from '../../lib/time.js'
 import { recheckMatch, RECHECK_OPTIONS } from '../../lib/rosterRecheck.js'
+import { checkedOf } from '../../lib/handoverRows.js'
 import useNow from '../../hooks/useNow.js'
 import { fmtKDate } from '../../components/miri/BasisLine.jsx'
 import useAuthStore from '../../store/useAuthStore.js'
@@ -144,7 +145,8 @@ export default function RosterPage() {
     { key: 'care', label: '동행과 소통', wrap: true, hideBelow: 'xl', render: (p) => { const c = personCare(p); return <span className="type-meta text-text-sec">{!c.known ? NOT_ENTERED : [c.companionCall && '동행 연락 필요', c.caregiverUnreachable && '돌봄 담당자 연락 불가', c.commCaution && `의사소통 유의(${c.comm.join(', ')})`].filter(Boolean).join(', ') || '없음'}</span> } },
     { key: 'source', label: '입력 방법', hideBelow: 'md', render: (p) => <SourceLabel source={p.gradeSource} /> },
     { key: 'review', label: '확인 상태', sortable: true, render: (p) => <StatusPill status={p.review} /> },
-    { key: 'updatedAt', label: '갱신일', sortable: true, hideBelow: 'lg', render: (p) => fmtDate(p.updatedAt) },
+    { key: 'planCheckedAt', label: '마지막 확인', sortable: true, sortValue: (p) => p.planCheckedAt || 0, render: (p) => { const c = checkedOf(p, now); return <span className={c.stale ? 'type-strong text-danger-text' : 'text-text-sec'}>{c.text}{c.stale && c.days != null ? ', 재확인 필요' : ''}</span> } },
+    { key: 'updatedAt', label: '갱신일', sortable: true, hideBelow: '3xl', render: (p) => fmtDate(p.updatedAt) },
     { key: 'edit', label: '편집', render: (p) => <EditPencil resource="persons" label={`${p.code} 수정`} onClick={() => { openPerson(p.code); setEditing({ mode: 'edit', value: { villageCode: p.villageCode, grade: p.grade, tags: p.tags } }) }} /> }
   ].filter((c) => c.key !== 'edit' || canEdit)
 
