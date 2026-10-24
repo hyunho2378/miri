@@ -22,6 +22,7 @@ import Disclosure from '../../components/ui/Disclosure.jsx'
 import KeyValue from '../../components/ui/KeyValue.jsx'
 import SectionTitle from '../../components/ui/SectionTitle.jsx'
 import Modal from '../../components/ui/Modal.jsx'
+import { sendConfirmLines } from '../../lib/confirmSummary.js'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import useNow from '../../hooks/useNow.js'
 import useToast from '../../hooks/useToast.js'
@@ -126,6 +127,19 @@ function StartPanel() {
         </div>
         {kind === 'drill' && <SpeedControl value={speed} onChange={setSpeed} />}
       </TaskCard>
+      <Modal
+        open={sendOpen} onClose={() => setSendOpen(false)} title="배정 확정 후 전송"
+        footer={(
+          <>
+            <Button variant="ghost" onClick={() => setSendOpen(false)}>취소</Button>
+            <Button onClick={() => { setSendOpen(false); confirmAndSend(); toast('배정을 확정하고 도우미 배정표를 전송했습니다.', 'primary') }}>전송</Button>
+          </>
+        )}
+      >
+        <ul className="space-y-2 type-body text-text-pri tabular-nums">
+          {sendConfirmLines(result).map((l) => <li key={l}>{l}</li>)}
+        </ul>
+      </Modal>
       <Card title="발령 기준" desc="현황판 기준 시나리오">
         <KeyValue items={[
           { label: '시나리오', value: scenario?.name, strong: true },
@@ -201,6 +215,7 @@ function AssignedPanel({ meta }) {
   const villageList = useMiriStore((s) => s.villages)
   const scenarioNow = useMiriStore(activeScenario)
   const toast = useToast()
+  const [sendOpen, setSendOpen] = useState(false)
   const trips = result.assignments.reduce((s, a) => s + a.trips.length, 0)
   // 회차 확인 표시(동행 연락, 의사소통, 리프트 진입, 직선 경로). 배정 숫자는 바꾸지 않음
   const checkCtx = useMemo(() => ({
@@ -229,7 +244,7 @@ function AssignedPanel({ meta }) {
         desc={`배정 차량 ${result.assignments.length}대, ${trips}회차, 미이송 예상 ${result.unassigned.length}명, 마지막 이송 완료 ${fmtHMFrom(result.metrics.lastFinishAt, firstDepart)}`}
         actions={(
           <>
-            <Button size="lg" leftIcon={<MessageSquareText size={16} aria-hidden="true" />} onClick={() => { confirmAndSend(); toast('배정을 확정하고 도우미 배정표를 전송했습니다.', 'primary') }}>배정 확정 후 전송</Button>
+            <Button size="lg" leftIcon={<MessageSquareText size={16} aria-hidden="true" />} onClick={() => setSendOpen(true)}>배정 확정 후 전송</Button>
             <Button size="lg" variant="secondary" onClick={() => { runAssign(); toast('배정을 다시 계산했습니다.') }}>다시 계산</Button>
           </>
         )}

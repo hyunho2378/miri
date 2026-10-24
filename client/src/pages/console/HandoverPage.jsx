@@ -14,6 +14,7 @@ import TableCard from '../../components/dashboard/TableCard.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Checkbox from '../../components/ui/Checkbox.jsx'
+import Modal from '../../components/ui/Modal.jsx'
 import EmptyState from '../../components/ui/EmptyState.jsx'
 import ExportButton from '../../components/ui/ExportButton.jsx'
 import useNow from '../../hooks/useNow.js'
@@ -24,6 +25,7 @@ import { TAGS } from '../../lib/intake.js'
 import { gradeOf } from '../../lib/shortage.js'
 import { STALE_DAYS, buildHandoverRows, handoverCsvColumns } from '../../lib/handoverRows.js'
 import { dispatchBasisText } from '../../lib/basis.js'
+import { handoverConfirmLines } from '../../lib/confirmSummary.js'
 import { fmtDateTime, fmtHM } from '../../lib/time.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
@@ -41,6 +43,7 @@ export default function HandoverPage() {
   const now = useNow()
   const toast = useToast()
   const [selected, setSelected] = useState(() => new Set())
+  const [handOpen, setHandOpen] = useState(false)
 
   const dname = (code) => dongs.find((x) => x.code === code)?.name || code
 
@@ -146,7 +149,7 @@ export default function HandoverPage() {
                 <Button variant="secondary" size="sm" leftIcon={<Printer size={16} aria-hidden="true" />} onClick={() => window.print()}>인쇄</Button>
                 <Button
                   variant="danger" size="sm" disabled={!picked.length} leftIcon={<Ambulance size={16} aria-hidden="true" />}
-                  onClick={() => { d.handover(picked); setSelected(new Set()); toast(`동해소방서 인계: ${picked.length}명`, 'primary') }}
+                  onClick={() => setHandOpen(true)}
                 >
                   {picked.length ? `선택 ${picked.length}명 소방 인계` : '소방 인계'}
                 </Button>
@@ -155,6 +158,20 @@ export default function HandoverPage() {
             columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={20} caption="구조 대상(기한 안 미이송) 목록"
             emptyTitle="구조 대상(기한 안 미이송)이 없습니다" emptyDesc="전원 기한 내 이송이 진행 중입니다."
           />
+
+          <Modal
+            open={handOpen} onClose={() => setHandOpen(false)} title="소방 인계"
+            footer={(
+              <>
+                <Button variant="ghost" onClick={() => setHandOpen(false)}>취소</Button>
+                <Button variant="danger" onClick={() => { setHandOpen(false); d.handover(picked); setSelected(new Set()); toast(`동해소방서 인계: ${picked.length}명`, 'primary') }}>소방 인계</Button>
+              </>
+            )}
+          >
+            <ul className="space-y-2 type-body text-text-pri tabular-nums">
+              {handoverConfirmLines(rows, picked, (v) => v, fmtHM(baseAt)).map((l) => <li key={l}>{l}</li>)}
+            </ul>
+          </Modal>
 
           <PublicFactsCard only="er" />
 
