@@ -19,6 +19,9 @@ import Button from '../../components/ui/Button.jsx'
 import Chip from '../../components/ui/Chip.jsx'
 import KeyValue from '../../components/ui/KeyValue.jsx'
 import Drawer from '../../components/ui/Drawer.jsx'
+import Modal from '../../components/ui/Modal.jsx'
+import Checkbox from '../../components/ui/Checkbox.jsx'
+import { canConfirmPlan, checkerOf, lastPlanCheck, PLAN_CHECK_VIA } from '../../lib/planCheck.js'
 import FilterBar from '../../components/ui/FilterBar.jsx'
 import MultiSelect from '../../components/ui/MultiSelect.jsx'
 import Select from '../../components/ui/Select.jsx'
@@ -62,6 +65,9 @@ export default function RosterPage() {
   const updatePerson = useMiriStore((s) => s.updatePerson)
   const addPerson = useMiriStore((s) => s.addPerson)
   const removePerson = useMiriStore((s) => s.removePerson)
+  const confirmPlanCheck = useMiriStore((s) => s.confirmPlanCheck)
+  const [planAsk, setPlanAsk] = useState(false)
+  const [checkOnSave, setCheckOnSave] = useState(false)
   const user = useAuthStore((s) => s.user)
   const canEdit = useAuthStore((s) => s.canEdit('persons'))
   const toast = useToast()
@@ -128,10 +134,20 @@ export default function RosterPage() {
       setEditing(null)
       openPerson(code)
     } else {
-      updatePerson(open.code, { grade: v.grade, tags: v.tags || [], gradeSource: v.grade !== open.grade ? 'manual' : open.gradeSource, review: open.review === 'pending' ? 'edited' : open.review })
-      toast(`${open.code} 수정 완료`, 'primary')
+      const check = checkOnSave && canPlan ? { by: checkerOf(user), via: 'edit' } : undefined
+      updatePerson(open.code, { grade: v.grade, tags: v.tags || [], gradeSource: v.grade !== open.grade ? 'manual' : open.gradeSource, review: open.review === 'pending' ? 'edited' : open.review }, check)
+      toast(check ? `${open.code} 수정과 확인 완료 기록` : `${open.code} 수정 완료`, 'primary')
+      setCheckOnSave(false)
       setEditing(null)
     }
+  }
+
+  const canPlan = canEdit && !!open && canConfirmPlan(user, open, dongOf)
+  const planLast = lastPlanCheck(open)
+  const confirmPlan = () => {
+    confirmPlanCheck(open.code, { by: checkerOf(user) })
+    setPlanAsk(false)
+    toast(`${open.code} 당사자와 계획 확인 완료 기록`, 'primary')
   }
 
   const doc = open?.docId ? docs.find((d) => d.id === open.docId) : null
@@ -223,18 +239,24 @@ export default function RosterPage() {
         title={editing?.mode === 'add' ? '대상자 추가' : open?.code}
         footer={editing ? (
           <>
-            <Button variant="ghost" onClick={() => { setEditing(null); setErrors({}) }}>취소</Button>
+            <Button variant="ghost" onClick={() => { setEditing(null); setErrors({}); setCheckOnSave(false) }}>취소</Button>
             <Button variant="primary" onClick={save}>저장</Button>
           </>
         ) : canEdit && open ? (
           <>
             <Button variant="ghost" leftIcon={<Trash2 size={16} aria-hidden="true" />} onClick={() => { removePerson(open.code); toast(`${open.code} 삭제 완료`); closePerson() }}>삭제</Button>
+            {canPlan && <Button variant="secondary" onClick={() => setPlanAsk(true)}>확인 완료</Button>}
             <Button variant="primary" onClick={() => setEditing({ mode: 'edit', value: { villageCode: open.villageCode, grade: open.grade, tags: open.tags } })}>수정</Button>
           </>
         ) : null}
       >
         {editing ? (
-          <EntityForm fields={fields} value={editing.value} errors={errors} onChange={(value) => setEditing({ ...editing, value })} />
+          <div className="space-y-4">
+            <EntityForm fields={fields} value={editing.value} errors={errors} onChange={(value) => setEditing({ ...editing, value })} />
+            {editing.mode === 'edit' && canPlan && (
+              <Checkbox checked={checkOnSave} onChange={setCheckOnSave} label="당사자와 계획 확인 완료로 함께 기록(마지막 확인 날짜를 오늘로)" />
+            )}
+          </div>
         ) : open && (
           <div className="space-y-5">
             <KeyValue items={[
@@ -244,7 +266,7 @@ export default function RosterPage() {
               { label: '입력 방법', value: <SourceLabel source={open.gradeSource} /> },
               { label: '확인 상태', value: <StatusPill status={open.review} /> },
               { label: '도우미 위치 정보 제공', value: open.locConsent === true ? '동의(발령 때 수락한 도우미에게 주소, 동호수와 층, 엘리베이터, 보호자 연락처)' : '미동의(실제 발령 중 급박한 경우에만 제공)' },
-              { label: '당사자와 계획 확인', value: open.planCheckedAt ? `확인 완료, 마지막 확인 ${fmtDate(open.planCheckedAt)}` : '확인 전' },
+              { label: '당사자와 계획 확인', value: open.planCheckedAt ? `확인 완료, 마지막 확인 ${fmtDate(open.planCheckedAt)}${planLast?.by?.name ? ` (${planLast.by.name}, ${PLAN_CHECK_VIA[planLast.via] || planLast.via})` : ''}` : '확인 전' },
               ...(open.access ? [
                 { label: '거주 층수', value: open.access.floor },
                 { label: '계단과 엘리베이터', value: open.access.stairs },
@@ -275,6 +297,24 @@ export default function RosterPage() {
           </div>
         )}
       </Drawer>
+
+      <Modal
+        open={planAsk && !!open}
+        onClose={() => setPlanAsk(false)}
+        title="당사자와 계획 확인 완료"
+        footer={(
+          <>
+            <Button variant="ghost" onClick={() => setPlanAsk(false)}>취소</Button>
+            <Button variant="primary" onClick={confirmPlan}>확인 완료 기록</Button>
+          </>
+        )}
+      >
+        {open && (
+          <p className="type-body text-text-sec">
+            {open.code}의 거주, 거동 상태, 이송 계획을 당사자나 보호자와 확인했으면 기록합니다. 마지막 확인 날짜가 오늘로 바뀌고, 확인한 사람과 시각이 남습니다.
+          </p>
+        )}
+      </Modal>
     </PageShell>
   )
 }

@@ -5,6 +5,7 @@ import { planningGrade } from '../lib/intake.js'
 const GRADE_OK = new Set(['walk', 'assist', 'wheelchair', 'bed'])
 import { buildSeed } from '../mock/seed.js'
 import { seedFieldNotes } from '../lib/notes.js'
+import { applyPlanCheck } from '../lib/planCheck.js'
 
 const seed = buildSeed()
 
@@ -14,8 +15,17 @@ export const useMiriStore = create((set, get) => ({
   fieldNotes: seedFieldNotes(seed.persons, seed.today),
 
   // 명부
-  updatePerson: (code, patch) => set((s) => ({
-    persons: s.persons.map((p) => (p.code === code ? { ...p, ...patch, updatedAt: s.today } : p))
+  // check: { by, via } 를 주면 당사자와 계획 확인 날짜도 오늘로 남긴다(저장 때 '확인 완료로 함께 기록')
+  updatePerson: (code, patch, check) => set((s) => ({
+    persons: s.persons.map((p) => {
+      if (p.code !== code) return p
+      const next = { ...p, ...patch, updatedAt: s.today }
+      return check ? applyPlanCheck(next, { at: Date.now(), ...check }) : next
+    })
+  })),
+  // 당사자와 계획 확인 완료만 기록(명부 상세 '확인 완료' 버튼)
+  confirmPlanCheck: (code, check) => set((s) => ({
+    persons: s.persons.map((p) => (p.code === code ? applyPlanCheck(p, { at: Date.now(), via: 'manual', ...check }) : p))
   })),
   addPerson: (person, info) => set((s) => ({
     persons: [...s.persons, { gradeSource: 'manual', review: 'confirmed', tags: [], updatedAt: s.today, ...person }],
@@ -24,11 +34,14 @@ export const useMiriStore = create((set, get) => ({
   removePerson: (code) => set((s) => ({ persons: s.persons.filter((p) => p.code !== code) })),
 
   // 서류 판독. action: confirm | edit | reject
-  reviewResult: (docId, personCode, action, patch = {}) => set((s) => {
+  // check: { by } 를 주면 확인과 수정 확정 때 당사자와 계획 확인 날짜도 남긴다(제외는 남기지 않음)
+  reviewResult: (docId, personCode, action, patch = {}, check) => set((s) => {
     const review = action === 'confirm' ? 'confirmed' : action === 'edit' ? 'edited' : 'rejected'
-    const persons = s.persons.map((p) => (p.code === personCode
-      ? { ...p, ...patch, review, gradeSource: action === 'edit' ? 'manual' : p.gradeSource, updatedAt: s.today }
-      : p))
+    const persons = s.persons.map((p) => {
+      if (p.code !== personCode) return p
+      const next = { ...p, ...patch, review, gradeSource: action === 'edit' ? 'manual' : p.gradeSource, updatedAt: s.today }
+      return check && action !== 'reject' ? applyPlanCheck(next, { at: Date.now(), via: 'intake', ...check }) : next
+    })
     const intakeDocs = s.intakeDocs.map((d) => {
       if (d.id !== docId) return d
       const results = d.results.map((r) => (r.personCode === personCode ? { ...r, ...patch, review } : r))

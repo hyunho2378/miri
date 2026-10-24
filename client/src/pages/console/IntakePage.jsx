@@ -20,6 +20,8 @@ import { fmtDate } from '../../lib/time.js'
 import { SAMPLE_UPLOAD } from '../../mock/seed.js'
 import { REAL_READINGS, REAL_READ_SOURCE } from '../../mock/realReadings.js'
 import useAuthStore from '../../store/useAuthStore.js'
+import Checkbox from '../../components/ui/Checkbox.jsx'
+import { canConfirmPlan, checkerOf } from '../../lib/planCheck.js'
 import useMiriStore from '../../store/useMiriStore.js'
 import { gradeOf } from '../../lib/shortage.js'
 import { countText } from '../../lib/unitText.js'
@@ -44,6 +46,13 @@ export default function IntakePage() {
   const addIntakeDoc = useMiriStore((s) => s.addIntakeDoc)
   const nextDocId = useMiriStore((s) => s.nextDocId)
   const canEdit = useAuthStore((s) => s.canEdit('intake'))
+  const authUser = useAuthStore((s) => s.user)
+  const [checkOnConfirm, setCheckOnConfirm] = useState(false)
+  const planCheckFor = (q) => {
+    if (!checkOnConfirm) return undefined
+    const person = persons?.find((p) => p.code === q.result.personCode) || { villageCode: q.doc.villageCode }
+    return canConfirmPlan(authUser, person, (c) => villages.find((v) => v.code === c)?.dongCode) ? { by: checkerOf(authUser) } : undefined
+  }
   const toast = useToast()
   const [reading, setReading] = useState(null)   // { name, step, failed }
   const [error, setError] = useState(null)
@@ -217,14 +226,19 @@ export default function IntakePage() {
               </div>
             )}
           </Card>
-          <ReviewRow
-            key={current.result.personCode}
-            doc={current.doc} result={current.result} kindLabel={KIND_LABEL[current.doc.kind]}
-            villageLabel={vlabel(current.doc.villageCode)} canEdit={canEdit}
-            onConfirm={() => { reviewResult(current.doc.id, current.result.personCode, 'confirm'); toast(`${current.result.personCode} 판독을 확인했습니다.`, 'primary') }}
-            onEdit={(patch) => { reviewResult(current.doc.id, current.result.personCode, 'edit', patch); toast(`${current.result.personCode} 수정한 값으로 확인했습니다.`, 'primary') }}
-            onReject={() => { reviewResult(current.doc.id, current.result.personCode, 'reject'); toast(`${current.result.personCode}을 제외했습니다. 서류를 다시 찍어 달라고 요청해 주세요.`) }}
-          />
+          <div className="min-w-0 space-y-3">
+            <ReviewRow
+              key={current.result.personCode}
+              doc={current.doc} result={current.result} kindLabel={KIND_LABEL[current.doc.kind]}
+              villageLabel={vlabel(current.doc.villageCode)} canEdit={canEdit}
+              onConfirm={() => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'confirm', {}, ck); toast(`${current.result.personCode} 판독을 확인했습니다.${ck ? ' 당사자와 계획 확인도 기록했습니다.' : ''}`, 'primary') }}
+              onEdit={(patch) => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'edit', patch, ck); toast(`${current.result.personCode} 수정한 값으로 확인했습니다.${ck ? ' 당사자와 계획 확인도 기록했습니다.' : ''}`, 'primary') }}
+              onReject={() => { reviewResult(current.doc.id, current.result.personCode, 'reject'); toast(`${current.result.personCode}을 제외했습니다. 서류를 다시 찍어 달라고 요청해 주세요.`) }}
+            />
+            {canEdit && (
+              <Checkbox checked={checkOnConfirm} onChange={setCheckOnConfirm} label="확인할 때 당사자와 계획 확인 완료로 함께 기록(마지막 확인 날짜를 오늘로)" />
+            )}
+          </div>
         </div>
       ) : (
         <Card as="div" padding="none"><EmptyState title="확인 대기 서류가 없습니다" desc="새 서류는 1단계 서류 올리기에서 등록합니다." /></Card>
