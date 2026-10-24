@@ -17,4 +17,5 @@ export const BASEMAP = {
 // 건물. 국토교통부 GIS건물통합정보(브이월드 데이터마켓 강원특별자치도 전체데이터, 기준일 2026. 9. 9., 공공누리 출처표시)에서
 // 동해시 강릉시 삼척시 정선군 태백시 196,111동을 골라 tools/bake-buildings/extract.cjs 로 만든 파일이다.
 // 높이는 대장 높이, 없으면 지상층수 x 3.2m, 둘 다 없으면 1층(3.2m). 층수가 있는 건물은 91,299동이다
-export const BUILDINGS = { url: '/terrain/buildings-nsdi.bin', bbox: DEM_META.bbox, source: '국토교통부 GIS건물통합정보(2026. 9. 9.)', count: 196111, withFloors: 91299 }
+// parts: 첫 화면을 앞당기려고 동해시 건물(1)을 먼저, 접경 시군 건물(2)을 이어서 받는다(tools/bake-buildings/split.mjs, 플랫폼 AI 협업 툴 셀 86)
+export const BUILDINGS = { url: '/terrain/buildings-nsdi.bin', parts: ['/terrain/buildings-nsdi-1.bin', '/terrain/buildings-nsdi-2.bin'], bbox: DEM_META.bbox, source: '국토교통부 GIS건물통합정보(2026. 9. 9.)', count: 196111, withFloors: 91299 }

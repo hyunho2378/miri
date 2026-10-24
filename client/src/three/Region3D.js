@@ -227,6 +227,11 @@ export default class Region3D {
           this.cb.onReady?.()
         } else if (m.type === 'buildings') {
           this.addBuildings(m.b)
+        } else if (m.type === 'buildingsPart') {
+          // 동해시 건물이 먼저 다 섰을 때 바로 칠해 보여 준다(나머지는 이어서)
+          this.buildingsTotal = m.total || 0
+          this.cb.onBuildings?.({ total: m.total, partial: true })
+          this.paintBuildings()
         } else if (m.type === 'buildingsDone' || m.type === 'buildingsError') {
           if (m.type === 'buildingsError') console.error('건물 입체 오류', m.message)
           this.buildingsTotal = m.total || 0
@@ -236,7 +241,7 @@ export default class Region3D {
           this.worker = null
         }
       }
-      worker.postMessage({ data, meta: DEM_META, pieces: REGION_PIECES, spacing: SPACING, first: [DONGHAE], buildings: { url: BUILDINGS.url, bbox: BUILDINGS.bbox } })
+      worker.postMessage({ data, meta: DEM_META, pieces: REGION_PIECES, spacing: SPACING, first: [DONGHAE], buildings: { url: BUILDINGS.url, parts: BUILDINGS.parts, bbox: BUILDINGS.bbox } })
     } catch (err) {
       this.cb.onProgress?.(-1, err)
     }

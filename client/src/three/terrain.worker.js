@@ -13,20 +13,26 @@ self.onmessage = async (e) => {
     self.postMessage({ type: 'piece', piece: r, n, total: order.length }, [r.pos.buffer, r.col.buffer, r.idx.buffer, r.line.buffer, r.wallPos.buffer, r.wallCol.buffer, r.wallIdx.buffer])
   }
   self.postMessage({ type: 'done' })
-  // 건물: 파일을 받아 조각별로 세운다
-  if (!buildings?.url) return
+  // 건물: 동해시 파일을 먼저 받아 세우고(첫 화면), 접경 시군 파일을 이어서 받는다. parts 가 없으면 한 파일
+  const urls = buildings?.parts?.length ? buildings.parts : buildings?.url ? [buildings.url] : []
+  if (!urls.length) return
   try {
-    const res = await fetch(buildings.url)
-    if (!res.ok) throw new Error(`건물 파일 ${res.status}`)
-    const buf = await res.arrayBuffer()
     const withBox = pieces.map((p) => {
       let b = [180, 90, -180, -90]
       for (const poly of p.coordinates) for (const [x, y] of poly[0]) b = [Math.min(b[0], x), Math.min(b[1], y), Math.max(b[2], x), Math.max(b[3], y)]
       return { code: p.code, coordinates: p.coordinates, bbox: b }
     })
-    const list = buildBuildings(readBuildings(buf, buildings.bbox), withBox, dem.sample)
-    for (const r of list) self.postMessage({ type: 'buildings', b: r }, [r.pos.buffer, r.idx.buffer, r.bid.buffer, r.info.buffer])
-    self.postMessage({ type: 'buildingsDone', total: list.reduce((s, r) => s + r.count, 0) })
+    let total = 0
+    for (let k = 0; k < urls.length; k++) {
+      const res = await fetch(urls[k])
+      if (!res.ok) throw new Error(`건물 파일 ${res.status}`)
+      const buf = await res.arrayBuffer()
+      const list = buildBuildings(readBuildings(buf, buildings.bbox), withBox, dem.sample)
+      for (const r of list) self.postMessage({ type: 'buildings', b: r }, [r.pos.buffer, r.idx.buffer, r.bid.buffer, r.info.buffer])
+      total += list.reduce((s, r) => s + r.count, 0)
+      if (k < urls.length - 1) self.postMessage({ type: 'buildingsPart', n: k + 1, of: urls.length, total })
+    }
+    self.postMessage({ type: 'buildingsDone', total })
   } catch (err) {
     self.postMessage({ type: 'buildingsError', message: String(err?.message || err) })
   }
