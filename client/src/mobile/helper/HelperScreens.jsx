@@ -9,6 +9,7 @@ import { CheckCircle2, CircleX, ClipboardList, Route, Clock, CloudOff, HandHeart
 import { AppBar, BottomAction, Button, Dialog, DisplaySettings, EmergencyButton, EmptyState, Figure, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, SelectRow, Sheet, Spinner, TwoPane, useLayout, useMobileToast } from '../ui.jsx'
 import { usePlatform } from '../usePlatform.js'
 import { fmtHM } from '../../lib/time.js'
+import { queueSummary, queueRowSubtitle } from '../../lib/queueStatus.js'
 import { ROLE_OPTIONS } from '../../lib/helperConsent.js'
 import { AVOID_PHRASES, EMERGENCY, HELPER_PHRASES, PREDEPARTURE } from '../../lib/helperGuidance.js'
 import { PLACE_TERMS } from '../../lib/aiCard.js'
@@ -276,6 +277,7 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
 // 전체 목록(이동별, 사람 한 줄). 두 단에서는 왼쪽 단
 function PeopleList({ m, steps, go, onBack, selected = null, inPane = false }) {
   const p = progressOf(m.codes, steps)
+  const qs = queueSummary(m)
   return (
     <>
       <AppBar title={inPane ? '이송 목록' : `전체 ${p.total}명`} large={inPane} onBack={inPane ? undefined : onBack} trailing={<Button variant="plain" size="sm" onClick={() => go({ name: 'H7' })}>연락</Button>} />
@@ -284,7 +286,7 @@ function PeopleList({ m, steps, go, onBack, selected = null, inPane = false }) {
           <span className="mob-t-callout">완료 {p.done}명, 실패 {p.failed}명, 전체 {p.total}명</span>
           <Progress value={p.total ? ((p.done + p.failed) / p.total) * 100 : 0} label="이송 진행" />
         </div>
-        {m.pending > 0 && <List label="전송 대기"><ListRow lead={<CloudOff size={20} />} title={`전송 대기 ${m.pending}건`} subtitle="연결되면 자동 전송" chevron onClick={() => go({ name: 'H8' })} /></List>}
+        {qs && <List label="전송 대기"><ListRow lead={<CloudOff size={20} />} title={qs.title} subtitle={qs.subtitle} chevron onClick={() => go({ name: 'H8' })} /></List>}
         {m.trips.map((t) => (
           <List key={t.index} label={`${tripWord(t.index)}, ${t.village}`}>
             {t.personCodes.map((c, i) => {
@@ -345,7 +347,7 @@ function QueueScreen({ m, onBack }) {
       <main id="main" className="mob-content no-nav">
         <p className="mob-t-callout mob-h-lead">{m.lastOk ? `마지막 연결 ${fmtHM(m.lastOk)}` : '아직 연결 기록 없음'}</p>
         {m.queue.length === 0 ? <EmptyState icon={<Send size={28} />} title="보낼 보고 없음" body="모든 보고를 담당자에게 보냈어요." /> : (
-          <List label="전송 대기">{m.queue.map((q) => <ListRow key={q.key} lead={<Clock size={20} />} title={name(q)} subtitle="전송 대기" />)}</List>
+          <List label="전송 대기">{m.queue.map((q) => <ListRow key={q.key} lead={<Clock size={20} />} title={name(q)} subtitle={queueRowSubtitle(q)} />)}</List>
         )}
         {/* 서버가 받지 않은 보고는 지우지 않고 사유와 함께 남김. 담당자에게 전화로 알림 */}
         {m.rejected?.length > 0 && <List label="보내지 못한 보고">{m.rejected.map((q) => <ListRow key={q.key} lead={<CircleX size={20} />} title={name(q)} subtitle={`보내지 못함: ${q.rejected}. 담당자에게 전화로 알림`} />)}</List>}
@@ -360,7 +362,8 @@ function EndScreen({ m, steps, declined }) {
   const p = progressOf(m.codes, steps)
   const ackR = lastAck(m.reports)
   const done = m.reports.filter((r) => r.type === 'step' && (r.step === 'handover' || r.step === 'fail')).sort((a, b) => (a.at || 0) - (b.at || 0))
-  const pending = m.pending > 0 && <List label="전송 대기"><ListRow lead={<CloudOff size={20} />} title={`전송 대기 ${m.pending}건`} subtitle="연결되면 자동 전송" /></List>
+  const qs = queueSummary(m)
+  const pending = qs && <List label="전송 대기"><ListRow lead={<CloudOff size={20} />} title={qs.title} subtitle={qs.subtitle} /></List>
   if (declined) {
     return (
       <>
