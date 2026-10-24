@@ -105,9 +105,10 @@ export const useDispatchStore = create((set, get) => ({
 
   confirmAndSend: () => {
     const d = get()
+    // 배정 검토(assigned) 단계이고 배정 결과가 있을 때만 전송한다(플랫폼 AI 협업 툴 검토 반영). 아니면 아무것도 바꾸지 않고 false
+    if (d.kind !== 'drill' || d.status !== 'assigned' || !d.result || !Array.isArray(d.result.assignments)) return false
     const vnow = vnowOf(d)
     const helpers = [...new Set(d.result.assignments.flatMap((a) => a.helperCodes))]
-    if (d.kind !== 'drill') return
     // 응답 계획: 대부분 1~4분 안에 수락, 1명 불가, 1명 무응답. 첫 도우미는 도우미 화면 시연용 수동 응답
     const manualHelper = helpers[0] || null
     const ackPlan = {}
@@ -135,6 +136,7 @@ export const useDispatchStore = create((set, get) => ({
       return { helper: h, at: vnow, text: sms?.text || `[미리] ${h} 배정이 왔습니다. 링크에서 수락이나 불가를 눌러 주세요`, bytes: sms?.bytes, smsKind: sms?.kind }
     })
     set({ status: 'sent', confirmedAt: vnow, sentAt: vnow, ackPlan, failPlan, manualHelper, smsLog })
+    return true
   },
 
   // 도우미 화면 보고
