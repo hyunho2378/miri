@@ -94,6 +94,10 @@ export default function HandoverPage() {
     { key: 'location', label: '상세 위치(동호수, 층)', render: (r) => <span className="type-body-sm">{r.location}</span> },
     { key: 'elevator', label: '엘리베이터', hideBelow: 'md' },
     { key: 'guardianPhone', label: '보호자 연락처', render: (r) => <span className="tabular-nums">{r.guardianPhone}</span> },
+    { key: 'crew', label: '필요 대원 수', render: (r) => <span className="type-body-sm">{r.crew}</span> },
+    { key: 'device', label: '의료기기', hideBelow: 'md' },
+    { key: 'pet', label: '반려동물', hideBelow: 'md' },
+    { key: 'address', label: '주소(가상)', hideBelow: 'lg', render: (r) => <span className="type-body-sm text-text-sec">{r.address}</span> },
     {
       key: 'checked', label: '명부 마지막 확인', hideBelow: 'md', sortValue: (r) => r.checked.days ?? Infinity,
       render: (r) => <span className={r.checked.stale ? 'type-strong text-danger-text' : 'text-text-sec'}>{r.checked.text}{r.checked.stale && r.checked.days != null ? ', 재확인 필요' : ''}</span>

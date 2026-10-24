@@ -28,6 +28,26 @@ export function elevatorOf(access) {
   return '없음(계단만)'
 }
 
+// 플랫폼 AI 협업 툴 셀 39(소방 인계 추가 열) 검토 반영.
+// 필요 대원 수: 침상과 휠체어는 1층이거나 계단 문제가 없으면 2명, 2층 이상이고 계단만이면 3~4명(현직 소방관 면담),
+// 부축과 도보는 1층이거나 계단 문제가 없으면 1명, 2층 이상이고 계단만이면 2명(팀 설정). 욕창이 있으면 시간 더 걸림 표시
+export function floorNum(floor) {
+  const m = String(floor || '').match(/\d+/)
+  return m ? Number(m[0]) : 1
+}
+export function crewOf(grade, access, tags = []) {
+  const heavy = grade === 'bed' || grade === 'wheelchair'
+  const hard = floorNum(access?.floor) > 1 && String(access?.stairs || '').includes('계단만')
+  const base = heavy ? (hard ? '3~4명' : '2명') : (hard ? '2명' : '1명')
+  return tags.includes('pressureSore') ? `${base} (욕창, 이송 시간 더 걸림)` : base
+}
+export const DEVICE_TAGS = { oxygen: '산소' }
+export function deviceOf(tags = []) {
+  const d = tags.filter((t) => DEVICE_TAGS[t]).map((t) => DEVICE_TAGS[t])
+  return d.length ? d.join(', ') : '없음'
+}
+export function petOf(tags = []) { return tags.includes('pet') ? '있음' : '없음' }
+
 export function locationOf(person, info) {
   // 마을은 옆 열에 있으므로 동호수와 층을 앞에 둔다. 동호수가 없으면 주소로 대신한다
   const unit = (info?.unit || '').replace(/^가상 /, '')
@@ -72,6 +92,8 @@ export function buildHandoverRows({ entries, persons, villages, privateInfo = {}
       arrival: arrivals[p.villageCode] ?? null,
       location: locationOf(p, info), elevator: elevatorOf(p.access),
       guardianPhone: info?.guardianPhone || '명부에 없음',
+      address: info?.address || '명부에 없음',
+      crew: crewOf(p.grade, p.access, p.tags || []), device: deviceOf(p.tags || []), pet: petOf(p.tags || []),
       checked: checkedOf(p, now),
       tags: (p.tags || []).map(tagText).join(' '), reason: e.reason, status: e.status,
       at: e.at, care: e.care || null
@@ -90,6 +112,8 @@ export function handoverCsvColumns(baseAt) {
     { key: 'grade', label: '등급', value: (r) => gradeOf(r.grade)?.label }, { key: 'gradeTerm', label: '거동 상태' },
     { key: 'location', label: '상세 위치(동호수, 층)' }, { key: 'elevator', label: '엘리베이터' },
     { key: 'guardianPhone', label: '보호자 연락처' },
+    { key: 'address', label: '주소(가상)' }, { key: 'crew', label: '필요 대원 수' },
+    { key: 'device', label: '의료기기' }, { key: 'pet', label: '반려동물' },
     { key: 'checked', label: '명부 마지막 확인', value: (r) => (r.checked.days == null ? r.checked.text : `${fmtDate(r.checked.at)}(${r.checked.text}${r.checked.stale ? ', 재확인 필요' : ''})`) },
     { key: 'tags', label: '특이사항' },
     { key: 'reason', label: '기한 안 미이송 사유' },
