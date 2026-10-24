@@ -52,10 +52,10 @@ test('마을 상세 차량과 도우미는 쉼표 줄글 대신 한 줄에 하�
   assert.match(f, /<List label="배정 도우미">/)
 })
 
-test('도우미 수락 안내는 멘토링(수락 필요)과 한림봉사센터 회신 R12(거절 불이익 없음) 근거 문장 하나로 통일', () => {
-  const NEW = '수락해야 배정이 확정됩니다. 거절해도 불이익은 없습니다. 불가를 누르면 다른 도우미에게 넘어갑니다.'
+test('도우미 수락 안내는 멘토링(수락 필요)과 한림봉사센터 회신 R12(불가 불이익 없음) 근거 문장 하나로 통일, 버튼 이름(수락, 불가)과 같은 말로(플랫폼 셀 43)', () => {
+  const NEW = '수락을 누르면 배정이 확정됩니다. 불가를 눌러도 불이익은 없고, 다른 도우미에게 넘어갑니다.'
   for (const p of ['mobile/helper/HelperScreens.jsx', 'pages/helper/RemoteHelper.jsx', 'pages/helper/HelperPage.jsx']) {
-    const s = src(p); assert.ok(s.includes(NEW), p); assert.ok(!s.includes('참여 의무'), p)
+    const s = src(p); assert.ok(s.includes(NEW), p); assert.ok(!s.includes('참여 의무'), p); assert.ok(!s.includes('거절해도 불이익'), p)
   }
   assert.ok(!src('store/useDispatchStore.js').includes('참여 의무'))
 })

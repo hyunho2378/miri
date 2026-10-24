@@ -79,7 +79,7 @@ export default function RemoteHelper({ token }) {
       )}
 
       <Card title="배정 안내">
-        {!ack && <p role="note" className="type-body-sm text-text-sec">수락해야 배정이 확정됩니다. 거절해도 불이익은 없습니다. 불가를 누르면 다른 도우미에게 넘어갑니다.</p>}
+        {!ack && <p role="note" className="type-body-sm text-text-sec">수락을 누르면 배정이 확정됩니다. 불가를 눌러도 불이익은 없고, 다른 도우미에게 넘어갑니다.</p>}
         <KeyValue items={[
           { label: '이송 완료 기한', value: b.completeBy ? `${fmtHM(b.completeBy)}까지` : '담당자 확인' },
           { label: '마을', value: (b.villages || []).join(', ') },

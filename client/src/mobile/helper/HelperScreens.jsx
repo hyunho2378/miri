@@ -18,7 +18,7 @@ import { startDemoDispatch, useDemoModel, useRemoteModel } from './useHelperMode
 import './helper.css'
 
 // 수락 안내 한 문장(멘토링 녹취의 수락 필요, 한림봉사센터 회신 R12 196행의 거절 불이익 없음)
-const ACK_NOTE = '수락해야 배정이 확정됩니다. 거절해도 불이익은 없습니다. 불가를 누르면 다른 도우미에게 넘어갑니다.'
+const ACK_NOTE = '수락을 누르면 배정이 확정됩니다. 불가를 눌러도 불이익은 없고, 다른 도우미에게 넘어갑니다.'
 const ROLES_KEY = 'miri.m.roles.'
 const PREDEP_KEY = 'miri.m.predep.'
 const store = {
