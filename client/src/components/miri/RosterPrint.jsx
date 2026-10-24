@@ -24,7 +24,7 @@ export default function RosterPrint({ groups, dongs, today }) {
             <section key={g.code} className="print-page rounded-lg border border-line-def p-6">
               <header className="flex flex-wrap items-end justify-between gap-2 border-b border-text-pri pb-3">
                 <div>
-                  <p className="type-caption text-text-sec">재난취약자 이송 명부, {dongName(g.village.dongCode)}</p>
+                  <p className="type-caption text-text-sec">거동불편자 이송 명부, {dongName(g.village.dongCode)}</p>
                   <h3 className="type-h2 text-text-pri">{g.name} <span className="type-body text-text-sec tabular-nums">{g.count}명</span></h3>
                 </div>
                 <p className="type-meta text-text-sec">명부 {fmtKDate(today)} 기준</p>
