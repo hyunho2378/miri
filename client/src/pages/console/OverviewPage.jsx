@@ -21,6 +21,7 @@ import { GRADES, emptyByGrade } from '../../lib/shortage.js'
 import { computeShortage, optimizedUnserved } from '../../lib/shortageCalc.js'
 import { fmtElapsed } from '../../lib/geo.js'
 import { peaceBasisText, pendingCounts } from '../../lib/basis.js'
+import { staleRosterCount, STALE_DAYS } from '../../lib/handoverRows.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 
@@ -124,6 +125,7 @@ export default function OverviewPage() {
 
   const topVillages = [...shortVillages].sort((a, b) => b.r.total - a.r.total).slice(0, 6)
   const availVehicles = vehicles.filter((v) => v.available).length
+  const staleRoster = staleRosterCount(active, now)
   const todo = pending + pc.notes + anomalies.length
   // 이송 완료 기한: 규칙 글자 대신 첫 마을의 실제 기한(발령 후 경과 시간)을 보이고, 규칙은 아래 줄에 적는다
   const firstCompleteH = Math.max(0, (scenario.windowHours || 0) - (scenario.completeBeforeHours || 0))
@@ -244,6 +246,15 @@ export default function OverviewPage() {
                     <Circle size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
                     <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">확인 대기 현장 소식</span>
                     <span className="type-meta text-text-meta tabular-nums">{pc.notes}건</span>
+                  </Link>
+                </li>
+              )}
+              {staleRoster > 0 && (
+                <li>
+                  <Link to="/console/roster" className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
+                    <Circle size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
+                    <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri" title={`마지막 확인 ${STALE_DAYS}일 경과 또는 확인 기록 없음`}>명부 재확인 필요</span>
+                    <span className="type-meta text-text-meta tabular-nums">{staleRoster}명</span>
                   </Link>
                 </li>
               )}

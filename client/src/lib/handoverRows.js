@@ -63,6 +63,13 @@ export function checkedOf(person, now) {
   return { at, days, text: `${days}일 전`, stale: days > STALE_DAYS }
 }
 
+// 명부 재확인 필요 인원: 마지막 확인이 STALE_DAYS 를 넘었거나 확인 기록이 없는 대상자 수(현황판 확인할 일, 플랫폼 셀 42 교차 점검)
+export function staleRosterCount(persons, now) {
+  let n = 0
+  for (const p of persons || []) if (checkedOf(p, now).stale) n += 1
+  return n
+}
+
 // 가장 급한 사람 먼저: 인계 대기(이송 실패, 미배정)를 위에, 이미 소방 인계한 사람은 아래.
 // 같은 묶음 안에서는 산불 도달이 빠른 마을, 그다음 등급 가중치 높은 순, 같으면 대상자 코드 순
 export function sortUrgent(rows) {
