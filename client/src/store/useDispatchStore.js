@@ -271,7 +271,7 @@ export const useDispatchStore = create((set, get) => ({
     set((s) => ({ remote: { ...s.remote, dispatchId, rev } }))
     const same = () => get().remote.dispatchId === dispatchId && ['standby', 'assigned', 'sent'].includes(get().status)
     try {
-      const r = await saveRemote(get(), { scenario: activeScenario(data), villages: data.villages, officerContact: data.settings?.officerContact, persons: data.persons, shelters: data.shelters }, { dispatchId, rev })
+      const r = await saveRemote(get(), { scenario: activeScenario(data), villages: data.villages, officerContact: data.settings?.officerContact, persons: data.persons, shelters: data.shelters, privateInfo: data.privateInfo }, { dispatchId, rev })
       if (!same()) return null // 응답이 오기 전에 종료했거나 다른 발령으로 바뀜
       set((s) => ({ remote: { ...s.remote, state: 'saved', dispatchId: r.dispatchId, tokens: { ...s.remote.tokens, ...r.tokens }, reason: null, savedAt: Date.now() } }))
       return r

@@ -243,6 +243,7 @@ export default function RosterPage() {
               { label: '특이사항', value: open.tags.map((t) => TAGS[t]).join(', ') || '없음' },
               { label: '입력 방법', value: <SourceLabel source={open.gradeSource} /> },
               { label: '확인 상태', value: <StatusPill status={open.review} /> },
+              { label: '도우미 위치 정보 제공', value: open.locConsent === true ? '동의(발령 때 수락한 도우미에게 주소, 동호수와 층, 엘리베이터, 보호자 연락처)' : '미동의(실제 발령 중 급박한 경우에만 제공)' },
               { label: '당사자와 계획 확인', value: open.planCheckedAt ? `확인 완료, 마지막 확인 ${fmtDate(open.planCheckedAt)}` : '확인 전' },
               ...(open.access ? [
                 { label: '거주 층수', value: open.access.floor },

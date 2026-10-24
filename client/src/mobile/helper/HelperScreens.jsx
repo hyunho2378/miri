@@ -5,7 +5,7 @@ import { EXP_NOTICE, expSource, useExpScreen } from '../../lib/expTrack.js'
 import { helperKeyOf } from '../../lib/expSchema.js'
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { CheckCircle2, CircleX, ClipboardList, Route, Clock, CloudOff, HandHeart, Link2Off, Phone, RefreshCw, Send, User, Users } from 'lucide-react'
+import { CheckCircle2, CircleX, ClipboardList, Route, Clock, CloudOff, HandHeart, Link2Off, MapPin, Phone, RefreshCw, Send, User, Users } from 'lucide-react'
 import { AppBar, BottomAction, Button, Dialog, DisplaySettings, EmergencyButton, EmptyState, Figure, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, SelectRow, Sheet, Spinner, TwoPane, useLayout, useMobileToast } from '../ui.jsx'
 import { usePlatform } from '../usePlatform.js'
 import { fmtHM } from '../../lib/time.js'
@@ -13,6 +13,7 @@ import { queueSummary, queueRowSubtitle } from '../../lib/queueStatus.js'
 import { ROLE_OPTIONS } from '../../lib/helperConsent.js'
 import { AVOID_PHRASES, EMERGENCY, HELPER_PHRASES, PREDEPARTURE } from '../../lib/helperGuidance.js'
 import { PLACE_TERMS } from '../../lib/aiCard.js'
+import { LOCATION_ERASE_NOTE, locationRows } from '../../lib/locationDisclosure.js'
 import { routeBasisLabel } from '../../lib/tripChecks.js'
 import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, PREDEPARTURE_ITEMS, STEP_ACTION, STEP_LABEL, STEP_NOW, UNDO_MS, helperPaneOf, houseOf, lastAck, nextPlaceOf, progressOf, remainText, screenOf, sentencesOf, stepIndexOf, stepsByPerson, telOf, tripWord, withPending } from './flow.js'
 import { startDemoDispatch, useDemoModel, useRemoteModel } from './useHelperModel.js'
@@ -245,6 +246,7 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
           <Progress value={next ? (stepIndexOf(st) / 4) * 100 : 100} label="이 대상자 이송 단계" />
         </div>
         <Figure value={place} caption={[code, d?.grade, trip ? `${tripWord(trip.index)}${st === 'wait' && trip.departAt ? ` ${fmtHM(trip.departAt)} 출발` : ''}` : ''].filter(Boolean).join(', ')} />
+        <LocationRows m={m} code={code} />
         <List label="이 대상자">
           {m.completeBy && <ListRow lead={<Clock size={20} />} title={`이송 완료 기한 ${fmtHM(m.completeBy)}까지`} subtitle={[m.drill ? '훈련' : '', remainText(m.completeBy, m.now)?.text].filter(Boolean).join(', ')} />}
           {d?.care?.companionCall && <ListRow lead={<Phone size={20} />} title="평소 돌봄 담당자에게 연락" subtitle={d.care.caregiverType} href={d.guardianPhone ? `tel:${d.guardianPhone}` : undefined} chevron={!!d.guardianPhone} />}
@@ -516,4 +518,26 @@ export default function MobileHelperPage() {
   const { token } = useParams()
   const { platform } = usePlatform()
   return <div data-screen-platform={platform} className="mob-h-wrap">{!token || token === 'demo' ? <DemoHelper /> : <RemoteHelperM token={token} />}</div>
+}
+
+// 찾아가는 곳(위치 정보 최소 공개). 수락한 본인 배정 대상자이고 근거(별도 동의 또는 실제 발령)가 있을 때만 보인다.
+// 근거가 없으면 담당자에게 묻도록 안내한다. 이름과 건강 정보는 여기에도 두지 않는다
+function LocationRows({ m, code }) {
+  if (!m?.accepted) return null
+  const loc = typeof m.location === 'function' ? m.location(code) : null
+  const rows = locationRows(loc)
+  if (!rows) {
+    return (
+      <List label="찾아가는 곳">
+        <ListRow lead={<MapPin size={20} />} title="담당자에게 위치를 물어보세요" subtitle="이 분은 위치 정보 제공에 동의하지 않았습니다" href={telOf(m.officerContact) || undefined} chevron={!!telOf(m.officerContact)} />
+      </List>
+    )
+  }
+  return (
+    <List label="찾아가는 곳">
+      <ListRow lead={<MapPin size={20} />} title={rows.place} subtitle={rows.detail} />
+      {loc.guardianPhone && <ListRow lead={<Phone size={20} />} title="보호자에게 전화" subtitle={loc.guardianPhone} href={`tel:${loc.guardianPhone}`} chevron />}
+      <ListRow lead={<Clock size={20} />} title={LOCATION_ERASE_NOTE} subtitle={rows.basisText} />
+    </List>
+  )
 }

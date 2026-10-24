@@ -14,6 +14,7 @@ import { mergeChecks, tripCheckNotes } from '../../lib/tripChecks.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { errorCodeOf } from './flow.js'
+import { canDisclose, locationOf } from '../../lib/locationDisclosure.js'
 
 export function startDemoDispatch() {
   const s = useDispatchStore.getState()
@@ -59,8 +60,18 @@ export function useDemoModel() {
       const st = d.events[c]?.step || stepOf(d, c, vnow, stops) || 'wait'
       if (st !== 'wait') reports.push({ type: 'step', personCode: c, step: st, reason: d.events[c]?.reason, at: d.events[c]?.at || 0 })
     }
+    // 위치 정보 최소 공개: 수락한 본인 배정 대상자만, 근거(별도 동의 또는 실제 발령)가 있을 때만. 서버 경로와 같은 규칙
+    const accepted = ack.answer === 'accept'
+    const myCodes = new Set(trips.flatMap((t) => t.personCodes))
+    const location = (code) => {
+      const p = personsBy[code]
+      const basis = canDisclose({ kind: d.kind, consent: p?.locConsent === true, accepted, assigned: myCodes.has(code), closed: d.status === 'closed' })
+      if (!basis) return null
+      const loc = locationOf(p, data.privateInfo?.[code])
+      return loc ? { ...loc, basis } : null
+    }
     return {
-      phase: 'ready', demo: true, helper: me,
+      phase: 'ready', demo: true, helper: me, accepted, location,
       preference: (consent,roles) => { const patch=preferencePatch({consent,roles},Date.now()); if(patch) data.upsertHelper({code:me,...patch}) }, drill: d.kind === 'drill', now: vnow,
       disaster: brief?.disaster || '산불', completeBy: brief?.completeBy ?? null, villages: brief?.villages || [],
       meetPlace: `${brief?.meetVillage || '-'} 첫 대상자 댁`, vehicle: vehicle ? `${vehicle.code}, ${typeOf(vehicle.type)?.label || ''}`.replace(/, $/, '') : mine.vehicleCode,
@@ -159,6 +170,9 @@ export function useRemoteModel(token) {
       codes: b.personCodes || trips.flatMap((t) => t.personCodes),
       // 실제 링크는 이름, 주소, 건강 정보를 휴대폰으로 보내지 않는다. 상세는 담당자 문자와 현장 확인
       detail: () => null, expiresAt: res.expiresAt,
+      // 서버는 수락한 본인 배정 대상자의 위치만 돌려준다. 화면 상태로만 두고 휴대폰 저장소에 남기지 않는다(발령 종료 뒤 404 로 사라짐)
+      accepted: (res.reports || []).concat(queue).some((x) => x?.type === 'ack') && [...(res.reports || []), ...queue].filter((x) => x?.type === 'ack').slice(-1)[0]?.answer === 'accept',
+      location: (code) => (res.locations && Object.prototype.hasOwnProperty.call(res.locations, code) ? res.locations[code] : null),
       reports: [...(res.reports || []), ...queue], pending: queue.length, queue, rejected, lastOk, offlineError: error?.code === 'NETWORK',
       ack: (answer, reason, memo) => push({ type: 'ack', answer, reason, memo }),
       step: (code, step, extra = {}) => push({ type: 'step', personCode: code, step, reason: extra.reason, memo: extra.memo, care: extra.care }),

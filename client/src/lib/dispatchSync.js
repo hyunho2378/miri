@@ -1,5 +1,6 @@
 // dispatchSync.js 발령 상태 서버 저장, 복원, 도우미 보고 주기 조회(회신 R34).
 // 서버(api/dispatch)는 시연 세션이 있을 때만 쓴다. 세션이나 저장소가 없으면 이 브라우저 안에서만 진행하고 사유를 상태로 남긴다.
+import { locationsForHelpers } from './locationDisclosure.js'
 import { helperBrief } from './dispatchSim.js'
 import { HAZARD_KINDS } from './scenario.js'
 import { virtualAt } from './clock.js'
@@ -78,7 +79,12 @@ async function call(method, action, body, query = {}, retried = false) {
   return j
 }
 
-export const saveRemote = (d, ctx, meta = {}) => call('POST', 'save', { dispatchId: meta.dispatchId ?? d.remote?.dispatchId, rev: meta.rev, state: snapshotOf(d), briefs: briefsOf(d, ctx) })
+export const saveRemote = (d, ctx, meta = {}) => {
+  const briefs = briefsOf(d, ctx)
+  // 위치 공개 후보는 배정 요약과 따로 보낸다. 서버는 도우미가 수락했을 때만 그 도우미에게 돌려준다(locationDisclosure.js)
+  const locations = ctx?.persons && ctx?.privateInfo ? locationsForHelpers({ kind: d.kind, briefs, persons: ctx.persons, privateInfo: ctx.privateInfo }) : {}
+  return call('POST', 'save', { dispatchId: meta.dispatchId ?? d.remote?.dispatchId, rev: meta.rev, state: snapshotOf(d), briefs, locations })
+}
 export const loadRemote = () => call('GET', 'state')
 export const clearRemote = (dispatchId) => call('DELETE', '', null, dispatchId ? { dispatchId } : {})
 

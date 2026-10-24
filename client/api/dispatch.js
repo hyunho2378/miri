@@ -12,6 +12,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import { accessLog, guard, incr, sameSite, sharedStore } from './_guard.js'
 import { scopeReports, scopeState } from './_scope.js'
 import { HELPER_TTL_SEC, signHelperToken, validDispatchId, validHelperCode, verifyHelperToken } from './_helperToken.js'
+import { acceptedOf, cleanLocation } from '../src/lib/locationDisclosure.js'
 
 const MAX_STATE = 900_000
 const MAX_STATE_DRILL = 600_000 // 코드 없이 받은 훈련 전용 세션의 상태 크기 상한
@@ -30,6 +31,9 @@ const K = {
   reports: (d) => `miri:dsp:r:${d}`,
   members: (d) => `miri:dsp:m:${d}`, // 도우미별 현재 배정 대상자(",P-1,P-2,"). 보고 저장 Lua 가 같은 원자 실행 안에서 확인
   key: (d, h, k) => `miri:dsp:k:${d}:${h}:${k}`,
+  // 도우미 위치 정보 열람 기록(도우미, 시각, 대상자 코드). 위치 값은 담지 않는다. 첫 열람만 남긴다
+  locLog: (d) => `miri:dsp:l:${d}`,
+  locSeen: (d, h) => `miri:dsp:lv:${d}:${h}`,
   // 도우미 참여 동의와 역할은 발령과 수명이 달라 세션 단위로 따로 둔다. 발령 종료 때 지우지 않는다
   pref: (sid) => `miri:pref:${sid}`,
   prefSeq: (sid) => `miri:pref:n:${sid}`
@@ -218,7 +222,21 @@ async function handle(req, res) {
     if (action === 'helper' && req.method === 'GET') {
       const all = (await r.lrange(K.reports(tk.d), 0, -1)) || []
       const mine = all.map(parse).filter((x) => x && x.helper === tk.h)
-      return res.status(200).json({ dispatchId: tk.d, helper: tk.h, brief, rev: assign.rev, reports: mine, expiresAt: tk.exp * 1000 })
+      // 위치 정보 최소 공개(개인정보 보호법 제15조 제1항 제5호, 제7호, 제17조 제1항): 본인 배정 대상자이고 서버에 접수된 최신 응답이 수락일 때만.
+      // 수락 전, 불가 뒤, 배정에서 빠진 뒤, 발령 종료 뒤(위 404)에는 돌려주지 않는다
+      const allowed = new Set(brief.personCodes || [])
+      const loc = acceptedOf(mine, tk.h) ? Object.fromEntries(Object.entries(assign?.loc?.[tk.h] || {}).filter(([c]) => allowed.has(c))) : {}
+      const body = { dispatchId: tk.d, helper: tk.h, brief, rev: assign.rev, reports: mine, expiresAt: tk.exp * 1000 }
+      if (Object.keys(loc).length) {
+        body.locations = loc
+        try {
+          if (await r.set(K.locSeen(tk.d, tk.h), '1', { nx: true, ex: HELPER_TTL_SEC })) {
+            await r.rpush(K.locLog(tk.d), JSON.stringify({ helper: tk.h, at: Date.now(), codes: Object.keys(loc) }))
+            await r.expire(K.locLog(tk.d), HELPER_TTL_SEC)
+          }
+        } catch { /* 열람 기록 실패는 응답을 막지 않는다 */ }
+      }
+      return res.status(200).json(body)
     }
     if (action === 'report' && req.method === 'POST') {
       if ((await incr(`dsp:h:${tk.d}:${tk.h}`, 60)) > 60) return fail(res, 429, 'RATE_LIMIT', '보고가 너무 잦습니다. 잠시 뒤 다시 보내 주십시오')
@@ -298,6 +316,16 @@ async function handle(req, res) {
       briefs[h] = cb
       tokens[h] = signHelperToken(id, h)
     }
+    // 도우미별 위치 공개 후보(훈련 발령은 급박성이 없으므로 별도 동의 대상자만, 정해진 네 항목만). 그 도우미의 배정 대상자 코드만 받는다. 수락 여부는 조회 때 다시 본다
+    const loc = {}
+    const lsrc = body.locations && typeof body.locations === 'object' ? body.locations : {}
+    for (const [h, m] of Object.entries(lsrc).slice(0, 300)) {
+      if (!briefs[h] || !m || typeof m !== 'object') continue
+      const ok = new Set(briefs[h].personCodes || [])
+      const one = {}
+      for (const [c, x] of Object.entries(m).slice(0, 300)) { const v = ok.has(c) && cleanLocation(x); if (v && (v.basis === 'consent' || state.kind === 'real')) one[c] = v }
+      if (Object.keys(one).length) loc[h] = one
+    }
     // 단계 전이 검사: 이미 전송한 발령은 전송 상태로만 이어 저장한다(전송 뒤 배정 검토로 되돌리는 저장은 409).
     // 같은 세션의 더 새 순번 저장에만 적용한다. 늦게 온 옛 저장과 남의 발령은 아래 원자 실행이 stale, owner 로 거른다
     try {
@@ -313,7 +341,7 @@ async function handle(req, res) {
     try {
       const members = Object.entries(briefs).flatMap(([h, b]) => [h, memberValue(b)])
       out = asPair(await r.eval(SAVE_LUA, [K.closed(id), K.idOwner(id), K.rev(id), K.state(id), K.assign(id), K.owner(sid), K.members(id)],
-        [sid, String(rev), JSON.stringify(state), JSON.stringify({ rev, briefs }), id, String(HELPER_TTL_SEC), ...members]))
+        [sid, String(rev), JSON.stringify(state), JSON.stringify({ rev, briefs, loc }), id, String(HELPER_TTL_SEC), ...members]))
     } catch {
       return fail(res, 503, 'STORE_ERROR', '발령 상태를 저장하지 못했습니다. 이 브라우저 안에서 계속 진행합니다')
     }

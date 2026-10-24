@@ -1,3 +1,4 @@
+import { LOCATION_CONSENT_NOTICE } from './locationDisclosure.js'
 import { HELPER_PHRASES, AVOID_PHRASES } from './helperGuidance.js'
 // docTemplates.js 문서함 공공기관 서식. 「행정업무의 운영 및 혁신에 관한 규정」과 같은 시행규칙(별지 제1호서식 기안문, 제2조 항목 표시),
 // 행정안전부 「행정업무운영 편람」을 따르는 kordoc 공문서 엔진 프리셋(preset)과 짝을 이룬다.
@@ -297,12 +298,15 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'consent', cat: 'external', title: '재난 때 이동 지원 사전 확인 동의서', desc: '「개인정보 보호법」 제15조 고지 항목 서식',
+    key: 'consent', cat: 'external', title: '재난 때 이동 지원 사전 확인 동의서', desc: '「개인정보 보호법」 제15조 고지 항목과 위치 정보 제공 별도 동의(제17조) 서식',
     preset: '통지', numbering: 'standard',
     html: join(
       '<h1>재난 때 이동 지원 사전 확인 동의서</h1>',
       T(['구분', '내용'], [['수집 항목', '이송 등급, 특이사항, 마을'], ['수집 목적', '재난 때 필요한 이동 지원을 미리 확인하고, 발령 때 차량과 도우미를 배정'], ['정보를 받는 사람', '동 맞춤형복지 담당, 발령 때 배정된 차량 기사와 도우미(배정된 분의 정보만)'], ['보유 기간', '○년(동의 철회 시 즉시 파기)'], ['동의 거부 권리', '동의하지 않을 수 있으며, 이 경우 사전 대피 배정에서 빠질 수 있음']]),
       P('위 내용을 확인하고 개인정보 수집과 이용에 동의합니다.'),
+      '<h2>도우미 위치 정보 제공 별도 동의(선택, 「개인정보 보호법」 제17조제1항제1호, 제2항)</h2>',
+      T(['구분', '내용'], LOCATION_CONSENT_NOTICE),
+      P('□ 동의함 &nbsp;&nbsp; □ 동의하지 않음'),
       P('○○○○년 ○월 ○일 &nbsp;&nbsp; 동의자 ○○○ (서명)')
     )
   },
