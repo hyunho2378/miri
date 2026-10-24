@@ -168,7 +168,14 @@ html[lang='ja'] .break-keep, html[lang='zh'] .break-keep { word-break: normal; l
   .print-area, .print-area * { visibility: visible; }
   .print-area { position: absolute; left: 0; top: 0; width: 100%; }
   .print-page { break-after: page; border: 0; }
+  /* 소방 인계 인쇄본(HandoverPrint): A4 가로 이름 붙은 쪽, 표 머리 줄은 행 사이에 선만 */
+  body:has(> .handover-print) > *:not(.handover-print) { display: none; }
+  .print-area.handover-print { position: static; }
+  .handover-print-page { page: handover; }
+  .handover-print table tbody tr { border-top: 0.5pt solid theme('colors.line.strong'); }
+  .handover-print table thead tr { border-bottom: 1pt solid theme('colors.text.pri'); }
 }
+@page handover { size: A4 landscape; margin: 10mm; }
 
 /* 담당자 화면 면 규칙(2026-10-06, 사용자 지향 레퍼런스 IMG_1531).
    흰 본문 위에 회색 면 카드를 놓고 그림자와 보더를 쓰지 않는다. 카드 안의 입력과 표만 흰 면으로 떠 보인다 */

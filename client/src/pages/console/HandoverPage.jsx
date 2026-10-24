@@ -10,6 +10,7 @@ import PublicFactsCard from '../../components/miri/PublicFactsCard.jsx'
 import GradeChip from '../../components/miri/GradeChip.jsx'
 import MetricCard from '../../components/miri/MetricCard.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
+import HandoverPrint from '../../components/miri/HandoverPrint.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Button from '../../components/ui/Button.jsx'
@@ -172,6 +173,8 @@ export default function HandoverPage() {
               {handoverConfirmLines(rows, picked, (v) => v, fmtHM(baseAt)).map((l) => <li key={l}>{l}</li>)}
             </ul>
           </Modal>
+
+          <HandoverPrint rows={rows} baseAt={baseAt} orgName={orgName} />
 
           <PublicFactsCard only="er" />
 

@@ -130,3 +130,29 @@ export function handoverCsvColumns(baseAt) {
     { key: 'status', label: '상태', value: statusText }
   ]
 }
+
+// 소방 인계 인쇄(플랫폼 AI 협업 툴 셀 53 검토 반영). 화면 표의 20행 제한과 상관없이 인계 대기 전체를 A4 가로로 출력한다.
+// 셀 53 계산: 17열을 다 넣으면 A4 가로 쓸 수 있는 폭(277mm)을 넘으므로 현장 판단에 먼저 필요한 10열만 인쇄하고 나머지는 CSV 로 넘긴다
+export const HANDOVER_PRINT_ROWS_PER_PAGE = 24
+export function handoverPrintColumns() {
+  return [
+    { key: 'code', label: '대상자 코드' },
+    { key: 'village', label: '마을(동)', value: (r) => `${r.village}(${r.dong})` },
+    { key: 'arrival', label: '산불 도달', value: (r) => fmtHM(r.arrival) },
+    { key: 'grade', label: '등급(거동)', value: (r) => `${gradeOf(r.grade)?.label || ''}(${r.gradeTerm || ''})` },
+    { key: 'address', label: '주소(가상)' },
+    { key: 'location', label: '동호수, 층' },
+    { key: 'elevator', label: '엘리베이터' },
+    { key: 'crew', label: '필요 대원 수' },
+    { key: 'guardianPhone', label: '보호자 연락처' },
+    { key: 'reason', label: '사유' }
+  ]
+}
+export const HANDOVER_PRINT_CSV_NOTE = '의료기기, 반려동물, 명부 마지막 확인, 특이사항, 증상과 조치는 CSV 내보내기에 있습니다.'
+
+// 인계 대기만 쪽으로 나눈다. 쪽마다 { n, total, rows }
+export function paginateHandover(rows, perPage = HANDOVER_PRINT_ROWS_PER_PAGE) {
+  const waiting = rows.filter((r) => r.status !== 'handedToFire')
+  const total = Math.max(1, Math.ceil(waiting.length / perPage))
+  return Array.from({ length: waiting.length ? total : 0 }, (_, i) => ({ n: i + 1, total, rows: waiting.slice(i * perPage, (i + 1) * perPage) }))
+}
