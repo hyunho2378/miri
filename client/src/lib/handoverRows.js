@@ -29,10 +29,11 @@ export function elevatorOf(access) {
 }
 
 export function locationOf(person, info) {
-  const addr = info?.address || ''
-  const unit = info?.unit || ''
+  // 마을은 옆 열에 있으므로 동호수와 층을 앞에 둔다. 동호수가 없으면 주소로 대신한다
+  const unit = (info?.unit || '').replace(/^가상 /, '')
   const floor = person?.access?.floor || ''
-  return [addr, unit, floor].filter(Boolean).join(', ') || '명부에 없음'
+  const head = unit || info?.address || ''
+  return [head, floor].filter(Boolean).join(', ') + (info?.unit ? ' (가상)' : '') || '명부에 없음'
 }
 
 export function checkedOf(person, now) {
