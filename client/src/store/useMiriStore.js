@@ -75,6 +75,11 @@ export const useMiriStore = create((set, get) => ({
   })),
   removeHelper: (code) => set((s) => ({ helpers: s.helpers.filter((h) => h.code !== code) })),
 
+  // 대피소 확인 항목(승강기와 진입로). liftAccess: true 있음, false 없음, null 미확인. 확인 날짜는 담당자 기록
+  updateShelter: (code, patch) => set((s) => ({
+    shelters: s.shelters.map((x) => (x.code === code ? { ...x, ...patch, liftCheckedAt: s.today } : x))
+  })),
+
   // 마을과 설정
   updateVillage: (code, patch) => set((s) => ({ villages: s.villages.map((v) => (v.code === code ? { ...v, ...patch } : v)) })),
   updateSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),

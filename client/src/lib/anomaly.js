@@ -63,8 +63,10 @@ export function detectAnomalies({ persons, vehicles, helpers, settings, now, dis
     }
     if (dispatch.sentAt) {
       for (const [code, ack] of Object.entries(dispatch.acks || {})) {
-        if (ack.answer === 'none' && dispatch.now - dispatch.sentAt > settings.noAckMinutes * MIN) {
-          out.push({ id: `noack-${code}`, rule: 'noAck', target: code, value: `전송 후 ${Math.floor((dispatch.now - dispatch.sentAt) / MIN)}분 무응답`, to: '/console/dispatch' })
+        // 응답 기한의 기준은 대체 배정과 같다(useDispatchStore.processResponses): 대체 도우미는 요청 시각, 처음 도우미는 전송 시각
+        const since = ack.requestedAt || dispatch.sentAt
+        if (ack.answer === 'none' && dispatch.now - since > settings.noAckMinutes * MIN) {
+          out.push({ id: `noack-${code}`, rule: 'noAck', target: code, value: `${ack.requestedAt ? '대체 요청' : '전송'} 후 ${Math.floor((dispatch.now - since) / MIN)}분 무응답`, to: '/console/dispatch' })
         }
       }
     }

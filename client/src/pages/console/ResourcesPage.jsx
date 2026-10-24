@@ -1,4 +1,4 @@
-// 차량과 도우미(IA 4.4). 탭 두 개. ?tab=helpers. 차종 탑승 정원은 자문 전 가정값.
+// 차량과 도우미(IA 4.4). 탭 세 개. ?tab=helpers, ?tab=shelters(대피소 승강기 확인). 차종 탑승 정원은 자문 전 가정값.
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import TableCard from '../../components/dashboard/TableCard.jsx'
@@ -13,6 +13,8 @@ import Button from '../../components/ui/Button.jsx'
 import Drawer from '../../components/ui/Drawer.jsx'
 import Tabs from '../../components/ui/Tabs.jsx'
 import Toggle from '../../components/ui/Toggle.jsx'
+import SegmentControl from '../../components/ui/SegmentControl.jsx'
+import { shelterLiftRows } from '../../lib/tripChecks.js'
 import useToast from '../../hooks/useToast.js'
 import { VEHICLE_NOTE, COMMITMENTS, GRADES, HELPER_ROLES, HELPER_AFFILIATIONS, affiliationLabel, OWNERS, VEHICLE_TYPES, commitmentOf, gradeOf, typeOf } from '../../lib/shortage.js'
 import { vehicleSummaryLong, vehicleSummaryShort } from '../../lib/vehicleSummary.js'
@@ -27,6 +29,9 @@ const capText = (type) => Object.entries(typeOf(type)?.capacity || {}).map(([g, 
 export default function ResourcesPage() {
   const vehicles = useMiriStore((s) => s.vehicles)
   const helpers = useMiriStore((s) => s.helpers)
+  const shelters = useMiriStore((s) => s.shelters)
+  const persons = useMiriStore((s) => s.persons)
+  const updateShelter = useMiriStore((s) => s.updateShelter)
   const villages = useMiriStore((s) => s.villages)
   const dongs = useMiriStore((s) => s.dongs)
   const today = useMiriStore((s) => s.today)
@@ -38,7 +43,7 @@ export default function ResourcesPage() {
   const canVehicle = useAuthStore((s) => s.canEdit('vehicles'))
   const toast = useToast()
   const [params, setParams] = useSearchParams()
-  const tab = params.get('tab') === 'helpers' ? 'helpers' : 'vehicles'
+  const tab = ['helpers', 'shelters'].includes(params.get('tab')) ? params.get('tab') : 'vehicles'
   const [form, setForm] = useState(null)   // { kind, mode, value }
   const [errors, setErrors] = useState({})
 
@@ -137,14 +142,41 @@ export default function ResourcesPage() {
     { key: 'edit', label: '편집', render: (h) => <EditPencil resource="helpers" label={`${h.code} 수정`} onClick={() => openHelper(h)} /> }
   ]
 
+  const shelterRows = shelterLiftRows(shelters, villages, persons)
+  const liftAlerts = shelterRows.filter((r) => r.liftAlert).length
+  const LIFT_LABEL = { yes: '있음', no: '없음', unchecked: '승강기 확인 필요' }
+  const shelterColumns = [
+    { key: 'name', label: '대피소', render: (r) => <span className="type-strong">{r.name}</span> },
+    { key: 'capacity', label: '수용', hideBelow: 'md', render: (r) => <span className="tabular-nums">{(r.capacity || 0).toLocaleString('ko-KR')}명</span> },
+    { key: 'liftNeed', label: '휠체어와 침상 대상자', render: (r) => <span className="tabular-nums">{r.liftNeed ? `${r.liftNeed.toLocaleString('ko-KR')}명` : '없음'}</span> },
+    {
+      key: 'lift', label: '승강기와 진입로',
+      render: (r) => (canVehicle
+        ? <SegmentControl label={`${r.name} 승강기와 진입로`} value={r.liftStatus} onChange={(x) => { updateShelter(r.code, { liftAccess: x === 'yes' ? true : x === 'no' ? false : null }); toast(`${r.name}: ${LIFT_LABEL[x]}`) }} items={[{ value: 'unchecked', label: '미확인' }, { value: 'yes', label: '있음' }, { value: 'no', label: '없음' }]} />
+        : <StatusPill status={r.liftStatus === 'yes' ? 'available' : r.liftStatus === 'no' ? 'unavailable' : 'expiring'} label={LIFT_LABEL[r.liftStatus]} />)
+    },
+    {
+      key: 'checked', label: '확인 날짜', hideBelow: 'md',
+      render: (r) => (r.liftAlert
+        ? <span className="type-body-sm text-danger-text">{r.liftStatus === 'no' ? '없음, 배정 전 다른 대피소 검토' : '승강기 확인 필요'}</span>
+        : <span className="type-body-sm text-text-sec tabular-nums">{r.liftCheckedAt ? fmtDate(r.liftCheckedAt) : '기록 없음'}</span>)
+    }
+  ]
+
   return (
     <PageShell title="차량과 도우미" desc="재난 때 쓸 수 있는 차량과 함께 갈 도우미를 평소에 등록하고, 약속이 확인됐는지 관리합니다.">
       <Tabs
         className="mb-4" value={tab}
-        onChange={(t) => setParams(t === 'helpers' ? { tab: 'helpers' } : {})}
-        items={[{ value: 'vehicles', label: `차량 ${vehicles.length}` }, { value: 'helpers', label: `도우미 ${helpers.length}` }]}
+        onChange={(t) => setParams(t === 'vehicles' ? {} : { tab: t })}
+        items={[{ value: 'vehicles', label: `차량 ${vehicles.length}` }, { value: 'helpers', label: `도우미 ${helpers.length}` }, { value: 'shelters', label: liftAlerts ? `대피소 확인 ${liftAlerts}` : `대피소 ${shelters.length}` }]}
       />
-      {tab === 'vehicles' ? (
+      {tab === 'shelters' ? (
+        <TableCard
+          key="shelters" title="대피소 승강기와 진입로" count={`확인 필요 ${liftAlerts}곳 / 전체 ${shelters.length}곳`}
+          desc="휠체어와 침상 대상자가 가는 대피소는 배정 전에 승강기와 진입로를 확인합니다. 인원은 명부 등급과 마을 대피소 기준이며, 확인 결과는 배정표의 확인 표시에 바로 쓰입니다."
+          columns={shelterColumns} rows={shelterRows} rowKey={(r) => r.code} caption="대피소 승강기 확인 목록"
+        />
+      ) : tab === 'vehicles' ? (
         <TableCard
           key="vehicles" title="차량" count={vehicleSummaryShort(vehicles)} desc={`${vehicleSummaryLong(vehicles)}. 협약 만료는 ${fmtKDate(today)} 기준으로 판정합니다. 차종별 회차당 정원은 협의 전 가정값입니다. ${VEHICLE_NOTE}`}
           actions={<InlineEditBar resource="vehicles" addLabel="차량 추가" onAdd={() => { setErrors({}); setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'request', baseDong: 'MS', available: true, contractUntil: '', note: '', commitment: 'unconfirmed' } }) }} />}

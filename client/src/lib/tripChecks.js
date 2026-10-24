@@ -62,6 +62,23 @@ export function shelterAccess(shelter) {
 
 const NEEDS_LIFT = new Set(['wheelchair', 'bed'])
 
+// 대피소별 승강기 확인 표(차량과 도우미 화면). 휠체어와 침상 대상자가 배정 마을 기준으로 가는 대피소를 먼저.
+// 숫자는 명부의 등급별 인원만 세고 배정 계산은 바꾸지 않는다
+export function shelterLiftRows(shelters, villages, persons) {
+  const shelterOfVillage = Object.fromEntries((villages || []).map((v) => [v.code, v.shelterCode]))
+  const need = {}
+  for (const p of persons || []) {
+    if (!NEEDS_LIFT.has(p.grade)) continue
+    const sc = shelterOfVillage[p.villageCode]
+    if (sc) need[sc] = (need[sc] || 0) + 1
+  }
+  return (shelters || []).map((s) => {
+    const n = need[s.code] || 0
+    const status = s.liftAccess === true ? 'yes' : s.liftAccess === false ? 'no' : 'unchecked'
+    return { ...s, liftNeed: n, liftStatus: status, liftAlert: n > 0 && status !== 'yes' }
+  }).sort((a, b) => Number(b.liftAlert) - Number(a.liftAlert) || b.liftNeed - a.liftNeed || a.code.localeCompare(b.code))
+}
+
 // 도로 경로 선(좌표 배열)을 따라 고르게 점을 뽑는다
 function samplePath(path, stepKm = 0.1) {
   const pts = []
@@ -153,7 +170,7 @@ export function tripCheckNotes(checks) {
   if (checks.companionCall.length) notes.push({ tone: 'primary', text: `동행 연락 필요 ${checks.companionCall.length}명(평소 돌봄 담당자)` })
   if (checks.caregiverUnreachable.length) notes.push({ tone: 'warning', text: `돌봄 담당자 연락 불가 ${checks.caregiverUnreachable.length}명` })
   if (checks.commCaution.length) notes.push({ tone: 'primary', text: `의사소통 유의 ${checks.commCaution.length}명` })
-  if (checks.liftUnchecked.length) notes.push({ tone: 'warning', text: `리프트 차량 진입 확인 필요: ${checks.liftUnchecked.join(', ')}` })
+  if (checks.liftUnchecked.length) notes.push({ tone: 'warning', text: `대피소 승강기와 진입로 확인 필요: ${checks.liftUnchecked.join(', ')}` })
   if (checks.routeCheck) notes.push({ tone: 'warning', text: checks.routeBasis === 'road' ? '경로 확인 필요(도로 경로 기준, 산불 영향 범위 통과)' : '경로 확인 필요(직선 기준, 이 마을은 도로 경로 미계산)' })
   return notes
 }
