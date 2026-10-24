@@ -8,6 +8,7 @@ export const ios = {
   "green": "#34C759",
   "greenAccessible": "#008932",
   "orange": "#FF9500",
+  "orangeAccessible": "#C93400",
   "purple": "#AF52DE",
   "purpleAccessible": "#B02FC2",
   "label": "#000000",

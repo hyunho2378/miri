@@ -45,8 +45,10 @@ export const colors = {
   // 위험과 부족. KRDS point 계열
   danger:  { DEFAULT: r[50], strong: r[60], soft: r[5], text: r[60] },
   // 이름만 남긴다. 값은 위험 빨강(warning) 과 무채색(success) 이다
-  warning: { DEFAULT: ios.orange, soft: ios.fill, text: ios.label },
-  success: { DEFAULT: ios.green, soft: ios.fill, text: ios.label },
+  // DEFAULT 는 막대, 아이콘, 상태 점 같은 비텍스트 그래픽에 쓴다. 흰 면과 회색 면 모두 3:1 이상인 HIG 고대비 값(플랫폼 AI 협업 툴 검토 반영)
+  // 주황 #C93400 흰 5.28, #F2F2F7 4.73, #E5E5EA 4.21. 초록 #008932 흰 4.54, #F2F2F7 4.07, #E5E5EA 3.62
+  warning: { DEFAULT: ios.orangeAccessible, soft: ios.fill, text: ios.label },
+  success: { DEFAULT: ios.greenAccessible, soft: ios.fill, text: ios.label },
 
   // 문서함 종류 식별색(DAH Docs·Sheet·Form 규칙 준용: 흐린 틴트 금지, 진한 단색). 아이콘, 배지, 서식 카드 머리에만 쓴다
   // 흰 글자 배지(11px 굵게)와 흰 면 위 글자 모두 4.5:1 이상이 되도록 HIG 고대비(Increased contrast, light) 값을 쓴다. 파랑 4.57, 초록 4.54, 보라 5.21
