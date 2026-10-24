@@ -172,7 +172,7 @@ function EmergencySheet({ open, onClose, m, onFail }) {
   const [page, setPage] = useState('main')
   useEffect(() => { if (!open) setPage('main') }, [open])
   const officerTel = telOf(m.officerContact)
-  const title = page === 'guide' ? '응급 대응 안내' : page === 'phrases' ? '말할 때 쓰는 문구' : '상태가 나빠졌어요'
+  const title = page === 'guide' ? '응급 대응 안내' : page === 'phrases' ? '말할 때 쓰는 문구' : '대상자 상태가 나빠졌어요'
   return (
     <Sheet open={open} onClose={onClose} title={title}>
       {page === 'main' && (
@@ -229,13 +229,14 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
       <AppBar title={code === p.current ? '지금 차례' : `${order}번째 분`} onBack={onBack} trailing={<EmergencyButton onClick={() => setSos(true)} />} />
       <main id="main" className="mob-content no-nav">
         <div className="mob-h-progress">
-          <span className="mob-t-callout">{next ? `${stepIndexOf(st)}/4 ${STEP_NOW[st]}` : STEP_LABEL[st]}</span>
+          <span className="mob-t-callout">{next ? `단계 ${stepIndexOf(st)}/4, ${STEP_NOW[st]}` : STEP_LABEL[st]}</span>
           <Progress value={next ? (stepIndexOf(st) / 4) * 100 : 100} label="이 대상자 이송 단계" />
         </div>
         <Figure value={place} caption={[code, d?.grade, trip ? `${tripWord(trip.index)}${st === 'wait' && trip.departAt ? ` ${fmtHM(trip.departAt)} 출발` : ''}` : ''].filter(Boolean).join(', ')} />
         <List label="이 대상자">
+          {m.completeBy && <ListRow lead={<Clock size={20} />} title={`이송 완료 기한 ${fmtHM(m.completeBy)}까지`} subtitle={[m.drill ? '훈련' : '', remainText(m.completeBy, m.now)?.text].filter(Boolean).join(', ')} />}
           {d?.care?.companionCall && <ListRow lead={<Phone size={20} />} title="평소 돌봄 담당자에게 연락" subtitle={d.care.caregiverType} href={d.guardianPhone ? `tel:${d.guardianPhone}` : undefined} chevron={!!d.guardianPhone} />}
-          {(d?.routeCheck || trip?.routeCheck) && <ListRow lead={<Route size={20} />} title="경로 확인 필요" subtitle={routeBasisLabel(trip?.routeBasis)} />}
+          {(d?.routeCheck || trip?.routeCheck) && <ListRow lead={<Route size={20} />} title="출발 전 담당자에게 길 확인" subtitle={`경로 확인 필요, ${routeBasisLabel(trip?.routeBasis)}`} href={telOf(m.officerContact) || undefined} chevron={!!telOf(m.officerContact)} />}
           <InfoSheet lead={<User size={20} />} title="대상자 정보" summary={d ? '돌봄 담당자, 보조기구, 대피소' : '이름과 주소는 휴대폰으로 보내지 않음'}>
             {d ? (
               <List label="대상자 정보">
@@ -250,7 +251,7 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
             ) : <List label="대상자 정보"><ListRow title="담당자 문자와 현장에서 확인" subtitle="이름, 주소, 건강 정보는 휴대폰으로 보내지 않음" /></List>}
           </InfoSheet>
           {next?.step === 'handover' && <ListRow lead={<ClipboardList size={20} />} title="인계 기록(선택)" subtitle={care.observation || care.action || care.symptomAt ? '적어 둠, 인계 때 함께 보냄' : '증상 시각, 관찰, 조치'} chevron onClick={() => setCareOpen(true)} />}
-          {!inPane && <ListRow lead={<Users size={20} />} title={`전체 ${p.total}명`} subtitle={`완료 ${p.done}명, 실패 ${p.failed}명`} chevron onClick={() => go({ name: 'list' })} />}
+          {!inPane && <ListRow lead={<Users size={20} />} title={`맡은 대상자 ${p.total}명 중 ${order}번째`} subtitle={`완료 ${p.done}명, 실패 ${p.failed}명`} chevron onClick={() => go({ name: 'list' })} />}
         </List>
         {nowQs && <List label="전송 대기"><ListRow lead={<CloudOff size={20} />} title={nowQs.title} subtitle={nowQs.subtitle} chevron onClick={() => go({ name: 'H8' })} /></List>}
         {!next && <EmptyState icon={<CheckCircle2 size={28} />} title="이 대상자 보고 끝" body={STEP_LABEL[st]} />}

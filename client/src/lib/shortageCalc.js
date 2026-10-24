@@ -188,10 +188,20 @@ export function requiredExtraVehicles(input, current, { max = 300 } = {}) {
 // AI 배정 최적화를 같은 시나리오에 돌렸을 때의 미이송 수(평시 화면 비교용)
 // 현황판, 서식, 발령 운영이 같은 탐색 조건(고정 횟수, 같은 씨앗)을 쓴다. 같은 입력이면 같은 값
 const optCache = new WeakMap()
+const optPlan = (result) => {
+  if (!optCache.has(result.ctx)) optCache.set(result.ctx, runOptimize(result.ctx))
+  return optCache.get(result.ctx)
+}
 export function optimizedUnserved(result) {
   if (!result?.ctx) return 0
-  if (!optCache.has(result.ctx)) optCache.set(result.ctx, runOptimize(result.ctx).metrics.unserved)
-  return optCache.get(result.ctx)
+  return optPlan(result).metrics.unserved
+}
+// 같은 추천 배정 계산의 마을별 미이송(휴대폰 동 담당자 홈의 '추천 배정 시' 값). 숫자를 새로 정하지 않고 같은 계획을 마을로 센다
+export function optimizedByVillage(result) {
+  if (!result?.ctx) return {}
+  const out = {}
+  for (const u of optPlan(result).unserved || []) out[u.village] = (out[u.village] || 0) + 1
+  return out
 }
 
 // 병목 확인(회신 R45): 계산이 끝난 뒤 차량 1대와 도우미 1명을 각각 더했을 때 미이송이 얼마나 줄어드는지 같은 규칙으로 다시 계산한다.

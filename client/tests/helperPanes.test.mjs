@@ -34,7 +34,7 @@ test('화면 코드: 두 단에서 목록 고르기는 오른쪽만 바꾸고, �
   const src = readFileSync(new URL('../src/mobile/helper/HelperScreens.jsx', import.meta.url), 'utf8')
   assert.match(src, /const pick = \(v\) => setStack\(\[v\]\)/)
   assert.match(src, /list=\{<PeopleList m=\{m\} steps=\{steps\} go=\{pick\}[^\n]*inPane \/>\}/)
-  assert.match(src, /\{!inPane && <ListRow lead=\{<Users size=\{20\} \/>\} title=\{`전체 \$\{p\.total\}명`\}/)
+  assert.match(src, /\{!inPane && <ListRow lead=\{<Users size=\{20\} \/>\} title=\{`맡은 대상자 \$\{p\.total\}명 중 \$\{order\}번째`\}/)
   assert.match(src, /<TwoPane\s/)
 })
 

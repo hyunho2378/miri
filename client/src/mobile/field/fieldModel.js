@@ -156,6 +156,14 @@ export function scopedShortage(result, inScope) {
   return { unserved: rows.reduce((s, [, v]) => s + v.total, 0), targets: rows.reduce((s, [, v]) => s + v.targetTotal, 0), villages: rows.length }
 }
 
+// 평시 홈의 추천 배정 시 값: scopedShortage 와 같은 마을 범위로 추천 배정 계획의 마을별 미이송을 더한다(시 전체면 추천 배정 합계)
+export function scopedOptimized(result, inScope, byVillage, total) {
+  if (!result) return null
+  const rows = Object.entries(result.byVillage || {}).filter(([code, v]) => v.inScope && inScope(code))
+  if (rows.length === Object.values(result.byVillage || {}).filter((v) => v.inScope).length) return total
+  return rows.reduce((s, [code]) => s + (byVillage[code] || 0), 0)
+}
+
 // 발령 홈의 늦는 마을: 아직 남은 사람이 있는 마을을 기한 순으로. 남은 사람 = 전체 - 완료
 export function lateVillages(list, vnow, limit = 3) {
   return list.filter((v) => v.total - v.done > 0)

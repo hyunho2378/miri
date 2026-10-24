@@ -11,7 +11,9 @@ import { useDispatchStore } from '../../store/useDispatchStore.js'
 import { activeScenario, useMiriStore } from '../../store/useMiriStore.js'
 import useAuthStore, { ROLE_LABEL } from '../../store/useAuthStore.js'
 import { vnowOf, FAIL_REASONS, DECLINE_REASONS } from '../../lib/dispatchSim.js'
-import { computeShortage } from '../../lib/shortageCalc.js'
+import { computeShortage, optimizedByVillage, optimizedUnserved } from '../../lib/shortageCalc.js'
+import { calcStamp } from '../../lib/basis.js'
+import { staleRosterCount, STALE_DAYS } from '../../lib/handoverRows.js'
 import { OWNERS, COMMITMENTS, GRADES, commitmentOf, gradeOf } from '../../lib/shortage.js'
 import { personCare, ROUTE_NOTE } from '../../lib/tripChecks.js'
 import { readDocument, verifyResult } from '../../lib/intake.js'
@@ -20,7 +22,7 @@ import { AI_CARD, NOT_ENTERED, placeLine, reviewReasons } from '../../lib/aiCard
 import { aiErrorMessage } from '../../lib/aiErrors.js'
 import { REAL_READ_SOURCE } from '../../mock/realReadings.js'
 import { AppBar, DisplaySettings, Button, Dialog, EmptyState, Figure, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, Segmented, Sheet, Spinner, Toggle, useMobileToast } from '../ui.jsx'
-import { ACTIVE, failedPending, scopeDispatch, fieldSummary, helperResponses, hm, searchPersons, stepLabel, unservedByReason, villageName, villageProgress, deadlineTag, scopedShortage, lateVillages, docQueue, noteQueue } from './fieldModel.js'
+import { ACTIVE, failedPending, scopeDispatch, fieldSummary, helperResponses, hm, searchPersons, stepLabel, unservedByReason, villageName, villageProgress, deadlineTag, scopedShortage, scopedOptimized, lateVillages, docQueue, noteQueue } from './fieldModel.js'
 
 // 발령 복원과 10초 주기 조회(콘솔 발령 운영과 같은 방식)
 function useDispatchLive() {
@@ -155,6 +157,10 @@ function PeaceHome({ closed }) {
   const navigate = useNavigate()
   const fire = useOpenData('fire')
   const sh = scopedShortage(result, scope.inScope)
+  const opt = useMemo(() => scopedOptimized(result, scope.inScope, optimizedByVillage(result), optimizedUnserved(result)), [result, scope.inScope]) // eslint-disable-line react-hooks/exhaustive-deps
+  const now = useRealNow(30000)
+  const stamp = calcStamp({ at: now, rosterAt: data.today })
+  const stale = staleRosterCount(data.persons.filter((p) => p.review !== 'rejected' && scope.inScope(p.villageCode)), now)
   const docs = docQueue(data.intakeDocs, data.persons, scope.inScope, scopeCodes)
   const notes = noteQueue(data.fieldNotes, scope.inScope)
   return (
@@ -162,12 +168,14 @@ function PeaceHome({ closed }) {
       <AppBar title="오늘 할 일" large />
       <main id="main" className="mob-content">
         <Who user={scope.user} extra={closed ? '발령 종료' : null} />
-        <Figure plain label={`${scope.isDong ? '우리 동' : '동해시'} 미이송 예상, ${scenario?.name || '기준 시나리오'}`} value={sh.unserved ?? '-'} unit="명">
-          <p className="mob-t-callout">대피 대상 {sh.villages}개 마을 {sh.targets}명 중</p>
+        <Figure plain label={`${scope.isDong ? '우리 동' : '동해시'} 미이송 예상(기준 배정), ${scenario?.name || '기준 시나리오'}`} value={sh.unserved ?? '-'} unit="명">
+          <p className="mob-t-callout">추천 배정 시 {opt ?? '-'}명, 대피 대상 {sh.villages}개 마을 {Number(sh.targets).toLocaleString('ko-KR')}명 중</p>
+          {stamp && <p className="mob-t-callout tabular-nums">({stamp})</p>}
         </Figure>
         <List label="확인할 일">
           <ListRow lead={<FileText size={22} />} title={`확인할 서류 ${docs.length}건`} subtitle={docs.length ? 'AI가 읽은 등급을 원본과 맞춰 확정' : '모두 확인함'} chevron onClick={() => navigate('/m/f/docs')} />
           <ListRow lead={<MessageSquare size={22} />} title={`확인할 현장 소식 ${notes.length}건`} subtitle={notes.length ? '돌봄 담당자가 전한 상태 변화' : '모두 확인함'} chevron onClick={() => navigate('/m/f/notes')} />
+          <ListRow lead={<Users size={22} />} title={`${scope.isDong ? '우리 동 ' : ''}명부 재확인 필요 ${stale.toLocaleString('ko-KR')}명`} subtitle={stale ? `마지막 확인 ${STALE_DAYS}일 경과 또는 기록 없음, 담당자 컴퓨터 명부에서 확인` : '모두 최근 확인함'} />
         </List>
         <List label="보내기">
           <ListRow lead={<Camera size={22} />} title="서류 사진 올리기" chevron onClick={() => navigate('/m/f/intake')} />

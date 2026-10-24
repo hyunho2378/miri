@@ -530,7 +530,7 @@ export function BottomAction({ primary, secondary }) {
 
 // 긴급 버튼. 모든 단계에서 같은 자리(앱 바 오른쪽)에 작은 빨간 버튼으로 둔다.
 // iOS: Toolbar 글자 버튼(Toolbar - Top - iPhone 1:54472), Android: App bar 끝 동작(58114:20565) + Button - tonal 58651:11237
-export function EmergencyButton({ label = '상태가 나빠졌어요', onClick }) {
+export function EmergencyButton({ label = '대상자 상태 악화', onClick }) {
   return <Button variant="danger-tonal" size="sm" className="mob-emergency" onClick={onClick}>{label}</Button>
 }
 
