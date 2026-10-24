@@ -11,11 +11,13 @@ export const MAX_BODY = 6 * 1024 * 1024 // Vercel 본문 상한(4.5MB)보다 조
 const NAME_RE = /^[a-z][a-z0-9-]{0,40}$/
 
 const cache = new Map()
+const BUILTIN = { health: '_health' }
 // /api/<이름> 을 client/api/<이름>.js 로. 밑줄로 시작하는 공용 파일과 경로 탈출은 막는다
 export async function loadHandler(name) {
   if (!NAME_RE.test(name)) return null
   if (cache.has(name)) return cache.get(name)
-  const file = join(API_DIR, `${name}.js`)
+  // 상태 확인은 Vercel 함수 개수(요금제 상한 12개)에 넣지 않으려고 밑줄 파일로 두고 여기서만 연다
+  const file = join(API_DIR, `${BUILTIN[name] || name}.js`)
   if (!existsSync(file)) { cache.set(name, null); return null }
   const mod = await import(pathToFileURL(file).href)
   const entry = { handler: mod.default, config: mod.config || {} }
