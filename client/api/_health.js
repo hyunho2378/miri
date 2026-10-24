@@ -1,4 +1,5 @@
-// 상태 확인. 세션 없이 열 수 있고, 비밀 값은 돌려주지 않는다.
+// 상태 확인(/api/health). 독립 서버와 Cloud Functions 진입점(server/adapter.mjs)에서만 연다.
+// Vercel 함수 개수 상한 때문에 밑줄 파일로 두어 Vercel 에는 배포되지 않는다. 세션 없이 열 수 있고, 비밀 값은 돌려주지 않는다.
 // 돌려주는 것: 실행 위치 이름(MIRI_RUNTIME, 기본 vercel), 저장소 종류와 응답 여부, 응답 시간
 export const config = { maxDuration: 10 }
 import { getStore, storeKind } from './_store.js'
