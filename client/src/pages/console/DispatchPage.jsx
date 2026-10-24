@@ -127,19 +127,6 @@ function StartPanel() {
         </div>
         {kind === 'drill' && <SpeedControl value={speed} onChange={setSpeed} />}
       </TaskCard>
-      <Modal
-        open={sendOpen} onClose={() => setSendOpen(false)} title="배정 확정 후 전송"
-        footer={(
-          <>
-            <Button variant="ghost" onClick={() => setSendOpen(false)}>취소</Button>
-            <Button onClick={() => { setSendOpen(false); confirmAndSend(); toast('배정을 확정하고 도우미 배정표를 전송했습니다.', 'primary') }}>전송</Button>
-          </>
-        )}
-      >
-        <ul className="space-y-2 type-body text-text-pri tabular-nums">
-          {sendConfirmLines(result).map((l) => <li key={l}>{l}</li>)}
-        </ul>
-      </Modal>
       <Card title="발령 기준" desc="현황판 기준 시나리오">
         <KeyValue items={[
           { label: '시나리오', value: scenario?.name, strong: true },
@@ -252,6 +239,19 @@ function AssignedPanel({ meta }) {
         {result.manualEdits ? <p role="status" className="type-body-sm text-text-sec">수동 조정 {result.manualEdits}건을 반영했습니다.</p> : null}
         {kind === 'drill' && <SpeedControl value={speed} onChange={setSpeed} />}
       </TaskCard>
+      <Modal
+        open={sendOpen} onClose={() => setSendOpen(false)} title="배정 확정 후 전송"
+        footer={(
+          <>
+            <Button variant="ghost" onClick={() => setSendOpen(false)}>취소</Button>
+            <Button onClick={() => { setSendOpen(false); confirmAndSend(); toast('배정을 확정하고 도우미 배정표를 전송했습니다.', 'primary') }}>전송</Button>
+          </>
+        )}
+      >
+        <ul className="space-y-2 type-body text-text-pri tabular-nums">
+          {sendConfirmLines(result).map((l) => <li key={l}>{l}</li>)}
+        </ul>
+      </Modal>
       {result.warnings?.length > 0 && (
         <Card as="div" role="alert" tone="danger" padding="sm">
           <p className="type-body-sm text-danger-text">

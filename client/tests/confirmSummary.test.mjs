@@ -9,7 +9,7 @@ const result = { assignments: [
 ], unassigned: [{ personCode: 'E' }] }
 t('전송 요약: 인원, 차량, 도우미, 미배정', () => {
   const l = sendConfirmLines(result)
-  assert.equal(l[0], '배정 4명, 차량 2대, 도우미 2명에게 배정표를 보냅니다.')
+  assert.equal(l[0], '차량 2대, 도우미 2명에게 배정표를 보냅니다(이송 배정 4명).')
   assert.ok(l[1].includes('1명은 소방 인계 목록'))
 })
 t('전송 요약: 미배정 0명이면 인계 줄 없음', () => {
