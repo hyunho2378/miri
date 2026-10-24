@@ -251,7 +251,7 @@ export default function OverviewPage() {
               )}
               {staleRoster > 0 && (
                 <li>
-                  <Link to="/console/roster" className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
+                  <Link to="/console/roster?recheck=1" className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
                     <Circle size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
                     <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri" title={`마지막 확인 ${STALE_DAYS}일 경과 또는 확인 기록 없음`}>명부 재확인 필요</span>
                     <span className="type-meta text-text-meta tabular-nums">{staleRoster}명</span>

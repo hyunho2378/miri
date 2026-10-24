@@ -25,5 +25,5 @@ test('현황판은 명부(active) 선언 뒤에 재확인 인원을 계산하고
   assert.ok(iActive > 0 && iStale > iActive)
   assert.ok(/const todo = pending \+ pc\.notes \+ anomalies\.length/.test(src))
   assert.ok(/명부 재확인 필요</.test(src))
-  assert.ok(/to="\/console\/roster"/.test(src))
+  assert.ok(/to="\/console\/roster\?recheck=1"/.test(src))
 })

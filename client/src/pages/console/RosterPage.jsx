@@ -2,7 +2,7 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { personCare } from '../../lib/tripChecks.js'
 import { NOT_ENTERED } from '../../lib/aiCard.js'
-import { MessageSquareText, ScanText, Trash2, UserRound } from 'lucide-react'
+import { MessageSquareText, ScanText, Trash2, UserRound, X } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
@@ -15,6 +15,7 @@ import PageShell from '../../components/miri/PageShell.jsx'
 import { DISABLED_NOTE, rosterBreakdown, rosterSourceText } from '../../lib/rosterCount.js'
 import { DocImage, GRADE_OPTIONS, TAG_OPTIONS } from '../../components/miri/ReviewRow.jsx'
 import Button from '../../components/ui/Button.jsx'
+import Chip from '../../components/ui/Chip.jsx'
 import KeyValue from '../../components/ui/KeyValue.jsx'
 import Drawer from '../../components/ui/Drawer.jsx'
 import FilterBar from '../../components/ui/FilterBar.jsx'
@@ -24,6 +25,8 @@ import useToast from '../../hooks/useToast.js'
 import { TAGS, verifyResult } from '../../lib/intake.js'
 import { GRADE_RANK } from '../../lib/shortage.js'
 import { fmtDate } from '../../lib/time.js'
+import { recheckMatch, RECHECK_OPTIONS } from '../../lib/rosterRecheck.js'
+import useNow from '../../hooks/useNow.js'
 import { fmtKDate } from '../../components/miri/BasisLine.jsx'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
@@ -66,6 +69,9 @@ export default function RosterPage() {
   const [grades, setGrades] = useState([])
   const [source, setSource] = useState('all')
   const [review, setReview] = useState(params.get('review') || 'all')
+  // 현황판 '명부 재확인 필요'에서 오면 ?recheck=1 로 그 대상자만 거른다
+  const [recheck, setRecheck] = useState(params.get('recheck') === '1' ? 'stale' : 'all')
+  const now = useNow(60000)
   const [moreFilters, setMoreFilters] = useState(false)
   const [view, setView] = useState('list')
   const [editing, setEditing] = useState(null)   // { mode: 'edit'|'add', value }
@@ -84,8 +90,9 @@ export default function RosterPage() {
     .filter((p) => !grades.length || grades.includes(p.grade))
     .filter((p) => source === 'all' || p.gradeSource === source)
     .filter((p) => review === 'all' || p.review === review)
+    .filter((p) => recheckMatch(p, recheck, now))
     .sort((a, b) => a.code.localeCompare(b.code)),
-  [persons, dong, village, grades, source, review]) // eslint-disable-line react-hooks/exhaustive-deps
+  [persons, dong, village, grades, source, review, recheck, now]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fields = [
     { key: 'villageCode', label: '마을', kind: 'select', required: true, disabled: editing?.mode === 'edit', options: villages.filter((v) => dong === 'all' || v.dongCode === dong).map((v) => ({ value: v.code, label: v.label, secondary: v.code })) },
@@ -95,6 +102,15 @@ export default function RosterPage() {
 
   const openPerson = (code) => setParams((p) => { const n = new URLSearchParams(p); n.set('person', code); return n })
   const closePerson = () => { setEditing(null); setErrors({}); setParams((p) => { const n = new URLSearchParams(p); n.delete('person'); return n }) }
+  const changeRecheck = (value) => {
+    setRecheck(value)
+    setParams((p) => {
+      const n = new URLSearchParams(p)
+      if (value === 'stale') n.set('recheck', '1')
+      else n.delete('recheck')
+      return n
+    })
+  }
 
   const save = () => {
     const errs = validate(fields, editing.value)
@@ -148,6 +164,12 @@ export default function RosterPage() {
             <Select compact label="마을" value={village} onChange={setVillage} options={villageOptions} />
             <MultiSelect compact label="이송 등급" values={grades} onChange={setGrades} options={GRADE_OPTIONS} placeholder="전체" />
             <Select compact label="확인 상태" value={review} onChange={setReview} options={REVIEW_OPTIONS} />
+            <Select compact label="마지막 확인" value={recheck} onChange={changeRecheck} options={RECHECK_OPTIONS} />
+            {recheck === 'stale' && (
+              <Chip variant="selected" onClick={() => changeRecheck('all')} aria-label="재확인 필요 필터 해제">
+                재확인 필요만 보기<X size={16} aria-hidden="true" />
+              </Chip>
+            )}
             {moreFilters && (
               <Select compact label="입력 방법" value={source} onChange={setSource} options={SOURCE_OPTIONS} />
             )}
