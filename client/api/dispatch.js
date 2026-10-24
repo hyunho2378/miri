@@ -110,6 +110,11 @@ export const CLOSE_LUA = `
 redis.call('SET', KEYS[1], '1', 'EX', ARGV[1])
 redis.call('DEL', KEYS[2], KEYS[3], KEYS[4], KEYS[5], KEYS[6])
 return 1`
+// 발령 단계 전이 표(화면 useDispatchStore 의 실제 전이: 대기 → 배정 검토 ↔ 대기(도달 시각 수정), 배정 검토 → 전송, 전송 → 전송).
+// 화면은 저장을 묶어 보내므로 중간 단계를 건너뛴 저장(대기 → 전송)도 허용한다. 첫 저장(이전 상태 없음)은 세 단계 모두 허용
+export const SAVE_STATUSES = new Set(['standby', 'assigned', 'sent'])
+const NEXT = { standby: ['standby', 'assigned', 'sent'], assigned: ['standby', 'assigned', 'sent'], sent: ['sent'] }
+export const transitionAllowed = (from, to) => SAVE_STATUSES.has(to) && (!from || !NEXT[from] || NEXT[from].includes(to))
 export const memberValue = (b) => `,${(Array.isArray(b?.personCodes) ? b.personCodes : []).map(String).filter((c) => !c.includes(',')).join(',')},`
 // 도우미 배정 요약(brief) 서버 쪽 정리. 허용한 칸만, 정해진 길이로 받는다. 이름, 주소, 전화번호 꼴은 지운다
 const PHONE_RE = /\d{2,4}[- .]?\d{3,4}[- .]?\d{4}/g
@@ -279,6 +284,8 @@ async function handle(req, res) {
     const body = parse(req.body)
     const state = body?.state
     if (!state || typeof state !== 'object' || state.kind !== 'drill') return fail(res, 400, 'BAD_INPUT', '훈련 발령 상태만 저장합니다')
+    // 저장할 수 있는 발령 단계는 대기, 배정 확정 전 검토, 전송 뿐이다(평시와 종료는 저장하지 않음, 플랫폼 AI 협업 툴 검토 반영)
+    if (!SAVE_STATUSES.has(state.status)) return fail(res, 400, 'BAD_STATUS', '저장할 수 없는 발령 단계입니다')
     // 발령 ID 는 화면이 발령 개시 때 정한다(늦은 첫 저장이 새 발령을 만들지 않게). 없으면 서버가 만든다(이전 화면과 호환)
     const id = validDispatchId(body.dispatchId) ? body.dispatchId : `D${Date.now().toString(36)}${randomBytes(3).toString('hex')}`
     const rev = Number.isSafeInteger(body.rev) && body.rev > 0 ? body.rev : 1
@@ -290,6 +297,17 @@ async function handle(req, res) {
       if (!cb) continue
       briefs[h] = cb
       tokens[h] = signHelperToken(id, h)
+    }
+    // 단계 전이 검사: 이미 전송한 발령은 전송 상태로만 이어 저장한다(전송 뒤 배정 검토로 되돌리는 저장은 409).
+    // 같은 세션의 더 새 순번 저장에만 적용한다. 늦게 온 옛 저장과 남의 발령은 아래 원자 실행이 stale, owner 로 거른다
+    try {
+      const [o, cur, prev] = [await r.get(K.idOwner(id)), Number(await r.get(K.rev(id))) || 0, await r.get(K.state(id))]
+      const was = prev ? parse(prev)?.status : null
+      if (String(o || '') === sid && rev > cur && !transitionAllowed(was, state.status)) {
+        return fail(res, 409, 'BAD_TRANSITION', `전송한 발령을 ${state.status} 단계로 되돌려 저장할 수 없습니다`)
+      }
+    } catch {
+      return fail(res, 503, 'STORE_ERROR', '발령 상태를 확인하지 못했습니다. 이 브라우저 안에서 계속 진행합니다')
     }
     let out
     try {
