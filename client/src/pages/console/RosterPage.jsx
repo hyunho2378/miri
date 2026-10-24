@@ -6,6 +6,7 @@ import { MessageSquareText, ScanText, Trash2, UserRound, X } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
+import { firstAndMore } from '../../lib/rosterCompact.js'
 import EditPencil from '../../components/edit/EditPencil.jsx'
 import EntityForm, { validate } from '../../components/edit/EntityForm.jsx'
 import InlineEditBar from '../../components/edit/InlineEditBar.jsx'
@@ -142,11 +143,11 @@ export default function RosterPage() {
     { key: 'village', label: '마을', sortable: true, sortValue: (p) => p.villageCode, render: (p) => vlabel(p.villageCode) },
     { key: 'grade', label: '이송 등급', sortable: true, sortValue: (p) => GRADE_RANK[p.grade], render: (p) => <GradeChip grade={p.grade} /> },
     { key: 'ltcGrade', label: '장기요양 등급', hideBelow: 'lg', sortable: true, render: (p) => <span className="type-meta text-text-sec">{p.ltcGrade || '미기재'}</span> },
-    { key: 'tags', label: '특이사항', wrap: true, hideBelow: 'lg', render: (p) => <span className="type-meta text-text-sec">{p.tags.map((t) => TAGS[t]).join(', ') || '없음'}</span> },
-    { key: 'care', label: '동행과 소통', wrap: true, hideBelow: '3xl', render: (p) => { const c = personCare(p); return <span className="type-meta text-text-sec">{!c.known ? NOT_ENTERED : [c.companionCall && '동행 연락 필요', c.caregiverUnreachable && '돌봄 담당자 연락 불가', c.commCaution && `의사소통 유의(${c.comm.join(', ')})`].filter(Boolean).join(', ') || '없음'}</span> } },
+    { key: 'tags', label: '특이사항', hideBelow: 'lg', render: (p) => { const f = firstAndMore(p.tags.map((t) => TAGS[t])); return <span className="type-meta text-text-sec whitespace-nowrap" title={f.full || undefined}>{f.text}</span> } },
+    { key: 'care', label: '동행과 소통', hideBelow: '3xl', render: (p) => { const c = personCare(p); const f = firstAndMore([c.companionCall && '동행 연락 필요', c.caregiverUnreachable && '돌봄 담당자 연락 불가', c.commCaution && `의사소통 유의(${c.comm.join(', ')})`]); return <span className="type-meta text-text-sec whitespace-nowrap" title={f.full || undefined}>{!c.known ? NOT_ENTERED : f.text}</span> } },
     { key: 'source', label: '입력 방법', hideBelow: '2xl', render: (p) => <SourceLabel source={p.gradeSource} /> },
     { key: 'review', label: '확인 상태', sortable: true, render: (p) => <StatusPill status={p.review} /> },
-    { key: 'planCheckedAt', label: '마지막 확인', sortable: true, sortValue: (p) => p.planCheckedAt || 0, render: (p) => { const c = checkedOf(p, now); return <span className={c.stale ? 'type-strong text-danger-text' : 'text-text-sec'}>{c.text}{c.stale && c.days != null ? ', 재확인 필요' : ''}</span> } },
+    { key: 'planCheckedAt', label: '마지막 확인', sortable: true, sortValue: (p) => p.planCheckedAt || 0, render: (p) => { const c = checkedOf(p, now); return <span className={`whitespace-nowrap ${c.stale ? 'type-strong text-danger-text' : 'text-text-sec'}`}>{c.text}</span> } },
     { key: 'updatedAt', label: '갱신일', sortable: true, hideBelow: '3xl', render: (p) => fmtDate(p.updatedAt) },
     { key: 'edit', label: '편집', render: (p) => <EditPencil resource="persons" label={`${p.code} 수정`} onClick={() => { openPerson(p.code); setEditing({ mode: 'edit', value: { villageCode: p.villageCode, grade: p.grade, tags: p.tags } }) }} /> }
   ].filter((c) => c.key !== 'edit' || canEdit)
@@ -195,7 +196,7 @@ export default function RosterPage() {
       </div>
       {view === 'list' ? (
       <TableCard
-        title="대상자" count={countText(rows.length, '건')} desc={`${fmtKDate(today)} 명부 기준입니다. 이름 없이 대상자 코드로 표시합니다. ${rosterSourceText(rosterBreakdown(persons))} ${DISABLED_NOTE}`}
+        title="대상자" count={countText(rows.length, '건')} desc={`${fmtKDate(today)} 명부 기준입니다. 이름 없이 대상자 코드로 표시합니다. 마지막 확인이 빨간 글자면 90일이 지났거나 기록이 없어 재확인이 필요합니다. ${rosterSourceText(rosterBreakdown(persons))} ${DISABLED_NOTE}`}
         actions={<InlineEditBar resource="persons" addLabel="대상자 추가" onAdd={() => { setErrors({}); setEditing({ mode: 'add', value: { villageCode: village !== 'all' ? village : villageOptions[1]?.value, grade: 'assist', tags: [] } }) }} />}
         filters={filterBar}
         columns={columns} rows={rows} rowKey={(p) => p.code} onRowClick={(p) => { setEditing(null); openPerson(p.code) }} emptyTitle="조건에 맞는 대상자가 없습니다" emptyDesc="필터 조건을 바꿔 다시 확인해 주십시오." caption="대상자 명부"

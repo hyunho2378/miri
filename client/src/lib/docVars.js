@@ -1,6 +1,8 @@
 // docVars.js 문서에 넣는 자료값. 상황판과 같은 계산(computeShortage)으로 지금 숫자를 만든다.
 // 문서 안에서는 <span class="dv" data-var="키"> 로 들어가고, 문서를 열 때와 [자료 새로 고침]을 누를 때 값이 바뀐다.
 // 계산은 <span class="dv" data-calc="식" data-fmt="소수 자리"> 로 들어간다. 식에는 자료 키와 + - * / ( ) 숫자만 쓴다.
+import { vehicleSummaryLong } from './vehicleSummary.js'
+import { countText } from './unitText.js'
 import { GRADES } from './shortage.js'
 import { computeShortage, optimizedUnserved, requiredExtraVehicles } from './shortageCalc.js'
 import { HAZARD_KINDS } from './scenario.js'
@@ -25,6 +27,7 @@ export const VAR_DEFS = [
   { key: 'assist', label: '부축 대상자', unit: '명', group: '명부', num: true },
   { key: 'walk', label: '도보 대상자', unit: '명', group: '명부', num: true },
   { key: 'pending', label: '확인 대기 서류', unit: '건', group: '명부', num: true },
+  { key: 'rosterSummary', label: '명부 현황(건, 확인 인원, 확인 대기)', group: '명부' },
   { key: 'scenario', label: '시나리오 이름', group: '시나리오' },
   { key: 'hazard', label: '재난 종류', group: '시나리오' },
   { key: 'firstArrival', label: '첫 도달(발령 후)', group: '시나리오' },
@@ -36,6 +39,7 @@ export const VAR_DEFS = [
   { key: 'extraVehicles', label: '필요 추가 차량', unit: '대', group: '시나리오', num: true },
   { key: 'vehicles', label: '전체 차량', unit: '대', group: '자원', num: true },
   { key: 'vehiclesAvail', label: '가용 차량', unit: '대', group: '자원', num: true },
+  { key: 'vehicleSummaryLong', label: '차량 현황(등록, 가용, 약속, 확인 전)', group: '자원' },
   { key: 'helpers', label: '대피 도우미', unit: '명', group: '자원', num: true },
   { key: 'shelters', label: '임시주거시설', unit: '곳', group: '자원', num: true },
   { key: 'shelterCapacity', label: '임시주거시설 수용', unit: '명', group: '자원', num: true },
@@ -76,6 +80,8 @@ export function computeVars(data, scenario) {
     unserved: result.total, unservedOpt: opt, shortVillages: short.length,
     extraVehicles: extra.reduce((a, x) => a + x.count, 0),
     vehicles: vehicles.length, vehiclesAvail: vehicles.filter((v) => v.available !== false).length,
+    vehicleSummaryLong: vehicleSummaryLong(vehicles),
+    rosterSummary: `명부 ${countText(persons.length, '건')}(확인 ${countText(persons.filter((p) => p.review === 'confirmed' || p.review === 'edited').length, '명')}, 확인 대기 ${countText(persons.filter((p) => p.review === 'pending').length, '건')})`,
     helpers: helpers.filter((h) => h.active !== false && h.consent !== false).length,
     shelters: TEMP_SHELTERS.length, shelterCapacity: TEMP_SHELTERS.reduce((a, s) => a + s.capacity, 0)
   }
