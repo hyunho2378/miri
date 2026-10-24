@@ -29,6 +29,8 @@ async function handle(req, res) {
   // 훈련 발령 전용 세션: 시연 계정을 고르면 화면이 요청한다. 이미 세션이 있으면 바꾸지 않는다(full 을 낮추지 않음)
   if (body && typeof body === 'object' && body.demo === 'drill') {
     // 역할(시 관리자, 동 담당자)과 동 코드는 서명 안에 담는다. 서버는 이 값으로 발령 조회 범위와 저장 권한을 정한다
+    // 역할 값은 city(시 관리자), dong(동 담당자) 둘뿐이다. 값이 없으면 city(이전 화면 호환), 그 밖의 값은 400(플랫폼 AI 협업 툴 검토 반영)
+    if (body.role != null && !['city', 'dong'].includes(body.role)) return fail(res, 400, 'BAD_ROLE', '알 수 없는 역할입니다')
     const role = body.role === 'dong' ? 'dong' : 'city'
     const dong = role === 'dong' ? String(body.dong || '') : null
     if (role === 'dong' && !/^[A-Z]{2}$/.test(dong)) return fail(res, 400, 'BAD_INPUT', '동 코드 형식 오류')
