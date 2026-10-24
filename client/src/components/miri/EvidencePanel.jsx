@@ -22,7 +22,7 @@ function Highlighted({ transcript, quote, markRef }) {
   )
 }
 
-export default function EvidencePanel({ quote, matched, confidence, conflict, transcript, docName, className, subject = '서류', source }) {
+export default function EvidencePanel({ quote, matched, confidence, conflict, transcript, docName, className, subject = '서류', source, jumpRef }) {
   const detailsRef = useRef(null)
   const markRef = useRef(null)
   const canFindQuote = matched && evidenceQuoteIndex(transcript, quote) >= 0
@@ -34,6 +34,8 @@ export default function EvidencePanel({ quote, matched, confidence, conflict, tr
       markRef.current?.focus({ preventScroll: true })
     })
   }
+  // 바깥(확인할 곳)에서 근거 문구 원문 위치로 이동할 수 있게 함수를 넘김(33회차)
+  if (jumpRef) jumpRef.current = canFindQuote ? showInOriginal : null
 
   return (
     <aside className={clsx('min-w-0 rounded-md bg-subtle p-4', className)} aria-label="판독 근거">

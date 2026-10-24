@@ -35,6 +35,7 @@ import useDispatchStore from '../../store/useDispatchStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { scopeSummary } from '../../lib/shortageCalc.js'
 import { speedText } from '../../lib/unitText.js'
+import { progressBasisLine } from '../../lib/progressBasis.js'
 
 const SPEEDS = [1, 60, 240].map((v) => ({ value: v, label: speedText(v) }))
 const COUNT_ORDER = ['wait', 'depart', 'arrive', 'board', 'handover', 'fail', 'handedToFire', 'unassigned']
@@ -433,6 +434,7 @@ function SentPanel({ now, meta }) {
         actions={role === 'city' ? <Button size="lg" variant="danger" onClick={() => setConfirmClose(true)}>발령 종료</Button> : null}
       >
         {d.kind === 'drill' && <SpeedControl value={d.speed} onChange={d.setSpeed} />}
+        <p className="type-meta text-text-sec tabular-nums">{progressBasisLine(counts, Object.keys(stops).length)}</p>
         <ul aria-label="이송 단계별 인원" className="grid gap-2 grid-cols-2 sm:grid-cols-4 xl:grid-cols-8">
           {COUNT_ORDER.map((k) => (
             <li key={k} className="min-w-0">

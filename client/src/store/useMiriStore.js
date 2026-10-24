@@ -65,6 +65,8 @@ export const useMiriStore = create((set, get) => ({
 
   // 현장 소식. action: apply | edit | reject. 반영과 수정은 명부를 바꾸고 제외는 명부를 그대로 둔다
   addFieldNote: (note) => set((s) => ({ fieldNotes: [note, ...s.fieldNotes] })),
+  // 글만 먼저 저장한 소식에 나중에 읽은 결과를 붙임(33회차). 명부는 그대로
+  setNoteRead: (id, read) => set((s) => ({ fieldNotes: s.fieldNotes.map((n) => (n.id === id ? { ...n, read, unread: false, text: read?.transcript || n.text } : n)) })),
   nextNoteId: () => `NOTE-${String(1 + get().fieldNotes.length).padStart(4, '0')}`,
   reviewFieldNote: (id, action, patch = {}) => set((s) => {
     const note = s.fieldNotes.find((n) => n.id === id)

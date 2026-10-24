@@ -1,6 +1,7 @@
 // 서류 1건 확인 화면(PATTERNS 35 개정, PRD v2 F2). 왼쪽 원본 이미지, 오른쪽 읽은 값과 근거. 조작은 확인, 수정, 제외 세 가지.
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { docCare, reviewReasons } from '../../lib/aiCard.js'
+import { prefersReducedMotion } from '../motion/useReducedMotion.js'
 import { DIMENSIONS } from '../../lib/rubric.js'
 import { GRADES } from '../../lib/shortage.js'
 import { TAGS } from '../../lib/intake.js'
@@ -33,13 +34,21 @@ export function DocImage({ src, alt, box }) {
 export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdit, onConfirm, onEdit, onReject }) {
   const [grade, setGrade] = useState(result.grade)
   const [tags, setTags] = useState(result.tags || [])
+  const imageRef = useRef(null)
+  const quoteJumpRef = useRef(null)
+  // 확인할 곳 누르기: 근거 문구가 원문에 있으면 원문 위치로, 아니면 원본 서류 판독 영역으로(33회차, 플랫폼 셀 74)
+  const goWhere = (target) => {
+    if (target === 'quote' && quoteJumpRef.current) { quoteJumpRef.current(); return }
+    imageRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'center' })
+    imageRef.current?.focus({ preventScroll: true })
+  }
   const changed = grade !== result.grade || [...tags].sort().join() !== [...(result.tags || [])].sort().join()
   return (
     <Card as="div" padding="lg" aria-label={`서류 ${doc.name}, 대상자 ${result.personCode}`}>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(340px,0.9fr)]">
         <div className="min-w-0">
           <p className="mb-2 type-caption text-text-sec">원본 서류</p>
-          <DocImage src={doc.image} alt={`${doc.name} 판독 영역`} box={result.box} />
+          <div ref={imageRef} tabIndex={-1} className="rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><DocImage src={doc.image} alt={`${doc.name} 판독 영역`} box={result.box} /></div>
           <p className="mt-2 type-meta text-text-meta tabular-nums">{doc.name}, {kindLabel}, {doc.id}</p>
         </div>
 
@@ -56,7 +65,16 @@ export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdi
           {(() => { const rs = reviewReasons(result); return rs.length ? (
             <div role="alert" className="rounded-md bg-warning-soft px-3 py-2 type-body-sm text-warning-text">
               <p className="type-strong">확인 필요{result.gradeUncertain ? ', 확인 전까지 휠체어로 계산' : ''}</p>
-              <ul className="mt-1 list-disc pl-5">{rs.map((r) => <li key={r.key}>{r.label}</li>)}</ul>
+              <ul className="mt-1 space-y-1">{rs.map((r) => (
+                <li key={r.key}>
+                  <p>{r.label}</p>
+                  {r.where && (
+                    <button type="button" onClick={() => goWhere(r.target)} className="min-h-11 max-w-full rounded-md text-left type-meta text-warning-text underline underline-offset-2 md:min-h-0">
+                      확인할 곳: {r.where}
+                    </button>
+                  )}
+                </li>
+              ))}</ul>
             </div>
           ) : null })()}
           <Select label="이송 등급" value={grade} options={GRADE_OPTIONS} onChange={setGrade} disabled={!canEdit} />
@@ -84,7 +102,7 @@ export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdi
             </div>
           )}
           {changed && <p className="type-meta text-primary-text">읽은 값에서 변경했습니다. 수정을 누르면 변경한 값으로 확정합니다.</p>}
-          <EvidencePanel quote={result.quote} matched={result.quoteMatched} confidence={result.confidence} conflict={result.conflict} transcript={doc.transcript} docName={doc.name} source={doc.source} />
+          <EvidencePanel jumpRef={quoteJumpRef} quote={result.quote} matched={result.quoteMatched} confidence={result.confidence} conflict={result.conflict} transcript={doc.transcript} docName={doc.name} source={doc.source} />
           {canEdit && (
             <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
               <Button variant="ghost" size="lg" onClick={onReject}>제외</Button>

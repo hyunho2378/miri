@@ -3,7 +3,7 @@
 // 한 화면 한 일. 누구 화면인지 한 줄, 큰 숫자 하나, 할 일 목록 행. 문단과 칩, 카드, 안내 띠는 쓰지 않는다(키트에 없는 덩어리).
 // 평시 홈(할 일), 발령 홈(늦는 마을), 확인할 서류(목록과 한 건), 확인할 소식, 서류 올리기, 소식 남기기, 마을, 도우미, 소방 요청, 대상자, 더보기
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Camera, Clock, Flame, Info, PhoneOutgoing, Truck, UserCheck, FileText, MessageSquare, Search, Users, Play } from 'lucide-react'
 import { useRealNow } from '../../hooks/useNow.js'
 import useOpenData from '../../hooks/useOpenData.js'
@@ -18,6 +18,7 @@ import { OWNERS, COMMITMENTS, GRADES, commitmentOf, gradeOf } from '../../lib/sh
 import { personCare, ROUTE_NOTE } from '../../lib/tripChecks.js'
 import { readDocument, verifyResult } from '../../lib/intake.js'
 import { readNote, sourceLabel } from '../../lib/notes.js'
+import { unreadNote, canSaveTextOnly, prefillCode } from '../../lib/noteDraft.js'
 import { AI_CARD, NOT_ENTERED, placeLine, reviewReasons } from '../../lib/aiCard.js'
 import { aiErrorMessage } from '../../lib/aiErrors.js'
 import { REAL_READ_SOURCE } from '../../mock/realReadings.js'
@@ -246,7 +247,7 @@ export function FieldDocPage() {
         {(() => { const rs = reviewReasons(v); return rs.length ? (
           <section className="mob-section" aria-label="확인할 까닭">
             <h2 className="mob-section-title">확인할 까닭</h2>
-            <List label="확인할 까닭">{rs.map((r) => <ListRow key={r.key} title={r.label} />)}</List>
+            <List label="확인할 까닭">{rs.map((r) => <ListRow key={r.key} title={r.label} subtitle={r.where ? `확인할 곳: ${r.where}` : undefined} />)}</List>
           </section>
         ) : null })()}
         <List label="AI 정보">
@@ -286,7 +287,7 @@ export function FieldNotesPage() {
         {!list.length ? <EmptyState title="확인할 소식 없음" action={<Button variant="tonal" onClick={() => navigate('/m/f/note')}>현장 소식 남기기</Button>} /> : (
           <List label="확인할 현장 소식">
             {list.map((n) => (
-              <ListRow key={n.id} title={n.personCode} subtitle={`${sourceLabel(n.source)}, ${n.read?.diff?.gradeChanged ? `${gradeOf(n.current?.grade)?.label} → ${gradeOf(n.read.diff.next.grade)?.label}` : '등급 그대로'}`} chevron onClick={() => navigate(`/m/f/notes/${n.id}`)} />
+              <ListRow key={n.id} title={n.personCode} subtitle={n.unread && !n.read ? `${sourceLabel(n.source)}, 읽기 전(글만 저장)` : `${sourceLabel(n.source)}, ${n.read?.diff?.gradeChanged ? `${gradeOf(n.current?.grade)?.label} → ${gradeOf(n.read.diff.next.grade)?.label}` : '등급 그대로'}`} chevron onClick={() => navigate(`/m/f/notes/${n.id}`)} />
             ))}
           </List>
         )}
@@ -301,11 +302,18 @@ export function FieldNoteReviewPage() {
   const scope = useFieldScope()
   const navigate = useNavigate()
   const reviewFieldNote = useMiriStore((s) => s.reviewFieldNote)
+  const setNoteRead = useMiriStore((s) => s.setNoteRead)
   const toast = useMobileToast()
   const n = noteQueue(data.fieldNotes, scope.inScope).find((x) => x.id === id)
   if (!n) return (<><AppBar title="현장 소식" onBack={() => navigate('/m/f/notes')} backLabel="목록" /><main className="mob-content"><EmptyState title="이미 확인한 소식" /></main></>)
   const dif = n.read?.diff
   const nextGrade = dif?.next?.grade || n.current?.grade
+  const readLater = async () => {
+    try {
+      const read = await readNote({ text: n.text, current: n.current })
+      setNoteRead(n.id, read); toast(`${n.personCode} 읽기 완료`)
+    } catch (e) { const err = fieldAiError(e, '소식'); toast(err.title) }
+  }
   const apply = () => { reviewFieldNote(n.id, 'apply', { grade: nextGrade, tags: dif?.next?.tags || n.current?.tags || [] }); toast(`${n.personCode} 명부에 반영`); navigate('/m/f/notes', { replace: true }) }
   const reject = () => { reviewFieldNote(n.id, 'reject'); toast(`${n.personCode} 명부 그대로`); navigate('/m/f/notes', { replace: true }) }
   return (
@@ -316,13 +324,19 @@ export function FieldNoteReviewPage() {
           <p className="mob-t-callout">{dif?.gradeChanged ? `지금 명부 ${gradeOf(n.current?.grade)?.label}에서 바뀜` : '등급은 그대로'}</p>
         </Figure>
         <List label="근거">
-          <ListRow title={n.read?.quote ? `“${n.read.quote}”` : '근거 문구 없음'} subtitle={n.read?.quoteMatched ? '받은 글에 있는 문구' : '받은 글에서 찾지 못함, 직접 확인'} />
+          {n.read && <ListRow title={n.read?.quote ? `“${n.read.quote}”` : '근거 문구 없음'} subtitle={n.read?.quoteMatched ? '받은 글에 있는 문구' : '받은 글에서 찾지 못함, 직접 확인'} />}
           <InfoSheet title="받은 글 전체" sheetTitle="받은 소식">
             <p className="mob-t-body mob-pad">{n.text}</p>
           </InfoSheet>
         </List>
+        {n.unread && !n.read && (
+          <List label="읽기 전">
+            <ListRow title="아직 읽지 않은 소식" subtitle="끊김이나 읽기 실패로 글만 먼저 저장됨" />
+          </List>
+        )}
         <div className="mob-stack-8">
-          <Button block onClick={apply}>명부에 반영</Button>
+          {n.unread && !n.read && <Button block variant="tonal" onClick={readLater}>지금 읽기</Button>}
+          <Button block disabled={n.unread && !n.read} onClick={apply}>명부에 반영</Button>
           <Button block variant="plain" onClick={reject}>반영하지 않음</Button>
         </div>
       </main>
@@ -565,6 +579,9 @@ export function FieldPersonPage() {
           <ListRow title="보조기구" subtitle={care.aids.length ? care.aids.join(', ') : care.known ? '없음' : NOT_ENTERED} />
           <InfoSheet title="경로 확인 기준" sheetTitle="경로 확인 기준"><p className="mob-t-body mob-pad">{ROUTE_NOTE}</p></InfoSheet>
         </List>
+        <List label="현장 소식">
+          <ListRow lead={<MessageSquare size={22} />} title="이 대상자 현장 소식 남기기" chevron onClick={() => navigate(`/m/f/note?p=${encodeURIComponent(p.code)}`)} />
+        </List>
       </main>
     </>
   )
@@ -682,7 +699,8 @@ export function FieldNotePage() {
   const addFieldNote = useMiriStore((s) => s.addFieldNote)
   const nextNoteId = useMiriStore((s) => s.nextNoteId)
   const toast = useMobileToast()
-  const [code, setCode] = useState('')
+  const location = useLocation()
+  const [code, setCode] = useState(() => prefillCode(location.search))
   const [text, setText] = useState('')
   const [mode, setMode] = useState('text')
   const [sheet, setSheet] = useState(false)
@@ -697,6 +715,7 @@ export function FieldNotePage() {
     if (!person) { toast('대상자 번호 확인 필요'); return }
     // 요청 시작 시 대상자, 마을, 현재 값, 방식, 글을 한 요청 객체로 고정. 결과와 저장 모두 이 객체만 사용
     const req = { id: ++reqSeq.current, personCode: person.code, villageCode: person.villageCode, current: { grade: person.grade, tags: [...(person.tags || [])] }, mode, text: text.trim() }
+    if (!file && typeof navigator !== 'undefined' && navigator.onLine === false) { setState({ phase: 'offline', req }); return }
     setState({ phase: 'loading', req })
     try {
       const read = await readNote({ text: file ? undefined : req.text, file: file || undefined, current: req.current })
@@ -715,6 +734,13 @@ export function FieldNotePage() {
     toast(`${req.personCode} 확인할 소식으로 저장`)
     setSheet(false); setText(''); setState({ phase: 'idle' })
   }
+  // 읽기 실패나 끊김 때 글만 먼저 저장. 읽기는 확인 화면에서 연결되면 다시
+  const keepText = () => {
+    if (!canSaveTextOnly(state)) return
+    addFieldNote(unreadNote({ id: nextNoteId(), req: state.req, now: Date.now() }))
+    toast(`${state.req.personCode} 글만 먼저 저장, 읽기는 연결되면`)
+    setText(''); setState({ phase: 'idle' })
+  }
   const r = state.read
   const busy = state.phase === 'loading'
   return (
@@ -730,6 +756,8 @@ export function FieldNotePage() {
           : <input ref={fileRef} type="file" accept="audio/wav,audio/mpeg,audio/mp4,audio/x-m4a" hidden onChange={(e) => { send(e.target.files?.[0]); e.target.value = '' }} />}
         {busy && <div className="mob-pad mob-inline"><Spinner label="읽는 중" /><span className="mob-t-body">읽는 중</span></div>}
         {state.phase === 'error' && <List label="오류"><ListRow title={state.err.title} subtitle={state.err.desc} /></List>}
+        {state.phase === 'offline' && <List label="연결 끊김"><ListRow title="연결이 끊겨 지금은 읽을 수 없음" subtitle="쓴 글은 그대로 있습니다. 글만 먼저 저장하면 연결된 뒤 읽습니다" /></List>}
+        {canSaveTextOnly(state) && <div className="mob-stack-8"><Button block variant="tonal" onClick={keepText}>글만 먼저 저장</Button></div>}
         <div className="mob-stack-8">
           {mode === 'text'
             ? <Button block disabled={!person || !text.trim() || busy} onClick={() => send(null)}>보내고 읽기</Button>

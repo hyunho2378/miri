@@ -23,6 +23,21 @@ export const REVIEW_REASON = {
   dimConflict: '판정 기준 항목끼리 가리키는 등급이 엇갈림',
   dimMismatch: '원문에 없는 항목 근거는 점수를 비움'
 }
+// 확인할 곳(25회차, 플랫폼 셀 74): 사유마다 원본 서류의 어디를 보면 되는지 한 줄. target 이 quote 면 근거 문구 원문 위치로, image 면 원본 서류 판독 영역으로 이동
+export const REVIEW_WHERE = {
+  unread: { text: '원본 서류의 표시된 판독 영역에서 흐리거나 가려진 글자', target: 'image' },
+  noField: { text: '원본 서류의 거동, 이동 관련 칸이 비었는지', target: 'image' },
+  modelSkip: { text: '원본 서류에서 이 순번 대상자의 줄', target: 'image' },
+  noQuote: { text: '원본 서류에서 걷기, 이동, 보조기구를 말한 문장', target: 'image' },
+  quoteMismatch: { text: '원본 서류에서 근거 문구와 같은 뜻의 문장', target: 'image' },
+  conflict: { text: '근거 문구와 특이사항(보조기구, 산소 등) 표시', target: 'quote' },
+  assistCue: { text: '근거 문구 안의 보조기구나 부축 표현', target: 'quote' },
+  weak: { text: '근거 문구가 실제 이동 방법을 말하는지', target: 'quote' },
+  ambiguous: { text: '근거 문구에서 두 등급을 가르는 표현(누워서, 휠체어, 부축)', target: 'quote' },
+  noEvidence: { text: '원본 서류 전체에서 이동에 관한 문장', target: 'image' },
+  dimConflict: { text: '아래 판정 기준 항목별 점수의 근거 문구', target: 'quote' },
+  dimMismatch: { text: '점수가 비워진 항목의 근거 문구가 원본에 있는지', target: 'image' }
+}
 export function reviewReasons(v = {}) {
   const out = []
   const graded = GRADE_KEYS.includes(v.aiGrade ?? v.grade)
@@ -42,7 +57,7 @@ export function reviewReasons(v = {}) {
   if (graded && g === 'walk' && ASSIST_CUE.test(`${quote} ${v.context || ''}`)) out.push('assistCue')
   if (graded && quote && EMPTY_QUOTE.test(quote)) out.push('noField')
   if (graded && v.confidence === 'low' && !out.length) out.push(g === 'walk' || g === 'assist' ? 'weak' : 'ambiguous')
-  return [...new Set(out)].map((key) => ({ key, label: REVIEW_REASON[key] }))
+  return [...new Set(out)].map((key) => ({ key, label: REVIEW_REASON[key], where: REVIEW_WHERE[key]?.text, target: REVIEW_WHERE[key]?.target || 'image' }))
 }
 
 // 서류에서 알 수 있는 돌봄 정보. 판독 결과에는 돌봄 담당자 칸이 없으므로 서류 특이사항(tags)에서만 끌어낸다.
