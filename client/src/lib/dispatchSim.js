@@ -95,15 +95,41 @@ export function helperBrief({ result, me, scenario, villages = [], hazardLabel }
 }
 
 // 배정 문자 문안. 90바이트(EUC-KR 기준 한글 2바이트) 이하는 단문, 넘으면 장문
+// 플랫폼 AI 협업 툴 검토 반영(셀 80): 할 일(수락이나 불가)을 맨 앞에, 링크를 뺀 본문을 90바이트 이하로 줄여 단문에 맞춤.
+// 이름, 주소, 전화번호는 넣지 않는다(마을 이름과 인원수, 도우미 코드만).
+export const SMS_SHORT_LIMIT = 90
+export const SMS_ACTION = '수락이나 불가를 눌러 주세요'
 export function smsBytes(text) { let n = 0; for (const ch of text) n += ch.charCodeAt(0) > 127 ? 2 : 1; return n }
+const smsHead = (drill) => (drill ? '[미리 훈련]' : '[미리]')
+function smsResult(body, link) {
+  const text = link ? `${body} ${link}` : body
+  const bytes = smsBytes(text)
+  return { text, body, bodyBytes: smsBytes(body), bytes, kind: bytes <= SMS_SHORT_LIMIT ? '단문' : '장문' }
+}
 export function dispatchSms(brief, { drill = true, link = '' } = {}) {
   if (!brief) return null
-  const head = drill ? '[미리 훈련]' : '[미리]'
-  const where = brief.villages.slice(0, 2).join(', ') + (brief.villages.length > 2 ? ` 외 ${brief.villages.length - 2}곳` : '')
-  const until = brief.completeBy ? ` ${fmtHM(brief.completeBy)}까지 이송 완료` : ''
-  const text = `${head} ${brief.disaster} 대피 이송 배정입니다. ${where}, ${brief.persons}명${until}. 링크에서 수락이나 불가를 눌러 주세요${link ? ' ' + link : ''}`
-  const bytes = smsBytes(text)
-  return { text, bytes, kind: bytes <= 90 ? '단문' : '장문' }
+  const head = `${smsHead(drill)} ${SMS_ACTION}.`
+  const vs = brief.villages || []
+  const until = brief.completeBy ? `, ${fmtHM(brief.completeBy)}까지` : ''
+  const whereFull = vs.slice(0, 2).join(', ') + (vs.length > 2 ? ` 외 ${vs.length - 2}곳` : '')
+  const whereShort = vs.length > 1 ? `${vs[0]} 외 ${vs.length - 1}곳` : (vs[0] || '')
+  // 긴 판부터 짧은 판 순서로, 본문이 90바이트 안에 들어오는 첫 판을 쓴다
+  const tries = [
+    `${head} ${brief.disaster} 대피 이송, ${whereFull} ${brief.persons}명${until}`,
+    `${head} ${brief.disaster} 대피 이송, ${whereShort} ${brief.persons}명${until}`,
+    `${head} ${brief.disaster} 이송, ${whereShort} ${brief.persons}명${until}`,
+    `${head} 이송 ${whereShort} ${brief.persons}명${until}`
+  ]
+  const body = tries.find((t) => smsBytes(t) <= SMS_SHORT_LIMIT) || tries[tries.length - 1]
+  return smsResult(body, link)
+}
+// 대체 배정 문자: 할 일 먼저, 불가의 부담을 덜어 주는 말은 짧게
+export function replaceSms(helperCode, { drill = true, link = '' } = {}) {
+  return smsResult(`${smsHead(drill)} ${SMS_ACTION}. 대체 배정(${helperCode}). 불가여도 불이익 없음`, link)
+}
+// 링크 재발송 문자
+export function resendSms(helperCode, { drill = true, link = '' } = {}) {
+  return smsResult(`${smsHead(drill)} ${SMS_ACTION}. 배정 링크 재발송(${helperCode})`, link)
 }
 
 export { MIN }

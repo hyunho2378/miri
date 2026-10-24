@@ -19,7 +19,9 @@ test('M5: 지금 차례 화면에도 이송 완료 기한과 남은 시간', () 
 })
 
 test('M6: 경로 경고는 할 일을 앞에(출발 전 담당자에게 길 확인), 담당자 번호가 있으면 전화', () => {
-  assert.match(helper, /title="출발 전 담당자에게 길 확인"/)
+  assert.match(helper, /'출발 전 담당자에게 길 확인'/)
+  // 30회차 검수: 출발 뒤에는 '길이 막히면 담당자에게 전화'
+  assert.match(helper, /'길이 막히면 담당자에게 전화'/)
   assert.match(helper, /href=\{telOf\(m\.officerContact\) \|\| undefined\}/)
 })
 

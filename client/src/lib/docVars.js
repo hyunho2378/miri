@@ -3,6 +3,8 @@
 // 계산은 <span class="dv" data-calc="식" data-fmt="소수 자리"> 로 들어간다. 식에는 자료 키와 + - * / ( ) 숫자만 쓴다.
 import { vehicleSummaryLong } from './vehicleSummary.js'
 import { countText } from './unitText.js'
+import { latestDrillRecord, recordPeriod, recordTotals } from './recordTotals.js'
+import { fmtDateTime } from './time.js'
 import { GRADES } from './shortage.js'
 import { computeShortage, optimizedUnserved, requiredExtraVehicles } from './shortageCalc.js'
 import { HAZARD_KINDS } from './scenario.js'
@@ -43,6 +45,13 @@ export const VAR_DEFS = [
   { key: 'helpers', label: '대피 도우미', unit: '명', group: '자원', num: true },
   { key: 'shelters', label: '임시주거시설', unit: '곳', group: '자원', num: true },
   { key: 'shelterCapacity', label: '임시주거시설 수용', unit: '명', group: '자원', num: true },
+  { key: 'drillPeriod', label: '최근 훈련 일시', group: '훈련 기록' },
+  { key: 'drillHelpers', label: '최근 훈련 도우미', unit: '명', group: '훈련 기록', num: true },
+  { key: 'drillTargets', label: '최근 훈련 대상자', unit: '명', group: '훈련 기록', num: true },
+  { key: 'drillDone', label: '최근 훈련 인계 완료', unit: '명', group: '훈련 기록', num: true },
+  { key: 'drillFire', label: '최근 훈련 소방 인계', unit: '명', group: '훈련 기록', num: true },
+  { key: 'drillOpen', label: '최근 훈련 미완료', unit: '명', group: '훈련 기록', num: true },
+  { key: 'drillBaseAt', label: '최근 훈련 기록 기준 시각(종료)', group: '훈련 기록' },
   { key: 'tableShortage', label: '마을별 미이송 표', group: '표', table: true },
   { key: 'tableGrades', label: '이송 등급별 대상자 표', group: '표', table: true },
   { key: 'tableVehicles', label: '차종별 차량 표', group: '표', table: true }
@@ -83,7 +92,8 @@ export function computeVars(data, scenario) {
     vehicleSummaryLong: vehicleSummaryLong(vehicles),
     rosterSummary: `명부 ${countText(persons.length, '건')}(확인 ${countText(persons.filter((p) => p.review === 'confirmed' || p.review === 'edited').length, '명')}, 확인 대기 ${countText(persons.filter((p) => p.review === 'pending').length, '건')})`,
     helpers: helpers.filter((h) => h.active !== false && h.consent !== false).length,
-    shelters: TEMP_SHELTERS.length, shelterCapacity: TEMP_SHELTERS.reduce((a, s) => a + s.capacity, 0)
+    shelters: TEMP_SHELTERS.length, shelterCapacity: TEMP_SHELTERS.reduce((a, s) => a + s.capacity, 0),
+    ...drillVars(latestDrillRecord(data.records || []))
   }
   vals.tableShortage = short.length
     ? table(['마을', '행정동', '대상자', '미이송 예상'], short.map((v) => [v.label, dongName(v.dongCode), `${n(result.byVillage[v.code].targetTotal)}명`, `${n(result.byVillage[v.code].total)}명`]))
@@ -93,6 +103,18 @@ export function computeVars(data, scenario) {
   for (const v of vehicles) { const k = v.type || '기타'; types[k] = types[k] || { all: 0, ok: 0 }; types[k].all += 1; if (v.available !== false) types[k].ok += 1 }
   vals.tableVehicles = table(['차종', '전체', '가용'], Object.entries(types).map(([k, x]) => [k, `${x.all}대`, `${x.ok}대`]))
   return vals
+}
+
+// 최근 훈련 기록 값(플랫폼 AI 협업 툴 검토 반영(셀 81)). 기록이 없으면 null 이라 서식에는 ○○○ 빈칸이 그대로 남는다
+export function drillVars(rec) {
+  if (!rec) return { drillPeriod: null, drillHelpers: null, drillTargets: null, drillDone: null, drillFire: null, drillOpen: null, drillBaseAt: null }
+  const t = recordTotals(rec)
+  return {
+    drillPeriod: recordPeriod(rec),
+    drillHelpers: Number.isFinite(rec.helpers) ? rec.helpers : null,
+    drillTargets: t.total, drillDone: t.done, drillFire: t.fire, drillOpen: t.open,
+    drillBaseAt: Number.isFinite(rec.closedAt) ? fmtDateTime(rec.closedAt) : null
+  }
 }
 
 export function formatVar(key, vals) {

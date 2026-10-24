@@ -11,6 +11,7 @@ import Disclosure from '../../components/ui/Disclosure.jsx'
 import EmptyState from '../../components/ui/EmptyState.jsx'
 import { MIN, fmtDateTime, minutesText } from '../../lib/time.js'
 import useMiriStore from '../../store/useMiriStore.js'
+import { recordTotals } from '../../lib/recordTotals.js'
 
 const SERIES = [
   { fill: 'fill-chart-1', dot: 'bg-chart-1' },
@@ -18,13 +19,7 @@ const SERIES = [
   { fill: 'fill-chart-3', dot: 'bg-chart-3' }
 ]
 
-export function recordTotals(rec) {
-  const rows = Object.values(rec.byVillage || {})
-  const total = rows.reduce((s, r) => s + r.total, 0)
-  const done = rows.reduce((s, r) => s + r.done, 0)
-  const fire = rows.reduce((s, r) => s + r.fire, 0)
-  return { total, done, fire, open: total - done - fire }
-}
+export { recordTotals } from '../../lib/recordTotals.js'
 
 export default function RecordsPage() {
   const records = useMiriStore((s) => s.records)

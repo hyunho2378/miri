@@ -143,7 +143,7 @@ export default function DocEditor() {
 
   const miri = useMiriStore()
   const scenario = useMiriStore(activeScenario)
-  const baseVals = useMemo(() => computeVars(miri, scenario), [miri.persons, miri.villages, miri.vehicles, miri.helpers, miri.settings, scenario]) // eslint-disable-line react-hooks/exhaustive-deps
+  const baseVals = useMemo(() => computeVars(miri, scenario), [miri.persons, miri.villages, miri.vehicles, miri.helpers, miri.settings, miri.records, scenario]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const meta = doc?.meta || { preset: '보고서' }
   const locked = !!meta.locked

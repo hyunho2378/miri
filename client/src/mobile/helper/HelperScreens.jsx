@@ -250,7 +250,7 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
         <List label="이 대상자">
           {m.completeBy && <ListRow lead={<Clock size={20} />} title={`이송 완료 기한 ${fmtHM(m.completeBy)}까지`} subtitle={[m.drill ? '훈련' : '', remainText(m.completeBy, m.now)?.text].filter(Boolean).join(', ')} />}
           {d?.care?.companionCall && <ListRow lead={<Phone size={20} />} title="평소 돌봄 담당자에게 연락" subtitle={d.care.caregiverType} href={d.guardianPhone ? `tel:${d.guardianPhone}` : undefined} chevron={!!d.guardianPhone} />}
-          {(d?.routeCheck || trip?.routeCheck) && <ListRow lead={<Route size={20} />} title="출발 전 담당자에게 길 확인" subtitle={`경로 확인 필요, ${routeBasisLabel(trip?.routeBasis)}`} href={telOf(m.officerContact) || undefined} chevron={!!telOf(m.officerContact)} />}
+          {(d?.routeCheck || trip?.routeCheck) && <ListRow lead={<Route size={20} />} title={st === 'wait' ? '출발 전 담당자에게 길 확인' : '길이 막히면 담당자에게 전화'} subtitle={`경로 확인 필요, ${routeBasisLabel(trip?.routeBasis)}`} href={telOf(m.officerContact) || undefined} chevron={!!telOf(m.officerContact)} />}
           <InfoSheet lead={<User size={20} />} title="대상자 정보" summary={d ? '돌봄 담당자, 보조기구, 대피소' : '이름과 주소는 휴대폰으로 보내지 않음'}>
             {d ? (
               <List label="대상자 정보">

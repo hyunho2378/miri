@@ -6,7 +6,7 @@ import { helperDeclined, helperQualifies, planDispatch, reassignBlock, scorePlan
 import { capOf, gradeOf } from '../lib/shortage.js'
 import { calcTiming, calcVehicles, scenarioArrivals, scopeInput } from '../lib/shortageCalc.js'
 import { vnowOfState, withSpeed } from '../lib/clock.js'
-import { ackOf, dispatchSms, helperBrief, indexStops, stepOf, vnowOf } from '../lib/dispatchSim.js'
+import { ackOf, dispatchSms, helperBrief, indexStops, replaceSms, resendSms, stepOf, vnowOf, SMS_ACTION } from '../lib/dispatchSim.js'
 import { HAZARD_KINDS } from '../lib/scenario.js'
 import { MIN } from '../lib/time.js'
 import { clearRemote, loadRemote, newDispatchId, restoreSnapshot, saveRemote, snapshotOf } from '../lib/dispatchSync.js'
@@ -133,7 +133,7 @@ export const useDispatchStore = create((set, get) => ({
     const hz = HAZARD_KINDS[sc?.kind]?.label
     const smsLog = helpers.map((h) => {
       const sms = dispatchSms(helperBrief({ result: d.result, me: h, scenario: sc, villages: data.villages, hazardLabel: hz }), { drill: d.kind === 'drill' })
-      return { helper: h, at: vnow, text: sms?.text || `[미리] ${h} 배정이 왔습니다. 링크에서 수락이나 불가를 눌러 주세요`, bytes: sms?.bytes, smsKind: sms?.kind }
+      return { helper: h, at: vnow, text: sms?.text || `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} ${SMS_ACTION}. 배정(${h})`, bytes: sms?.bytes, smsKind: sms?.kind }
     })
     set({ status: 'sent', confirmedAt: vnow, sentAt: vnow, ackPlan, failPlan, manualHelper, smsLog })
     return true
@@ -162,7 +162,7 @@ export const useDispatchStore = create((set, get) => ({
     set({
       result,
       ackOverride: { ...d.ackOverride, [next.code]: { answer: 'none', at: vnow, requestedAt: vnow, replaced: oldCode } },
-      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 대체 배정이 왔습니다(${next.code}). 링크에서 수락을 누르면 확정됩니다. 불가를 눌러도 불이익은 없습니다` }]
+      smsLog: [...d.smsLog, (() => { const m = replaceSms(next.code, { drill: d.kind === 'drill' }); return { helper: next.code, at: vnow, text: m.text, bytes: m.bytes, smsKind: m.kind } })()]
     })
     return next.code
   },
@@ -196,7 +196,8 @@ export const useDispatchStore = create((set, get) => ({
     const d = get()
     if (!d.result || !d.result.assignments.some((a) => a.helperCodes.includes(helper))) return false
     const vnow = vnowOf(d)
-    set({ smsLog: [...d.smsLog, { helper, at: vnow, resend: true, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 배정 링크 재발송(${helper}). 링크에서 수락 또는 불가 응답` }] })
+    const m = resendSms(helper, { drill: d.kind === 'drill' })
+    set({ smsLog: [...d.smsLog, { helper, at: vnow, resend: true, text: m.text, bytes: m.bytes, smsKind: m.kind }] })
     return true
   },
 
