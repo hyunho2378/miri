@@ -10,6 +10,7 @@ import Input from '../../components/ui/Input.jsx'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import useToast from '../../hooks/useToast.js'
 import { VAR_BY_KEY } from '../../lib/docVars.js'
+import { thumbHeadLabel } from '../../lib/thumbLabel.js'
 import { DOC_CATEGORIES, DOC_TEMPLATES, FORM_TEMPLATES, SHEET_TEMPLATES } from '../../lib/workspaceTemplates.js'
 import useWorkspaceStore, { useWorkspaceInit } from '../../store/useWorkspaceStore.js'
 import * as api from '../../lib/workspaceApi.js'
@@ -59,11 +60,12 @@ function TemplateThumb({ kind, t }) {
   const K = KINDS.find((k) => k.key === kind) || KINDS[0]
   return (
     <span className="relative block aspect-[3/4] overflow-hidden rounded-md bg-page shadow-md transition-[box-shadow,transform] duration-fast group-hover:-translate-y-0.5 group-hover:shadow-lg">
-      {/* 종류 색 머리: 문서 파랑, 시트 초록, 설문지 보라 */}
-      <span className={clsx('flex h-7 items-center gap-1.5 px-3 text-[11px] font-bold text-text-inverse', K.bg)}>
-        <K.Icon size={13} aria-hidden="true" />{K.label}
+      {/* 종류 색 머리: 문서 파랑, 시트 초록, 설문지 보라. 머리에 '종류 (서식 이름)'을 적는다. 긴 이름은 두 줄까지 */}
+      <span className={clsx('flex h-10 items-center gap-1.5 px-3 text-[11px] font-bold leading-4 text-text-inverse', K.bg)}>
+        <K.Icon size={13} aria-hidden="true" className="shrink-0" />
+        <span className="line-clamp-2 min-w-0">{thumbHeadLabel(kind, t.title)}</span>
       </span>
-      <span className="block h-[calc(100%-1.75rem)] overflow-hidden p-3">{inner}</span>
+      <span className="block h-[calc(100%-2.5rem)] overflow-hidden p-3">{inner}</span>
     </span>
   )
 }
@@ -155,8 +157,7 @@ export default function WorkspaceHome() {
             <li key={t.key} className="min-w-0">
               <button type="button" onClick={() => make(t)} className="group block w-full text-left" title={t.desc}>
                 <TemplateThumb kind={kind.key} t={t} />
-                <span className="mt-2 block truncate type-strong text-text-pri">{t.title}</span>
-                <span className="line-clamp-2 block min-h-[2.25rem] type-meta text-text-meta">{t.desc}</span>
+                <span className="mt-2 line-clamp-2 block min-h-[2.25rem] type-meta text-text-meta">{t.desc}</span>
               </button>
             </li>
           ))}
