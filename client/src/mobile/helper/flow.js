@@ -127,3 +127,11 @@ export const UNDO_MS = 6000
 export function withPending(steps = {}, pending = null) {
   return pending ? { ...steps, [pending.code]: pending.step } : steps
 }
+// 대상자 코드 대신 '마을 n번째 집'(플랫폼 셀 71 검토 반영). 이름은 쓰지 않는다(cleanBrief 원칙). 배정에 없으면 '대상자'
+export function houseOf(trips = [], code) {
+  for (const t of trips) {
+    const i = (t.personCodes || []).indexOf(code)
+    if (i >= 0) return `${t.village} ${i + 1}번째 집`
+  }
+  return '대상자'
+}

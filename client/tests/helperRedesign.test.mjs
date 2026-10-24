@@ -24,7 +24,7 @@ test('주 버튼 하나의 이름이 단계(출발했어요, 도착했어요, �
   assert.equal(stepIndexOf('handover'), 4)
   assert.match(src, /primary=\{\{ label: STEP_ACTION\[st\], onClick: press \}\}/)
   assert.doesNotMatch(src, /setConfirm\(true\)/)
-  assert.match(src, /toast\(`\$\{code\} \$\{what\} 보고`, \{ label: '되돌리기'/)
+  assert.match(src, /toast\(`\$\{houseOf\(m\.trips, code\)\} \$\{what\} 보고`, \{ label: '되돌리기'/)
   assert.ok(UNDO_MS >= 4000 && UNDO_MS <= 8000)
 })
 

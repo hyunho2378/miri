@@ -70,8 +70,9 @@ export function docCare(r = {}) {
 
 // 집결지와 대피소 정의. 설정 화면(SettingsPage 마을과 평시 지정 대피소 표 설명)의 문장을 줄인 것. 새 정의를 만들지 않는다
 export const PLACE_TERMS = {
-  pickup: { term: '집결지', text: '마을 경로당 가운데 분포 중심에 가까운 곳' },
-  shelter: { term: '대피소', text: '집결지에서 차로 가는 시간이 가장 짧은 임시주거시설입니다. 산불이 번질 때는 대피 구역 밖 시설로 정합니다' }
+  // easy: 도우미 휴대폰용 쉬운 말(24회차, 플랫폼 셀 71). 뜻은 text 와 같고, 콘솔은 text 를 그대로 쓴다
+  pickup: { term: '집결지', text: '마을 경로당 가운데 분포 중심에 가까운 곳', easy: '마을 경로당 가운데, 도울 분들 집이 모인 한가운데에 가까운 곳이에요' },
+  shelter: { term: '대피소', text: '집결지에서 차로 가는 시간이 가장 짧은 임시주거시설입니다. 산불이 번질 때는 대피 구역 밖 시설로 정합니다', easy: '집결지에서 차로 가장 빨리 닿는, 잠시 머무는 시설이에요. 산불이 번질 때는 대피 구역 밖 시설로 정해요' }
 }
 export const placeLine = (k) => `${PLACE_TERMS[k].term}: ${PLACE_TERMS[k].text}`
 

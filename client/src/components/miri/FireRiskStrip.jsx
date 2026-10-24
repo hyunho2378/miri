@@ -8,6 +8,14 @@ import FreshnessNote from './FreshnessNote.jsx'
 // 산불위험지수 임계값 51, 66, 86. d2~d4 는 지수 51, 66, 86 이상인 면적 비율(%)이다
 // (국립산림과학원, 한국산림과학회지 114권 4호 504쪽, 2025. 12. 31.)
 // 개선 기준(위 논문): 다소 높음 = 51 이상 면적 40% 이상, 높음 = 66 이상 면적 60% 이상. 색만 그 기준을 따른다
+// 단계 이름은 위 개선 기준 두 개만 붙인다(24회차, 플랫폼 셀 72). 그 밖의 경우는 이름 없이 숫자만 둔다(지어낸 단계 금지)
+export function fireLevelOf(g = {}) {
+  const over66 = (g.d3 || 0) + (g.d4 || 0)
+  const over51 = over66 + (g.d2 || 0)
+  if (over66 >= 60) return '높음'
+  if (over51 >= 40) return '다소 높음'
+  return null
+}
 function toneOf(g) {
   const over66 = (g.d3 || 0) + (g.d4 || 0)
   const over51 = over66 + (g.d2 || 0)
@@ -64,9 +72,10 @@ export default function FireRiskStrip({ className, compact = false }) {
   return (
     <p className={clsx('inline-flex flex-wrap items-center gap-x-2 gap-y-1 type-body-sm text-text-pri', className)}>
       <Flame size={16} aria-hidden="true" className="text-warning" />
+      {fireLevelOf(g) && <strong>산불 위험 {fireLevelOf(g)}</strong>}
       <span>동해시 산불위험지수 평균 <strong className="tabular-nums">{data.mean}</strong>, 최고 <strong className="tabular-nums">{data.max}</strong></span>
       <span className={clsx('rounded-xs px-1.5 py-0.5 type-caption', toneOf(g))}>지수 51 이상 면적 {over51}%</span>
-      <span className="type-meta text-text-meta">{compact ? fmtAt(data.analyzedAt) : `산림청 국립산림과학원, ${fmtAt(data.analyzedAt)}`}</span>
+      <span className="type-meta text-text-meta">{compact ? `${fmtAt(data.analyzedAt)} 발표` : `산림청 국립산림과학원, ${fmtAt(data.analyzedAt)} 발표`}</span>
       <FreshnessNote kind="fire" state={fr} />
     </p>
   )

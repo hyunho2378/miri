@@ -14,7 +14,7 @@ import { ROLE_OPTIONS } from '../../lib/helperConsent.js'
 import { AVOID_PHRASES, EMERGENCY, HELPER_PHRASES, PREDEPARTURE } from '../../lib/helperGuidance.js'
 import { PLACE_TERMS } from '../../lib/aiCard.js'
 import { routeBasisLabel } from '../../lib/tripChecks.js'
-import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, PREDEPARTURE_ITEMS, STEP_ACTION, STEP_LABEL, STEP_NOW, UNDO_MS, helperPaneOf, lastAck, nextPlaceOf, progressOf, remainText, screenOf, sentencesOf, stepIndexOf, stepsByPerson, telOf, tripWord, withPending } from './flow.js'
+import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, PREDEPARTURE_ITEMS, STEP_ACTION, STEP_LABEL, STEP_NOW, UNDO_MS, helperPaneOf, houseOf, lastAck, nextPlaceOf, progressOf, remainText, screenOf, sentencesOf, stepIndexOf, stepsByPerson, telOf, tripWord, withPending } from './flow.js'
 import { startDemoDispatch, useDemoModel, useRemoteModel } from './useHelperModel.js'
 import './helper.css'
 
@@ -117,6 +117,18 @@ function IdleHome({ consentKey, onStart }) {
 // 배정 알림: 큰 기한 하나, 어디서와 몇 명, 수락 하나. 차량과 동승, 확인할 점은 자세히 시트
 function AlertScreen({ m, onDecline }) {
   const toast = useMobileToast()
+  // 수락도 단계 보고처럼 UNDO_MS 동안 되돌릴 수 있게 기다렸다가 보낸다(플랫폼 셀 72 검토 반영). 서버와 콘솔은 그대로
+  const [accepting, setAccepting] = useState(false)
+  const ackTimer = useRef(null)
+  const sent = useRef(false)
+  const sendAccept = () => { if (sent.current) return; sent.current = true; clearTimeout(ackTimer.current); m.ack('accept') }
+  useEffect(() => () => { if (ackTimer.current && !sent.current) sendAccept() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const accept = () => {
+    if (accepting) return
+    setAccepting(true); sent.current = false
+    ackTimer.current = setTimeout(sendAccept, UNDO_MS)
+    toast(`수락을 ${UNDO_MS / 1000}초 뒤 보내요. 첫 대상자부터 진행해요.`, { label: '되돌리기', onClick: () => { clearTimeout(ackTimer.current); ackTimer.current = null; setAccepting(false) } })
+  }
   const first = m.trips[0]
   return (
     <>
@@ -135,12 +147,12 @@ function AlertScreen({ m, onDecline }) {
               <Kv label="도우미 번호" value={m.helper || '-'} />
             </List>
             {m.notes.length > 0 && <List label="확인할 점">{m.notes.map((n) => <ListRow key={n} title={n} />)}</List>}
-            <List label="장소 뜻">{Object.values(PLACE_TERMS).map((t) => <ListRow key={t.term} title={t.term} subtitle={t.text} />)}</List>
+            <List label="장소 뜻">{Object.values(PLACE_TERMS).map((t) => <ListRow key={t.term} title={t.term} subtitle={t.easy || t.text} />)}</List>
           </InfoSheet>
         </List>
         <p className="mob-t-callout mob-h-lead">{ACK_NOTE}</p>
       </main>
-      <BottomAction primary={{ label: '수락', onClick: () => { m.ack('accept'); toast('수락했어요. 첫 대상자부터 진행해요.') } }} secondary={{ label: '불가', onClick: onDecline }} />
+      <BottomAction primary={{ label: accepting ? '수락 보내는 중' : '수락', onClick: accept, disabled: accepting }} secondary={{ label: '불가', onClick: onDecline, disabled: accepting }} />
     </>
   )
 }
@@ -344,7 +356,7 @@ function ContactScreen({ m, onBack }) {
 function QueueScreen({ m, onBack }) {
   const toast = useMobileToast()
   const [busy, setBusy] = useState(false)
-  const name = (q) => (q.type === 'preference' ? (q.consent ? '참여 동의와 역할' : '참여 그만두기') : q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${q.personCode} ${STEP_LABEL[q.step] || q.step}`)
+  const name = (q) => (q.type === 'preference' ? (q.consent ? '참여 동의와 역할' : '참여 그만두기') : q.type === 'ack' ? (q.answer === 'accept' ? '수락' : '불가') : `${houseOf(m.trips, q.personCode)} ${STEP_LABEL[q.step] || q.step}`)
   return (
     <>
       <AppBar title="전송 대기" onBack={onBack} />
@@ -384,7 +396,7 @@ function EndScreen({ m, steps, declined }) {
       <AppBar title="이송 끝" large />
       <main id="main" className="mob-content no-nav">
         <Figure value={`완료 ${p.done}명`} caption={`실패 ${p.failed}명, 대피소에서 담당자 안내를 기다려 주세요`} />
-        <List label="기록">{done.map((r) => <ListRow key={`${r.personCode}${r.step}`} className="kv" title={r.personCode} trailing={<span className="mob-h-kv">{STEP_LABEL[r.step]} {r.at ? fmtHM(r.at) : ''}</span>} />)}</List>
+        <List label="기록">{done.map((r) => <ListRow key={`${r.personCode}${r.step}`} className="kv" title={houseOf(m.trips, r.personCode)} trailing={<span className="mob-h-kv">{STEP_LABEL[r.step]} {r.at ? fmtHM(r.at) : ''}</span>} />)}</List>
         {pending}
       </main>
     </>
@@ -414,7 +426,7 @@ function usePendingReport(m) {
     ref.current = p; setPending(p)
     timer.current = setTimeout(commit, UNDO_MS)
     const what = step === 'fail' ? '이송 실패' : STEP_LABEL[step]
-    toast(`${code} ${what} 보고`, { label: '되돌리기', onClick: () => { clearTimeout(timer.current); ref.current = null; setPending(null) } })
+    toast(`${houseOf(m.trips, code)} ${what} 보고`, { label: '되돌리기', onClick: () => { clearTimeout(timer.current); ref.current = null; setPending(null) } })
   }
   return { pending, report }
 }
@@ -444,7 +456,7 @@ function Flow({ m, consentKey }) {
   const detailOf = (v, goTo, onBackTo, inPane) => {
     if (v?.name === 'list') return <PeopleList m={m} steps={steps} go={goTo} onBack={onBackTo} />
     if (v?.name === 'H5' || v?.name === 'H4') return <TransportScreen m={m} code={v.code} steps={steps} go={goTo} onBack={onBackTo} report={report} predepKey={predepKey} inPane={inPane} />
-    if (v?.name === 'H6') return <ReasonScreen title="이송할 수 없어요" lead={`${v.code}, 이유를 골라 주세요. 담당자가 소방 지원을 요청해요.`} reasons={FAIL_REASONS_M} label="실패로 보고" danger onBack={onBackTo} onSend={(reason, memo) => { report(v.code, 'fail', { reason, memo }); setStack((s) => s.filter((x) => x.code !== v.code)) }} />
+    if (v?.name === 'H6') return <ReasonScreen title="이송할 수 없어요" lead={`${houseOf(m.trips, v.code)}, 이유를 골라 주세요. 담당자가 소방 지원을 요청해요.`} reasons={FAIL_REASONS_M} label="실패로 보고" danger onBack={onBackTo} onSend={(reason, memo) => { report(v.code, 'fail', { reason, memo }); setStack((s) => s.filter((x) => x.code !== v.code)) }} />
     if (v?.name === 'H7') return <ContactScreen m={m} onBack={onBackTo} />
     if (v?.name === 'H8') return <QueueScreen m={m} onBack={onBackTo} />
     return null
