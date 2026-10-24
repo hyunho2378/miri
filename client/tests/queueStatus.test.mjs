@@ -30,6 +30,6 @@ test('대기 목록 한 줄에 보관 시각', () => {
 test('도우미 화면이 요약 함수를 씀', () => {
   const src = readFileSync(new URL('../src/mobile/helper/HelperScreens.jsx', import.meta.url), 'utf8')
   assert.ok(!src.includes('m.pending > 0 &&'))
-  assert.equal((src.match(/queueSummary\(m\)/g) || []).length, 2)
+  assert.equal((src.match(/queueSummary\(m\)/g) || []).length, 3) // 목록, 끝, 지금 차례(14회차)
   assert.ok(src.includes('subtitle={queueRowSubtitle(q)}'))
 })

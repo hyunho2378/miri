@@ -209,6 +209,8 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
   const d = m.detail(code)
   const trip = m.trips.find((t) => t.personCodes.includes(code))
   const p = progressOf(m.codes, steps)
+  // 지금 차례 화면에도 보내지 못한 보고를 보여 준다(누른 보고가 아직 서버에 없다는 사실을 놓치지 않게)
+  const nowQs = queueSummary(m)
   const [sos, setSos] = useState(false)
   const [predep, setPredep] = useState(false)
   const [care, setCare] = useState({ symptomAt: '', observation: '', action: '' })
@@ -250,6 +252,7 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
           {next?.step === 'handover' && <ListRow lead={<ClipboardList size={20} />} title="인계 기록(선택)" subtitle={care.observation || care.action || care.symptomAt ? '적어 둠, 인계 때 함께 보냄' : '증상 시각, 관찰, 조치'} chevron onClick={() => setCareOpen(true)} />}
           {!inPane && <ListRow lead={<Users size={20} />} title={`전체 ${p.total}명`} subtitle={`완료 ${p.done}명, 실패 ${p.failed}명`} chevron onClick={() => go({ name: 'list' })} />}
         </List>
+        {nowQs && <List label="전송 대기"><ListRow lead={<CloudOff size={20} />} title={nowQs.title} subtitle={nowQs.subtitle} chevron onClick={() => go({ name: 'H8' })} /></List>}
         {!next && <EmptyState icon={<CheckCircle2 size={28} />} title="이 대상자 보고 끝" body={STEP_LABEL[st]} />}
       </main>
       {next && <BottomAction primary={{ label: STEP_ACTION[st], onClick: press }} secondary={{ label: '이송할 수 없어요', onClick: () => go({ name: 'H6', code }) }} />}
