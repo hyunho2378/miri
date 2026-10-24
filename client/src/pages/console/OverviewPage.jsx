@@ -22,6 +22,7 @@ import { computeShortage, optimizedUnserved } from '../../lib/shortageCalc.js'
 import { fmtElapsed } from '../../lib/geo.js'
 import { peaceBasisText, pendingCounts } from '../../lib/basis.js'
 import { staleRosterCount, STALE_DAYS } from '../../lib/handoverRows.js'
+import { todoSummaryLine } from '../../lib/todoSummary.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 
@@ -127,6 +128,16 @@ export default function OverviewPage() {
   const availVehicles = vehicles.filter((v) => v.available).length
   const staleRoster = staleRosterCount(active, now)
   const todo = pending + pc.notes + anomalies.length
+  // 머리 한 줄 요약(셀 52 검토 반영): 급한 것부터, 숫자는 아래 카드와 같은 값
+  const ruleN = (rule) => anomalies.filter((a) => a.rule === rule).length
+  const summaryLine = todoSummaryLine([
+    { label: '기한 내 이송 불가', n: ruleN('deadline'), unit: '건' },
+    { label: '도우미 무응답', n: ruleN('noAck'), unit: '건' },
+    { label: '협약 만료 임박', n: ruleN('contract'), unit: '건' },
+    { label: '명부 재확인', n: staleRoster, unit: '명' },
+    { label: '서류', n: pending, unit: '건' },
+    { label: '현장 소식', n: pc.notes, unit: '건' }
+  ], now)
   // 이송 완료 기한: 규칙 글자 대신 첫 마을의 실제 기한(발령 후 경과 시간)을 보이고, 규칙은 아래 줄에 적는다
   const firstCompleteH = Math.max(0, (scenario.windowHours || 0) - (scenario.completeBeforeHours || 0))
   const completeRule = scenario.completeBeforeHours ? `기준: 산불 도달 ${scenario.completeBeforeHours}시간 전` : '기준: 산불 도달 시각'
@@ -172,6 +183,7 @@ export default function OverviewPage() {
 
   return (
     <PageShell title="오늘의 현황" eyebrow={todayLabel()} desc="혼자 대피하기 어려운 주민을 보호하기 위해, 옮길 차와 사람이 몇 명분 모자라는지 평소에 확인합니다." actions={actions}>
+      <p className="mb-3 type-body text-text-pri tabular-nums">{summaryLine}</p>
       <div className="grid gap-3 cq-md:grid-flow-row-dense cq-md:grid-cols-6 cq-xl:grid-cols-12">
         {/* 미이송 예상 */}
         <Card title="미이송 예상" className="flex flex-col cq-md:col-span-3 cq-xl:col-span-3" bodyClassName="flex flex-1 flex-col">
