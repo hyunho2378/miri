@@ -1,5 +1,5 @@
 // api/workspace.js Vercel 서버리스 함수. 문서함(문서, 시트, 설문지)과 설문 응답 저장소(PRD v2 F4).
-// 저장소는 Upstash Redis. UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN 또는 KV_REST_API_URL/KV_REST_API_TOKEN 을 읽는다.
+// 저장소는 api/_store.js(Upstash REST 또는 표준 Redis). UPSTASH_REDIS_REST_URL/TOKEN, KV_REST_API_URL/TOKEN 또는 REDIS_URL 을 읽는다.
 // 저장소 환경변수가 없으면 503 NO_STORE. 프론트는 이 응답을 받으면 메모리 방식으로 동작한다.
 //
 // GET    ?kind=doc|sheet|form          목록(설문지는 응답 포함, 담당자 화면용)
@@ -12,8 +12,8 @@
 // POST   ?action=seed                  본문 { items } 저장소가 비어 있고 처음일 때만 시연 항목 저장
 //
 // 인증이 없는 시연 서비스다. 항목 ID 는 프론트가 추측하기 어려운 값으로 만든다. 실제 주민 정보는 저장하지 않는다.
-import { Redis } from '@upstash/redis'
 import { guard } from './_guard.js'
+import { getStore as sharedGetStore } from './_store.js'
 
 const fail = (res, status, code, message) => res.status(status).json({ error: { code, message } })
 
@@ -35,15 +35,7 @@ const LIST_RESPONSES = 2000
 const SUBMIT_PER_MIN = 20
 const WRITE_PER_MIN = 240
 
-let client
-let clientKey = ''
-function getStore() {
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
-  if (!url || !token) return null
-  if (!client || clientKey !== `${url}|${token}`) { client = new Redis({ url, token }); clientKey = `${url}|${token}` }
-  return client
-}
+const getStore = () => sharedGetStore() // Upstash REST 또는 표준 Redis(api/_store.js)
 
 const readBody = (req) => {
   let b = req.body

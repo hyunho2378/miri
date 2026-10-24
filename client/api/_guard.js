@@ -4,11 +4,11 @@
 //      쿠키 값은 만료 시각과 HMAC-SHA256 서명(서버 환경변수 MIRI_SESSION_SECRET)이라 서버 비밀값 없이는 만들 수 없다.
 //      HttpOnly, Secure, SameSite=Strict 라서 화면 스크립트와 다른 사이트에서 쓰지 못한다.
 //   2. 비공개 문서함 조회, 저장, 삭제, 설문 응답 조회와 AI 호출은 이 쿠키가 있어야 처리한다.
-//   3. AI 호출은 세션마다, IP마다, 그리고 전체 합계로 분당과 하루 상한을 둔다. 저장소(Upstash Redis)가 있으면
+//   3. AI 호출은 세션마다, IP마다, 그리고 전체 합계로 분당과 하루 상한을 둔다. 저장소(Upstash Redis 또는 표준 Redis)가 있으면
 //      인스턴스 사이에 공유하고, 없으면 인스턴스 안에서만 센다.
 // 두 환경변수가 없으면 비공개 기능은 닫힌 채로 둔다(설정 누락이 열림으로 이어지지 않게).
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
-import { Redis } from '@upstash/redis'
+import { getStore } from './_store.js'
 
 export const COOKIE = 'miri_s'
 const TTL_SEC = 12 * 60 * 60
@@ -93,18 +93,12 @@ export function sameSite(req) {
 }
 
 // 횟수 세기. Redis 가 있으면 공유 원자 카운터, 없으면 인스턴스 메모리
-let redis = null
-let redisKey = ''
 let storeOverride = null
 // 시험에서만 쓰는 저장소 바꿔 끼우기. null 을 넣으면 실제 환경변수 기준으로 돌아간다
 export function setStoreForTest(s) { storeOverride = s }
 function store() {
   if (storeOverride) return storeOverride
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
-  if (!url || !token) return null
-  if (!redis || redisKey !== `${url}|${token}`) { redis = new Redis({ url, token }); redisKey = `${url}|${token}` }
-  return redis
+  return getStore() // Upstash REST 또는 표준 Redis(api/_store.js)
 }
 // 발령 저장(api/dispatch.js)이 같은 저장소를 쓴다
 export const sharedStore = () => store()
