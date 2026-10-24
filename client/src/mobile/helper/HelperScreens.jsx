@@ -18,7 +18,7 @@ import { CONSENT_KEY, DECLINE_REASONS_M, FAIL_REASONS_M, NEXT_STEP, PREDEPARTURE
 import { startDemoDispatch, useDemoModel, useRemoteModel } from './useHelperModel.js'
 import './helper.css'
 
-// 수락 안내 한 문장(멘토링 녹취의 수락 필요, 한림봉사센터 회신 R12 196행의 거절 불이익 없음)
+// 수락 안내 한 문장(멘토링 녹취의 수락 필요, 한림봉사센터 회신 R12 196행의 불이익 없음, 버튼 말은 수락과 불가)
 const ACK_NOTE = '수락을 누르면 배정이 확정됩니다. 불가를 눌러도 불이익은 없고, 다른 도우미에게 넘어갑니다.'
 const ROLES_KEY = 'miri.m.roles.'
 const PREDEP_KEY = 'miri.m.predep.'
@@ -76,7 +76,7 @@ export function ConsentScreen({ initialRoles = ['ride'], onBack, onDone }) {
         <List label="할 수 있는 일">
           {Object.entries(ROLE_OPTIONS).map(([k, v]) => <SelectRow key={k} multiple title={v} subtitle={k === 'ride' ? '차량 배정 후보가 돼요' : undefined} selected={roles.includes(k)} onSelect={() => toggle(k)} />)}
         </List>
-        <p className="mob-t-callout mob-h-lead">거절하거나 나중에 그만둬도 불이익은 없어요.</p>
+        <p className="mob-t-callout mob-h-lead">참여가 불가하거나 나중에 그만둬도 불이익은 없어요.</p>
         <List label="안내"><PrivacySheet /></List>
       </main>
       <BottomAction primary={{ label: '동의하고 시작', disabled: !roles.length, onClick: () => onDone(roles) }} />
