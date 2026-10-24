@@ -1,0 +1,7 @@
+{
+  "_note": "초안(적용하지 않음). 고정 주소로 넘길 때만 client/vercel.json 의 rewrites 맨 앞에 넣는다. 환경 변수로 켜고 끄려면 middleware.draft.js 를 쓴다.",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://NCP_API_ORIGIN/api/:path*" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}
