@@ -125,7 +125,9 @@ export function buildSeed() {
       })
       privateInfo[code] = {
         address: `동해시 ${v.name} (가상 대상자, 번지 없음)`,
-        guardianPhone: `010-0000-${String(intIn(r, 1000, 9999))}`
+        guardianPhone: `010-0000-${String(intIn(r, 1000, 9999))}`,
+        // 현직 소방관 인터뷰(Q6): 동호수와 층이 필요. 가상 값이고 난수를 쓰지 않아 다른 시드 값은 그대로
+        unit: k % 5 === 0 || k % 3 === 0 ? `가상 ${101 + (k % 3)}동 ${k % 5 === 0 ? 3 : 2}0${(k % 4) + 1}호` : '가상 단독주택'
       }
     }
     docSeq += 1
