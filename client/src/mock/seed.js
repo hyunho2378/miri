@@ -40,6 +40,8 @@ export const SETTINGS = {
 }
 
 const TODAY = new Date(2026, 9, 2, 9, 0).getTime()
+// 명부 마지막 확인 날짜의 기준일: 시드 기준일과 오늘 9시 중 늦은 날(시연 날짜가 지나도 재확인 필요 비율이 그대로)
+const PLAN_BASE = Math.max(TODAY, new Date(new Date().setHours(9, 0, 0, 0)).getTime())
 
 // 발화 가정 지점(OpenStreetMap 지명 좌표)
 const ORIGIN_NAMYANG = [129.01109, 37.56721]   // 강릉시 옥계면 남양리
@@ -112,7 +114,8 @@ export function buildSeed() {
         docId: `DOC-${String(docSeq).padStart(4, '0')}`, docPos: k,
         updatedAt: TODAY - intIn(r, 3, 60) * DAY,
         // 회신 R28(최정원): 당사자와 계획 확인 상태와 마지막 확인 날짜, 이동 경로 항목. 모두 가상 값
-        planCheckedAt: k % 4 === 0 ? null : TODAY - ((k * 7) % 90 + 1) * DAY,
+        // 시연 명부 마지막 확인: 대부분 최근 두 달 안, 12명 중 1명은 기록 없음, 12명 중 1명은 90일 넘음(8회차 교차 점검). 기준일은 오늘(시드 TODAY 이후면 오늘)로 굴려 시연 시점과 무관하게 같은 분포. 난수를 쓰지 않아 다른 시드 값은 그대로
+        planCheckedAt: k % 12 === 0 ? null : PLAN_BASE - (k % 12 === 6 ? 95 + (k % 30) : (k * 7) % 60 + 1) * DAY,
         access: {
           floor: k % 5 === 0 ? '3층' : k % 3 === 0 ? '2층' : '1층',
           stairs: k % 5 === 0 ? '계단만 있음' : k % 3 === 0 ? '엘리베이터 있음' : '계단 없음',

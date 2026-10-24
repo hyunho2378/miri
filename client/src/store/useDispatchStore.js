@@ -162,7 +162,7 @@ export const useDispatchStore = create((set, get) => ({
     set({
       result,
       ackOverride: { ...d.ackOverride, [next.code]: { answer: 'none', at: vnow, requestedAt: vnow, replaced: oldCode } },
-      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 대체 배정이 왔습니다(${next.code}). 수락해야 확정되고, 거절해도 불이익은 없습니다. 링크에서 수락이나 불가를 눌러 주세요` }]
+      smsLog: [...d.smsLog, { helper: next.code, at: vnow, text: `${d.kind === 'drill' ? '[미리 훈련]' : '[미리]'} 대체 배정이 왔습니다(${next.code}). 링크에서 수락을 누르면 확정됩니다. 불가를 눌러도 불이익은 없습니다` }]
     })
     return next.code
   },
