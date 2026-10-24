@@ -34,6 +34,7 @@ import useMiriStore from '../../store/useMiriStore.js'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import RosterPrint from '../../components/miri/RosterPrint.jsx'
 import { gradeOf } from '../../lib/shortage.js'
+import { countText } from '../../lib/unitText.js'
 
 // 지도는 무거워서 지도 보기를 고를 때만 받는다
 const RosterMap = lazy(() => import('../../components/miri/RosterMap.jsx'))
@@ -188,20 +189,20 @@ export default function RosterPage() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <SegmentControl label="보기" value={view} onChange={setView} items={VIEWS} />
         <p className="type-body-sm text-text-sec">
-          걸러진 대상자 <strong className="type-strong text-text-pri tabular-nums">{rows.length}명</strong>, 마을 {byVillage.length}곳
+          걸러진 명부 <strong className="type-strong text-text-pri tabular-nums">{countText(rows.length, '건')}</strong>, 마을 {byVillage.length}곳
           {grades.length > 0 && `, 등급 ${grades.map((g) => gradeOf(g)?.label).join(', ')}`}
         </p>
       </div>
       {view === 'list' ? (
       <TableCard
-        title="대상자" count={`${rows.length}명`} desc={`${fmtKDate(today)} 명부 기준입니다. 이름 없이 대상자 코드로 표시합니다. ${rosterSourceText(rosterBreakdown(persons))} ${DISABLED_NOTE}`}
+        title="대상자" count={countText(rows.length, '건')} desc={`${fmtKDate(today)} 명부 기준입니다. 이름 없이 대상자 코드로 표시합니다. ${rosterSourceText(rosterBreakdown(persons))} ${DISABLED_NOTE}`}
         actions={<InlineEditBar resource="persons" addLabel="대상자 추가" onAdd={() => { setErrors({}); setEditing({ mode: 'add', value: { villageCode: village !== 'all' ? village : villageOptions[1]?.value, grade: 'assist', tags: [] } }) }} />}
         filters={filterBar}
         columns={columns} rows={rows} rowKey={(p) => p.code} onRowClick={(p) => { setEditing(null); openPerson(p.code) }} emptyTitle="조건에 맞는 대상자가 없습니다" emptyDesc="필터 조건을 바꿔 다시 확인해 주십시오." caption="대상자 명부"
       />
       ) : (
         <TableCard
-          title={view === 'map' ? '마을별 분포' : '서식 출력'} count={`${rows.length}명`}
+          title={view === 'map' ? '마을별 분포' : '서식 출력'} count={countText(rows.length, '건')}
           desc={view === 'map' ? '목록과 같은 필터를 씁니다. 원을 누르면 그 마을로 목록이 좁혀집니다.' : '마을별 명부를 인쇄합니다. 이름과 연락처는 지자체 서버 원본에서 채워 씁니다.'}
         filters={filterBar}
         >

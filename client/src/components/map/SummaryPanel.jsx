@@ -5,6 +5,7 @@ import Select from '../ui/Select.jsx'
 import { GRADES } from '../../lib/shortage.js'
 import { fmtElapsed } from '../../lib/geo.js'
 import { HAZARD_KINDS } from '../../lib/scenario.js'
+import { countText } from '../../lib/unitText.js'
 
 const gradeLine = (byGrade) => {
   const parts = GRADES.filter((g) => byGrade?.[g.key]).map((g) => `${g.label} ${byGrade[g.key]}명`)
@@ -29,8 +30,8 @@ export default function SummaryPanel({
   const unresolved = extra.some((x) => !x.resolved)
   const top = shortList[0]
   const scopeLine = scopeCount === villageCount
-    ? `시 전체 ${villageCount}개 마을, 대상자 ${result.scopeTargets}명이 대피 대상입니다.`
-    : `대피 대상 구역은 ${villageCount}개 마을 중 ${scopeCount}곳이며 대상자는 ${result.scopeTargets}명입니다.`
+    ? `시 전체 ${villageCount}개 마을, 대상자 ${countText(result.scopeTargets, '명')}이 대피 대상입니다.`
+    : `대피 대상 구역은 ${villageCount}개 마을 중 ${scopeCount}곳이며 대상자는 ${countText(result.scopeTargets, '명')}입니다.`
   const facts = result.total
     ? [
       scopeLine,

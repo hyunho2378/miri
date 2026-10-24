@@ -34,8 +34,9 @@ import useAuthStore from '../../store/useAuthStore.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { scopeSummary } from '../../lib/shortageCalc.js'
+import { speedText } from '../../lib/unitText.js'
 
-const SPEEDS = [{ value: 1, label: '1배' }, { value: 60, label: '60배' }, { value: 240, label: '240배' }]
+const SPEEDS = [1, 60, 240].map((v) => ({ value: v, label: speedText(v) }))
 const COUNT_ORDER = ['wait', 'depart', 'arrive', 'board', 'handover', 'fail', 'handedToFire', 'unassigned']
 const COUNT_LABEL = { ...STEP_LABEL, unassigned: '미배정' }
 const ISSUE = ['fail', 'handedToFire', 'unassigned']
@@ -63,9 +64,9 @@ function deadlinesOf(arrival, settings, scenario) {
 function SpeedControl({ value, onChange }) {
   return (
     <div>
-      <p className="mb-1.5 type-caption text-text-sec">훈련 시뮬레이션 속도</p>
-      <SegmentControl label="훈련 시뮬레이션 속도" items={SPEEDS} value={value} onChange={onChange} />
-      <p className="mt-1.5 type-meta text-text-meta">60배 속도에서는 1시간이 1분에 진행됩니다.</p>
+      <p className="mb-1.5 type-caption text-text-sec">시연 속도</p>
+      <SegmentControl label="시연 속도" items={SPEEDS} value={value} onChange={onChange} />
+      <p className="mt-1.5 type-meta text-text-meta">훈련 발령에서만 쓰는 시연 속도입니다. 실제 발령은 실제 시간으로 진행됩니다.</p>
     </div>
   )
 }

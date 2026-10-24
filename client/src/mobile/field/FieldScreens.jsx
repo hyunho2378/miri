@@ -804,7 +804,7 @@ export function FieldMorePage() {
         </List>
         {!ACTIVE.has(d.status) && (
           <List label="시연">
-            <ListRow lead={<Play size={22} />} title="훈련 발령 시작" subtitle="배정과 문자 보내기까지 한 번에, 60배 빠른 시계" onClick={startDrill} />
+            <ListRow lead={<Play size={22} />} title="훈련 발령 시작" subtitle="배정과 문자 보내기까지 한 번에, 시연 속도 1시간을 1분으로(60배)" onClick={startDrill} />
           </List>
         )}
         <List label="계정">

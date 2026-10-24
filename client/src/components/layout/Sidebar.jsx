@@ -70,7 +70,7 @@ export function NavPanel({ group = 'work', onNavigate, showAll = false }) {
         <m.Icon size={16} aria-hidden="true" className={clsx('shrink-0', active ? 'text-text-pri' : 'text-text-meta')} />
         <span className={clsx('min-w-0 flex-1 truncate type-body-sm', active && 'font-bold')}>{m.label}</span>
         {m.queue && pending > 0 && (
-          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-text-pri px-1.5 type-count text-text-inverse" title={`확인 대기 서류 ${pendingDocs}건, 현장 소식 ${pendingNotes}건`} aria-label={`확인 대기 서류 ${pendingDocs}건, 현장 소식 ${pendingNotes}건`}>{pending}</span>
+          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-text-pri px-1.5 type-count text-text-inverse" title={`확인 대기 판독 결과 ${pendingDocs}건, 현장 소식 ${pendingNotes}건`} aria-label={`확인 대기 판독 결과 ${pendingDocs}건, 현장 소식 ${pendingNotes}건`}>{pending}</span>
         )}
       </>
     )

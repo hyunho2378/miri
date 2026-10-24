@@ -22,6 +22,7 @@ import { REAL_READINGS, REAL_READ_SOURCE } from '../../mock/realReadings.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
 import { gradeOf } from '../../lib/shortage.js'
+import { countText } from '../../lib/unitText.js'
 
 const CONF_ORDER = { low: 0, mid: 1, high: 2 }
 const KIND_LABEL = { plan: '대피계획서', card: '대피카드', etc: '기타' }
@@ -38,6 +39,8 @@ export default function IntakePage() {
   const docs = useMiriStore((s) => s.intakeDocs)
   const villages = useMiriStore((s) => s.villages)
   const reviewResult = useMiriStore((s) => s.reviewResult)
+  const pendingDocs = persons.filter((p) => p.review === 'pending').length
+  const pendingNotes = useMiriStore((s) => s.fieldNotes.filter((n) => n.status === 'pending').length)
   const addIntakeDoc = useMiriStore((s) => s.addIntakeDoc)
   const nextDocId = useMiriStore((s) => s.nextDocId)
   const canEdit = useAuthStore((s) => s.canEdit('intake'))
@@ -158,11 +161,12 @@ export default function IntakePage() {
   return (
     <PageShell title="서류 읽기" desc="동에서 받은 대피 관련 서류를 AI가 읽은 결과와 원본을 맞춰 보고, 이송 등급을 확정합니다.">
       <section aria-label="서류 읽기 단계" className="mb-4 flex flex-col gap-3 lg:flex-row">
-        <StepCard n={1} Icon={FileUp} title="서류 올리기" desc="동 담당자가 받은 대피계획서나 대피카드를 찍거나 스캔해 올립니다." count={`${docs.length}건`}
+        <StepCard n={1} Icon={FileUp} title="서류 올리기" desc="동 담당자가 받은 대피계획서나 대피카드를 찍거나 스캔해 올립니다." count={`서류 ${countText(docs.length, '건')}`}
           active={uploadOpen} onClick={canEdit ? () => setShowUpload((v) => !v) : undefined} />
-        <StepCard n={2} Icon={ScanText} title="AI가 읽기" desc="서류 사진은 국내 글자 인식(CLOVA OCR)에만 보내고, 이름, 연락처, 주소를 가린 글자만 국내 AI(HyperCLOVA X)가 읽어 이송 등급 초안과 근거 문구를 만듭니다." count={`${readPeople}명`} />
-        <StepCard n={3} Icon={UserCheck} title="담당자 확인" desc="원본과 근거 문구를 대조해 확인, 수정, 제외합니다. 확인해야 명부와 부족분 계산에 들어갑니다." count={`대기 ${queue.length}건`} active={!uploadOpen && queue.length > 0} />
+        <StepCard n={2} Icon={ScanText} title="AI가 읽기" desc="서류 사진은 국내 글자 인식(CLOVA OCR)에만 보내고, 이름, 연락처, 주소를 가린 글자만 국내 AI(HyperCLOVA X)가 읽어 이송 등급 초안과 근거 문구를 만듭니다." count={`대상자 ${countText(readPeople, '명')}`} />
+        <StepCard n={3} Icon={UserCheck} title="담당자 확인" desc="원본과 근거 문구를 대조해 확인, 수정, 제외합니다. 확인해야 명부와 부족분 계산에 들어갑니다." count={`확인 대기 ${countText(queue.length, '건')}`} active={!uploadOpen && queue.length > 0} />
       </section>
+      <p className="-mt-1 mb-4 type-meta text-text-meta">왼쪽 메뉴의 숫자 {countText(pendingDocs + pendingNotes, '')}은 확인 대기 판독 결과 {countText(pendingDocs, '건')}과 현장 소식 {countText(pendingNotes, '건')}을 더한 값입니다.</p>
 
       {uploadOpen && (
         <Card title="서류 올리기" className="mb-4">
