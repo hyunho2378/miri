@@ -12,7 +12,7 @@
 | 실행 | `npm run dev` |
 | 시험 | `npm test`, `node --test` |
 | 빌드 | `npx vite build` (네이티브 압축 모듈이 없는 환경은 `--minify false`) |
-| 환경변수 | README 개발 환경 절의 이름 표. 값은 저장소에 두지 않음 |
+| 환경변수 | docs/DEVELOPMENT.md 개발 환경 절의 이름 표. 값은 저장소에 두지 않음 |
 
 ## 작업 순서
 1. 이슈 등록(버그 또는 개선 양식)
