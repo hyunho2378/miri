@@ -7,12 +7,13 @@
 // - 아이폰: Product Bezels iPhone 17 Black 6316:14199, 그림 450x920 안 화면 402x874 위치 (24, 23)
 // - 듀오 세로: iPhone Duo Display=Inner, Star White 12887:20885, 그림 749x1031 안 화면 669x951 위치 (40, 40)
 // - 듀오 가로: 같은 변형 Orientation=Landscape 12887:20886, 그림 1031x749 안 화면 951x669 위치 (40, 40)
+// - safeTop: 아이폰은 Dynamic Island(125x37 @138.5,13.67, 12740:24084)의 아래 끝 50.67 에 간격 8 을 더해 59, 듀오는 Safe Areas 12892:61593 의 상태 줄 위치 24
 // - 갤럭시와 폴드: 키트에 기기 그림이 없어 M3 Utilities 'Device frame' 50770:11451(모서리 18, 선 8 바깥)의 값으로 그린다.
 export const DEVICES = [
   { id: 'galaxy', label: '갤럭시', platform: 'android', width: 360, height: 780 },
-  { id: 'iphone', label: '아이폰', platform: 'ios', width: 402, height: 874, frame: { src: '/device/iphone.png', w: 450, h: 920, x: 24, y: 23 } },
+  { id: 'iphone', label: '아이폰', platform: 'ios', width: 402, height: 874, safeTop: 59, frame: { src: '/device/iphone.png', w: 450, h: 920, x: 24, y: 23 } },
   { id: 'fold', label: '갤럭시 폴드', platform: 'android', width: 616, height: 816 },
-  { id: 'duo', label: '아이폰 듀오', platform: 'ios', width: 669, height: 951, frame: { src: '/device/duo-portrait.png', w: 749, h: 1031, x: 40, y: 40 }, frameLandscape: { src: '/device/duo-landscape.png', w: 1031, h: 749, x: 40, y: 40 } }
+  { id: 'duo', label: '아이폰 듀오', platform: 'ios', width: 669, height: 951, safeTop: 24, frame: { src: '/device/duo-portrait.png', w: 749, h: 1031, x: 40, y: 40 }, frameLandscape: { src: '/device/duo-landscape.png', w: 1031, h: 749, x: 40, y: 40 } }
 ]
 // 기기 선택 목록. 갤럭시와 아이폰은 세로만, 폴드와 듀오는 가로와 세로를 각각 고른다.
 export const DEVICE_OPTIONS = [
@@ -69,6 +70,7 @@ export function frameSrc(pathname = '/m', search = '', device) {
   params.delete('frame'); params.delete('platform'); params.delete('device')
   params.set('platform', device.platform)
   params.set('frame', '0')
+  if (device.safeTop) params.set('safetop', String(device.safeTop))
   return `${pathname}?${params.toString()}`
 }
 

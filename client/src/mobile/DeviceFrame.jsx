@@ -73,7 +73,7 @@ export default function DeviceFrameHost() {
     const nextId = DEVICE_OPTIONS.find((o) => o.key === nextKey).id
     writeStore(nextKey)
     setOptKey(nextKey)
-    try { frameRef.current?.contentWindow?.postMessage({ type: 'miri-mobile-platform', platform: deviceById(nextId).platform }, window.location.origin) } catch { /* 틀이 아직 열리지 않았으면 다음 열기에서 적용 */ }
+    try { frameRef.current?.contentWindow?.postMessage({ type: 'miri-mobile-platform', platform: deviceById(nextId).platform, safeTop: deviceById(nextId).safeTop || 0 }, window.location.origin) } catch { /* 틀이 아직 열리지 않았으면 다음 열기에서 적용 */ }
   }
 
   // 기기 틀: 키트 기기 그림이 있으면 그림의 화면 구멍에 맞춰 iframe 을 놓고, 없으면(갤럭시, 폴드) 키트 Device frame 값으로 그린다.
@@ -114,7 +114,7 @@ export default function DeviceFrameHost() {
               <img className="dev-bezel" alt="" aria-hidden="true" src={kit.src} width={kit.w} height={kit.h}
                 style={rotated ? { transformOrigin: 'top left', transform: `translateY(${kit.w}px) rotate(-90deg)` } : undefined} />
             )}
-            <iframe ref={frameRef} title={`${device.label} 화면`} src={src} className="dev-screen"
+            <iframe ref={frameRef} aria-label={`${device.label} 화면`} src={src} className="dev-screen"
               style={{ left: hole.x, top: hole.y, width: hole.w, height: hole.h }} />
           </div>
         </div>

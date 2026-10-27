@@ -31,6 +31,10 @@ export function PlatformProvider({ children }) {
     return () => document.body.classList.remove(...classes)
   }, [platform, largeText])
 
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get('safetop')
+    if (v && /^\d+$/.test(v)) document.documentElement.style.setProperty('--m-frame-safe-top', `${v}px`)
+  }, [])
   const setPlatform = useCallback((next) => {
     const p = normalizePlatform(next)
     if (!p) return
@@ -43,6 +47,7 @@ export function PlatformProvider({ children }) {
     const on = (e) => {
       if (e.origin !== window.location.origin || e.data?.type !== 'miri-mobile-platform') return
       setPlatform(e.data.platform)
+      if (typeof e.data.safeTop === 'number') document.documentElement.style.setProperty('--m-frame-safe-top', `${e.data.safeTop}px`)
     }
     window.addEventListener('message', on)
     return () => window.removeEventListener('message', on)

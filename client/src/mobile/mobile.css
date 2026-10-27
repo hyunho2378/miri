@@ -691,4 +691,4 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 }
 
 /* 기기 틀 안(iframe) 아이폰 계열: 틀 그림에는 env 안전 영역이 없어 다이내믹 아일랜드 아래로 59 */
-.mob-root.platform-ios.in-frame { --m-safe-top: max(env(safe-area-inset-top, 0px), 59px); }
+.mob-root.platform-ios.in-frame { --m-safe-top: max(env(safe-area-inset-top, 0px), var(--m-frame-safe-top, 0px)); }
