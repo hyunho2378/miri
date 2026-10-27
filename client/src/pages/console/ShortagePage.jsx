@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Save, SlidersHorizontal, Star, Car, UserRound, CircleHelp, Handshake, FileCheck } from 'lucide-react'
 import Card from '../../components/ui/Card.jsx'
-import { PageHeader, StatusBand, NumberFlow, ListDetail, DetailSection, StatusChip } from '../../components/console/index.js'
+import { PageHeader, StatusBand, NumberFlow, ListDetail, DetailSection, StatusChip, Section, InfoRows } from '../../components/console/index.js'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import { basisText } from '../../components/miri/BasisLine.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
@@ -139,7 +139,7 @@ export default function ShortagePage() {
     { key: 'extra', label: '추가 차량', hideBelow: 'lg', render: ({ sc }) => <span className="type-meta text-text-sec">{Object.entries(sc.extraVehicles || {}).filter(([, n]) => n).map(([t, n]) => `${typeOf(t).label} ${n}대`).join(', ') || '없음'}</span> },
     ...GRADES.map((g) => ({ key: g.key, label: g.label, align: 'right', hideBelow: 'md', render: ({ r }) => r.byGrade[g.key] || '-' })),
     {
-      key: 'total', label: '미이송 예상', align: 'right',
+      key: 'total', label: '못 옮기는 사람', align: 'right',
       render: ({ r }) => <span className={`type-strong whitespace-nowrap ${r.total ? 'text-danger-text' : 'text-text-sec'}`}>{r.total}명</span>
     },
     ...(canEdit ? [{
@@ -242,7 +242,7 @@ export default function ShortagePage() {
     none: '부족 없음'
   }[neck.limit] || BOTTLENECK_LABEL[neck.limit]
   const Row = ({ label, value, strong }) => (
-    <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 px-1 py-2">
+    <li className="grid min-h-12 grid-cols-[minmax(6rem,12rem)_1fr] items-baseline gap-x-6 py-2">
       <span className="type-body-sm text-text-sec">{label}</span>
       <span className={`tabular-nums ${strong ? 'type-strong text-text-pri' : 'type-body-sm text-text-pri'}`}>{value}</span>
     </li>
@@ -250,11 +250,11 @@ export default function ShortagePage() {
   // 줄이는 방법 목록(목록과 상세). 값은 위 계산 결과에서만 읽는다
   const [method, setMethod] = useState(null)
   const methods = [
-    ...(fixLine ? [{ id: 'extra', icon: <Handshake size={20} />, title: '지금 차량 기준 협약', sub: extraLine, trailing: unresolved ? '' : '0명', chip: null }] : []),
-    { id: 'vehicle', icon: <Car size={20} />, title: `차량 1대 더(${typeOf(neck.vehicleType)?.label || neck.vehicleType})`, sub: `${neck.vehicleGain}명 줄어듦`, trailing: `${neck.plusVehicle}명` },
-    { id: 'helper', icon: <UserRound size={20} />, title: '도우미 1명 더', sub: `${neck.helperGain}명 줄어듦`, trailing: `${neck.plusHelper}명` },
-    { id: 'unconfirmed', icon: <CircleHelp size={20} />, title: `확인 전 차량 ${agreedCompare.unconfirmed}대를 못 쓰면`, sub: '못 옮기는 사람', trailing: `${agreedCompare.agreed}명` },
-    ...(agreedPlan.alone > 0 && agreedPlan.total === 0 ? [{ id: 'agreed', icon: <FileCheck size={20} />, title: '약속된 차량만 쓸 때 필요한 협약', sub: agreedPlan.need.map((n) => `${n.typeLabel} ${n.count}대`).join(', '), trailing: '0명' }] : [])
+    ...(fixLine ? [{ id: 'extra', icon: <Handshake size={20} />, title: '지금 차량 기준 협약', sub: extraLine, trailing: unresolved ? '' : '0명 남음', chip: null }] : []),
+    { id: 'vehicle', icon: <Car size={20} />, title: `차량 1대 더(${typeOf(neck.vehicleType)?.label || neck.vehicleType})`, sub: `${neck.vehicleGain}명 줄어듦`, trailing: `${neck.plusVehicle}명 남음` },
+    { id: 'helper', icon: <UserRound size={20} />, title: '도우미 1명 더', sub: `${neck.helperGain}명 줄어듦`, trailing: `${neck.plusHelper}명 남음` },
+    { id: 'unconfirmed', icon: <CircleHelp size={20} />, title: `확인 전 차량 ${agreedCompare.unconfirmed}대를 못 쓰면`, sub: '약속된 차량만 쓸 때', trailing: `${agreedCompare.agreed}명 남음` },
+    ...(agreedPlan.alone > 0 && agreedPlan.total === 0 ? [{ id: 'agreed', icon: <FileCheck size={20} />, title: '약속된 차량만 쓸 때 필요한 협약', sub: agreedPlan.need.map((n) => `${n.typeLabel} ${n.count}대`).join(', '), trailing: '0명 남음' }] : [])
   ]
   const methodId = methods.some((m) => m.id === method) ? method : methods[0].id
   const goResources = <Button as={Link} to="/console/resources">협약 차량 확인하기</Button>
@@ -301,32 +301,27 @@ export default function ShortagePage() {
 
         <NumberFlow items={flow} />
 
-        <ListDetail items={methods} selectedId={methodId} onSelect={setMethod} listLabel="부족을 줄이는 방법" listTitle="부족을 줄이는 방법, 오른쪽은 쓴 뒤 못 옮기는 사람">
+        <ListDetail items={methods} selectedId={methodId} onSelect={setMethod} listLabel="부족을 줄이는 방법" listTitle="부족을 줄이는 방법">
           <h2 className="type-h2 text-text-pri">{methods.find((m) => m.id === methodId)?.title}</h2>
           <DetailSection title="결론" className="mt-4"><p className="type-body text-text-pri tabular-nums">{methodView.head}</p></DetailSection>
           <DetailSection title="할 일"><div className="flex flex-wrap gap-2">{methodView.todo}</div></DetailSection>
           <DetailSection title="근거"><ul>{methodView.basis}</ul></DetailSection>
         </ListDetail>
 
-        <section aria-labelledby="sh-used">
-          <h2 id="sh-used" className="mb-1 px-1 type-strong text-text-sec">계산에 쓴 값</h2>
-          <ul className="grid cq-xl:grid-cols-2 cq-xl:gap-x-8">
-            <Row label="대피해야 하는 사람" value={`${result.scopeVillages}개 마을 ${result.scopeTargets}명`} strong />
-            <Row label="쓸 수 있는 차량" value={vehicleChips(vehicles)} />
-            <Row label="첫 마을에 산불이 닿기까지" value={`발령 후 ${fmtElapsed(draft.windowHours)}, 출발 준비 ${prepText(draft.prepMinutes)} 빼면 ${firstMinutes}분`} />
-            <Row label="이송을 끝내야 하는 때" value={completeText(draft.completeBeforeHours ?? 0)} />
-            <Row label="발령 시간대" value={`${bandOf(draft).label}${(draft.availability ?? 100) < 100 ? `, 차량 ${draft.availability}%만 모임` : ''}`} />
-            {routeMissing.length > 0 && (
-              <Row label="경로 정보가 없어 못 옮기는 것으로 센 마을" value={`${routeMissing.map((v) => v.name).join(', ')}, ${routeMissing.reduce((s, v) => s + v.persons, 0)}명`} />
-            )}
-            {noTypeTotal > 0 && (
-              <Row label="태울 차종이 없어 못 옮기는 것으로 센 사람" value={GRADES.filter((g) => noType[g.key] > 0).map((g) => `${g.label} ${noType[g.key]}명`).join(', ')} />
-            )}
-          </ul>
-          <p className="mt-2 px-1 type-meta text-text-sec tabular-nums">({calcStamp({ at: now, rosterAt: today })})</p>
-        </section>
+        <Section id="sh-used" title="계산 조건">
+          <InfoRows columns={2} rows={[
+            { key: 't', label: '대피해야 하는 사람', value: `${result.scopeVillages}개 마을 ${result.scopeTargets}명`, strong: true },
+            { key: 'v', label: '쓸 수 있는 차량', value: vehicleChips(vehicles), wide: true },
+            { key: 'a', label: '첫 마을에 산불이 닿기까지', value: `발령 후 ${fmtElapsed(draft.windowHours)}`, note: `출발 준비 ${prepText(draft.prepMinutes)}를 빼면 ${firstMinutes}분` },
+            { key: 'c', label: '이송을 끝내야 하는 때', value: completeText(draft.completeBeforeHours ?? 0) },
+            { key: 'b', label: '발령 시간대', value: `${bandOf(draft).label}${(draft.availability ?? 100) < 100 ? `, 차량 ${draft.availability}%만 모임` : ''}` },
+            routeMissing.length > 0 && { key: 'r', label: '경로 정보가 없어 못 옮기는 것으로 센 마을', value: `${routeMissing.map((v) => v.name).join(', ')}, ${routeMissing.reduce((s, v) => s + v.persons, 0)}명` },
+            noTypeTotal > 0 && { key: 'n', label: '태울 차종이 없어 못 옮기는 것으로 센 사람', value: GRADES.filter((g) => noType[g.key] > 0).map((g) => `${g.label} ${noType[g.key]}명`).join(', ') }
+          ]} />
+          <p className="mt-1 type-meta text-text-sec tabular-nums">({calcStamp({ at: now, rosterAt: today })})</p>
+        </Section>
 
-        <ShortageTable basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} arrivals={result.arrivals} t0={today} />
+        <ShortageTable tone="flat" basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} arrivals={result.arrivals} t0={today} />
 
         <Disclosure summary="계산 방법과 근거">
           <div className="grid gap-6">

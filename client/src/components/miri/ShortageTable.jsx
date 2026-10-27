@@ -10,7 +10,7 @@ import { fmtElapsed } from '../../lib/geo.js'
 
 const STEPS = ['bg-mute text-text-meta', 'bg-chart-heatDanger-1 text-text-pri', 'bg-chart-heatDanger-2 text-text-pri', 'bg-chart-heatDanger-3 text-text-pri', 'bg-chart-heatDanger-4 text-text-inverse']
 
-export default function ShortageTable({ title = '마을별 부족분', basis, headingLevel = 2, villages, dongs, byVillage, arrivals, t0, initialView = 'table', pageSize = 20, className }) {
+export default function ShortageTable({ title = '마을별 부족분', basis, headingLevel = 2, villages, dongs, byVillage, arrivals, t0, initialView = 'table', pageSize = 20, className, tone }) {
   const [view, setView] = useState(initialView)
   const dongName = (c) => dongs.find((d) => d.code === c)?.name || c
   // 회신 R27(최충익): 산불 위험(도달 시각)과 대피 취약성(침상과 휠체어 인원)을 따로 본다
@@ -35,12 +35,12 @@ export default function ShortageTable({ title = '마을별 부족분', basis, he
   ]
 
   const shortVillages = rows.filter((r) => r.total > 0).length
-  const toggle = <SegmentControl label="보기 전환" value={view} onChange={setView} items={[{ value: 'table', label: '표' }, { value: 'heat', label: '히트맵' }]} />
+  const toggle = <SegmentControl label="보기 전환" value={view} onChange={setView} items={[{ value: 'table', label: '표' }, { value: 'heat', label: '색 표' }]} />
 
   if (view === 'table') {
     return (
       <TableCard
-        title={title} headingLevel={headingLevel} className={className}
+        title={title} headingLevel={headingLevel} className={className} tone={tone}
         count={shortVillages ? `부족 ${shortVillages}곳` : '부족 없음'} desc={basis} actions={toggle}
         columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={pageSize} caption={title}
       />
@@ -49,7 +49,7 @@ export default function ShortageTable({ title = '마을별 부족분', basis, he
 
   return (
     <TableCard
-      title={title} headingLevel={headingLevel} className={className}
+      title={title} headingLevel={headingLevel} className={className} tone={tone}
       count={shortVillages ? `부족 ${shortVillages}곳` : '부족 없음'} desc={basis} actions={toggle}
     >
       <div className="px-4 pb-4 lg:px-5 lg:pb-5">
