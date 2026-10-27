@@ -162,6 +162,7 @@ function PeaceHome() {
   const opt = useMemo(() => scopedOptimized(result, scope.inScope, optimizedByVillage(result), optimizedUnserved(result)), [result, scope.inScope]) // eslint-disable-line react-hooks/exhaustive-deps
   const now = useRealNow(30000)
   const stamp = calcStamp({ at: now, rosterAt: data.today })
+  const rosterLabel = data.today == null ? '' : `${new Date(data.today).getMonth() + 1}. ${new Date(data.today).getDate()}.`
   const stale = staleRosterCount(data.persons.filter((p) => p.review !== 'rejected' && scope.inScope(p.villageCode)), now)
   const docs = docQueue(data.intakeDocs, data.persons, scope.inScope, scopeCodes)
   const notes = noteQueue(data.fieldNotes, scope.inScope)
@@ -185,7 +186,7 @@ function PeaceHome() {
         </List>
         {scope.isDong ? (
           <Figure plain label="우리 동 이동 불가 인원" value={opt ?? '-'} unit="명">
-            {stamp && <p className="mob-t-callout tabular-nums">{scenario?.name || '확산 조건'}, 추천 배정 기준, {stamp}</p>}
+            {stamp && <p className="mob-t-callout tabular-nums">추천 배정 기준, 명부 {rosterLabel} 기준</p>}
             <Button block variant="tonal" onClick={() => setDrillOpen(true)}>훈련 발령으로 명단 확인</Button>
           </Figure>
         ) : (

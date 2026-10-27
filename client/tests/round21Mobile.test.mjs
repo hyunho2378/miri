@@ -32,7 +32,7 @@ test('M10: 긴급 버튼에 누구 상태인지(대상자)', () => {
 test('M12: 평시 홈 숫자는 기준 배정이라고 적고, 추천 배정 시 값과 계산 시각을 함께', () => {
   assert.match(field, /label="우리 동 이동 불가 인원"/)
   assert.ok(!field.includes('추천 배정 시 {opt'))
-  assert.match(field, /추천 배정 기준, \{stamp\}/)
+  assert.match(field, /추천 배정 기준, 명부 \{rosterLabel\} 기준/)
   assert.match(field, /calcStamp\(\{ at: now, rosterAt: data\.today \}\)/)
 })
 
