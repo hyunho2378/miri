@@ -73,7 +73,7 @@ export default function SummaryPanel({
         )}
         <p className="mt-1.5 type-meta text-text-meta">명부 기준일 {dateLabel}</p>
         {(scenario.basis || condText) && (
-          <Disclosure summary="가정 보기" className="mt-1">
+          <Disclosure summary="확산 조건 보기" className="mt-1">
             {scenario.basis && <p className="type-meta leading-5 text-text-sec">{scenario.basis}</p>}
             {condText && <p className="mt-1.5 type-meta text-text-meta">{condText}</p>}
           </Disclosure>
@@ -81,24 +81,24 @@ export default function SummaryPanel({
       </div>
 
       <div className="divide-y divide-line-sub">
-        <Metric label="기한 안에 못 옮기는 사람" basis={`기준: 대피 대상 구역 대상자를 도달 시각까지 배정 기준선 규칙으로 옮기지 못하는 인원`}>
+        <Metric label="기준 배정 시 이동 불가 인원" basis="기준: 대피 대상 구역 대상자 중 도달 시각까지 기준 배정으로 이송 불가한 인원">
           <p className={result.total ? 'type-kpi text-danger-text' : 'type-kpi text-text-pri'}>
             <AnimatedNumber value={result.total} />
-            <span className="ml-1 type-h3">명</span>
+            <span>명</span>
           </p>
           <GradeGrid byGrade={result.byGrade} />
           <Link to="/console/shortage" className="mt-2 inline-flex min-h-9 items-center rounded-md px-1 type-strong text-primary-text hover:underline">부족분 계산 열기</Link>
           {result.provisional > 0 && <p className="mt-1 type-meta text-primary-text">대피 대상 구역 확인 대기 서류 {result.provisional}건 포함</p>}
         </Metric>
 
-        <Metric label="부족 마을" basis="기준: 도달 시각까지 부족분 1명 이상인 마을">
+        <Metric label="이동 불가 발생 마을" basis="기준: 도달 시각까지 이동 불가 인원 1명 이상인 마을">
           <p className="type-h2 text-text-pri tabular-nums">
             <AnimatedNumber value={shortCount} />곳
             <span className="ml-2 type-body-sm text-text-meta">대피 대상 {scopeCount}곳</span>
           </p>
         </Metric>
 
-        <Metric label="필요 추가 차량" basis="기준: 차량으로 풀 수 있는 등급별 부족분이 0이 되는 최소 협약 차량 수를 다시 계산해 구함">
+        <Metric label="추가 필요 차량" basis="기준: 차량으로 풀 수 있는 등급별 부족분이 0이 되는 최소 협약 차량 수를 다시 계산해 구함">
           <p className="type-h2 text-text-pri tabular-nums"><AnimatedNumber value={extraTotal} />대{unresolved && <span className="ml-1 type-body-sm text-text-meta">이상</span>}</p>
           {extra.length > 0 && (
             <dl className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1">

@@ -22,7 +22,7 @@ test('상황판 요약: 등급별 인원은 문장 나열 대신 표, 결론 아
   assert.doesNotMatch(s, /join\(', '\)/)
   assert.match(s, /function GradeGrid/)
   assert.match(s, /to="\/console\/shortage"[^>]*>부족분 계산 열기/)
-  assert.match(s, /label="기한 안에 못 옮기는 사람"/)
+  assert.match(s, /label="기준 배정 시 이동 불가 인원"/)
 })
 
 test('구급차 제외 표기는 소방 출동 중', async () => {
