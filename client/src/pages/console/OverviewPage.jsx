@@ -187,7 +187,7 @@ export default function OverviewPage() {
             <p className="type-meta text-text-meta">{scopeName}, {scenario.name}</p>
             <p className="mt-1 type-kpi text-danger-text">{fmt(scopeTotal)}<span className="ml-1 type-h3">명</span></p>
             <p className="mt-1 type-meta text-text-meta tabular-nums">{GRADES.filter((x) => scopeByGrade[x.key]).map((x) => `${x.label} ${scopeByGrade[x.key]}`).join(', ') || '부족 없음'}{scopeProvisional > 0 ? `, 확인 대기 서류 ${scopeProvisional}건 포함` : ''}</p>
-            <p className="mt-3 type-body-sm text-text-sec tabular-nums">추천 배정을 적용하면 {optUnserved == null ? '계산 중' : `${fmt(optUnserved)}명${diff < 0 ? `(${-diff}명 감소)` : ''}`}</p>
+            <p className="mt-3 type-body-sm text-text-sec tabular-nums">추천 배정 적용 시 {optUnserved == null ? '계산 중' : `${fmt(optUnserved)}명${diff < 0 ? `(${-diff}명 감소)` : ''}`}</p>
             <div className="mt-auto pt-5">
               <Link to="/console/shortage" className={btn}>부족분 계산 열기{btnIcon}</Link>
             </div>
