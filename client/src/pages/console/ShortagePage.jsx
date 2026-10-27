@@ -1,6 +1,6 @@
 // 부족분 계산(IA 4.5). 위에서 아래 한 흐름: 결론 문장, 왜 그런지, 무엇을 늘리면 줄어드는지, 마을별 표, 접힌 계산 방법과 근거.
 // 마을별 값은 배정 규칙으로 시뮬레이션한 미이송 수. 조건을 바꾸면 결과가 바로 다시 계산된다.
-import { useEffect, useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Save, SlidersHorizontal, Star } from 'lucide-react'
 import Card from '../../components/ui/Card.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
@@ -18,12 +18,13 @@ import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
 import { OWNERS, EXTRA_TYPE, GRADES, commitmentOf, typeOf } from '../../lib/shortage.js'
-import { BOTTLENECK_LABEL, TIME_BANDS, bandOf, bottleneck, computeShortage, optimizedUnserved, requiredExtraVehicles } from '../../lib/shortageCalc.js'
+import { BOTTLENECK_LABEL, TIME_BANDS, bandOf, bottleneck, computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import { vehicleSummaryLong } from '../../lib/vehicleSummary.js'
 import { BOARDING_STEPS, boardingLabel } from '../../lib/boardingSensitivity.js'
 import { agreedOnlyPlan } from '../../lib/agreedPlan.js'
 import { calcStamp } from '../../lib/basis.js'
 import useNow from '../../hooks/useNow.js'
+import useBoardingRecommended from '../../hooks/useBoardingRecommended.js'
 import { Link } from 'react-router-dom'
 import { DISABLED_NOTE } from '../../lib/rosterCount.js'
 import { fireScenario } from '../../lib/scenario.js'
@@ -67,7 +68,13 @@ export default function ShortagePage() {
   const base = scenarios.find((s) => s.id === selectedId) || scenarios[0]
   const [draft, setDraft] = useState(() => structuredClone(base))
   const [name, setName] = useState('')
-  useEffect(() => { setDraft(structuredClone(base)); setName('') }, [selectedId]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 처음 열 때는 draft 가 이미 base 와 같으므로 다시 넣지 않는다(같은 계산을 두 번 하지 않게)
+  const shownId = useRef(selectedId)
+  useEffect(() => {
+    if (shownId.current === selectedId) return
+    shownId.current = selectedId
+    setDraft(structuredClone(base)); setName('')
+  }, [selectedId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const input = { persons, villages, vehicles, helpers, settings, scenario: draft, t0: today }
   const result = useMemo(() => computeShortage(input), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -77,6 +84,8 @@ export default function ShortagePage() {
   const bandCompare = useMemo(() => TIME_BANDS.map((b) => ({ b, r: computeShortage({ ...input, scenario: { ...draft, timeBand: b.value } }) })), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
   const boardingNow = settings.boardingMinutes ?? 20
   const boardingCompare = useMemo(() => [...new Set([...BOARDING_STEPS, boardingNow])].sort((a, b) => a - b).map((m) => ({ m, r: computeShortage({ ...input, settings: { ...settings, boardingMinutes: m } }) })), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 추천 배정 값은 탐색이 무거워 화면을 먼저 그린 뒤 따로 채운다(값은 같음)
+  const boardingRec = useBoardingRecommended(input, boardingCompare.map((x) => x.m))
   // 결론 먼저: 지금 조건의 1.5배가 걸리면 몇 명이 더 못 옮기는지
   const boardingLead = (() => {
     const now1 = boardingCompare.find((x) => x.m === boardingNow)
@@ -340,7 +349,7 @@ export default function ShortagePage() {
               <p className="mt-1 type-body-sm text-text-sec">{boardingLead ? `${boardingLead} ` : ''}휠체어 이용자는 리프트 승합차와 도우미 2명으로 옮기고, 한 번에 태우고 내리는 데 {boardingNow}분으로 계산합니다. 숙련된 운전자는 5분 안에 태운다는 의견이 있고, 요구조자가 몰리면 더 걸린다는 의견도 있어 시간을 바꿨을 때를 함께 보여 드립니다.</p>
               <ul className="mt-2 grid gap-2">
                 {boardingCompare.map(({ m, r }) => (
-                  <Row key={m} label={boardingLabel(m, boardingNow)} value={`${r.total}명 (추천 배정 ${optimizedUnserved(r)}명)`} strong />
+                  <Row key={m} label={boardingLabel(m, boardingNow)} value={`${r.total}명 (추천 배정 ${m in boardingRec ? `${boardingRec[m]}명` : '계산 중'})`} strong />
                 ))}
               </ul>
               <p className="mt-2 type-meta text-text-meta">장애인 단체 자문을 근거로 했습니다. 함께 탈 도우미가 모자라면 그 사람도 못 옮기는 사람에 들어가고, 발령 때 배정도 같은 조건을 씁니다.</p>
