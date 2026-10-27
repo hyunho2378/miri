@@ -167,7 +167,7 @@ function DemoHelperPage() {
   if (ack.answer === 'none') {
     return (
       <div className="flex flex-1 flex-col gap-4 p-4">
-        <p role="status" className="rounded-lg bg-primary-soft px-4 py-3 type-body text-primary-text">배정이 도착했습니다. 수락을 누르면 배정이 확정됩니다. 불가를 눌러도 불이익은 없고, 다른 도우미에게 넘어갑니다.</p>
+        <p role="status" className="rounded-lg bg-primary-soft px-4 py-3 type-body text-primary-text">배정 도착, 수락 시 배정 확정, 불가 선택 시 불이익 없음, 다른 도우미에게 전환</p>
         {summary}
         {!declining ? (
           <div className="mt-auto space-y-2 pb-4">
