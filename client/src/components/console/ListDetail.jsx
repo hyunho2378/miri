@@ -19,9 +19,9 @@ export default function ListDetail({ items, selectedId, onSelect, listLabel, lis
   }
   const activeId = items.some((x) => x.id === selectedId) ? selectedId : items[0]?.id
   return (
-    <div className="grid min-w-0 gap-8 cq-xl:grid-cols-[5fr_7fr] cq-xl:items-start cq-xl:gap-12">
+    <div className="grid min-w-0 gap-10 cq-xl:grid-cols-[5fr_7fr] cq-xl:items-start cq-xl:gap-12">
       <div className="min-w-0">
-        {listTitle && <h2 className="mb-2 type-title text-text-pri">{listTitle}</h2>}
+        {listTitle && <h2 className="mb-4 type-title text-text-pri">{listTitle}</h2>}
         <ul role="listbox" aria-label={listLabel} className="flex flex-col gap-1">
           {items.map((it, i) => (
             <ListItem

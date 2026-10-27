@@ -6,7 +6,7 @@ export default function ListItem({ dense, id, icon, title, sub, chip, trailing, 
     <li role="presentation">
       <button
         ref={itemRef} id={id} type="button" role="option" aria-selected={!!selected} tabIndex={tabIndex} onClick={onSelect} onKeyDown={onKeyDown}
-        className={clsx('flex w-full items-center gap-4 rounded-2xl px-4 text-left', dense ? 'min-h-11 py-1' : 'min-h-[72px] py-2', 'text-left transition-colors duration-fast',
+        className={clsx('flex w-full items-center gap-4 rounded-lg px-4 text-left', dense ? 'min-h-11 py-1' : 'min-h-[72px] py-3', 'text-left transition-colors duration-fast',
           selected ? 'bg-mute' : 'hover:bg-subtle')}
       >
         {icon && <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mute text-text-sec">{icon}</span>}

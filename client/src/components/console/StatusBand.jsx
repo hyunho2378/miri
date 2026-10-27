@@ -6,7 +6,7 @@ export default function StatusBand({ tag, tone = 'danger', action, children, cla
   return (
     <section className={clsx('flex flex-wrap items-center gap-x-4 gap-y-3', className)} {...rest}>
       {tag && <StatusChip tone={tone}>{tag}</StatusChip>}
-      <p className="min-w-0 flex-1 basis-80 type-body-strong text-text-pri tabular-nums">{children}</p>
+      <p className="min-w-0 flex-1 basis-80 type-title text-text-pri tabular-nums">{children}</p>
       {action && <div className="flex flex-wrap items-center gap-2">{action}</div>}
     </section>
   )

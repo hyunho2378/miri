@@ -107,11 +107,11 @@ export const spacing = {
 
 // DESIGN_DELTA.md 변경 3. 봄내와 동일한 6단 스케일. xs 는 작은 배지와 표 내부용
 export const radius = {
-  xs: '6px',
-  sm: '10px',
+  xs: '8px',
+  sm: '8px',
   md: '12px',
   lg: '16px',
-  xl: '20px',
+  xl: '28px',
   full: '9999px'
 }
 

@@ -3,8 +3,8 @@ import clsx from 'clsx'
 
 export default function DetailSection({ title, children, className }) {
   return (
-    <section className={clsx('mt-8 first:mt-0', className)}>
-      <h3 className="mb-2 type-strong text-text-sec">{title}</h3>
+    <section className={clsx('mt-10 first:mt-0', className)}>
+      <h3 className="mb-4 type-title text-text-pri">{title}</h3>
       {children}
     </section>
   )

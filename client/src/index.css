@@ -18,7 +18,8 @@
   }
 
   html { font-family: 'Pretendard GOV Variable', 'Pretendard GOV', 'Pretendard Variable', sans-serif; -webkit-font-smoothing: antialiased; }
-  body { @apply bg-page text-text-pri; letter-spacing: -0.01em; }
+  body { @apply bg-page text-text-pri; letter-spacing: -0.01em; word-break: keep-all; overflow-wrap: break-word; text-wrap: pretty; }
+  code, kbd, .font-mono, .tabular-nums { overflow-wrap: anywhere; }
   h1, h2, h3, h4 { letter-spacing: -0.02em; line-height: 1.2; text-wrap: balance; }
   p, li, dd, figcaption { text-wrap: pretty; }
   *:focus { outline: none; }
@@ -74,19 +75,19 @@
      display small 36/28, heading large 32/24, medium 24/22, small 19, xsmall 17, body medium 17, small 15, xsmall 13 */
   .type-display { font-size: 22px; font-weight: 700; letter-spacing: 0; line-height: 28px; }
   .type-h1      { font-size: clamp(24px, 1.1vw + 18px, 32px); font-weight: 700; letter-spacing: -0.01em; line-height: 1.4; }
-  .type-h2      { font-size: clamp(22px, 0.3vw + 20px, 24px); font-weight: 700; letter-spacing: -0.005em; line-height: 1.5; }
+  .type-h2      { font-size: 28px; font-weight: 700; letter-spacing: 0; line-height: 36px; }
   /* M3 title/large 22/28 (키트 M3/title/large). 섹션 제목 */
-  .type-title   { font-size: 22px; font-weight: 700; line-height: 28px; letter-spacing: 0; }
+  .type-title   { font-size: 22px; font-weight: 600; line-height: 28px; letter-spacing: 0; }
   .type-h3      { font-size: 19px; font-weight: 700; line-height: 1.5; }
   /* 숫자 강조 없음: 숫자와 단위는 같은 크기와 굵기. 제목급(22/28) 이하 */
   .type-kpi     { font-size: 22px; font-weight: 700; letter-spacing: 0; line-height: 28px; font-variant-numeric: tabular-nums; }
   .type-kpi > span, .type-display > span { font-size: inherit; font-weight: inherit; line-height: inherit; }
-  .type-body    { font-size: 17px; font-weight: 400; line-height: 1.5; }
-  .type-body-sm { font-size: 15px; font-weight: 400; line-height: 1.5; }
+  .type-body    { font-size: 16px; font-weight: 400; line-height: 24px; }
+  .type-body-sm { font-size: 14px; font-weight: 400; line-height: 20px; }
   .type-caption { font-size: 13px; font-weight: 700; line-height: 1.5; }
   /* 강조 텍스트. body small-bold, medium-bold */
-  .type-strong      { font-size: 15px; font-weight: 700; line-height: 1.5; }
-  .type-body-strong { font-size: 17px; font-weight: 700; line-height: 1.5; }
+  .type-strong      { font-size: 14px; font-weight: 700; line-height: 20px; }
+  .type-body-strong { font-size: 16px; font-weight: 600; line-height: 24px; }
   .type-meta    { font-size: 13px; font-weight: 400; line-height: 1.5; }
   .type-count   { font-size: 11px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
 

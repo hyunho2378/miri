@@ -132,10 +132,10 @@ export default function OverviewPage() {
   return (
     <PageShell title="오늘의 현황" hideHeader>
       <PageHeader
-        title="오늘의 현황" meta={todayLabel()} className="mb-3"
+        title="오늘의 현황" meta={todayLabel()}
         action={<Link to="/console/map" className="inline-flex h-10 items-center gap-2 rounded-md bg-subtle px-4 type-body-sm text-text-sec hover:bg-mute"><Layers size={16} aria-hidden="true" /><span className="max-w-[16rem] truncate">{scenario.name}</span></Link>}
       />
-      <div className="grid min-w-0 gap-4">
+      <div className="grid min-w-0 gap-10">
         {live ? (
           <StatusBand tag={d.kind === 'drill' ? '훈련 발령 중' : '발령 중'} tone="primary" action={<Button as={Link} to="/console/dispatch">발령 운영 열기</Button>}>
             현재 배정표 시 이동 불가 인원 {fmt(liveUnserved)}명
@@ -179,7 +179,7 @@ export default function OverviewPage() {
             </Section>
           </div>
         </div>
-        <Section id="ov-state" title="오늘 상황" action={<Link to="/console/resources" className="inline-flex min-h-10 items-center type-strong text-primary-text hover:underline">협약 차량 확인</Link>}>
+        <Section tone="surface" id="ov-state" title="오늘 상황" action={<Link to="/console/resources" className="inline-flex min-h-10 items-center type-strong text-primary-text hover:underline">협약 차량 확인</Link>}>
           <dl className="flex flex-wrap gap-x-10 gap-y-2">
             {[
               ...conditions.map((x) => [x.label, x.title]),
