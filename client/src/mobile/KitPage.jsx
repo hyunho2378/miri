@@ -24,7 +24,7 @@ function KitBody({ platform }) {
       <AppBar title={`${name} 부품`} large trailing={<EmergencyButton onClick={() => setSheet(true)} />} />
       <main className="mob-content">
         <Figure value="16:14까지" caption="이송 완료 기한, 2시간 10분 남음" />
-        <Figure plain label="우리 동 미이송 예상" value="24" unit="명"><Progress value={50} label="이송 진행 4명 중 2명" /></Figure>
+        <Figure plain label="우리 동 이동 불가 인원" value="24" unit="명"><Progress value={50} label="이송 진행 4명 중 2명" /></Figure>
         <Segmented label="보기" value={seg} onChange={setSeg} options={[{ value: 'all', label: '전체' }, { value: 'wait', label: '대기' }, { value: 'done', label: '완료' }]} />
         <List label="대상자">
           <ListRow lead={<Accessibility size={20} />} title="MS-04-014" subtitle="휠체어, 동행 연락 필요" chevron onClick={() => {}} />

@@ -192,7 +192,7 @@ export function noteQueue(notes, inScope) {
   return (notes || []).filter((n) => n.status === 'pending' && inScope(n.villageCode)).sort((a, b) => (b.receivedAt || 0) - (a.receivedAt || 0))
 }
 
-// 기한 안에 못 옮기는 사람을 마을별 번호 목록으로 묶는다(소방 인계 전인 사람만)
+// 이동 불가 인원을 마을별 번호 목록으로 묶는다(소방 인계 전인 사람만)
 export function unservedPeople(d, persons, villages) {
   if (!d?.result) return []
   const byCode = Object.fromEntries(persons.map((p) => [p.code, p]))

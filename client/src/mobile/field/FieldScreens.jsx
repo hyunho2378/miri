@@ -97,7 +97,7 @@ export function FieldStatusPage() {
         </List>
         {notMoved > 0 && (
           <List label="차량이 닿지 않는 사람">
-            <ListRow lead={<PhoneOutgoing size={22} />} title={`기한 안에 못 옮기는 사람 ${u.total}명`} subtitle={scope.isDong ? '마을별 번호를 보고 직접 연락하기' : '동해소방서 지원 요청 대상'} chevron onClick={() => navigate('/m/f/fire')} />
+            <ListRow lead={<PhoneOutgoing size={22} />} title={`이동 불가 인원 ${u.total}명`} subtitle={scope.isDong ? '마을별 번호를 보고 직접 연락하기' : '동해소방서 지원 요청 대상'} chevron onClick={() => navigate('/m/f/fire')} />
           </List>
         )}
         <List label="보내기">
@@ -183,12 +183,12 @@ function PeaceHome() {
           <ListRow lead={<UserCheck size={22} />} title="현장 소식 남기기" chevron onClick={() => navigate('/m/f/note')} />
         </List>
         {scope.isDong ? (
-          <Figure plain label={`우리 동 기한 안에 못 옮기는 사람, ${scenario?.name || '기준 시나리오'}`} value={opt ?? '-'} unit="명">
+          <Figure plain label={`우리 동 이동 불가 인원, ${scenario?.name || '확산 조건'}`} value={opt ?? '-'} unit="명">
             {stamp && <p className="mob-t-callout tabular-nums">추천 배정 기준, {stamp}</p>}
             <Button block variant="tonal" onClick={() => setDrillOpen(true)}>훈련 발령으로 명단 확인</Button>
           </Figure>
         ) : (
-          <Figure plain label={`동해시 전체 기한 안에 못 옮기는 사람, ${scenario?.name || '기준 시나리오'}`} value={sh.unserved ?? '-'} unit="명">
+          <Figure plain label={`동해시 전체 이동 불가 인원, ${scenario?.name || '확산 조건'}`} value={sh.unserved ?? '-'} unit="명">
             <p className="mob-t-callout tabular-nums">추천 배정 적용 시 {opt ?? '-'}명</p>
             {stamp && <p className="mob-t-callout tabular-nums">{stamp}</p>}
           </Figure>
@@ -516,11 +516,11 @@ export function FieldFirePage() {
   const failed = failedPending(sc.d, sc.persons, vnow)
   return (
     <>
-      <AppBar title={scope.isDong ? '기한 안에 못 옮기는 사람' : '소방 지원 요청'} onBack={() => navigate(-1)} backLabel="뒤로" />
+      <AppBar title={scope.isDong ? '이동 불가 인원' : '소방 지원 요청'} onBack={() => navigate(-1)} backLabel="뒤로" />
       <main id="main" className="mob-content mob-grid2">
         {!d.result ? <EmptyState icon={<Truck size={28} />} title="배정 전" body="발령이 시작되면 여기에 사람이 나와요" /> : (
           <>
-            <Figure plain label={`${scope.isDong ? '우리 동 ' : ''}기한 안에 못 옮기는 사람`} value={u.total} unit="명" />
+            <Figure plain label={`${scope.isDong ? '우리 동 ' : ''}이동 불가 인원`} value={u.total} unit="명" />
             <List label="마을별 번호">
               {unservedPeople(sc.d, data.persons, data.villages).map((g) => (
                 <InfoSheet key={g.code} title={`${g.name} ${g.rows.length}명`} sheetTitle={g.name}>
@@ -880,7 +880,7 @@ export function FieldMorePage() {
       <AppBar title="더보기" large />
       <main id="main" className="mob-content mob-grid2">
         <List label="다른 업무">
-          <ListRow lead={<PhoneOutgoing size={22} />} title={scope.isDong ? '기한 안에 못 옮기는 사람' : '소방 지원 요청'} subtitle={d.result ? `${u.total}명` : '발령이 시작되면 사람이 나와요'} chevron onClick={() => navigate('/m/f/fire')} />
+          <ListRow lead={<PhoneOutgoing size={22} />} title={scope.isDong ? '이동 불가 인원' : '소방 지원 요청'} subtitle={d.result ? `${u.total}명` : '발령이 시작되면 사람이 나와요'} chevron onClick={() => navigate('/m/f/fire')} />
           <ListRow lead={<Search size={22} />} title="대상자 찾기" chevron onClick={() => navigate('/m/f/people')} />
           <InfoSheet lead={<Users size={22} />} title="차량 소속과 확인 상태" sheetTitle="차량 소속과 확인 상태">
             <List label="차량 소속">

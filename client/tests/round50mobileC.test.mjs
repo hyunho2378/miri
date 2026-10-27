@@ -25,8 +25,8 @@ test('휴대폰 화면에 시 관리자 몫 문구와 누구 화면 줄 없음',
 
 test('발령 홈과 소방 화면: 숫자 이름 하나씩(대피소에 아직 못 간 사람, 차량 배정 없음), 동 담당자는 우리 동', () => {
   assert.match(f, /`\$\{scope\.isDong \? '우리 동 ' : ''\}대피소에 아직 못 간 사람`/)
-  assert.match(f, /title=\{`기한 안에 못 옮기는 사람 \$\{u\.total\}명`\}/)
-  assert.match(f, /label=\{`\$\{scope\.isDong \? '우리 동 ' : ''\}기한 안에 못 옮기는 사람`\}/)
+  assert.match(f, /title=\{`이동 불가 인원 \$\{u\.total\}명`\}/)
+  assert.match(f, /label=\{`\$\{scope\.isDong \? '우리 동 ' : ''\}이동 불가 인원`\}/)
   assert.ok(!f.includes('차량이나 도우미가 없는 사람'))
 })
 
@@ -52,11 +52,11 @@ test('평시 홈 숫자: 동 담당자는 우리 동 추천 배정 기준, 시 �
   const p = body('PeaceHome')
   const dong = p.slice(p.indexOf('scope.isDong ? ('), p.indexOf(') : ('))
   const city = p.slice(p.indexOf(') : ('))
-  assert.match(dong, /label=\{`우리 동 기한 안에 못 옮기는 사람/)
+  assert.match(dong, /label=\{`우리 동 이동 불가 인원/)
   assert.match(dong, /value=\{opt \?\? '-'\}/)
   assert.match(dong, /추천 배정 기준, \{stamp\}/)
   assert.ok(!dong.includes('동해시 전체'))
-  assert.match(city, /label=\{`동해시 전체 기한 안에 못 옮기는 사람/)
+  assert.match(city, /label=\{`동해시 전체 이동 불가 인원/)
   assert.match(city, /value=\{sh\.unserved \?\? '-'\}/)
   assert.match(city, /추천 배정 적용 시 \{opt \?\? '-'\}명/)
   assert.ok(!city.includes('우리 동'))
