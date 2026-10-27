@@ -47,3 +47,32 @@ test('설정: 확인 알림 기준과 실무 말', () => {
   assert.ok(s.includes('확인 알림 기준') && s.includes('서류 확인 지연 알림') && s.includes('도우미 응답 대기 시간'))
   assert.ok(!s.includes('이상 탐지 기준값'))
 })
+
+test('소방 인계 화면 표는 다섯 열, 나머지는 행 상세에서, CSV 열은 기존 그대로', async () => {
+  const h = src('pages/console/HandoverPage.jsx')
+  const cols = h.slice(h.indexOf('  const columns = ['), h.indexOf('  const baseAt'))
+  const keys = [...cols.matchAll(/key: '([a-zA-Z]+)', label:/g)].map((m) => m[1])
+  assert.deepEqual(keys, ['rank', 'code', 'village', 'grade', 'reason'])
+  assert.ok(h.includes('onRowClick={(r) => setDetail(r)}') && h.includes("['보호자 연락처', detail.guardianPhone]"))
+  const { handoverCsvColumns } = await import('../src/lib/handoverRows.js')
+  const csv = handoverCsvColumns(0).map((c) => c.label)
+  for (const l of ['보호자 연락처', '엘리베이터', '필요 대원 수', '주소(가상)']) assert.ok(csv.includes(l), l)
+})
+
+test('주소 표시는 괄호 문구 없이 번지 없음만, 시드 값은 그대로', async () => {
+  const { addressText } = await import('../src/lib/addressText.js')
+  assert.equal(addressText('동해시 괴란동 (가상 대상자, 번지 없음)'), '동해시 괴란동, 번지 없음')
+  assert.equal(addressText('101동 3층'), '101동 3층')
+  assert.equal(addressText('단독주택, 1층 (가상)'), '단독주택, 1층')
+  assert.ok(readFileSync(new URL('../src/mock/seed.js', import.meta.url), 'utf8').includes('(가상 대상자, 번지 없음)'))
+})
+
+test('배정 검토: 같은 대피소 확인은 차량 머리에 한 번, 회차 줄에서는 빠짐', async () => {
+  const { vehicleShelterChecks, withoutShelter } = await import('../src/components/miri/AssignmentBundle.jsx').catch(() => ({}))
+  const b = src('components/miri/AssignmentBundle.jsx')
+  assert.ok(b.includes('vehicleShelterChecks(checks)') && b.includes('tripCheckNotes(withoutShelter(checks[ti]))'))
+  if (vehicleShelterChecks) {
+    assert.deepEqual(vehicleShelterChecks([{ liftUnchecked: ['가'] }, { liftUnchecked: ['가', '나'] }, { liftUnchecked: [] }]), ['가', '나'])
+    assert.deepEqual(withoutShelter({ liftUnchecked: ['가'], routeCheck: true }).liftUnchecked, [])
+  }
+})
