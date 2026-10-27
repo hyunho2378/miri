@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Save, SlidersHorizontal, Star } from 'lucide-react'
 import Card from '../../components/ui/Card.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
-import BasisLine, { basisText } from '../../components/miri/BasisLine.jsx'
+import { basisText } from '../../components/miri/BasisLine.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import ShortageTable from '../../components/miri/ShortageTable.jsx'
 import ShortageValue from '../../components/miri/ShortageValue.jsx'
@@ -284,7 +284,6 @@ export default function ShortagePage() {
               ))}
             </ul>
           )}
-          <BasisLine scenario={draft.name} />
           <p className="type-meta text-text-meta tabular-nums">({calcStamp({ at: now, rosterAt: today })})</p>
             </div>
           </div>
@@ -315,6 +314,7 @@ export default function ShortagePage() {
           </div>
         </Card>
 
+        <div className="grid gap-4 min-w-0">
         <Card title="부족을 줄이는 방법">
           <p className="type-strong text-text-pri">{neckSentence}</p>
           <ul aria-label="하나씩 더했을 때" className="mt-3 grid gap-2">
@@ -322,7 +322,6 @@ export default function ShortagePage() {
             <Row label="도우미 1명 더" value={`${neck.helperGain}명 줄어 ${neck.plusHelper}명`} strong />
             <Row label={`확인 전 차량 ${agreedCompare.unconfirmed}대를 못 쓰면`} value={`${agreedCompare.agreed}명`} strong />
           </ul>
-          
         </Card>
 
         {agreedPlan.alone > 0 && agreedPlan.total === 0 && (
@@ -333,6 +332,7 @@ export default function ShortagePage() {
             </ul>
           </Card>
         )}
+        </div>
 
         </div>
 
