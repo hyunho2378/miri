@@ -59,6 +59,13 @@ export default function NoteReview({ note, villageLabel, canEdit, onApply, onEdi
           <div className="flex flex-wrap items-center gap-2">
             <p className="type-h3 tabular-nums text-text-pri">{note.personCode}</p>
             <span className="type-body-sm text-text-meta">{villageLabel}</span>
+            {canEdit && (
+              <span className="ml-auto inline-flex items-center gap-2">
+                <Button variant="secondary" onClick={onReject}>{d.changed ? '반영 안 함' : '변경 없이 닫기'}</Button>
+                {d.changed && <Button variant="secondary" disabled={!edited || !willChange} onClick={() => onEdit({ grade, tags })}>수정 후 반영</Button>}
+                {d.changed && <Button variant="primary" disabled={edited} onClick={() => onApply({ grade, tags })}>명부에 반영</Button>}
+              </span>
+            )}
           </div>
 
           <div className="rounded-md bg-subtle p-4">
@@ -105,13 +112,6 @@ export default function NoteReview({ note, villageLabel, canEdit, onApply, onEdi
 
           <EvidencePanel subject="소식" quote={read.quote} matched={read.quoteMatched} confidence={read.confidence} conflict={read.conflict} transcript={note.text} docName={note.mode === 'voice' ? note.fileName : ''} />
 
-          {canEdit && (
-            <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-              <Button variant="ghost" size="lg" onClick={onReject}>{d.changed ? '반영 안 함' : '변경 없이 닫기'}</Button>
-              {d.changed && <Button variant="secondary" size="lg" disabled={!edited || !willChange} onClick={() => onEdit({ grade, tags })}>수정 후 반영</Button>}
-              {d.changed && <Button variant="primary" size="lg" disabled={edited} onClick={() => onApply({ grade, tags })}>명부에 반영</Button>}
-            </div>
-          )}
         </div>
       </div>
     </Card>

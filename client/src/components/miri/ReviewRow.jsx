@@ -49,11 +49,18 @@ export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdi
       <div className="flex shrink-0 flex-wrap items-baseline gap-x-3 gap-y-1 pb-3">
         <p className="type-title text-text-pri tabular-nums">{result.personCode}</p>
         <span className="type-body-sm text-text-sec">{villageLabel}, {kindLabel}</span>
-        <span className="ml-auto inline-flex items-center gap-2">
+        <span className="inline-flex items-center gap-2">
           <AiCardButton />
           <span className="type-body-sm text-text-sec">읽은 등급</span>
           <GradeChip grade={result.grade} />
         </span>
+        {canEdit && (
+          <span className="ml-auto inline-flex items-center gap-2 self-center">
+            <Button variant="secondary" onClick={onReject}>제외</Button>
+            <Button variant="secondary" disabled={!changed} onClick={() => onEdit({ grade, tags })}>수정</Button>
+            <Button variant="primary" disabled={changed} onClick={onConfirm}>확인</Button>
+          </span>
+        )}
       </div>
       <div className="grid min-h-0 flex-1 gap-x-6 gap-y-4 overflow-y-auto pr-1 cq-sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)] cq-sm:items-start">
         <div className="order-2 min-w-0 cq-sm:order-1 cq-sm:sticky cq-sm:top-0">
@@ -103,13 +110,10 @@ export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdi
           {extra}
         </div>
       </div>
-      {canEdit && (
-        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 pt-3">
-          {footer && <div className="mr-auto min-w-0">{footer}</div>}
-          {changed && <p className="mr-auto type-meta text-primary-text">읽은 값에서 변경함. 수정을 누르면 변경한 값으로 확정</p>}
-          <Button variant="ghost" size="lg" onClick={onReject}>제외</Button>
-          <Button variant="secondary" size="lg" disabled={!changed} onClick={() => onEdit({ grade, tags })}>수정</Button>
-          <Button variant="primary" size="lg" disabled={changed} onClick={onConfirm}>확인</Button>
+      {canEdit && (footer || changed) && (
+        <div className="flex shrink-0 flex-wrap items-center gap-2 pt-3">
+          {footer && <div className="min-w-0">{footer}</div>}
+          {changed && <p className="ml-auto type-meta text-primary-text">읽은 값에서 변경함. 수정 선택 시 변경값 확정</p>}
         </div>
       )}
     </div>
