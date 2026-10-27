@@ -493,7 +493,7 @@ function DemoHelper() {
     store.del(`${ROLES_KEY}demo.pending`)
     m.preference(true, readRoles('demo'))
   }, [m.phase]) // eslint-disable-line react-hooks/exhaustive-deps
-  const start = <Button block variant="tonal" onClick={startDemoDispatch}>시연 배정 다시 받기</Button>
+  const start = <Button block variant="tonal" onClick={startDemoDispatch}>훈련 배정 다시 받기</Button>
   if (m.phase === 'idle') return <IdleHome consentKey="demo" onStart={startDemoDispatch} />
   if (m.phase === 'preparing') return <Notice icon={<Spinner />} title="배정 준비 중" body="배정이 전송되면 이 화면에 표시돼요." />
   if (m.phase === 'closed') return <Notice icon={<CheckCircle2 size={28} />} title="발령이 끝났어요" body="배정 정보와 연락처를 지웠어요." action={start} />

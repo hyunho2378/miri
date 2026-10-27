@@ -5,7 +5,7 @@ import { gradeOf } from '../../lib/shortage.js'
 import { elapsedMinOf } from '../../lib/clock.js'
 
 export const ACTIVE = new Set(['standby', 'assigned', 'sent'])
-export const STATUS_LABEL = { idle: '평시', standby: '발령 개시, 배정 전', assigned: '배정 계산 완료, 전송 전', sent: '배정 전송, 이송 진행', closed: '발령 종료' }
+export const STATUS_LABEL = { idle: '발령 전', standby: '발령 개시, 배정 전', assigned: '배정 계산 완료, 전송 전', sent: '배정 전송, 이송 진행', closed: '발령 종료' }
 export const DONE = new Set(['handover'])
 export const MOVING = new Set(['depart', 'arrive', 'board'])
 export const ISSUE = new Set(['fail', 'handedToFire', 'unassigned'])

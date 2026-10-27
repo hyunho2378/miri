@@ -170,7 +170,7 @@ function PeaceHome() {
       <AppBar title="오늘 할 일" large />
       <main id="main" className="mob-content mob-grid2">
         <List label="훈련">
-          <ListRow lead={<Play size={22} />} title="훈련 발령 시작" subtitle="훈련은 시간이 60배 빨리 흘러요" chevron onClick={() => setDrillOpen(true)} />
+          <ListRow lead={<Play size={22} />} title="훈련 발령 시작" subtitle="훈련 속도 60배" chevron onClick={() => setDrillOpen(true)} />
         </List>
         <DrillStartDialog open={drillOpen} onClose={() => setDrillOpen(false)} />
         <List label={`확인할 일 ${[docs.length, notes.length, stale].filter((n) => n > 0).length}건`}>
@@ -262,7 +262,7 @@ export function FieldDocPage() {
           </section>
         ) : null })()}
         <List label="AI 정보">
-          <InfoSheet lead={<Info size={22} />} title="AI 정보" summary="하는 일, 시험 결과, 시연 방식" sheetTitle="서류 읽기 AI 정보">
+          <InfoSheet lead={<Info size={22} />} title="AI 정보" summary="용도, 시험 결과, 읽기 방식" sheetTitle="서류 읽기 AI 정보">
             {AI_CARD.map((sec) => (
               <section key={sec.title} className="mob-section" aria-label={sec.title}>
                 <h3 className="mob-section-title">{sec.title}</h3>
@@ -648,7 +648,7 @@ function VillagePicker({ villages, value, onChange }) {
 const fieldAiError = (e, kind) => {
   const m = aiErrorMessage(e, kind)
   if (e?.code === 'STORED_ONLY') return { title: '지금은 예시 서류만 읽어요', desc: '준비된 예시 서류로 AI가 읽은 결과를 확인해 주세요' }
-  if (e?.code === 'NEED_SESSION' || e?.code === 401) return { title: 'AI 서류 읽기는 시연 코드가 필요해요', desc: '같은 브라우저의 콘솔 로그인에서 시연 코드를 넣은 뒤 다시 시도' }
+  if (e?.code === 'NEED_SESSION' || e?.code === 401) return { title: 'AI 서류 읽기는 접속 코드 필요', desc: '콘솔 로그인에서 접속 코드 입력 후 재시도' }
   return m
 }
 
@@ -686,7 +686,7 @@ export function FieldIntakePage() {
     setState({ phase: 'idle' })
     navigate('/m/f/docs')
   }
-  const need = !villageCode ? '마을을 먼저 고르기' : !agree ? '가상 자료 확인을 켜기' : null
+  const need = !villageCode ? '마을을 먼저 고르기' : !agree ? '자료 확인 켜기' : null
   return (
     <>
       <AppBar title="서류 사진 올리기" onBack={() => navigate(-1)} backLabel="뒤로" />
@@ -695,7 +695,7 @@ export function FieldIntakePage() {
           <>
             <List label="올리기 전 확인">
               <VillagePicker villages={data.villages.filter((v) => scope.inScope(v.code))} value={villageCode} onChange={setVillageCode} />
-              <ListRow title="가상 자료만 올림" subtitle="실제 주민 서류는 올리지 않음" trailing={<Toggle checked={agree} onChange={setAgree} label="가상 자료만 올림" />} />
+              <ListRow title="개인정보 없는 서류만 올림" subtitle="실제 주민 서류 제외" trailing={<Toggle checked={agree} onChange={setAgree} label="개인정보 없는 서류만 올림" />} />
               <InfoSheet title="읽는 방법" summary="국내 서버, 이름과 연락처 가림" sheetTitle="읽는 방법">
                 <List label="읽는 방법">
                   <ListRow title="글자 읽기" subtitle="국내 서버에서 사진의 글자를 읽음" />
@@ -893,8 +893,8 @@ export function FieldMorePage() {
           </InfoSheet>
         </List>
         {!ACTIVE.has(d.status) && (
-          <List label="시연">
-            <ListRow lead={<Play size={22} />} title="훈련 발령 시작" subtitle="훈련은 시간이 60배 빨리 흘러요" onClick={() => setDrillOpen(true)} />
+          <List label="훈련">
+            <ListRow lead={<Play size={22} />} title="훈련 발령 시작" subtitle="훈련 속도 60배" onClick={() => setDrillOpen(true)} />
           </List>
         )}
         <DrillStartDialog open={drillOpen} onClose={() => setDrillOpen(false)} />
