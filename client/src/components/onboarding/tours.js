@@ -17,7 +17,7 @@ export const TOURS = {
     { title: '결론과 숫자 흐름', body: '기준 배정과 추천 배정 시 이동 불가 인원, 협약 후 인원', targets: [band, flow] },
     { title: '확산 조건', body: '조건 선택, 계산 조건 변경, 계산 근거, 저장과 비교', targets: [btn('확산 조건')] },
     { title: '이동 불가 인원 감소 방안', body: '방안 선택 시 결과와 필요 협약 표시', targets: [sec('이동 불가 인원 감소 방안')] },
-    { title: '협약 단추', body: '협약 차량 확인, 계산 숫자가 입력된 협약 추진 기안 열기', targets: [btn('협약 차량 확인'), btn('협약 추진 기안')] }
+    { title: '협약 단추', body: '협약 차량 확인, 계산 숫자가 입력된 협약 추진 기안 열기', targets: [{ find: 'a,button', text: '협약 차량 확인' }, { find: 'a,button', text: '협약 추진 기안' }] }
   ],
   '/console/dispatch': [
     { title: '발령 진행 순서', body: '개시, 배정 계산, 배정표 전송, 이송 진행 4단계와 다음 행동', targets: [{ selector: '[data-tour="dispatch-guide"]' }] },
