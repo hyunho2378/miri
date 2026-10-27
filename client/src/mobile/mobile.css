@@ -154,6 +154,8 @@
 .mob-bar { position: sticky; top: 0; z-index: 30; background: var(--m-canvas); padding-top: var(--m-safe-top); transition: box-shadow 160ms ease; }
 .mob-bar.scrolled { box-shadow: var(--m-shadow-1); background: var(--m-page); }
 .mob-bar-row { height: var(--m-bar-h); display: flex; align-items: center; gap: 4px; padding: 0 8px; }
+.mob-bar-row.bare { height: 8px; }
+.mob-bar-row.bare .mob-bar-slot, .mob-bar-row.bare .mob-bar-title { display: none; }
 .mob-bar-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mob-root.platform-ios .mob-bar-title { text-align: center; font-size: 17px; font-weight: 600; }
 .mob-root.platform-android .mob-bar-title { text-align: left; font-size: 22px; line-height: 28px; font-weight: 400; padding-left: 8px; }
@@ -686,8 +688,9 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
    600~719(폴드 안쪽 세로, 듀오 안쪽)는 한 열이 화면 폭을 채우므로 그대로 둔다(두 단이면 한 단 폭이 220 안팎이라 글이 세 줄로 접힘).
    결론(할 일 목록 또는 큰 숫자)이 왼쪽 위, 근거가 오른쪽과 아래. 버튼과 안내 줄은 두 단을 가로질러 놓는다. */
 @media (min-width: 720px) {
-  .mob-content.mob-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; row-gap: 16px; align-content: start; align-items: start; }
-  .mob-content.mob-grid2 > .mob-btn, .mob-content.mob-grid2 > p, .mob-content.mob-grid2 > .mob-empty { grid-column: 1 / -1; }
+  .mob-content.mob-grid2 { display: block; column-count: 2; column-gap: 24px; }
+  .mob-content.mob-grid2 > * { break-inside: avoid; margin-bottom: 16px; }
+  .mob-content.mob-grid2 > .mob-btn, .mob-content.mob-grid2 > p, .mob-content.mob-grid2 > .mob-empty { column-span: all; }
 }
 
 /* 기기 틀 안(iframe) 아이폰 계열: 틀 그림에는 env 안전 영역이 없어 다이내믹 아일랜드 아래로 59 */

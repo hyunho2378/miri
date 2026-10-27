@@ -83,7 +83,7 @@ export function AppBar({ title, large = false, onBack, backLabel = '뒤로', tra
   const BackIcon = platform === 'android' ? ArrowLeft : ChevronLeft
   return (
     <header ref={ref} className={`mob-bar ${scrolled ? 'scrolled' : ''}`}>
-      <div className="mob-bar-row">
+      <div className={`mob-bar-row ${showLarge && platform === 'ios' && !onBack && !trailing ? 'bare' : ''}`}>
         <div className={`mob-bar-slot ${onBack ? '' : 'empty'}`}>
           {onBack && <button type="button" className="mob-icon-btn" onClick={onBack} aria-label={backLabel}><BackIcon size={24} aria-hidden="true" /></button>}
         </div>
