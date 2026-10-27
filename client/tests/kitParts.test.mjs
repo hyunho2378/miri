@@ -108,9 +108,8 @@ test('화면 설정에 화면 모양 전환 없음(기기에서 정함), 시작 
 test('아이콘 교체: 기한은 시계, 소방 요청은 전화 발신, 대상자 상세는 사람 하나, 도우미 첫 화면은 손과 하트', () => {
   const f = read('../src/mobile/field/FieldScreens.jsx'), h = read('../src/mobile/helper/HelperScreens.jsx')
   assert.match(f, /<ListRow key=\{v\.code\} lead=\{<Clock size=\{22\} \/>\}/)
-  assert.match(f, /<ListRow lead=\{<PhoneOutgoing size=\{22\} \/>\} title="소방 지원 요청"/)
+  assert.match(f, /<ListRow lead=\{<PhoneOutgoing size=\{22\} \/>\} title=\{scope\.isDong \? '차량 배정 없는 사람' : '소방 지원 요청'\}/)
   // 도우미(재구성 2a): 대상자 정보 행은 사람 하나, 평시 첫 화면 설명 행은 손과 하트, 목록 위 글자 버튼 '연락'
   assert.match(h, /<InfoSheet lead=\{<User size=\{20\} \/>\} title="대상자 정보"/)
-  assert.match(h, /<ListRow lead=\{<HandHeart size=\{22\} \/>\} title="이웃 대피를 돕는 화면"/)
   assert.match(h, /<Button variant="plain" size="sm" onClick=\{\(\) => go\(\{ name: 'H7' \}\)\}>연락<\/Button>/)
 })

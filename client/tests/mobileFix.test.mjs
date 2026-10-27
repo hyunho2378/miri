@@ -105,7 +105,7 @@ await t('M5, M7, M8, M9, H3 코드 확인: 터치 영역, 사유 radio, 큰 글�
   assert.match(r('../src/mobile/ui.jsx'), /role=\{multiple \? 'checkbox' : 'radio'\} aria-checked=\{!!selected\}/)
   assert.match(hs, /aria-live="polite"/)
   assert.match(hcss, /font-size: max\(16px, var\(--t-body\)\)/)
-  assert.match(fsx, /d\.kind !== 'drill' \? '실제 발령' : '훈련'/)
+  assert.match(fsx, /d\.kind === 'drill' \? '훈련 발령 진행' : '발령 진행'/)
   assert.match(fsx, /const req = \{ id: \+\+reqSeq\.current, personCode: person\.code/)
   assert.match(fsx, /personCode: req\.personCode, villageCode: req\.villageCode/)
   assert.match(fsx, /const villageCode = state\.req\?\.village/)

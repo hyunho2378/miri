@@ -60,7 +60,7 @@ test('화면 구성: 키트에 없는 칩, 카드, 안내 띠, 옛 하단 묶음
 
 test('막다른 길 제거: 확인할 서류는 확인 목록으로, 동 담당자는 요청 버튼 대신 안내, 휴대폰에 없는 시연 코드 칸 안내 없음', () => {
   const f = read('../src/mobile/field/FieldScreens.jsx')
-  assert.match(f, /title=\{`확인할 서류 \$\{docs\.length\}건`\}[^\n]*navigate\('\/m\/f\/docs'\)/)
+  assert.match(f, /title=\{`서류 확인 \$\{docs\.length\}건`\}[^\n]*navigate\('\/m\/f\/docs'\)/)
   assert.match(f, /scope\.isDong \? null : u\.total > 0 && <Button block variant="danger"/)
   assert.ok(!f.includes('로그인 화면에서 시연 코드'))
   const app = read('../src/App.jsx')

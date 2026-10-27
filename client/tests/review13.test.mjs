@@ -66,7 +66,8 @@ await ok('H: 현장 화면의 상태, 도우미, 소방, 더보기 화면이 같
     const body = src.slice(src.indexOf(`export function ${fn}`), src.indexOf('\nexport function', src.indexOf(`export function ${fn}`) + 10))
     assert.ok(body.includes('scopeDispatch'), `${fn} 범위 적용`)
   }
-  assert.ok(src.includes('시 관리자 계정에서 시 전체 미배정 인원으로 보냄'))
+  assert.ok(!src.includes('시 관리자 계정에서 시 전체 미배정 인원으로 보냄'))
+  assert.ok(src.includes("scope.isDong ? '차량 배정 없는 사람' : '소방 지원 요청'"))
 })
 
 await ok('재확인: 동의 상태 조회(hgetall) 예외도 503', async () => {

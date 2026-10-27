@@ -30,8 +30,9 @@ test('M10: 긴급 버튼에 누구 상태인지(대상자)', () => {
 })
 
 test('M12: 평시 홈 숫자는 기준 배정이라고 적고, 추천 배정 시 값과 계산 시각을 함께', () => {
-  assert.match(field, /미이송 예상\(기준 배정\)/)
-  assert.match(field, /추천 배정 시 \{opt \?\? '-'\}명/)
+  assert.match(field, /기한 안에 못 옮기는 사람, \$\{scenario\?\.name/)
+  assert.ok(!field.includes('추천 배정 시 {opt'))
+  assert.match(field, /추천 배정 기준, \{stamp\}/)
   assert.match(field, /calcStamp\(\{ at: now, rosterAt: data\.today \}\)/)
 })
 
@@ -45,7 +46,7 @@ test('M12: 추천 배정 시 값은 같은 마을 범위로 더하고, 범위가
 
 test('M13: 휴대폰 오늘 할 일에 명부 재확인 필요 줄(콘솔과 같은 staleRosterCount, 범위 안만)', () => {
   assert.match(field, /staleRosterCount\(data\.persons\.filter\(\(p\) => p\.review !== 'rejected' && scope\.inScope\(p\.villageCode\)\), now\)/)
-  assert.match(field, /명부 재확인 필요 \$\{stale\.toLocaleString\('ko-KR'\)\}명/)
+  assert.match(field, /명부 재확인 \$\{stale\.toLocaleString\('ko-KR'\)\}명/)
 })
 
 test('M12: 추천 배정 마을별 합은 추천 배정 합계(267)와 같음, 기준 배정 마을별 합은 291', async () => {
