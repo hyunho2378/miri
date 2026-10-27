@@ -4,6 +4,7 @@ import { useEffect, useId, useRef } from 'react'
 import { animate } from 'animejs'
 import clsx from 'clsx'
 import { Pause, Play } from 'lucide-react'
+import Disclosure from '../ui/Disclosure.jsx'
 import IconButton from '../ui/IconButton.jsx'
 import { fmtHM, HOUR } from '../../lib/time.js'
 import { fmtElapsed } from '../../lib/geo.js'
@@ -11,7 +12,8 @@ import { prefersReducedMotion } from '../motion/useReducedMotion.js'
 
 const PLAY_MS_PER_HOUR = 900
 const STEP = 0.25
-const caption = (prepH) => `단순 비례 가정: 마을별 이송 가능 인원이 준비 완료(발령 후 ${fmtElapsed(prepH)}) 시각부터 그 마을 도달 시각까지 같은 속도로 옮겨진다고 보고 계산한 추정치입니다. 실제 배정 순서와 다를 수 있습니다.`
+const captionHead = '단순 비례 가정으로 계산한 추정치입니다.'
+const captionRest = (prepH) => `마을별 이송 가능 인원이 준비 완료(발령 후 ${fmtElapsed(prepH)}) 시각부터 그 마을 도달 시각까지 같은 속도로 옮겨진다고 보고 계산했습니다. 실제 배정 순서와 다를 수 있습니다.`
 
 export default function TimeAxis({ t, onT, timeline, t0, progress, total, playing, onPlaying }) {
   const id = useId()
@@ -106,7 +108,10 @@ export default function TimeAxis({ t, onT, timeline, t0, progress, total, playin
           ))}
         </div>
       </div>
-      <p className="mt-1 type-meta text-text-meta">{caption(prepH)}</p>
+      <p className="mt-1 type-meta text-text-meta">{captionHead}</p>
+      <Disclosure summary="가정 보기" summaryClassName="type-meta">
+        <p className="type-meta text-text-meta">{captionRest(prepH)}</p>
+      </Disclosure>
     </div>
   )
 }

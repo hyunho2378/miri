@@ -1,6 +1,7 @@
 // 상황판 왼쪽 사실 요약. 수치마다 기준을 바로 아래에 적는다(PRD 4.1 2항). 가정형과 설득형 문장 없음.
 import { ChevronRight } from 'lucide-react'
 import AnimatedNumber from '../motion/AnimatedNumber.jsx'
+import Disclosure from '../ui/Disclosure.jsx'
 import Select from '../ui/Select.jsx'
 import { GRADES } from '../../lib/shortage.js'
 import { fmtElapsed } from '../../lib/geo.js'
@@ -41,6 +42,11 @@ export default function SummaryPanel({
     ].filter(Boolean)
     : [scopeLine, `${scopeCount}곳 모두 도달 시각 전에 이송이 끝나는 것으로 계산됩니다.`]
 
+  // 가정과 조건은 접어 두고, 눌러서 본다(내용은 그대로)
+  const condText = scenario.kind === 'fire'
+    ? `발령 후 첫 도달 ${fmtElapsed(scenario.windowHours)}, 확산 시속 ${scenario.speedKmh}km`
+    : scenario.rule ? `대상 마을: ${scenario.rule}. 이송 기한 발령 후 ${fmtElapsed(scenario.windowHours)}${scenario.travelFactor && scenario.travelFactor !== 1 ? `, 주행 시간 ${scenario.travelFactor}배` : ''}` : ''
+
   return (
     <div>
       <div className="pb-3">
@@ -53,10 +59,13 @@ export default function SummaryPanel({
             오늘 예보 바람으로 다시 계산
           </button>
         )}
-        {scenario.basis && <p className="mt-2 type-meta leading-5 text-text-sec">{scenario.basis}</p>}
-        <p className="mt-1.5 type-meta text-text-meta">
-          {scenario.kind === 'fire' ? `발령 후 첫 도달 ${fmtElapsed(scenario.windowHours)}, 확산 시속 ${scenario.speedKmh}km, ` : scenario.rule ? `대상 마을: ${scenario.rule}. 이송 기한 발령 후 ${fmtElapsed(scenario.windowHours)}${scenario.travelFactor && scenario.travelFactor !== 1 ? `, 주행 시간 ${scenario.travelFactor}배` : ''}, ` : ''}명부 기준일 {dateLabel}
-        </p>
+        <p className="mt-1.5 type-meta text-text-meta">명부 기준일 {dateLabel}</p>
+        {(scenario.basis || condText) && (
+          <Disclosure summary="가정 보기" className="mt-1">
+            {scenario.basis && <p className="type-meta leading-5 text-text-sec">{scenario.basis}</p>}
+            {condText && <p className="mt-1.5 type-meta text-text-meta">{condText}</p>}
+          </Disclosure>
+        )}
       </div>
 
       <div className="divide-y divide-line-sub">

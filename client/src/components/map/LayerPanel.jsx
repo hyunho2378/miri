@@ -3,6 +3,8 @@
 // 시설 레이어는 정적 공개 자료(donghaeData.js)다. 설명 줄에 출처와 기준 시점을 적는다.
 import { Maximize } from 'lucide-react'
 import clsx from 'clsx'
+import Disclosure from '../ui/Disclosure.jsx'
+import { splitDesc } from '../../lib/foldText.js'
 import { SEVERITY_STEPS, fmtElapsed } from '../../lib/geo.js'
 import { AGING_STEPS, SEVERITY_SWATCH } from './mapTheme.js'
 
@@ -27,6 +29,7 @@ function Segment({ label, value, onChange, items }) {
 }
 
 function LayerRow({ label, desc, tone, checked, onChange, swatch }) {
+  const [head, rest] = splitDesc(desc)
   return (
     <li>
       <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
@@ -34,12 +37,17 @@ function LayerRow({ label, desc, tone, checked, onChange, swatch }) {
         {swatch && <span aria-hidden="true" className={clsx('mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full', swatch)} />}
         <span className="min-w-0 flex-1">
           <span className="block type-body-sm leading-6 text-text-pri">{label}</span>
-          {desc && <span className={clsx('mt-0.5 block type-meta leading-5', tone === 'danger' ? 'text-danger-text' : 'text-text-meta')}>{desc}</span>}
+          {head && <span className={clsx('mt-0.5 block type-meta leading-5', tone === 'danger' ? 'text-danger-text' : 'text-text-meta')}>{head}</span>}
         </span>
         <span aria-hidden="true" className={clsx('relative mt-0.5 inline-block h-5 w-9 shrink-0 rounded-full transition-colors duration-fast', checked ? 'bg-primary' : 'bg-line-strong')}>
           <span className={clsx('absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-page shadow-sm transition-transform duration-fast', checked && 'translate-x-4')} />
         </span>
       </button>
+      {rest && (
+        <Disclosure summary={rest.includes('출처') ? '가정과 출처 보기' : '가정 보기'} className="px-2 pb-1" summaryClassName="type-meta">
+          <p className="type-meta leading-5 text-text-meta">{rest}</p>
+        </Disclosure>
+      )}
     </li>
   )
 }
@@ -123,7 +131,12 @@ export default function LayerPanel({
             <>
               <li>땅 위 원 크기는 선택한 시점의 대기 인원입니다.</li>
               <li>원 중심 550m 안 건물은 그 마을의 부족 단계 색으로 칠합니다. 대상자의 실제 거주 위치를 뜻하지 않습니다.</li>
-              <li>건물은 국토교통부 GIS건물통합정보(2026. 9. 9.) 196,111동입니다. 높이는 건축물대장 높이, 없으면 층수 x 3.2m, 둘 다 없으면 1층으로 세웁니다. 지형과 건물 높이는 2배로 과장했습니다.</li>
+              <li>
+                건물은 국토교통부 GIS건물통합정보(2026. 9. 9.) 196,111동입니다.
+                <Disclosure summary="가정 보기" summaryClassName="type-meta">
+                  <p>높이는 건축물대장 높이, 없으면 층수 x 3.2m, 둘 다 없으면 1층으로 세웁니다. 지형과 건물 높이는 2배로 과장했습니다.</p>
+                </Disclosure>
+              </li>
             </>
           ) : <li>원 크기는 선택한 시점의 대기 인원입니다.</li>}
         </ul>
