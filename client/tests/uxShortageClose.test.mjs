@@ -6,9 +6,9 @@ const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8')
 
 test('부족분 계산: 결론 문장이 먼저, 내부 메모 문장 없음, 좌우 두 칸 없음', () => {
   const src = read('../src/pages/console/ShortagePage.jsx')
-  assert.match(src, /기한 안에 못 옮기는 사람 \$\{result\.total\}명/)
-  assert.match(src, /부족을 줄이는 방법/)
-  assert.match(src, /계산 방법과 근거/)
+  assert.match(src, /기준 배정 시 이동 불가 인원 \$\{result\.total\}명/)
+  assert.match(src, /이동 불가 인원 감소 방안/)
+  assert.match(src, /계산 근거/)
   assert.ok(!src.includes('근거가 한 곳뿐'))
   assert.ok(!src.includes('가정값 점검'))
   assert.ok(!src.includes('lg:grid-cols-2'))

@@ -10,7 +10,7 @@ import { fmtElapsed } from '../../lib/geo.js'
 
 const STEPS = ['bg-mute text-text-meta', 'bg-chart-heatDanger-1 text-text-pri', 'bg-chart-heatDanger-2 text-text-pri', 'bg-chart-heatDanger-3 text-text-pri', 'bg-chart-heatDanger-4 text-text-inverse']
 
-export default function ShortageTable({ title = '마을별 부족분', basis, headingLevel = 2, villages, dongs, byVillage, arrivals, t0, initialView = 'table', pageSize = 20, className, tone }) {
+export default function ShortageTable({ title = '마을별 부족분', basis, headingLevel = 2, villages, dongs, byVillage, arrivals, t0, initialView = 'table', pageSize = 20, className, tone, compact = false }) {
   const [view, setView] = useState(initialView)
   const dongName = (c) => dongs.find((d) => d.code === c)?.name || c
   // 회신 R27(최충익): 산불 위험(도달 시각)과 대피 취약성(침상과 휠체어 인원)을 따로 본다
@@ -20,7 +20,12 @@ export default function ShortageTable({ title = '마을별 부족분', basis, he
   const max = Math.max(1, ...rows.flatMap((r) => GRADES.map((g) => r.shortage[g.key])))
   const level = (x) => (x <= 0 ? 0 : Math.min(4, Math.ceil((x / max) * 4)))
 
-  const columns = [
+  const columns = compact ? [
+    { key: 'label', label: '마을', sortable: true, render: (r) => <span className="type-strong">{r.label}</span> },
+    ...(arrivals ? [{ key: 'arrivalH', label: '산불 도달', align: 'right', sortable: true, render: (r) => (r.arrivalH == null ? '-' : <span className="whitespace-nowrap">발령 후 {fmtElapsed(r.arrivalH)}</span>) }] : []),
+    { key: 'targetTotal', label: '대상자', align: 'right', sortable: true, render: (r) => `${r.targetTotal}명` },
+    { key: 'total', label: '이동 불가 인원', align: 'right', sortable: true, render: (r) => (r.total ? <span className="type-strong text-danger-text tabular-nums">{r.total}명</span> : <span className="text-text-meta">없음</span>) }
+  ] : [
     { key: 'label', label: '마을', sortable: true, render: (r) => <span className="type-strong">{r.label}</span> },
     { key: 'dong', label: '행정동', hideBelow: 'lg', render: (r) => dongName(r.dongCode) },
     { key: 'roundTripMin', label: '왕복 시간', align: 'right', sortable: true, hideBelow: 'md', render: (r) => (r.roundTripMin == null ? '대피소 없음' : `${r.roundTripMin}분`) },
