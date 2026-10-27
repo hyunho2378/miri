@@ -15,7 +15,7 @@ import { computeShortage, optimizedByVillage, optimizedUnserved } from '../../li
 import { calcStamp } from '../../lib/basis.js'
 import { staleRosterCount, STALE_DAYS } from '../../lib/handoverRows.js'
 import { OWNERS, COMMITMENTS, GRADES, commitmentOf, gradeOf } from '../../lib/shortage.js'
-import { personCare, ROUTE_NOTE } from '../../lib/tripChecks.js'
+import { personCare } from '../../lib/tripChecks.js'
 import { readDocument, verifyResult } from '../../lib/intake.js'
 import { readNote, sourceLabel } from '../../lib/notes.js'
 import { unreadNote, canSaveTextOnly, prefillCode } from '../../lib/noteDraft.js'
@@ -62,12 +62,7 @@ function usePeaceResult() {
   return { data, scenario, result, scopeCodes }
 }
 
-// 누구 화면인지 한 줄(모든 홈 화면 큰 제목 아래)
-function Who({ user, extra }) {
-  return <p className="mob-t-callout mob-pad">미리 현장 담당자, {user?.name || '담당 공무원'}{extra ? `, ${extra}` : ''}</p>
-}
-
-const tagText = (tag) => (tag === 'over' ? '기한 지남' : tag === 'soon' ? '1시간 안' : null)
+const tagText = (tag) => (tag === 'over' ? '기한 지남' : tag === 'soon' ? '기한 1시간 안' : null)
 const Tag = ({ tone, children }) => <span className={`mob-t-callout ${tone === 'red' ? 'tone-red-text' : ''}`}>{children}</span>
 
 // 홈: 발령이 없으면 평시 할 일, 발령 중이면 늦는 마을
@@ -76,7 +71,7 @@ export function FieldStatusPage() {
   const data = useMiriStore()
   const scope = useFieldScope()
   const navigate = useNavigate()
-  if (!ACTIVE.has(d.status)) return <PeaceHome closed={d.status === 'closed'} />
+  if (!ACTIVE.has(d.status)) return <PeaceHome />
   const sc = scope.scopeDispatch(d, data.persons)
   const s = fieldSummary(sc.d, sc.persons, data.villages, vnow)
   const left = s.total - s.counts.done
@@ -86,23 +81,22 @@ export function FieldStatusPage() {
   const u = unservedByReason(sc.d)
   return (
     <>
-      <AppBar title="발령 진행" large />
-      <main id="main" className="mob-content">
-        <Who user={scope.user} extra={d.kind !== 'drill' ? '실제 발령' : '훈련'} />
-        <Figure plain label="아직 옮기지 못한 사람" value={left} unit="명">
+      <AppBar title={d.kind === 'drill' ? '훈련 발령 진행' : '발령 진행'} large />
+      <main id="main" className="mob-content mob-grid2">
+        <Figure plain label={`${scope.isDong ? '우리 동 ' : ''}대피소에 아직 못 간 사람`} value={left} unit="명">
           <Progress value={pct} label="이송 완료 비율" />
-          <p className="mob-t-callout">전체 {s.total}명 중 {s.counts.done}명 대피소 도착</p>
+          <p className="mob-t-callout tabular-nums">{s.total}명 중 {s.counts.done}명 도착</p>
         </Figure>
         <List label="늦는 마을">
           {late.map((v) => (
-            <ListRow key={v.code} lead={<Clock size={22} />} title={`${v.name} ${v.at ? `${hm(v.at)}까지` : ''}`.trim()} subtitle={`남은 사람 ${v.left}명`}
+            <ListRow key={v.code} lead={<Clock size={22} />} title={v.name} subtitle={`${v.left}명 남음${v.at ? `, ${hm(v.at)}까지` : ''}`}
               trailing={tagText(v.tag) ? <Tag tone="red">{tagText(v.tag)}</Tag> : null} chevron onClick={() => navigate(`/m/f/villages/${v.code}`)} />
           ))}
           <ListRow title="모든 마을 보기" chevron onClick={() => navigate('/m/f/villages')} />
         </List>
         {notMoved > 0 && (
-          <List label="아직 못 옮긴 사람">
-            <ListRow lead={<PhoneOutgoing size={22} />} title={`차량이나 도우미가 없는 사람 ${u.total}명`} subtitle={scope.isDong ? '시 관리자가 동해소방서에 지원 요청' : '동해소방서 지원 요청 대상'} chevron onClick={() => navigate('/m/f/fire')} />
+          <List label="배정 없음">
+            <ListRow lead={<PhoneOutgoing size={22} />} title={`차량 배정 없음 ${u.total}명`} subtitle={scope.isDong ? '명단 보기' : '동해소방서 지원 요청 대상'} chevron onClick={() => navigate('/m/f/fire')} />
           </List>
         )}
         {scope.isDong ? null : u.total > 0 && <Button block variant="danger" onClick={() => navigate('/m/f/fire')}>동해소방서 지원 요청</Button>}
@@ -118,7 +112,7 @@ function CloseDispatch({ isDong, left }) {
   const close = useDispatchStore((s) => s.close)
   const toast = useMobileToast()
   const [open, setOpen] = useState(false)
-  if (isDong) return <p className="mob-t-callout mob-pad">발령 종료는 시 관리자가 합니다.</p>
+  if (isDong) return null
   return (
     <>
       <List label="발령 마치기">
@@ -149,16 +143,17 @@ function ServerLink({ remote }) {
       </List>
     )
   }
-  return <p className="mob-t-callout mob-pad">이 휴대폰 안에서만 진행 중</p>
+  return null
 }
 
 // 평시 홈: 우리 범위 미이송 예상 숫자 하나, 그 아래 오늘 확인할 일
-function PeaceHome({ closed }) {
+function PeaceHome() {
   const { data, scenario, result, scopeCodes } = usePeaceResult()
   const scope = useFieldScope()
   const navigate = useNavigate()
   const fire = useOpenData('fire')
   const sh = scopedShortage(result, scope.inScope)
+  // 발령 때 보내는 배정은 추천 배정이다. 평시 숫자도 같은 계획으로 세어 발령 홈의 '차량 배정 없음'과 같은 갈래로 둔다
   const opt = useMemo(() => scopedOptimized(result, scope.inScope, optimizedByVillage(result), optimizedUnserved(result)), [result, scope.inScope]) // eslint-disable-line react-hooks/exhaustive-deps
   const now = useRealNow(30000)
   const stamp = calcStamp({ at: now, rosterAt: data.today })
@@ -168,21 +163,19 @@ function PeaceHome({ closed }) {
   return (
     <>
       <AppBar title="오늘 할 일" large />
-      <main id="main" className="mob-content">
-        <Who user={scope.user} extra={closed ? '발령 종료' : null} />
-        <Figure plain label={`${scope.isDong ? '우리 동' : '동해시'} 미이송 예상(기준 배정), ${scenario?.name || '기준 시나리오'}`} value={sh.unserved ?? '-'} unit="명">
-          <p className="mob-t-callout">추천 배정 시 {opt ?? '-'}명, 대피 대상 {sh.villages}개 마을 {Number(sh.targets).toLocaleString('ko-KR')}명 중</p>
-          {stamp && <p className="mob-t-callout tabular-nums">({stamp})</p>}
-        </Figure>
-        <List label="확인할 일">
-          <ListRow lead={<FileText size={22} />} title={`확인할 서류 ${docs.length}건`} subtitle={docs.length ? 'AI가 읽은 등급을 원본과 맞춰 확정' : '모두 확인함'} chevron onClick={() => navigate('/m/f/docs')} />
-          <ListRow lead={<MessageSquare size={22} />} title={`확인할 현장 소식 ${notes.length}건`} subtitle={notes.length ? '돌봄 담당자가 전한 상태 변화' : '모두 확인함'} chevron onClick={() => navigate('/m/f/notes')} />
-          <ListRow lead={<Users size={22} />} title={`${scope.isDong ? '우리 동 ' : ''}명부 재확인 필요 ${stale.toLocaleString('ko-KR')}명`} subtitle={stale ? `마지막 확인 ${STALE_DAYS}일 경과 또는 기록 없음, 담당자 컴퓨터 명부에서 확인` : '모두 최근 확인함'} />
+      <main id="main" className="mob-content mob-grid2">
+        <List label={`확인할 일 ${[docs.length, notes.length, stale].filter((n) => n > 0).length}건`}>
+          <ListRow lead={<FileText size={22} />} title={`서류 확인 ${docs.length}건`} subtitle={docs.length ? undefined : '모두 확인함'} chevron onClick={() => navigate('/m/f/docs')} />
+          <ListRow lead={<MessageSquare size={22} />} title={`현장 소식 확인 ${notes.length}건`} subtitle={notes.length ? undefined : '모두 확인함'} chevron onClick={() => navigate('/m/f/notes')} />
+          <ListRow lead={<Users size={22} />} title={`명부 재확인 ${stale.toLocaleString('ko-KR')}명`} subtitle={stale ? '컴퓨터 명부에서 확인' : '모두 최근 확인함'} />
         </List>
         <List label="보내기">
           <ListRow lead={<Camera size={22} />} title="서류 사진 올리기" chevron onClick={() => navigate('/m/f/intake')} />
           <ListRow lead={<UserCheck size={22} />} title="현장 소식 남기기" chevron onClick={() => navigate('/m/f/note')} />
         </List>
+        <Figure plain label={`${scope.isDong ? '우리 동 ' : ''}기한 안에 못 옮기는 사람, ${scenario?.name || '기준 시나리오'}`} value={opt ?? '-'} unit="명">
+          {stamp && <p className="mob-t-callout tabular-nums">추천 배정 기준, {stamp}</p>}
+        </Figure>
         <List label="오늘 산불 여건">
           <ListRow lead={<Flame size={22} />} title={fire.data ? `산불위험지수 최고 ${fire.data.max}` : fire.loading ? '산불위험지수 조회 중' : '산불위험지수 조회 실패'} subtitle={fire.data ? `평균 ${fire.data.mean}, 산림청` : undefined} />
         </List>
@@ -205,7 +198,7 @@ export function FieldDocsPage() {
           <List label="확인할 서류">
             {list.map((q) => {
               const v = verifyResult(q.doc.transcript || '', q.result)
-              return <ListRow key={q.person.code} title={q.person.code} subtitle={`${villageName(data.villages, q.person.villageCode)}, AI 초안 ${gradeOf(v.aiGrade)?.label || '판독 불가'}`}
+              return <ListRow key={q.person.code} title={q.person.code} subtitle={`${villageName(data.villages, q.person.villageCode)}, 읽은 등급 ${gradeOf(v.aiGrade)?.label || '읽지 못함'}`}
                 trailing={v.quoteMatched ? null : <Tag tone="red">원본 확인</Tag>} chevron onClick={() => navigate(`/m/f/docs/${q.person.code}`)} />
             })}
           </List>
@@ -215,7 +208,7 @@ export function FieldDocsPage() {
   )
 }
 
-// 확인할 서류 한 건: 근거 문구 한 줄과 AI 초안 등급, 주 버튼 '이 등급으로 확정', 보조 '다른 등급'
+// 확인할 서류 한 건: 근거 문구 한 줄과 읽은 등급, 주 버튼 '이 등급으로 확정', 보조 '다른 등급'
 export function FieldDocPage() {
   const { code } = useParams()
   const { data, scopeCodes } = usePeaceResult()
@@ -238,7 +231,7 @@ export function FieldDocPage() {
       <AppBar title={q.person.code} onBack={() => navigate('/m/f/docs')} backLabel="목록" />
       <main id="main" className="mob-content">
         <Figure plain label={`${villageName(data.villages, q.person.villageCode)}, ${i + 1} / ${list.length}`} value={plan?.label || '확인 필요'} unit="">
-          <p className="mob-t-callout">{q.person.grade !== v.aiGrade ? `AI 초안 ${gradeOf(v.aiGrade)?.label || '판독 불가'}, 확인 전까지 휠체어로 계산` : 'AI 초안과 같은 등급'}</p>
+          <p className="mob-t-callout">{q.person.grade !== v.aiGrade ? `읽은 등급 ${gradeOf(v.aiGrade)?.label || '읽지 못함'}, 확정 전까지 휠체어로 계산` : '읽은 등급과 같음'}</p>
         </Figure>
         <List label="근거">
           <ListRow title={v.quote ? `“${v.quote}”` : '근거 문구 없음'} subtitle={v.quoteMatched ? '서류 원문에 있는 문구' : '원문에서 찾지 못함, 원본 사진 확인'} />
@@ -506,11 +499,11 @@ export function FieldFirePage() {
   const failed = failedPending(sc.d, sc.persons, vnow)
   return (
     <>
-      <AppBar title="소방 지원 요청" onBack={() => navigate(-1)} backLabel="뒤로" />
-      <main id="main" className="mob-content">
+      <AppBar title={scope.isDong ? '차량 배정 없는 사람' : '소방 지원 요청'} onBack={() => navigate(-1)} backLabel="뒤로" />
+      <main id="main" className="mob-content mob-grid2">
         {!d.result ? <EmptyState icon={<Truck size={28} />} title="배정 전" body="배정 뒤 못 옮길 사람이 여기에 보임" /> : (
           <>
-            <Figure plain label="차량이나 도우미가 없는 사람" value={u.total} unit="명" />
+            <Figure plain label={`${scope.isDong ? '우리 동 ' : ''}차량 배정 없음`} value={u.total} unit="명" />
             <List label="사유별 인원">
               {u.reasons.map((r) => <ListRow key={r.key} title={r.label} trailing={<span className="mob-t-body">{r.n}명</span>} />)}
               {!!failed.length && (
@@ -531,9 +524,7 @@ export function FieldFirePage() {
                 </InfoSheet>
               )}
             </List>
-            {scope.isDong
-              ? <p className="mob-t-callout mob-pad">동해소방서 지원 요청은 시 관리자 계정에서 시 전체 미배정 인원으로 보냄</p>
-              : <Button block variant="danger" disabled={!u.total} onClick={() => setOpen(true)}>동해소방서 지원 요청</Button>}
+            {!scope.isDong && <Button block variant="danger" disabled={!u.total} onClick={() => setOpen(true)}>동해소방서 지원 요청</Button>}
           </>
         )}
       </main>
@@ -588,19 +579,21 @@ export function FieldPersonPage() {
   return (
     <>
       <AppBar title={p.code} onBack={() => navigate(-1)} />
-      <main id="main" className="mob-content">
-        <Figure plain label={villageName(data.villages, p.villageCode)} value={g?.label || '등급 확인'} unit="">
-          <p className="mob-t-callout">{row ? `${stepLabel(row.step)}${row.stop ? `, 차량 ${row.stop.vehicleCode}` : ''}${row.step === 'fail' ? `, ${FAIL_REASONS[d.events[p.code]?.reason] || ''}` : ''}` : g?.need || ''}</p>
+      <main id="main" className="mob-content mob-grid2">
+        <Figure plain label={`${villageName(data.villages, p.villageCode)}, ${g?.label || '등급 확인'}`} value={row ? stepLabel(row.step) : (g?.label || '등급 확인')} unit="">
+          <p className="mob-t-callout">{row ? [row.stop ? `차량 ${row.stop.vehicleCode}` : null, row.step === 'fail' ? (FAIL_REASONS[d.events[p.code]?.reason] || null) : null].filter(Boolean).join(', ') : (g?.need || '')}</p>
         </Figure>
+        <List label="할 일">
+          {row && ['unassigned', 'fail'].includes(row.step)
+            ? <ListRow lead={<PhoneOutgoing size={22} />} title={scope.isDong ? '차량 배정 없는 사람 명단' : '소방 지원 요청'} chevron onClick={() => navigate('/m/f/fire')} />
+            : null}
+          <ListRow lead={<MessageSquare size={22} />} title="현장 소식 남기기" chevron onClick={() => navigate(`/m/f/note?p=${encodeURIComponent(p.code)}`)} />
+        </List>
         <List label="동행과 소통">
           <ListRow title="평소 돌봄 담당자" subtitle={!care.known ? NOT_ENTERED : `${care.caregiverType}, ${care.reachableLabel}${care.companionCall ? ', 동행 연락' : ''}`} />
           <ListRow title="의사소통" subtitle={care.comm.length ? care.comm.join(', ') : care.known ? '특이 없음' : NOT_ENTERED} />
           <ListRow title="보조기구" subtitle={care.aids.length ? care.aids.join(', ') : care.known ? '없음' : NOT_ENTERED} />
           <ListRow title="탑승 메모" subtitle={care.boardingNote || '없음'} />
-          <InfoSheet title="경로 확인 기준" sheetTitle="경로 확인 기준"><p className="mob-t-body mob-pad">{ROUTE_NOTE}</p></InfoSheet>
-        </List>
-        <List label="현장 소식">
-          <ListRow lead={<MessageSquare size={22} />} title="이 대상자 현장 소식 남기기" chevron onClick={() => navigate(`/m/f/note?p=${encodeURIComponent(p.code)}`)} />
         </List>
       </main>
     </>
@@ -780,9 +773,8 @@ export function FieldNotePage() {
         {canSaveTextOnly(state) && <div className="mob-stack-8"><Button block variant="tonal" onClick={keepText}>글만 먼저 저장</Button></div>}
         <div className="mob-stack-8">
           {mode === 'text'
-            ? <Button block disabled={!person || !text.trim() || busy} onClick={() => send(null)}>보내고 읽기</Button>
+            ? <Button block disabled={!person || !text.trim() || busy} onClick={() => send(null)}>보내기</Button>
             : <Button block disabled={!person || busy} onClick={() => fileRef.current?.click()}>음성 파일 고르기</Button>}
-          <p className="mob-t-callout mob-pad">이름과 연락처를 가린 뒤 읽습니다. 명부는 담당자가 확인한 뒤에 바뀝니다</p>
         </div>
       </main>
       <Sheet open={pickOpen} onClose={() => setPickOpen(false)} title="대상자 고르기">
@@ -844,9 +836,9 @@ export function FieldMorePage() {
   return (
     <>
       <AppBar title="더보기" large />
-      <main id="main" className="mob-content">
+      <main id="main" className="mob-content mob-grid2">
         <List label="다른 업무">
-          <ListRow lead={<PhoneOutgoing size={22} />} title="소방 지원 요청" subtitle={d.result ? `차량이나 도우미가 없는 사람 ${u.total}명` : '발령 뒤 표시'} chevron onClick={() => navigate('/m/f/fire')} />
+          <ListRow lead={<PhoneOutgoing size={22} />} title={scope.isDong ? '차량 배정 없는 사람' : '소방 지원 요청'} subtitle={d.result ? `${u.total}명` : '발령 뒤 표시'} chevron onClick={() => navigate('/m/f/fire')} />
           <ListRow lead={<Search size={22} />} title="대상자 찾기" chevron onClick={() => navigate('/m/f/people')} />
           <InfoSheet lead={<Users size={22} />} title="차량 소속과 확인 상태" sheetTitle="차량 소속과 확인 상태">
             <List label="차량 소속">
@@ -860,7 +852,7 @@ export function FieldMorePage() {
         </List>
         {!ACTIVE.has(d.status) && (
           <List label="시연">
-            <ListRow lead={<Play size={22} />} title="훈련 발령 시작" subtitle="배정과 문자 보내기까지 한 번에, 시연 속도 1시간을 1분으로(60배)" onClick={startDrill} />
+            <ListRow lead={<Play size={22} />} title="훈련 발령 시작" subtitle="1시간을 1분으로(60배)" onClick={startDrill} />
           </List>
         )}
         <List label="계정">

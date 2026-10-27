@@ -681,3 +681,11 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
    키트 채움 #787880@0.16 은 옅은 반투명이라 사용자 규칙(옅은 색 금지)에 따라 같은 무채색 단색 --m-fill 로 */
 .mob-root.platform-ios .mob-dialog-actions .mob-btn.v-plain { background: var(--m-fill); }
 .mob-root.platform-ios .mob-dialog-actions .mob-btn.v-plain:not(.mob-h-danger-text) { color: var(--m-ink); }
+
+/* 화면 2차 정리 C: 폭 720 이상(폴드 안쪽 가로, 태블릿)에서는 한 열로 길게 내리지 않고 두 단으로 채운다(M3 window size classes, HIG Layout).
+   600~719(폴드 안쪽 세로, 듀오 안쪽)는 한 열이 화면 폭을 채우므로 그대로 둔다(두 단이면 한 단 폭이 220 안팎이라 글이 세 줄로 접힘).
+   결론(할 일 목록 또는 큰 숫자)이 왼쪽 위, 근거가 오른쪽과 아래. 버튼과 안내 줄은 두 단을 가로질러 놓는다. */
+@media (min-width: 720px) {
+  .mob-content.mob-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; row-gap: 16px; align-content: start; align-items: start; }
+  .mob-content.mob-grid2 > .mob-btn, .mob-content.mob-grid2 > p, .mob-content.mob-grid2 > .mob-empty { grid-column: 1 / -1; }
+}
