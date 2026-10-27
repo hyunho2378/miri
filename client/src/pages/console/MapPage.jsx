@@ -14,6 +14,7 @@ import MapCanvas from '../../components/map/MapCanvas.jsx'
 import Map3D from '../../components/map/Map3D.jsx'
 import SummaryPanel from '../../components/map/SummaryPanel.jsx'
 import VillageDetail from '../../components/map/VillageDetail.jsx'
+import MapSidePanel from '../../components/map/MapSidePanel.jsx'
 import LayerPanel from '../../components/map/LayerPanel.jsx'
 import TimeAxis from '../../components/map/TimeAxis.jsx'
 import useMediaQuery from '../../hooks/useMediaQuery.js'
@@ -120,6 +121,7 @@ export default function MapPage() {
       target: row.targetTotal, targets: row.targets, shortage: inScope ? row.total : 0, shortageByGrade: row.shortage, provisional: row.provisional,
       timeOnly: row.timeOnly || 0,
       waiting: p.waiting, moved: p.moved, level,
+      completeBy: result.ctx?.deadlines?.[v.code]?.completeBy ?? Infinity, arrivalOrder: result.ctx?.deadlines?.[v.code]?.arrival ?? Infinity,
       arrivalH: tl?.arrivalH ?? scenario.windowHours, arrivalAt: today + (tl?.arrivalH ?? scenario.windowHours) * HOUR,
       radiusKm: isNormal ? 0.12 + 0.028 * Math.sqrt(row.targetTotal) : undefined,
       tipLine: isNormal
@@ -149,6 +151,8 @@ export default function MapPage() {
 
   const shortList = useMemo(() => villageVm.filter((v) => v.shortage > 0).sort((a, b) => b.shortage - a.shortage || a.code.localeCompare(b.code)), [villageVm])
   const scopeCount = villageVm.filter((v) => v.inScope).length
+  // 현황판 부족 마을 목록과 같은 순서(기한 빠른 순)
+  const orderedShort = useMemo(() => villageVm.filter((v) => v.shortage > 0).sort((a, b) => a.arrivalOrder - b.arrivalOrder || a.code.localeCompare(b.code)), [villageVm])
 
   const vehiclePos = useMemo(() => placeVehicles(vehicles), [vehicles])
   const vehicleVm = useMemo(() => vehicles.filter((v) => vehiclePos[v.code]).map((v) => ({
@@ -260,31 +264,13 @@ export default function MapPage() {
       <div className="flex flex-col gap-4 px-4 py-4 md:px-6 lg:contents">
         {/* 왼쪽 위: 상황 전환. 평시가 기본이고 가정 시나리오는 켜서 본다. 발령 중이면 고정 */}
         {isNormal && !selectedVm ? (
-          <section aria-label="평시 현황" className="lg:absolute lg:left-4 lg:top-4 lg:z-raised lg:w-[320px] rounded-lg bg-page p-4 shadow-md">
-            <SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} />
-            <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2.5">
-              <div><dt className="type-meta text-text-meta">대상자</dt><dd className="type-h3 text-text-pri tabular-nums">{fmtN(normalStats.targets)}<span className="ml-0.5 type-body-sm">명</span></dd></div>
-              <div><dt className="type-meta text-text-meta">마을</dt><dd className="type-h3 text-text-pri tabular-nums">{villages.length}<span className="ml-0.5 type-body-sm">곳</span></dd></div>
-              <div><dt className="type-meta text-text-meta">임시주거시설 수용</dt><dd className="type-h3 text-text-pri tabular-nums">{fmtN(normalStats.capacity)}<span className="ml-0.5 type-body-sm">명</span></dd></div>
-              <div><dt className="type-meta text-text-meta">출동 가능 차량</dt><dd className="type-h3 text-text-pri tabular-nums">{normalStats.avail}<span className="ml-0.5 type-body-sm">/ {vehicles.length}대</span></dd></div>
-            </dl>
-            <p className="mt-1 type-meta text-text-meta">{normalStats.gradeLine}</p>
-            <div className="mt-3 rounded-md bg-subtle px-3 py-2">
-              <FireRiskStrip compact />
-              <WeatherLine className="mt-0.5" />
-            </div>
-            <p className="mt-3 type-caption text-text-sec">대상자가 많은 마을</p>
-            <ul className="mt-1 -mx-1 flex flex-col">
-              {normalStats.top.map((v) => (
-                <li key={v.code}>
-                  <button type="button" onClick={() => pick(v.code)} className="flex min-h-9 w-full items-center gap-2 rounded-md px-1 text-left hover:bg-subtle">
-                    <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">{v.label}<span className="ml-1.5 type-meta text-text-meta">{v.dongName}</span></span>
-                    <span className="type-strong text-text-pri tabular-nums">{v.target}명</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
+          <aside aria-label="상황 요약" className="rounded-lg bg-page p-4 lg:absolute lg:left-4 lg:top-4 lg:bottom-4 lg:z-raised lg:w-source-col-md lg:overflow-hidden lg:shadow-md">
+            <MapSidePanel
+              switcher={<SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} />}
+              total={result.total} rows={orderedShort} onPick={pick} today={today}
+              stats={{ targets: normalStats.targets, villages: villages.length, avail: normalStats.avail }} vehicleCount={vehicles.length}
+            />
+          </aside>
         ) : isLg && !selectedVm && !showSummary ? (
           <section aria-label="상황 요약" className="absolute left-4 top-4 z-raised w-[300px] rounded-lg bg-page p-4 shadow-md">
             <SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} />
@@ -335,7 +321,7 @@ export default function MapPage() {
               </div>
             )}
             {selectedVm
-              ? <VillageDetail village={selectedVm} onBack={() => setSelected(null)} />
+              ? <VillageDetail village={selectedVm} onBack={() => setSelected(null)} today={today} />
               : (
                 <SummaryPanel
                   scenario={scenario} scenarios={scenarios} onScenario={(id) => { setActiveScenario(id); setSelected(null) }}
@@ -424,7 +410,7 @@ function SituationSwitch({ situation, onView, live, kind }) {
   }
   return (
     <div role="radiogroup" aria-label="보기 상황" className="grid grid-cols-2 gap-1 rounded-md bg-mute p-1">
-      {[['normal', '평시'], ['scenario', '가정 시나리오']].map(([v, l]) => (
+      {[['normal', '현재'], ['scenario', '확산 조건']].map(([v, l]) => (
         <button key={v} type="button" role="radio" aria-checked={situation === v} onClick={() => onView(v)}
           className={clsx('h-8 rounded-sm px-2 type-strong transition-colors duration-fast', situation === v ? 'bg-page text-text-pri shadow-sm' : 'text-text-meta hover:text-text-pri')}>{l}</button>
       ))}

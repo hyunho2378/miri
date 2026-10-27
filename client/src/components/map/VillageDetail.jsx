@@ -1,68 +1,71 @@
-// 마을 상세. 막대나 표식을 고르면 왼쪽 패널에 열린다(PRD F1 수용 기준: 등급별 대상자, 부족분, 왕복 시간).
+// 마을 상세. 지도에서 마을을 고르면 왼쪽 패널에 열린다. 결론, 할 일, 근거 순(현황판 마을 상세와 같은 구조). 상자 없음
 import { ArrowLeft } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import Button from '../ui/Button.jsx'
-import KeyValue from '../ui/KeyValue.jsx'
 import { GRADES } from '../../lib/shortage.js'
 import { fmtHM } from '../../lib/time.js'
 import { fmtElapsed } from '../../lib/geo.js'
-import { placeLine } from '../../lib/aiCard.js'
 
 const byGrade = (obj) => {
   const parts = GRADES.filter((g) => obj?.[g.key]).map((g) => `${g.label} ${obj[g.key]}명`)
   return parts.length ? parts.join(', ') : '없음'
 }
 
-export default function VillageDetail({ village, onBack }) {
+function Row({ label, value }) {
+  return (
+    <div className="flex min-h-10 items-baseline justify-between gap-4 py-1.5">
+      <dt className="shrink-0 type-body-sm text-text-sec">{label}</dt>
+      <dd className="min-w-0 text-right type-body text-text-pri tabular-nums">{value}</dd>
+    </div>
+  )
+}
+
+function Part({ title, children }) {
+  return (
+    <section className="mt-5 first:mt-0">
+      <h3 className="mb-1 type-strong text-text-sec">{title}</h3>
+      {children}
+    </section>
+  )
+}
+
+export default function VillageDetail({ village, onBack, today }) {
   const v = village
   return (
     <div>
       <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={16} aria-hidden="true" />} className="-ml-2">
-        요약으로 돌아가기
+        부족 마을 목록
       </Button>
-      <p className="mt-3 type-caption text-text-meta">{v.dongName}, {v.code}{v.inScope ? '' : ', 대피 대상 구역 밖'}</p>
-      <h2 className="mt-1 type-h3 text-text-pri">{v.label}</h2>
-      {v.pickup && <p className="mt-1 type-body-sm text-text-sec">집결지 {v.pickup.name}, {v.pickup.road.replace('동해시 ', '')}</p>}
-      <p className="mt-1 type-meta text-text-meta">{placeLine('pickup')}. {placeLine('shelter')}.</p>
+      <h2 className="mt-2 type-title text-text-pri">{v.label}<span className="ml-2 type-body-sm font-normal text-text-sec">{v.dongName}</span></h2>
 
-      <div className="mt-4">
-        <p className="type-caption text-text-sec">부족분</p>
-        {!v.inScope
-          ? <p className="mt-1 type-h2 text-text-pri">계산 제외</p>
-          : v.shortage
-            ? <p className="mt-1 type-kpi text-danger-text tabular-nums">부족 {v.shortage}<span className="ml-1 type-h3">명</span></p>
-            : <p className="mt-1 type-h2 text-text-pri">부족 없음</p>}
-        {v.shortage > 0 && <p className="mt-1 type-body-sm text-text-sec">{byGrade(v.shortageByGrade)}</p>}
-        {v.timeOnly > 0 && <p className="mt-1 type-body-sm text-danger-text">이 가운데 {v.timeOnly}명은 준비 시간 뒤 첫 왕복도 도달 전에 끝나지 않습니다.</p>}
-        <p className="mt-1 type-meta text-text-meta">기준: 이송 완료 기한까지 배정 기준선 규칙으로 옮기지 못하는 인원</p>
-      </div>
+      <Part title="결론">
+        <p className="type-body-strong text-text-pri tabular-nums">
+          {!v.inScope ? '대피 대상 구역 밖, 계산 제외' : v.shortage ? `기준 배정 시 이동 불가 인원 ${v.shortage}명` : '기한 안 이송 가능'}
+        </p>
+        {v.shortage > 0 && <p className="type-body-sm text-text-sec tabular-nums">{byGrade(v.shortageByGrade)}</p>}
+        {v.timeOnly > 0 && <p className="type-body-sm text-danger-text">{v.timeOnly}명은 첫 왕복 전에 도달</p>}
+      </Part>
 
-      <KeyValue
-        className="mt-4"
-        items={[
-          { label: '대상자', value: `${v.target}명`, strong: true },
-          { label: '등급별', value: byGrade(v.targets) },
-          { label: '대피소', value: v.shelterName || '미지정' },
-          { label: '왕복 시간', value: v.roundTripMin == null ? '대피소 없음' : v.driveMin != null ? `${v.roundTripMin}분(편도 주행 ${v.driveMin}분, 탑승과 하차 포함)` : `${v.roundTripMin}분` },
-          ...(v.inScope ? [
-            { label: '도달 시각', value: `발령 후 ${fmtElapsed(v.arrivalH)}, ${fmtHM(v.arrivalAt)}` },
-            { label: '선택 시점', value: `대기 ${v.waiting}명, 이송 완료 추정 ${v.moved}명` }
-          ] : [])
-        ]}
-      />
-      {v.shelterNote && (
-        <div className="mt-3 rounded-md bg-mute px-3 py-2.5">
-          <p className="type-body-sm leading-6 text-text-pri">{v.shelterNote}</p>
-          <p className="mt-0.5 type-meta text-text-meta">평시 지정 시설 {v.plannedShelterName}</p>
-          {v.shelterParts.length > 1 && <p className="mt-0.5 type-meta text-text-meta">나눠 배정: {v.shelterParts.join(', ')}</p>}
+      <Part title="할 일">
+        <div className="flex flex-wrap gap-2">
+          <Button as={Link} to={`/console/roster?village=${v.code}`}>이 마을 명부 보기</Button>
+          <Button as={Link} to="/console/resources" variant="secondary">협약 차량 확인</Button>
         </div>
-      )}
-      {v.provisional > 0 && <p className="mt-3 type-meta text-primary-text">이 마을 확인 대기 서류 {v.provisional}건 포함</p>}
-      <p className="mt-4 type-meta leading-5 text-text-meta">
-        {v.weightBasis === '행정동 전체'
-          ? '대상자 수는 2025 장기요양 재가 수급자 추정치를 행정동 75세 이상 인구 비율로 나눈 값입니다.'
-          : `대상자 수는 2025 장기요양 재가 수급자 추정치를 행정동 75세 이상 인구 비율로 나누고, 행정동 안에서는 ${v.weightBasis}로 다시 나눈 값입니다.`}
-        {' '}개인 정보는 가상입니다.
-      </p>
+      </Part>
+
+      <Part title="근거">
+        <dl>
+          <Row label="대상자" value={`${v.target}명`} />
+          <Row label="등급별" value={byGrade(v.targets)} />
+          <Row label="대피소" value={v.shelterName || '미지정'} />
+          <Row label="왕복 시간" value={v.roundTripMin == null ? '대피소 없음' : `${v.roundTripMin}분`} />
+          {v.inScope && Number.isFinite(v.completeBy) && <Row label="이송 완료 기한" value={`발령 후 ${fmtElapsed((v.completeBy - today) / 3600000)}`} />}
+          {v.inScope && <Row label="산불 도달" value={`발령 후 ${fmtElapsed(v.arrivalH)}, ${fmtHM(v.arrivalAt)}`} />}
+          {v.inScope && <Row label="선택 시점" value={`대기 ${v.waiting}명, 이송 완료 ${v.moved}명`} />}
+          {v.provisional > 0 && <Row label="확인 대기 서류" value={`${v.provisional}건 포함`} />}
+        </dl>
+        {v.shelterNote && <p className="mt-1 type-body-sm text-text-sec">{v.shelterNote}</p>}
+      </Part>
     </div>
   )
 }
