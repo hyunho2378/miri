@@ -46,6 +46,8 @@ export default function ResourcesPage() {
   const tab = ['helpers', 'shelters'].includes(params.get('tab')) ? params.get('tab') : 'vehicles'
   const [form, setForm] = useState(null)   // { kind, mode, value }
   const [errors, setErrors] = useState({})
+  // 협약을 확인하지 않은 차량을 먼저 본다(공무원 시점 검수: '확인 전 11대'가 첫 줄에 와야 할 일이 보임)
+  const [onlyUnconfirmed, setOnlyUnconfirmed] = useState(false)
 
   const dongName = (c) => dongs.find((d) => d.code === c)?.name || c
   const vlabel = (c) => villages.find((v) => v.code === c)?.label || c
@@ -163,6 +165,11 @@ export default function ResourcesPage() {
     }
   ]
 
+  const unconfirmedCount = vehicles.filter((v) => commitmentOf(v) === 'unconfirmed').length
+  const vehicleRows = vehicles
+    .filter((v) => !onlyUnconfirmed || commitmentOf(v) === 'unconfirmed')
+    .slice().sort((a, b) => (commitmentOf(a) === 'unconfirmed' ? 0 : 1) - (commitmentOf(b) === 'unconfirmed' ? 0 : 1))
+
   return (
     <PageShell title="차량과 도우미">
       <Tabs
@@ -177,11 +184,21 @@ export default function ResourcesPage() {
           columns={shelterColumns} rows={shelterRows} rowKey={(r) => r.code} caption="대피소 승강기 확인 목록"
         />
       ) : tab === 'vehicles' ? (
+        <>
+        {unconfirmedCount > 0 && (
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <p className="type-body text-text-pri">협약 미확정 차량 <strong className="type-strong tabular-nums">{unconfirmedCount}대</strong></p>
+            <Button variant={onlyUnconfirmed ? 'secondary' : 'primary'} size="sm" onClick={() => setOnlyUnconfirmed((v) => !v)}>
+              {onlyUnconfirmed ? '전체 차량 보기' : '협약 확인'}
+            </Button>
+          </div>
+        )}
         <TableCard
           key="vehicles" title="차량" count={vehicleChips(vehicles)}
           actions={<InlineEditBar resource="vehicles" addLabel="차량 추가" onAdd={() => { setErrors({}); setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'request', baseDong: 'MS', available: true, contractUntil: '', note: '', commitment: 'unconfirmed' } }) }} />}
-          columns={vehicleColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={vehicles} rowKey={(v) => v.code} caption="차량 목록"
+          columns={vehicleColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={vehicleRows} rowKey={(v) => v.code} caption="차량 목록"
         />
+        </>
       ) : (
         <TableCard
           key="helpers" title="도우미" count={`활동 중 ${helpers.filter((h) => h.active !== false).length} / 전체 ${helpers.length}명`}
