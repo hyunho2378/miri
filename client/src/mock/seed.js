@@ -268,7 +268,7 @@ export function buildSeed() {
   return {
     dongs: DONGS, shelters: SHELTERS, villages, persons, privateInfo, vehicles, helpers,
     settings: { ...SETTINGS }, scenarios: scenarios.map((sc) => ({ ...sc, builtin: true })), activeScenarioId: 'S-1', intakeDocs: docs,
-    records: [], today: TODAY
+    records: pastRecords(), today: TODAY
   }
 }
 
@@ -319,3 +319,35 @@ export const SAMPLE_UPLOAD = {
 }
 
 export { TODAY, MIN }
+
+// 지난 훈련 발령 기록 8건(마을 몇 곳씩 나눠 한 훈련). 기준 시나리오(848명)와 별개의 소규모 훈련이다.
+// [월, 일, 시, 분, 걸린 분, 도우미 수, [[마을 코드, 대상자, 인계 완료, 소방 인계], ...]]
+const PAST_DRILLS = [
+  [8, 27, 14, 0, 52, 14, [['MS-04', 38, 36, 0], ['MS-05', 29, 27, 1], ['MS-02', 31, 31, 0]]],
+  [9, 3, 10, 30, 48, 12, [['BH-01', 44, 41, 1], ['MH-01', 36, 36, 0], ['MH-02', 18, 17, 0]]],
+  [9, 10, 15, 10, 61, 16, [['CG-01', 52, 46, 2], ['CG-02', 33, 30, 1], ['BG-01', 27, 27, 0]]],
+  [9, 17, 9, 40, 44, 11, [['SJ-01', 24, 24, 0], ['SJ-02', 19, 18, 0], ['BS-01', 22, 21, 0]]],
+  [9, 24, 19, 20, 57, 15, [['SH-03', 41, 37, 2], ['SH-02', 28, 28, 0], ['SH-01', 35, 33, 1]]],
+  [10, 1, 14, 20, 46, 13, [['MS-01', 33, 33, 0], ['MS-03', 21, 20, 0], ['MS-04', 30, 29, 0]]],
+  [10, 8, 20, 0, 63, 17, [['BH-01', 46, 40, 3], ['MH-03', 25, 23, 1], ['MH-01', 34, 32, 1]]],
+  [10, 15, 10, 0, 50, 14, [['CG-01', 50, 48, 1], ['BG-01', 29, 29, 0], ['CG-02', 31, 29, 1]]]
+]
+
+function pastRecords() {
+  return PAST_DRILLS.map(([mo, d, h, mi, dur, helpers, rows]) => {
+    const startedAt = new Date(2026, mo - 1, d, h, mi).getTime()
+    const closedAt = startedAt + dur * 60000
+    const byVillage = {}
+    let done = 0, fire = 0, total = 0
+    for (const [code, t, ok, f] of rows) { byVillage[code] = { total: t, done: ok, failed: t - ok - f, fire: f }; done += ok; fire += f; total += t }
+    const open = total - done - fire
+    const counts = { handover: done }
+    if (fire) counts.handedToFire = fire
+    if (open) counts.fail = open
+    return {
+      id: `R-${startedAt}`, kind: 'drill', startedAt, closedAt, counts, byVillage, targets: total, helpers,
+      handovers: [], metrics: { unserved: open + fire, weightedUnserved: (open + fire) * 2, lastFinishAt: closedAt },
+      baseline: { unserved: open + fire + Math.max(2, Math.round(total * 0.05)), weightedUnserved: (open + fire) * 2 + 9, lastFinishAt: closedAt + 6 * 60000 }
+    }
+  }).reverse()
+}

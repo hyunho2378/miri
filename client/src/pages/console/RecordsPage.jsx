@@ -7,7 +7,6 @@ import BarChart from '../../components/dashboard/BarChart.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Button from '../../components/ui/Button.jsx'
-import Disclosure from '../../components/ui/Disclosure.jsx'
 import EmptyState from '../../components/ui/EmptyState.jsx'
 import { MIN, fmtDateTime, minutesText } from '../../lib/time.js'
 import useMiriStore from '../../store/useMiriStore.js'
@@ -29,7 +28,7 @@ export default function RecordsPage() {
   const rows = records.map((r) => ({ ...r, ...recordTotals(r), minutes: (r.closedAt - r.startedAt) / MIN }))
   const columns = [
     { key: 'startedAt', label: '일시', render: (r) => <span className="tabular-nums">{fmtDateTime(r.startedAt)}</span>, sortable: true },
-    { key: 'kind', label: '종류', render: (r) => <StatusPill status={r.kind === 'drill' ? 'closed' : 'standby'} label={r.kind === 'drill' ? '훈련' : '실제'} /> },
+    { key: 'kind', label: '구분', render: (r) => <StatusPill status={r.kind === 'drill' ? 'closed' : 'standby'} label={r.kind === 'drill' ? '훈련' : '실제'} /> },
     { key: 'total', label: '대상자', render: (r) => `${r.total}명`, align: 'right', sortable: true },
     { key: 'done', label: '인계 완료', render: (r) => `${r.done}명`, align: 'right', sortable: true },
     { key: 'fire', label: '소방 인계', render: (r) => `${r.fire}명`, align: 'right', hideBelow: 'md' },
@@ -66,19 +65,17 @@ export default function RecordsPage() {
           />
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-x-10 gap-y-8 cq-xl:grid-cols-[minmax(0,8fr)_minmax(0,4fr)] cq-xl:items-start">
           <TableCard
-            title="발령 기록" count={`${records.length}건`}
+            title="발령 기록" count={`${records.length}건`} tone="flat"
             columns={columns} rows={rows} rowKey={(r) => r.id} pageSize={20} caption="이송 기록"
             onRowClick={(r) => navigate(`/console/records/${r.id}`)}
           />
-          <Disclosure summary="마을별 미이송 추이">
-          <Card title="마을별 미이송 추이" desc="최근 3건 기준, 미완료와 소방 인계 합계">
-            {chart === null && <p className="type-body-sm text-text-meta">이송 기록이 2건 이상일 때 표시합니다.</p>}
-            {Array.isArray(chart) && !chart.length && <p className="type-body-sm text-text-meta">최근 발령에서 미이송 인원이 없습니다.</p>}
-            {Array.isArray(chart) && chart.length > 0 && <BarChart groups={chart} height={260} ariaLabel="마을별 미이송 추이 막대 차트" />}
+          <Card title="마을별 미완료 추이" tone="flat" meta="최근 3건">
+            {chart === null && <p className="type-body-sm text-text-meta">이송 기록 2건 이상일 때 표시</p>}
+            {Array.isArray(chart) && !chart.length && <p className="type-body-sm text-text-meta">최근 발령 미완료 인원 없음</p>}
+            {Array.isArray(chart) && chart.length > 0 && <BarChart groups={chart} height={260} ariaLabel="마을별 미완료 추이 막대 차트" />}
           </Card>
-          </Disclosure>
         </div>
       )}
     </PageShell>
