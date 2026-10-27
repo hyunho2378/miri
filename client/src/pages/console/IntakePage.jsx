@@ -1,17 +1,16 @@
 // 서류 읽기(IA 4.3). 미리의 핵심 화면. 종이 대피계획서를 AI가 읽고 담당자가 한 건씩 확인해 명부에 확정한다(PRD v2 F2).
-// 위: 3단계 안내(올리기, AI 읽기, 담당자 확인)와 단계별 건수. 아래: 왼쪽 확인 대기 목록, 오른쪽 선택한 건(원본, 읽은 값, 근거).
+// 위: 한 줄 단계 띠(올리기, AI 읽기, 담당자 확인). 아래: 왼쪽 확인 대기 목록, 오른쪽 선택한 건(원본, 읽은 값, 근거). 두 칸은 화면 높이 안에서 각자 안에서만 스크롤하고 확인 단추는 늘 보인다.
 import { useMemo, useState } from 'react'
-import { CircleAlert, FileUp, ScanText, UserCheck } from 'lucide-react'
+import { ChevronRight, CircleAlert, FileUp } from 'lucide-react'
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
-import Card from '../../components/ui/Card.jsx'
+import Modal from '../../components/ui/Modal.jsx'
+import PageHeader from '../../components/console/PageHeader.jsx'
 import IntakeUploader, { ReadTimeline } from '../../components/miri/IntakeUploader.jsx'
-import StepCard from '../../components/miri/StepCard.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import ReviewRow from '../../components/miri/ReviewRow.jsx'
 import Button from '../../components/ui/Button.jsx'
-import Disclosure from '../../components/ui/Disclosure.jsx'
 import EmptyState from '../../components/ui/EmptyState.jsx'
 import useToast from '../../hooks/useToast.js'
 import { readDocument, verifyPage, verifyResult } from '../../lib/intake.js'
@@ -121,7 +120,7 @@ export default function IntakePage() {
     setReading(null)
     setShowUpload(false)
     setIdx(0)
-    toast(`${doc.name} 읽기를 마쳤습니다. 확인 대기 ${doc.results.length}건`, 'primary')
+    toast(`${doc.name} 읽기 완료, 확인 대기 ${doc.results.length}건`, 'primary')
   }
 
   const onSample = async () => {
@@ -150,7 +149,7 @@ export default function IntakePage() {
       const page = await progress(file.name, readDocument(file))
       if (!page.persons?.length) {
         setReading(null)
-        setError({ title: '읽기 결과가 없습니다', desc: '문서에서 대상자 표기를 찾지 못했습니다. 다시 촬영해 올려 주십시오.' })
+        setError({ title: '읽기 결과 없음', desc: '문서에서 대상자 표기를 찾지 못함. 다시 촬영해 업로드' })
         return
       }
       const codes = uniqueCodes(villageCode, page.persons.length)
@@ -168,117 +167,128 @@ export default function IntakePage() {
   const confirmAllHigh = () => {
     const targets = queue.filter((q) => q.result.confidence === 'high')
     targets.forEach((q) => reviewResult(q.doc.id, q.result.personCode, 'confirm'))
-    toast(`일치도 높음 ${targets.length}건을 확인했습니다.`, 'primary')
+    toast(`서류와 같음 ${targets.length}건 확인 완료`, 'primary')
   }
 
-  return (
-    <PageShell title="서류 읽기">
-      <section aria-label="서류 읽기 단계" className="mb-4 flex flex-col gap-3 lg:flex-row">
-        <StepCard n={1} Icon={FileUp} title="서류 올리기" count={`서류 ${countText(docs.length, '건')}`}
-          active={uploadOpen} onClick={canEdit ? () => setShowUpload((v) => !v) : undefined} />
-        <StepCard n={2} Icon={ScanText} title="AI가 읽기" count={`대상자 ${countText(readPeople, '명')}`} />
-        <StepCard n={3} Icon={UserCheck} title="담당자 확인" count={`확인 대기 ${countText(queue.length, '건')}`} active={!uploadOpen && queue.length > 0} />
-      </section>
+  const [doneOpen, setDoneOpen] = useState(false)
+  const steps = [
+    { n: 1, label: '서류 올리기', count: `서류 ${countText(docs.length, '건')}`, onClick: canEdit ? () => setShowUpload((v) => !v) : undefined, active: uploadOpen },
+    { n: 2, label: 'AI 읽기', count: `대상자 ${countText(readPeople, '명')}` },
+    { n: 3, label: '담당자 확인', count: `확인 대기 ${countText(queue.length, '건')}`, active: !uploadOpen && queue.length > 0 }
+  ]
 
-      {uploadOpen && (
-        <Card title="서류 올리기" className="mb-4">
-          {canEdit ? (
-            <IntakeUploader villages={villages} onFile={onFile} onSample={onSample} onReal={onReal} realCases={REAL_READINGS} busy={!!reading && !reading.failed} />
-          ) : <p className="type-body-sm text-text-meta">서류 읽기 권한이 없습니다.</p>}
-          {reading && <div className="mt-4"><ReadTimeline name={reading.name} step={reading.step} failed={reading.failed} /></div>}
-          {error && (
-            <div role="alert" className="mt-4 flex items-start gap-2 rounded-md bg-danger-soft p-4 text-danger-text">
-              <CircleAlert size={20} aria-hidden="true" className="shrink-0" />
-              <div>
-                <p className="type-strong">{error.title}</p>
-                <p className="mt-1 type-meta">{error.desc}</p>
-              </div>
+  return (
+    <PageShell title="서류 읽기" hideHeader className="flex flex-col lg:h-full lg:pb-4">
+      <PageHeader title="서류 읽기" className="!mb-3 shrink-0" action={canEdit && (
+        <Button variant="primary" leftIcon={<FileUp size={16} aria-hidden="true" />} onClick={() => setShowUpload(true)}>서류 올리기</Button>
+      )} />
+      <ol aria-label="서류 읽기 단계" className="mb-3 flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 type-body-sm text-text-sec">
+        {steps.map((st, i) => (
+          <li key={st.n} className="flex items-center gap-3">
+            {i > 0 && <ChevronRight size={14} aria-hidden="true" className="text-text-ter" />}
+            <span className={clsx('inline-flex items-center gap-2', st.active ? 'text-text-pri' : '')}>
+              <span aria-hidden="true" className={clsx('inline-flex h-6 w-6 items-center justify-center rounded-full type-caption', st.active ? 'bg-text-pri text-text-inverse' : 'bg-mute text-text-sec')}>{st.n}</span>
+              <span className={clsx(st.active && 'font-bold')}>{st.label}</span>
+              <span className="tabular-nums">{st.count}</span>
+            </span>
+          </li>
+        ))}
+        <li className="ml-auto"><button type="button" onClick={() => setDoneOpen(true)} className="min-h-11 rounded-md px-2 type-body-sm text-primary-text hover:underline md:min-h-0">처리 완료 문서 {doneDocs.length}건</button></li>
+      </ol>
+
+      <Modal open={uploadOpen} onClose={() => { setShowUpload(false); setError(null) }} title="서류 올리기" className="max-w-[720px]">
+        {canEdit ? (
+          <IntakeUploader villages={villages} onFile={onFile} onSample={onSample} onReal={onReal} realCases={REAL_READINGS} busy={!!reading && !reading.failed} />
+        ) : <p className="type-body-sm text-text-meta">서류 읽기 권한이 없습니다.</p>}
+        {reading && <div className="mt-4"><ReadTimeline name={reading.name} step={reading.step} failed={reading.failed} /></div>}
+        {error && (
+          <div role="alert" className="mt-4 flex items-start gap-2 rounded-md bg-danger-soft p-4 text-danger-text">
+            <CircleAlert size={20} aria-hidden="true" className="shrink-0" />
+            <div>
+              <p className="type-strong">{error.title}</p>
+              <p className="mt-1 type-meta">{error.desc}</p>
             </div>
-          )}
-        </Card>
-      )}
+          </div>
+        )}
+      </Modal>
+
+      <Modal open={doneOpen} onClose={() => setDoneOpen(false)} title={`처리 완료 문서 ${doneDocs.length}건`} className="max-w-[720px]">
+        {doneDocs.length ? (
+          <ul className="space-y-4">
+            {doneDocs.map((d) => (
+              <li key={d.id}>
+                <p className="type-strong text-text-pri">{d.name}</p>
+                <p className="mt-1 type-meta text-text-meta tabular-nums">{d.id}, {KIND_LABEL[d.kind]}, {fmtDate(d.uploadedAt)}</p>
+                <ul className="mt-2 flex flex-wrap gap-2">
+                  {d.results.map((r) => (
+                    <li key={r.personCode}>
+                      <Link to={`/console/roster?person=${r.personCode}`} className="inline-flex min-h-11 items-center gap-1.5 md:min-h-0 hover:underline">
+                        <span className="type-meta text-text-sec tabular-nums">{r.personCode}</span>
+                        <StatusPill status={personMap[r.personCode]?.review || 'rejected'} size="sm" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="type-body-sm text-text-meta">처리 완료 문서가 없습니다.</p>}
+      </Modal>
 
       {current ? (
-        <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)] xl:items-start">
-          <Card as="aside" padding="none" aria-label="확인 대기 목록" className="xl:sticky xl:top-20">
-            <div className="flex items-center justify-between gap-2 border-b border-line-sub px-4 py-3">
-              <p className="type-strong text-text-pri">확인 대기 <span className="tabular-nums">{queue.length}</span>건</p>
-              {mismatch > 0 && <span className="type-meta text-danger-text">서류와 다른 {mismatch}건 먼저</span>}
+        <div className="grid min-h-0 flex-1 gap-x-8 gap-y-4 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
+          <section aria-label="확인 대기 목록" className="flex min-h-0 flex-col max-lg:max-h-[40vh]">
+            <div className="flex shrink-0 items-center justify-between gap-2 pb-2">
+              <h2 className="type-title text-text-pri">확인 대기 <span className="tabular-nums text-text-sec">{queue.length}건</span></h2>
+              {canEdit && highCount > 0 && (
+                <button type="button" onClick={confirmAllHigh} className="min-h-11 rounded-md px-2 type-body-sm font-bold text-primary-text hover:underline md:min-h-0">서류와 같음 {highCount}건 일괄 확인</button>
+              )}
             </div>
-            <ul className="max-h-[60vh] overflow-y-auto py-1">
+            {mismatch > 0 && <p className="shrink-0 pb-2 type-body-sm text-danger-text">서류와 다름 {mismatch}건 우선</p>}
+            <ul role="listbox" aria-label="확인 대기 서류" className="min-h-0 flex-1 space-y-0.5 overflow-y-auto pr-1">
               {queue.map((q, i) => {
                 const g = gradeOf(q.result.grade)
                 const c = CONF[q.result.confidence] || CONF.mid
                 return (
-                  <li key={q.result.personCode}>
-                    <button type="button" onClick={() => setIdx(i)} aria-current={i === pos ? 'true' : undefined}
-                      className={clsx('flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-fast', i === pos ? 'bg-page' : 'hover:bg-mute')}>
+                  <li key={q.result.personCode} role="presentation">
+                    <button type="button" role="option" aria-selected={i === pos} onClick={() => setIdx(i)}
+                      className={clsx('flex min-h-[56px] w-full items-center gap-3 rounded-xl px-3 py-1.5 text-left transition-colors duration-fast', i === pos ? 'bg-mute' : 'hover:bg-subtle')}>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate type-strong text-text-pri">{vlabel(q.doc.villageCode)} <span className="type-meta text-text-meta tabular-nums">{q.result.personCode.split('-').pop()}</span></span>
-                        <span className="block truncate type-meta text-text-meta">{KIND_LABEL[q.doc.kind]}, 읽은 등급 {g?.label || '판독 불가'}</span>
+                        <span className={clsx('block truncate type-body text-text-pri', i === pos && 'font-bold')}>{vlabel(q.doc.villageCode)} <span className="type-body-sm text-text-sec tabular-nums">{q.result.personCode.split('-').pop()}</span></span>
+                        <span className="block truncate type-body-sm text-text-sec">{KIND_LABEL[q.doc.kind]}, 읽은 등급 {g?.label || '읽기 불가'}</span>
                       </span>
-                      <span className={clsx('shrink-0 rounded-xs px-1.5 py-0.5 type-caption', c.tone)}>{c.label}</span>
+                      <span className={clsx('shrink-0 type-body-sm font-bold', c.tone)}>{c.label}</span>
                     </button>
                   </li>
                 )
               })}
             </ul>
-            {canEdit && highCount > 0 && (
-              <div className="border-t border-line-sub p-3">
-                <Button variant="ghost" size="sm" className="w-full" onClick={confirmAllHigh} leftIcon={<ScanText size={16} aria-hidden="true" />}>서류와 같은 {highCount}건 한 번에 확인</Button>
-              </div>
-            )}
-          </Card>
-          <div className="min-w-0 space-y-3">
+          </section>
+          <section aria-label="선택한 서류" className="cq flex min-h-0 min-w-0 flex-col max-lg:min-h-[520px]">
             <ReviewRow
               key={current.result.personCode}
               doc={current.doc} result={current.result} kindLabel={KIND_LABEL[current.doc.kind]}
               villageLabel={vlabel(current.doc.villageCode)} canEdit={canEdit}
-              onConfirm={() => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'confirm', boardingPatch(current.result.personCode), ck); toast(`${current.result.personCode} 판독을 확인했습니다.${ck ? ' 당사자와 계획 확인도 기록했습니다.' : ''}`, 'primary') }}
+              extra={canEdit && (
+                <div className="space-y-3">
+                  <Input
+                    label="탑승 메모(선택)" value={boardingDraft[current.result.personCode] ?? ''}
+                    placeholder="예: 왼쪽 편마비, 운전석 뒤 왼쪽 자리"
+                    hint="수락한 도우미에게만 표시. 이름과 주소는 적지 않음"
+                    onChange={(e) => setBoardingDraft((b) => ({ ...b, [current.result.personCode]: e.target.value }))}
+                  />
+                  <Checkbox checked={checkOnConfirm} onChange={setCheckOnConfirm} label="확인할 때 당사자와 계획 확인 완료로 함께 기록" />
+                </div>
+              )}
+              onConfirm={() => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'confirm', boardingPatch(current.result.personCode), ck); toast(`${current.result.personCode} 읽기 결과를 확인했습니다.${ck ? ' 당사자와 계획 확인도 기록했습니다.' : ''}`, 'primary') }}
               onEdit={(patch) => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'edit', { ...patch, ...boardingPatch(current.result.personCode) }, ck); toast(`${current.result.personCode} 수정한 값으로 확인했습니다.${ck ? ' 당사자와 계획 확인도 기록했습니다.' : ''}`, 'primary') }}
-              onReject={() => { reviewResult(current.doc.id, current.result.personCode, 'reject'); toast(`${current.result.personCode}을 제외했습니다. 서류를 다시 찍어 달라고 요청해 주세요.`) }}
+              onReject={() => { reviewResult(current.doc.id, current.result.personCode, 'reject'); toast(`${current.result.personCode} 제외. 서류 재촬영 요청 필요`) }}
             />
-            {canEdit && (
-              <>
-                <Input
-                  label="탑승 메모(선택, 확인할 때 명부에 함께 남김)" value={boardingDraft[current.result.personCode] ?? ''}
-                  placeholder="예: 왼쪽 편마비, 운전석 뒤 왼쪽 자리, 지팡이는 도우미가 보관"
-                  hint="수락한 도우미에게만 보입니다. 이름과 주소는 적지 않습니다."
-                  onChange={(e) => setBoardingDraft((b) => ({ ...b, [current.result.personCode]: e.target.value }))}
-                />
-                <Checkbox checked={checkOnConfirm} onChange={setCheckOnConfirm} label="확인할 때 당사자와 계획 확인 완료로 함께 기록(마지막 확인 날짜를 오늘로)" />
-              </>
-            )}
-          </div>
+          </section>
         </div>
       ) : (
-        <Card as="div" padding="none"><EmptyState title="확인 대기 서류가 없습니다" desc="새 서류는 1단계 서류 올리기에서 등록합니다." /></Card>
+        <EmptyState title="확인 대기 서류 없음" desc="새 서류는 서류 올리기로 등록" action={canEdit ? <Button onClick={() => setShowUpload(true)}>서류 올리기</Button> : null} />
       )}
-
-      <section className="mt-6" aria-label="처리 완료 문서">
-        <Disclosure summary={`처리 완료 문서 ${doneDocs.length}건`}>
-          {doneDocs.length ? (
-            <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {doneDocs.map((d) => (
-                <Card key={d.id} as="li" padding="sm">
-                  <p className="type-strong text-text-pri">{d.name}</p>
-                  <p className="mt-1 type-meta text-text-meta tabular-nums">{d.id}, {KIND_LABEL[d.kind]}, {fmtDate(d.uploadedAt)}</p>
-                  <ul className="mt-3 flex flex-wrap gap-2">
-                    {d.results.map((r) => (
-                      <li key={r.personCode}>
-                        <Link to={`/console/roster?person=${r.personCode}`} className="inline-flex items-center gap-1.5 min-h-11 md:min-h-0 hover:underline">
-                          <span className="type-meta text-text-sec tabular-nums">{r.personCode}</span>
-                          <StatusPill status={personMap[r.personCode]?.review || 'rejected'} size="sm" />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              ))}
-            </ul>
-          ) : <p className="type-body-sm text-text-meta">처리 완료 문서가 없습니다.</p>}
-        </Disclosure>
-      </section>
     </PageShell>
   )
 }

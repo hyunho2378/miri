@@ -26,11 +26,12 @@ test('명부와 상황판은 쉼표 없는 인원 표기를 쓰지 않음', () =
   assert.ok(!summary.includes('${result.scopeTargets}명'))
 })
 
-test('서류 읽기 단계 카드: 무엇을 세는지 숫자 앞에, 메뉴 배지 내역 한 줄', () => {
+test('서류 읽기 단계 띠: 무엇을 세는지 숫자 앞에, 한 줄', () => {
   const intake = src('pages/console/IntakePage.jsx')
-  assert.ok(intake.includes("count={`서류 ${countText(docs.length, '건')}`}"))
-  assert.ok(intake.includes("count={`대상자 ${countText(readPeople, '명')}`}"))
-  assert.ok(intake.includes("count={`확인 대기 ${countText(queue.length, '건')}`}"))
+  assert.ok(intake.includes("count: `서류 ${countText(docs.length, '건')}`"))
+  assert.ok(intake.includes("count: `대상자 ${countText(readPeople, '명')}`"))
+  assert.ok(intake.includes("count: `확인 대기 ${countText(queue.length, '건')}`"))
+  assert.ok(!intake.includes('StepCard'))
 })
 
 test('발령 운영 기본 속도는 60배를 유지하고 표기만 풀어 씀', () => {
