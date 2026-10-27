@@ -34,7 +34,6 @@ import { spacing } from '../../tokens.js'
 
 const px = (v) => Number.parseInt(v, 10)
 const AGING = agingStops()
-const NOTE = '마을과 대피소와 건물은 실제 위치, 대상자 개인과 차량은 가상입니다'
 const GRADE_LABEL = Object.fromEntries(GRADES.map((g) => [g.key, g.label]))
 
 export default function MapPage() {
@@ -58,7 +57,7 @@ export default function MapPage() {
     const sc = fireScenario({
       ...base, id: 'S-W', villages, heading: windHour.toDeg,
       name: `오늘 예보 바람 기준(${dirName(windHour.fromDeg)}풍 ${windHour.speed}m/s)`,
-      basis: `기상청 단기예보(${wind.data.base} 발표) 동해시 격자의 ${windHour.at.slice(8, 10)}시 풍향 ${windHour.fromDeg}도를 확산 방향으로 둡니다. 발화 지점과 확산 속도는 기본 시나리오 가정값입니다.`
+      basis: `기상청 단기예보(${wind.data.base} 발표) 동해시 격자의 ${windHour.at.slice(8, 10)}시 풍향 ${windHour.fromDeg}도를 확산 방향으로 둡니다.`
     })
     saveScenario(sc)
     setActiveScenario('S-W')
@@ -256,10 +255,6 @@ export default function MapPage() {
             />
           </div>
         )}
-        {/* 실제 자료와 가정 구분 고정 표기 */}
-        <p className="pointer-events-none absolute left-3 bottom-3 z-raised rounded-xs bg-page/90 px-2 py-1 type-caption text-text-sec shadow-sm lg:hidden">
-          {NOTE}
-        </p>
       </div>
 
       <div className="flex flex-col gap-4 px-4 py-4 md:px-6 lg:contents">
@@ -290,7 +285,6 @@ export default function MapPage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-2 type-caption text-text-meta">{NOTE}</p>
           </section>
         ) : isLg && !selectedVm && !showSummary ? (
           <section aria-label="상황 요약" className="absolute left-4 top-4 z-raised w-[300px] rounded-lg bg-page p-4 shadow-md">
@@ -327,7 +321,6 @@ export default function MapPage() {
                 ))}
               </ul>
             )}
-            <p className="mt-2 type-caption text-text-meta">{NOTE}</p>
           </section>
         ) : (
           <Card
