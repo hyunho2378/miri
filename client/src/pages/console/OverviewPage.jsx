@@ -10,7 +10,6 @@ import { Link } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
 import PageShell, { todayLabel } from '../../components/miri/PageShell.jsx'
 import { rosterBreakdown, rosterPartsText } from '../../lib/rosterCount.js'
-import PublicFactsCard from '../../components/miri/PublicFactsCard.jsx'
 import FreshnessNote from '../../components/miri/FreshnessNote.jsx'
 import DisasterAlertsCard from '../../components/miri/DisasterAlertsCard.jsx'
 import { useFireRisk, useWarning, useWind, dirName } from '../../components/miri/FireRiskStrip.jsx'
@@ -184,7 +183,7 @@ export default function OverviewPage() {
   )
 
   return (
-    <PageShell title="오늘의 현황" eyebrow={todayLabel()} desc="혼자 대피하기 어려운 주민을 보호하기 위해, 옮길 차와 사람이 몇 명분 모자라는지 평소에 확인합니다." actions={actions}>
+    <PageShell title="오늘의 현황" eyebrow={todayLabel()} actions={actions}>
       <p className="mb-3 type-body text-text-pri tabular-nums">{summaryLine}</p>
       <div className="grid gap-3 cq-md:grid-flow-row-dense cq-md:grid-cols-6 cq-xl:grid-cols-12">
         {/* 미이송 예상 */}
@@ -351,7 +350,6 @@ export default function OverviewPage() {
             <p className="mt-2 type-meta text-text-meta tabular-nums">{vehicleSummaryShort(vehicles)}, 도우미 {helpers.filter((h) => h.active).length}명</p>
           </Card>
         </div>
-        <PublicFactsCard className="cq-md:col-span-6 cq-xl:col-span-12" />
         <DisasterAlertsCard className="cq-md:col-span-6 cq-xl:col-span-12" />
       </div>
     </PageShell>
