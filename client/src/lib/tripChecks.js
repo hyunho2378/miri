@@ -170,11 +170,11 @@ export function withShelterChecks(list) {
 export function tripCheckNotes(checks) {
   if (!checks) return []
   const notes = []
-  if (checks.companionCall.length) notes.push({ tone: 'primary', text: `동행 연락 필요 ${checks.companionCall.length}명(평소 돌봄 담당자)` })
+  if (checks.companionCall.length) notes.push({ tone: 'primary', text: `출발 전 돌봄 담당자 연락 ${checks.companionCall.length}명` })
   if (checks.caregiverUnreachable.length) notes.push({ tone: 'warning', text: `돌봄 담당자 연락 불가 ${checks.caregiverUnreachable.length}명` })
   if (checks.commCaution.length) notes.push({ tone: 'primary', text: `의사소통 유의 ${checks.commCaution.length}명` })
-  if (checks.liftUnchecked.length) notes.push({ tone: 'warning', text: `대피소 승강기와 진입로 확인 필요: ${checks.liftUnchecked.join(', ')}` })
-  if (checks.routeCheck) notes.push({ tone: 'warning', text: checks.routeBasis === 'road' ? '경로 확인 필요(도로 경로 기준, 산불 영향 범위 통과)' : '경로 확인 필요(직선 기준, 이 마을은 도로 경로 미계산)' })
+  if (checks.liftUnchecked.length) notes.push({ tone: 'warning', text: `대피소 확인: ${checks.liftUnchecked.join(', ')}(승강기, 진입로)` })
+  if (checks.routeCheck) notes.push({ tone: 'warning', text: checks.routeBasis === 'road' ? '산불 구간 통과: 경로 확인(도로 경로 기준)' : '산불 구간 통과: 경로 확인(직선 기준, 도로 경로 미계산)' })
   return notes
 }
 

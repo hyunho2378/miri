@@ -24,8 +24,8 @@ test('확인 사유마다 확인할 곳이 있고, 이동 대상은 quote 나 im
 test('이송 진행 카드 분모 줄: 카드 합과 배정 인원을 천 단위 쉼표로', () => {
   const counts = { done: 300, moving: 100, wait: 181, fail: 0, handedToFire: 0, unassigned: 267 }
   assert.equal(progressTotal(counts), 848)
-  assert.equal(progressBasisLine(counts, 581), '카드 합: 대상 848명 기준, 이 가운데 배정표에 든 인원 581명')
-  assert.equal(progressBasisLine({ a: 1000 }, 0), '카드 합: 대상 1,000명 기준, 이 가운데 배정표에 든 인원 0명')
+  assert.equal(progressBasisLine(counts, 581), '대상 848명, 배정 581명')
+  assert.equal(progressBasisLine({ a: 1000 }, 0), '대상 1,000명, 배정 0명')
 })
 
 test('기준 시나리오 추천 배정에서 배정표 인원과 미배정 인원을 더하면 대상 848명(카드 합과 같은 분모)', async () => {

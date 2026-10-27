@@ -30,7 +30,7 @@ test('셀 77: 휠체어와 침상 대상자가 가는 대피소 중 승강기 �
 test('셀 77: 확인 기록이 들어가면 배정표 확인 표시가 사라짐, 문구는 승강기와 진입로', () => {
   assert.equal(shelterAccess({ liftAccess: true }).liftUnchecked, false)
   const notes = tripCheckNotes({ companionCall: [], caregiverUnreachable: [], commCaution: [], liftUnchecked: ['가 대피소'], routeCheck: false })
-  assert.match(notes[0].text, /대피소 승강기와 진입로 확인 필요: 가 대피소/)
+  assert.match(notes[0].text, /대피소 확인: 가 대피소\(승강기, 진입로\)/)
   const store = readFileSync(new URL('../src/store/useMiriStore.js', import.meta.url), 'utf8')
   assert.match(store, /updateShelter:/)
   assert.match(store, /liftCheckedAt: s\.today/)

@@ -74,7 +74,7 @@ export default function AssignmentBundle({ assignment, vehicle, villageLabel = (
                       <span className="ml-auto w-full sm:w-48">
                         {opts.length ? (
                           <Select
-                            compact label="회차 이동" value="" placeholder="회차 선택"
+                            compact label="다른 차량으로 옮기기" value="" placeholder="차량과 회차 선택"
                             options={opts}
                             onChange={(v) => { const [veh, idx] = v.split('|'); onMove?.(code, veh, Number(idx)) }}
                           />

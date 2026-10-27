@@ -7,5 +7,5 @@ export function progressTotal(counts = {}) {
 }
 
 export function progressBasisLine(counts, assigned) {
-  return `카드 합: 대상 ${countText(progressTotal(counts), '명')} 기준, 이 가운데 배정표에 든 인원 ${countText(assigned, '명')}`
+  return `대상 ${countText(progressTotal(counts), '명')}, 배정 ${countText(assigned, '명')}`
 }

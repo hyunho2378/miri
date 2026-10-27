@@ -1,6 +1,5 @@
 // 기본 순서 배정 대비 추천 배정 비교. 차이가 없으면 같다고 표기. 표면은 Card 하나(카드 안 카드 금지).
 import { useMemo } from 'react'
-import { GRADES } from '../../lib/shortage.js'
 import { fmtHM } from '../../lib/time.js'
 import Card from '../ui/Card.jsx'
 import Disclosure from '../ui/Disclosure.jsx'
@@ -16,23 +15,17 @@ export default function BaselineCompare({ result, villageLabel = (c) => c, basis
     for (const u of result.unassigned) (map[u.village] = map[u.village] || { base: 0, opt: 0 }).opt += 1
     return Object.entries(map).sort((a, b) => b[1].base - a[1].base || a[0].localeCompare(b[0]))
   }, [baseline.unserved, result.unassigned])
-  const weightNote = GRADES.map((g) => `${g.label} ${g.weight}`).join(' ')
 
   return (
     <Card title="기본 순서 대비 추천 배정" desc={basisText || undefined}>
       {same ? (
         <p className="type-body-sm text-text-sec">기본 순서와 추천 배정의 결과가 같습니다.</p>
       ) : (
-        <ul className="grid gap-2 sm:grid-cols-3">
+        <ul className="grid gap-2 sm:grid-cols-2">
           <li className="rounded-md bg-subtle p-3">
             <p className="type-caption text-text-sec">미이송 예상</p>
             <p className="mt-1 type-strong text-text-pri tabular-nums">{diff.unserved === 0 ? '차이 없음' : sign(diff.unserved, '명')}</p>
             <p className="type-meta text-text-meta tabular-nums">기본 순서 {baseline.metrics.unserved}명, 추천 배정 {metrics.unserved}명</p>
-          </li>
-          <li className="rounded-md bg-subtle p-3">
-            <p className="type-caption text-text-sec">등급 가중 미이송</p>
-            <p className="mt-1 type-strong text-text-pri tabular-nums">{diff.weightedUnserved === 0 ? '차이 없음' : sign(diff.weightedUnserved, '점')}</p>
-            <p className="type-meta text-text-meta tabular-nums">기본 순서 {baseline.metrics.weightedUnserved}점, 추천 배정 {metrics.weightedUnserved}점</p>
           </li>
           <li className="rounded-md bg-subtle p-3">
             <p className="type-caption text-text-sec">마지막 이송 완료</p>
@@ -41,7 +34,6 @@ export default function BaselineCompare({ result, villageLabel = (c) => c, basis
           </li>
         </ul>
       )}
-      <p className="mt-3 type-meta text-text-meta tabular-nums">등급 가중치 {weightNote}</p>
       {rows.length > 0 && (
         <Disclosure className="mt-3" summary="마을별 미이송 예상 비교">
           <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-6 px-1 pb-2 type-caption text-text-meta" aria-hidden="true">
