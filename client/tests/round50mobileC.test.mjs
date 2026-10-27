@@ -52,7 +52,7 @@ test('평시 홈 숫자: 동 담당자는 우리 동 추천 배정 기준, 시 �
   const p = body('PeaceHome')
   const dong = p.slice(p.indexOf('scope.isDong ? ('), p.indexOf(') : ('))
   const city = p.slice(p.indexOf(') : ('))
-  assert.match(dong, /label=\{`우리 동 이동 불가 인원/)
+  assert.match(dong, /label="우리 동 이동 불가 인원"/)
   assert.match(dong, /value=\{opt \?\? '-'\}/)
   assert.match(dong, /추천 배정 기준, \{stamp\}/)
   assert.ok(!dong.includes('동해시 전체'))

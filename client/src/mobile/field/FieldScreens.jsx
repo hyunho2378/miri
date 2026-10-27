@@ -62,6 +62,7 @@ function usePeaceResult() {
   return { data, scenario, result, scopeCodes }
 }
 
+const isOffline = () => typeof navigator !== 'undefined' && !navigator.onLine
 const tagText = (tag) => (tag === 'over' ? '기한 지남' : tag === 'soon' ? '기한 1시간 안' : null)
 const Tag = ({ tone, children }) => <span className={`mob-t-callout ${tone === 'red' ? 'tone-red-text' : ''}`}>{children}</span>
 
@@ -86,22 +87,22 @@ export function FieldStatusPage() {
         <Figure plain label={`${scope.isDong ? '우리 동 ' : ''}대피소에 아직 못 간 사람`} value={left} unit="명">
           <Progress value={pct} label="이송 완료 비율" />
           <p className="mob-t-callout tabular-nums">{s.total}명 중 {s.counts.done}명 도착</p>
-          {d.kind === 'drill' && d.speed > 1 && <p className="mob-t-callout">훈련은 시간이 {d.speed}배 빨리 흘러서 숫자가 계속 바뀌어요</p>}
+          {notMoved > 0 && <p className="mob-t-callout tabular-nums">대피소 미도착 {left}명 중 차량 배정 없음 {u.total}명</p>}
         </Figure>
+        {notMoved > 0 && (
+          <List label="차량이 닿지 않는 사람">
+            <ListRow lead={<PhoneOutgoing size={22} />} title={`이동 불가 인원 ${u.total}명`} subtitle={scope.isDong ? '마을별 번호 확인 후 직접 연락' : '동해소방서 지원 요청 대상'} chevron onClick={() => navigate('/m/f/fire')} />
+          </List>
+        )}
+        <List label="보내기">
+          <ListRow lead={<MessageSquare size={22} />} title="현장 소식 남기기" chevron onClick={() => navigate('/m/f/note')} />
+        </List>
         <List label="늦는 마을, 기한이 빠른 순">
           {late.map((v, i) => (
             <ListRow key={v.code} lead={<Clock size={22} />} title={v.name} subtitle={`${v.left}명 남음${v.at ? `, ${hm(v.at)}까지` : ''}`}
               trailing={tagText(v.tag) ? <Tag tone="red">{tagText(v.tag)}</Tag> : i === 0 ? <Tag tone="red">가장 먼저 늦어요</Tag> : null} chevron onClick={() => navigate(`/m/f/villages/${v.code}`)} />
           ))}
           <ListRow title="모든 마을 보기" chevron onClick={() => navigate('/m/f/villages')} />
-        </List>
-        {notMoved > 0 && (
-          <List label="차량이 닿지 않는 사람">
-            <ListRow lead={<PhoneOutgoing size={22} />} title={`이동 불가 인원 ${u.total}명`} subtitle={scope.isDong ? '마을별 번호를 보고 직접 연락하기' : '동해소방서 지원 요청 대상'} chevron onClick={() => navigate('/m/f/fire')} />
-          </List>
-        )}
-        <List label="보내기">
-          <ListRow lead={<MessageSquare size={22} />} title="현장 소식 남기기" chevron onClick={() => navigate('/m/f/note')} />
         </List>
         {scope.isDong ? null : u.total > 0 && <Button block variant="danger" onClick={() => navigate('/m/f/fire')}>동해소방서 지원 요청</Button>}
         {d.remote?.state !== 'saved' && <ServerLink remote={d.remote} />}
@@ -143,7 +144,7 @@ function ServerLink({ remote }) {
   if (remote?.state === 'error') {
     return (
       <List label="서버 연결">
-        <ListRow title="다시 연결하기" subtitle="연결 끊김, 이 기기에 저장" chevron onClick={() => { logout(); navigate('/m/f') }} />
+        <ListRow title="다시 연결하기" subtitle={isOffline() ? '연결 끊김, 이 기기에 저장' : '서버 응답 없음, 이 기기에 저장'} chevron onClick={() => { logout(); navigate('/m/f') }} />
       </List>
     )
   }
@@ -183,8 +184,8 @@ function PeaceHome() {
           <ListRow lead={<UserCheck size={22} />} title="현장 소식 남기기" chevron onClick={() => navigate('/m/f/note')} />
         </List>
         {scope.isDong ? (
-          <Figure plain label={`우리 동 이동 불가 인원, ${scenario?.name || '확산 조건'}`} value={opt ?? '-'} unit="명">
-            {stamp && <p className="mob-t-callout tabular-nums">추천 배정 기준, {stamp}</p>}
+          <Figure plain label="우리 동 이동 불가 인원" value={opt ?? '-'} unit="명">
+            {stamp && <p className="mob-t-callout tabular-nums">{scenario?.name || '확산 조건'}, 추천 배정 기준, {stamp}</p>}
             <Button block variant="tonal" onClick={() => setDrillOpen(true)}>훈련 발령으로 명단 확인</Button>
           </Figure>
         ) : (
@@ -750,6 +751,9 @@ export function FieldNotePage() {
   const person = data.persons.find((p) => p.code === code.trim().toUpperCase() && scope.inScope(p.villageCode))
   const candidates = searchPersons(data.persons.filter((p) => scope.inScope(p.villageCode)), data.villages, code, 20)
   const reqSeq = useRef(0)
+  const remoteState = useDispatchStore((st) => st.remote?.state)
+  const pendingDelivery = remoteState === 'error' || isOffline()
+  const sentNotes = data.fieldNotes.filter((n) => n.source === 'dong' && scope.inScope(n.villageCode)).slice(0, 3)
   // 글은 보내기 한 번으로 저장까지 끝낸다. 읽기가 안 되면 글만 먼저 저장하고 연결되면 이어서 읽는다
   const saveNow = ({ req, read }) => {
     addFieldNote(read
@@ -803,6 +807,11 @@ export function FieldNotePage() {
             ? <Button block disabled={!person || !text.trim() || busy} onClick={() => send(null)}>보내기</Button>
             : <Button block disabled={!person || busy} onClick={() => fileRef.current?.click()}>음성 파일 고르기</Button>}
         </div>
+        {sentNotes.length > 0 && (
+          <List label="보낸 소식">
+            {sentNotes.map((n) => <ListRow key={n.id} title={n.personCode} subtitle={`${villageName(data.villages, n.villageCode)}, ${hm(n.receivedAt)}`} trailing={<span className="mob-t-callout">{pendingDelivery ? '전달 대기' : '전달됨'}</span>} />)}
+          </List>
+        )}
       </main>
       <Sheet open={pickOpen} onClose={() => setPickOpen(false)} title="대상자 고르기">
         <label className="mob-search">
