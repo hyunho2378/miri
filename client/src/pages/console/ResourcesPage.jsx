@@ -64,7 +64,7 @@ export default function ResourcesPage() {
     { key: 'owner', label: '소속', kind: 'select', required: true, options: Object.entries(OWNERS).map(([value, label]) => ({ value, label })) },
     { key: 'baseDong', label: '대기 동', kind: 'select', required: true, options: dongs.map((d) => ({ value: d.code, label: d.name })) },
     { key: 'contractUntil', label: '협약 만료일', kind: 'date', hint: '민간 협약 차량에만 고릅니다.' },
-    { key: 'commitment', label: '가용 확실성', kind: 'select', options: Object.entries(COMMITMENTS).map(([value, label]) => ({ value, label })), hint: '협약이나 소유로 약속된 차량과 아직 확인하지 않은 차량을 나눕니다.' },
+    { key: 'commitment', label: '협약 상태', kind: 'select', options: Object.entries(COMMITMENTS).map(([value, label]) => ({ value, label })), hint: '협약이나 소유로 약속된 차량과 아직 확인하지 않은 차량을 나눕니다.' },
     { key: 'note', label: '비고', kind: 'text' },
     { key: 'available', label: '대피 이송 가용', kind: 'toggle' }
   ]
@@ -104,7 +104,7 @@ export default function ResourcesPage() {
   const vehicleColumns = [
     { key: 'code', label: '차량 코드', sortable: true, render: (v) => <span className="type-strong tabular-nums">{v.code}</span> },
     { key: 'type', label: '차종', sortable: true, render: (v) => typeOf(v.type)?.label },
-    { key: 'cap', label: '회차당 정원', hideBelow: 'lg', render: (v) => <span className="type-meta text-text-sec">{capText(v.type)}</span> },
+    { key: 'cap', label: '한 번에 태우는 수', hideBelow: 'lg', render: (v) => <span className="type-meta text-text-sec">{capText(v.type)}</span> },
     { key: 'owner', label: '소속', sortable: true, render: (v) => OWNERS[v.owner] },
     {
       key: 'contractUntil', label: '협약 만료일', sortable: true, sortValue: (v) => v.contractUntil || Infinity, hideBelow: 'md',
@@ -113,7 +113,7 @@ export default function ResourcesPage() {
       ) : <span className="text-text-meta">해당 없음</span>)
     },
     { key: 'baseDong', label: '대기 동', hideBelow: 'lg', render: (v) => dongName(v.baseDong) },
-    { key: 'commitment', label: '가용 확실성', sortable: true, sortValue: (v) => commitmentOf(v), hideBelow: 'md', render: (v) => <span className="type-body-sm text-text-sec">{COMMITMENTS[commitmentOf(v)]}</span> },
+    { key: 'commitment', label: '협약 상태', sortable: true, sortValue: (v) => commitmentOf(v), hideBelow: 'md', render: (v) => <span className="type-body-sm text-text-sec">{COMMITMENTS[commitmentOf(v)]}</span> },
     {
       key: 'available', label: '가용',
       render: (v) => (canVehicle
