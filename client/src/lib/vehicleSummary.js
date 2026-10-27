@@ -31,8 +31,8 @@ export function vehicleChips(vehicles) {
   return `등록 ${c.total} / 출동 가능 ${c.usable} / 협약 확정 ${c.agreed} / 미확정 ${c.unconfirmed}`
 }
 
-// 짧은 자리: 가용 39대 / 등록 42대
+// 짧은 자리: 출동 가능 39대 / 등록 42대
 export function vehicleSummaryShort(vehicles) {
   const c = vehicleCounts(vehicles)
-  return `가용 ${c.usable}대 / 등록 ${c.total}대`
+  return `출동 가능 ${c.usable}대 / 등록 ${c.total}대`
 }

@@ -6,6 +6,7 @@
 import { useMemo, useState } from 'react'
 import clsx from 'clsx'
 import { ArrowRight, ChevronRight, Circle, Layers } from 'lucide-react'
+import { vehicleCounts } from '../../lib/vehicleSummary.js'
 import { Link } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
 import PageShell, { todayLabel } from '../../components/miri/PageShell.jsx'
@@ -21,7 +22,6 @@ import useDispatchStore from '../../store/useDispatchStore.js'
 import { fmtElapsed } from '../../lib/geo.js'
 import { pendingCounts } from '../../lib/basis.js'
 import { staleRosterCount, STALE_DAYS } from '../../lib/handoverRows.js'
-import { vehicleSummaryShort } from '../../lib/vehicleSummary.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 
@@ -295,7 +295,7 @@ export default function OverviewPage() {
         <Card title="출동 가능 차량" className="cq-md:col-span-3 cq-xl:col-span-6">
           <p className="type-h2 text-text-pri tabular-nums">{availVehicles}<span className="ml-0.5 type-body-sm">대</span></p>
           <Meter value={availVehicles} max={vehicles.length} />
-          <p className="mt-2 type-meta text-text-meta tabular-nums">{vehicleSummaryShort(vehicles)}, 도우미 {helpers.filter((h) => h.active).length}명</p>
+          <p className="mt-2 type-meta text-text-meta tabular-nums">등록 {vehicleCounts(vehicles).total}대, 도우미 {helpers.filter((h) => h.active).length}명</p>
           <Link to="/console/resources" className={clsx(link, 'mt-3')}>협약 차량 확인<ChevronRight size={14} aria-hidden="true" /></Link>
         </Card>
       </div>

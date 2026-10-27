@@ -14,7 +14,7 @@ test('차량 표기: 시드 차량에서 등록, 가용, 약속, 확인 전을 �
   assert.equal(c.total, c.agreed + c.unconfirmed)
   assert.equal(c.usable, c.total - c.fireOff - c.otherOff)
   assert.equal(vehicleSummaryLong(seed.vehicles), `등록 ${c.total}대 중 가용 ${c.usable}대(소방 구급차 ${c.fireOff}대 소방 출동 중 제외), 약속 ${c.agreed}대, 확인 전 ${c.unconfirmed}대`)
-  assert.equal(vehicleSummaryShort(seed.vehicles), `가용 ${c.usable}대 / 등록 ${c.total}대`)
+  assert.equal(vehicleSummaryShort(seed.vehicles), `출동 가능 ${c.usable}대 / 등록 ${c.total}대`)
 })
 
 test('차량 표기: 목록이 없으면 기본값 대신 오류', () => {
@@ -41,7 +41,7 @@ test('계산 시각 꼬리말과 기준일 설명', () => {
 
 test('화면 연결: 네 화면이 같은 차량 표기 함수, 실제 발령은 앱 안 확인 창', () => {
   const read = (f) => readFileSync(new URL(`../src/pages/console/${f}`, import.meta.url), 'utf8')
-  for (const f of ['OverviewPage.jsx', 'ShortagePage.jsx', 'DispatchPage.jsx', 'ResourcesPage.jsx']) assert.match(read(f), /vehicle(Summary(Short|Long)|Chips)\(vehicles\)/, f)
+  for (const f of ['OverviewPage.jsx', 'ShortagePage.jsx', 'DispatchPage.jsx', 'ResourcesPage.jsx']) assert.match(read(f), /vehicle(Summary(Short|Long)|Chips|Counts)\(vehicles\)/, f)
   const dispatch = read('DispatchPage.jsx')
   assert.match(dispatch, /실제 발령으로 바꿀까요\?/)
   assert.doesNotMatch(dispatch, /window\.confirm/)
