@@ -28,11 +28,9 @@ export const PUBLIC_NAV = [
 
 // 맨 왼쪽 아이콘 레일. 묶음을 고르면 두 번째 칸에 그 묶음의 메뉴가 나온다(레퍼런스 IMG_1531 구조)
 export const RAIL_GROUPS = [
-  { key: 'work', label: '담당 업무', Icon: LayoutGrid, items: MAIN_NAV },
-  { key: 'admin', label: '기록과 설정', Icon: Archive, items: SUB_NAV },
-  { key: 'public', label: '공개 화면', Icon: BookOpenText, items: PUBLIC_NAV },
-  // 문서함은 세 묶음 아래에 따로 둔다
-  { key: 'docs', label: '문서 센터', Icon: FolderOpen, items: DOCS_NAV, direct: true }
+  { key: 'work', label: '업무', Icon: LayoutGrid, items: MAIN_NAV },
+  { key: 'admin', label: '기록', Icon: Archive, items: [...SUB_NAV, ...DOCS_NAV] },
+  { key: 'public', label: '외부', Icon: BookOpenText, items: PUBLIC_NAV }
 ]
 
 export function groupOf(pathname) {

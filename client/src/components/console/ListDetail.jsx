@@ -3,7 +3,7 @@
 import { useRef } from 'react'
 import ListItem from './ListItem.jsx'
 
-export default function ListDetail({ items, selectedId, onSelect, listLabel, listTitle, children }) {
+export default function ListDetail({ items, selectedId, onSelect, listLabel, listTitle, actions, children }) {
   const refs = useRef({})
   const move = (i) => {
     const t = items[Math.max(0, Math.min(items.length - 1, i))]
@@ -31,7 +31,10 @@ export default function ListDetail({ items, selectedId, onSelect, listLabel, lis
           ))}
         </ul>
       </div>
-      <div className="min-w-0 px-2 pt-1" aria-live="polite">{children}</div>
+      <div className="min-w-0 px-2 pt-1" aria-live="polite">
+        {actions && <div className="mb-6 flex flex-wrap items-center justify-end gap-2">{actions}</div>}
+        {children}
+      </div>
     </div>
   )
 }

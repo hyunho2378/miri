@@ -25,13 +25,13 @@ export function SideNav({ collapsed = false, onNavigate, showHeader = true }) {
     if (m.role && m.role !== role) return null
     const active = current?.key === m.key || (m.to && !m.match && pathname === m.to)
     const cls = clsx('relative flex min-h-11 items-center rounded-lg transition-colors duration-fast',
-      collapsed ? 'justify-center px-0' : 'gap-3 px-4',
+      collapsed ? 'justify-center px-0' : 'gap-2 px-3',
       active ? 'bg-subtle text-text-pri' : 'text-text-sec hover:bg-subtle hover:text-text-pri')
     const badgeLabel = `확인할 서류 ${pendingDocs}건, 현장 소식 ${pendingNotes}건`
     const inner = (
       <>
         <m.Icon size={20} aria-hidden="true" className={clsx('shrink-0', active ? 'text-text-pri' : 'text-text-meta')} />
-        {!collapsed && <span className={clsx('min-w-0 flex-1 truncate type-body-sm', active && 'font-bold')}>{m.label}</span>}
+        {!collapsed && <span className={clsx('min-w-0 flex-1 whitespace-nowrap type-body-sm', active && 'font-bold')}>{m.label}</span>}
         {!collapsed && m.key === 'intake' && <span aria-label="AI 읽기" className="shrink-0 rounded-md bg-mute px-1.5 type-count text-text-pri">AI</span>}
         {m.queue && pending > 0 && (
           <span
