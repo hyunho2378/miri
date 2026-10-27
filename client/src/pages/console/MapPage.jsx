@@ -13,6 +13,7 @@ import IconButton from '../../components/ui/IconButton.jsx'
 import MapCanvas from '../../components/map/MapCanvas.jsx'
 import Map3D from '../../components/map/Map3D.jsx'
 import SummaryPanel from '../../components/map/SummaryPanel.jsx'
+import PageHeader from '../../components/console/PageHeader.jsx'
 import VillageDetail from '../../components/map/VillageDetail.jsx'
 import MapSidePanel from '../../components/map/MapSidePanel.jsx'
 import LayerPanel from '../../components/map/LayerPanel.jsx'
@@ -266,7 +267,7 @@ export default function MapPage() {
         {isNormal && !selectedVm ? (
           <aside aria-label="상황 요약" className="rounded-lg bg-page p-4 lg:absolute lg:left-4 lg:top-4 lg:bottom-4 lg:z-raised lg:w-source-col-md lg:overflow-hidden lg:shadow-md">
             <MapSidePanel
-              switcher={<SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} />}
+              switcher={<><PageHeader title="상황판" className="!mb-3" /><SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} /></>}
               total={result.total} rows={orderedShort} onPick={pick} today={today}
               stats={{ targets: normalStats.targets, villages: villages.length, avail: normalStats.avail }} vehicleCount={vehicles.length}
             />
@@ -312,6 +313,7 @@ export default function MapPage() {
             as="aside" aria-label={selectedVm ? '마을 상세' : '상황 요약'} padding="md"
             className="lg:absolute lg:left-4 lg:top-4 lg:bottom-4 lg:z-raised lg:w-source-col-md lg:overflow-y-auto lg:shadow-md"
           >
+            {!selectedVm && <PageHeader title="상황판" className="!mb-3" />}
             {!selectedVm && <div className="mb-3"><SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} /></div>}
             {isLg && !selectedVm && (
               <div className="-mt-1 mb-2 flex justify-end">
