@@ -67,6 +67,7 @@ export default function DispatchGuide({ status }) {
             {auto
               ? <Button data-tour="dispatch-auto" size="md" variant="secondary" leftIcon={<Square size={16} aria-hidden="true" />} onClick={() => setAuto(false)}>직접 진행</Button>
               : <Button data-tour="dispatch-auto" size="md" variant="secondary" leftIcon={<Play size={16} aria-hidden="true" />} onClick={() => setAuto(true)}>자동 진행</Button>}
+            <span className="type-body-sm text-text-sec">2초마다 다음 단계, 이송 진행에서 정지</span>
           </div>
         )}
       </div>

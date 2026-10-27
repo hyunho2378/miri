@@ -16,13 +16,13 @@ export const TOURS = {
   '/console/shortage': [
     { title: '결론과 숫자 흐름', body: '기준 배정과 추천 배정 시 이동 불가 인원, 협약 후 인원', targets: [band, flow] },
     { title: '확산 조건', body: '조건 선택, 계산 조건 변경, 계산 근거, 저장과 비교', targets: [btn('확산 조건')] },
-    { title: '이동 불가 인원 감소 방안', body: '방안 선택 시 결과와 필요 협약 표시', targets: [sec('이동 불가 인원 감소 방안')] },
+    { title: '조건별 이동 불가 인원', body: '조건 선택 시 결과와 필요 협약 표시', targets: [sec('조건별 이동 불가 인원')] },
     { title: '협약 단추', body: '협약 차량 확인, 계산 숫자가 입력된 협약 추진 기안 열기', targets: [{ find: 'a,button', text: '협약 차량 확인' }, { find: 'a,button', text: '협약 추진 기안' }] }
   ],
   '/console/dispatch': [
     { title: '발령 진행 순서', body: '개시, 배정 계산, 배정표 전송, 이송 진행 4단계와 다음 행동', targets: [{ selector: '[data-tour="dispatch-guide"]' }] },
-    { title: '다음 행동 단추', body: '현재 단계의 주 행동, 클릭 시 다음 단계 진행', targets: [{ selector: '[data-tour="dispatch-primary"]' }] },
-    { title: '자동 진행', body: '2초 간격 훈련 자동 시연, 직접 진행으로 정지', targets: [{ selector: '[data-tour="dispatch-auto"]' }] }
+    { title: '다음 행동 단추', body: '지금 해야 할 일을 누르는 단추', targets: [{ selector: '[data-tour="dispatch-primary"]' }] },
+    { title: '자동 진행', body: '2초마다 다음 단계로 진행, 이송 진행에서 정지, 발령 종료는 직접 선택', targets: [{ selector: '[data-tour="dispatch-auto"]' }] }
   ],
   '/console/intake': [
     { title: '서류 올리기', body: '서류 사진 추가, AI 읽기 대상 등록', targets: [btn('서류 올리기')] },
@@ -32,8 +32,10 @@ export const TOURS = {
   ]
 }
 
+let tourOff = false // ?tour=off 를 한 번 받으면 같은 세션 안 이동에서도 끈다(메모리, 새로고침하면 풀림)
 export function tourEnabled(search = '') {
-  if (/[?&]tour=off\b/.test(search)) return false
+  if (/[?&]tour=off\b/.test(search)) tourOff = true
+  if (tourOff) return false
   return typeof window !== 'undefined'
 }
 

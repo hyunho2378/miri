@@ -9,6 +9,7 @@ import AnomalyBell from '../miri/AnomalyBell.jsx'
 import DispatchStatusPill from '../miri/DispatchStatusPill.jsx'
 import DispatchAction from './DispatchAction.jsx'
 import useDispatchStore from '../../store/useDispatchStore.js'
+import { TourHelpButton } from '../onboarding/CoachTour.jsx'
 
 const ICON_BTN = 'inline-flex h-10 w-10 items-center justify-center rounded-md text-text-meta transition-colors duration-fast hover:bg-page hover:text-text-pri'
 
@@ -37,6 +38,7 @@ export default function Topbar({ isDesktop, panelOpen, onTogglePanel }) {
         {sub && <><ChevronRight size={12} aria-hidden="true" className="shrink-0 text-text-meta" /><span className="truncate text-text-pri">{sub}</span></>}
       </p>
       <div className="flex shrink-0 items-center gap-2">
+        <TourHelpButton />
         {live && <span className="hidden sm:inline-flex"><DispatchStatusPill /></span>}
         {(!isDesktop || !panelOpen) && <AnomalyBell />}
         <DispatchAction />

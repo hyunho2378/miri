@@ -8,7 +8,16 @@ import { TOURS, resolveTargets, tourEnabled, unionRect } from './tours.js'
 const seen = new Set() // 메모리에만 둔다. 새로고침하면 비워진다
 let openRequest = null
 
-export function requestTour(setter) { openRequest = setter }
+export function requestTour(setter) { openRequest = setter; for (const f of listeners) f() }
+const listeners = new Set()
+
+// 상단바 안에 놓는 '안내' 단추. 투어가 있는 화면에서만 보인다.
+export function TourHelpButton() {
+  const [, force] = useState(0)
+  useEffect(() => { const f = () => force((n) => n + 1); listeners.add(f); return () => listeners.delete(f) }, [])
+  if (!openRequest) return null
+  return <Button size="sm" variant="secondary" onClick={() => openRequest && openRequest()} className="hidden md:inline-flex">안내</Button>
+}
 
 const PAD = 8 // 영역 둘레 여백
 const GAP = 12 // 영역과 말풍선 사이
@@ -137,9 +146,6 @@ export default function CoachTour() {
 
   return (
     <>
-      {enabled && hasTour && !active && (
-        <Button size="sm" variant="secondary" onClick={begin} className="fixed right-[188px] top-[16px] z-30 hidden md:inline-flex">안내</Button>
-      )}
       {active && step && (
         <div className="pointer-events-none fixed inset-0 z-[90]" role="dialog" aria-modal="false" aria-label={`화면 안내 ${active.i + 1}/${total}`}>
           {hole ? (

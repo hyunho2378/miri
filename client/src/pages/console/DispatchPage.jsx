@@ -263,7 +263,7 @@ function AssignedPanel({ meta }) {
       <TaskCard
         step="배정 검토" title="배정표 확인"
         metric={{ label: `배정표 기준 이동 불가 인원(${result.basis?.elapsedMin > 0 ? `발령 ${result.basis.elapsedMin}분 뒤` : '발령 직후'})`, value: result.unassigned.length.toLocaleString('ko-KR'), unit: '명' }}
-        desc={`배정 차량 ${result.assignments.length}대, 마지막 이송 완료 ${fmtHMFrom(result.metrics.lastFinishAt, firstDepart)}`}
+        desc={`배정 차량 ${result.assignments.length}대, 마지막 이송 완료 ${fmtHMFrom(result.metrics.lastFinishAt, firstDepart)}, 이동 불가 인원은 ${result.basis?.elapsedMin > 0 ? `발령 ${result.basis.elapsedMin}분 경과 반영` : '발령 직후 기준'}, 현황판 값은 발령 전 기준`}
         actions={(
           <>
             <Button size="lg" leftIcon={<MessageSquareText size={16} aria-hidden="true" />} onClick={() => setSendOpen(true)}>배정표 보내기</Button>

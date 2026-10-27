@@ -143,8 +143,8 @@ export default function OverviewPage() {
 
   const flow = [
     { label: '대피 대상 인원', value: fmt(targetsAll), unit: '명', note: `${inScope.length}개 마을` },
-    { label: '기준 배정 시 이동 불가 인원', value: fmt(scopeTotal), unit: '명', note: '발령 전, 현재 차량 기준', tone: 'danger' },
-    { label: '추천 배정 시 이동 불가 인원', value: optUnserved == null ? '조회 중' : fmt(optUnserved), unit: optUnserved == null ? '' : '명', note: optUnserved != null && diff < 0 ? `${-diff}명 감소` : '발령 전, 현재 차량 기준' },
+    { label: '기준 배정 시 이동 불가 인원', value: fmt(scopeTotal), unit: '명', note: '기준 배정, 발령 전', tone: 'danger' },
+    { label: '추천 배정 시 이동 불가 인원', value: optUnserved == null ? '조회 중' : fmt(optUnserved), unit: optUnserved == null ? '' : '명', note: optUnserved != null && diff < 0 ? `추천 배정 적용, ${-diff}명 감소` : '추천 배정 적용' },
     ...(!isDong && extraLine ? [{ label: '협약 후 이동 불가 인원', value: '0', unit: '명', note: `${extraLine} 추가` }] : [])
   ]
 

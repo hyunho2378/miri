@@ -248,11 +248,11 @@ export default function ShortagePage() {
   const [modal, setModal] = useState(null) // 'cond' | 'basis' | 'compare'
   const lines = (n) => n.map((x) => `${x.typeLabel} ${x.count}대`).join(', ')
   const methods = [
-    ...(fixLine ? [{ id: 'extra', title: '협약 차량 추가', sub: extraLine, trailing: unresolved ? '' : '0명' }] : []),
+    ...(fixLine ? [{ id: 'extra', title: '현재 차량 기준 협약', sub: extraLine, trailing: unresolved ? '' : '0명' }] : []),
     { id: 'vehicle', title: `${typeOf(neck.vehicleType)?.label || neck.vehicleType} 1대 추가`, sub: `${neck.vehicleGain}명 감소`, trailing: `${neck.plusVehicle}명` },
     { id: 'helper', title: '도우미 1명 추가', sub: `${neck.helperGain}명 감소`, trailing: `${neck.plusHelper}명` },
     { id: 'unconfirmed', title: `미확정 차량 ${agreedCompare.unconfirmed}대 제외`, sub: '확정 차량만 사용', trailing: `${agreedCompare.agreed}명` },
-    ...(agreedPlan.alone > 0 && agreedPlan.total === 0 ? [{ id: 'agreed', title: '확정 차량만 사용 시 협약', sub: lines(agreedPlan.need), trailing: '0명' }] : [])
+    ...(agreedPlan.alone > 0 && agreedPlan.total === 0 ? [{ id: 'agreed', title: '확정 차량만 사용 기준 협약', sub: lines(agreedPlan.need), trailing: '0명' }] : [])
   ]
   const methodId = methods.some((m) => m.id === method) ? method : methods[0].id
   const goResources = <Button as={Link} to="/console/resources">협약 차량 확인</Button>
@@ -266,8 +266,8 @@ export default function ShortagePage() {
   }[methodId]
   const flow = [
     { label: '대피 대상 인원', value: result.scopeTargets, unit: '명', note: `${result.scopeVillages}개 마을` },
-    { label: '기준 배정 시 이동 불가 인원', value: result.total, unit: '명', note: '발령 전, 현재 차량 기준', tone: result.total ? 'danger' : undefined },
-    { label: '추천 배정 시 이동 불가 인원', value: boardingNow in boardingRec ? boardingRec[boardingNow] : '조회 중', unit: boardingNow in boardingRec ? '명' : '', note: '발령 전, 현재 차량 기준' },
+    { label: '기준 배정 시 이동 불가 인원', value: result.total, unit: '명', note: '기준 배정, 발령 전', tone: result.total ? 'danger' : undefined },
+    { label: '추천 배정 시 이동 불가 인원', value: boardingNow in boardingRec ? boardingRec[boardingNow] : '조회 중', unit: boardingNow in boardingRec ? '명' : '', note: '추천 배정 적용' },
     ...(fixLine && !unresolved ? [{ label: '협약 후 이동 불가 인원', value: 0, unit: '명', note: `현재 차량 기준, ${extraLine} 추가` }] : [])
   ]
 
@@ -303,8 +303,8 @@ export default function ShortagePage() {
 
         <div className="grid min-w-0 gap-x-8 gap-y-6 cq-lg:grid-cols-[5fr_7fr] cq-lg:items-start cq-xl:gap-x-12">
           <div className="grid min-w-0 gap-4">
-            <Section id="sh-methods" title="이동 불가 인원 감소 방안">
-              <ul role="listbox" aria-label="이동 불가 인원 감소 방안">
+            <Section id="sh-methods" title="조건별 이동 불가 인원">
+              <ul role="listbox" aria-label="조건별 이동 불가 인원">
                 {methods.map((m) => <ListItem key={m.id} dense id={m.id} title={m.title} sub={m.sub} trailing={m.trailing} selected={m.id === methodId} tabIndex={m.id === methodId ? 0 : -1} onSelect={() => setMethod(m.id)} />)}
               </ul>
             </Section>

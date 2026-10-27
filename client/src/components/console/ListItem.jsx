@@ -12,7 +12,7 @@ export default function ListItem({ dense, id, icon, title, sub, chip, trailing, 
         {icon && <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mute text-text-sec">{icon}</span>}
         <span className={clsx('min-w-0 flex-1', dense && 'flex items-baseline gap-3')}>
           <span className={clsx(dense ? 'shrink-0' : 'block truncate', 'type-body text-text-pri', selected && 'font-bold')}>{title}</span>
-          {sub && <span className={clsx(dense ? 'min-w-0 truncate' : 'block truncate', 'type-body-sm text-text-sec tabular-nums')}>{sub}</span>}
+          {sub && <span className={clsx(dense ? 'min-w-0' : 'block truncate', 'type-body-sm text-text-sec tabular-nums')}>{sub}</span>}
         </span>
         {trailing && <span className="shrink-0 type-body-strong text-text-pri tabular-nums">{trailing}</span>}
         {chip}
