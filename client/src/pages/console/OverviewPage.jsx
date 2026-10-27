@@ -1,12 +1,14 @@
 // 현황판. 상태 띠 한 줄, 숫자 흐름, 부족 마을 목록과 선택한 마을 상세(목록과 상세 구조), 확인할 일 한 줄 목록, 작은 상태 줄.
 // 문장은 사실만 서술한다(PRD v2 4절).
 import { useMemo, useState } from 'react'
+import clsx from 'clsx'
 
 import { vehicleCounts } from '../../lib/vehicleSummary.js'
 import { Link, useNavigate } from 'react-router-dom'
 import Button from '../../components/ui/Button.jsx'
 import PageShell, { todayLabel } from '../../components/miri/PageShell.jsx'
-import { ConditionMenu, PageHeader, StatusBand, NumberFlow, DetailSection, Section, InfoRows, LinkRow } from '../../components/console/index.js'
+import { ConditionMenu, PageHeader, StatusBand, NumberFlow, DetailSection, Section, InfoRows, LinkRow, SummaryRows } from '../../components/console/index.js'
+import VillageBars from '../../components/dashboard/VillageBars.jsx'
 import Modal from '../../components/ui/Modal.jsx'
 import FreshnessNote from '../../components/miri/FreshnessNote.jsx'
 import { useFireRisk, useWarning, useWind, dirName } from '../../components/miri/FireRiskStrip.jsx'
@@ -42,6 +44,7 @@ export default function OverviewPage() {
   const now = useNow(5000)
   const anomalies = useAnomalies(now)
   const [picked, setPicked] = useState(null)
+  const [grade, setGrade] = useState('all')
   const fire = useFireRisk()
   const warning = useWarning()
   const wind = useWind()
@@ -118,6 +121,25 @@ export default function OverviewPage() {
   const targetsAll = isDong ? inScope.reduce((s, x) => s + x.r.targetTotal, 0) : result.scopeTargets
   const extraLine = extraNeed.length > 0 && extraNeed.every((e) => e.resolved) ? extraNeed.map((e) => `${e.typeLabel} ${e.count}대`).join(', ') : null
 
+  const bars = ordered.map(({ v, r }) => ({ key: v.code, name: v.label, value: grade === 'all' ? r.total : r.shortage[grade] })).sort((a, b) => b.value - a.value).slice(0, 8)
+  const chips = [{ key: 'all', label: '전체', n: scopeTotal }, ...GRADES.map((g) => ({ key: g.key, label: g.label, n: scopeByGrade[g.key] }))]
+  const rowSub = (v) => (v.roundTripMin == null ? '대피소 없음' : `왕복 ${v.roundTripMin}분`)
+  const factRows = [
+    { key: 'p', label: '명부 대상자', value: `${fmt(active.length)}명` },
+    { key: 'v', label: '대피 대상 마을', value: `${inScope.length}곳` },
+    { key: 's', label: '이동 불가 발생 마을', value: `${shortVillages.length}곳`, tone: shortVillages.length ? 'danger' : undefined },
+    { key: 'a', label: '첫 산불 도달', value: `발령 후 ${fmtElapsed(scenario.windowHours)}` },
+    ...(firstCompleteH !== scenario.windowHours ? [{ key: 'c', label: '첫 마을 이송 기한', value: `발령 후 ${fmtElapsed(firstCompleteH)}` }] : []),
+    ...(scopeProvisional > 0 ? [{ key: 'q', label: '확인 대기 서류 포함', value: `${scopeProvisional}건` }] : [])
+  ]
+  const carRows = [
+    { key: 'u', label: '출동 가능', value: `${vc.usable}대` },
+    { key: 'g', label: '협약 확정', value: `${vc.agreed}대` },
+    { key: 'n', label: '협약 미확정', value: `${vc.unconfirmed}대`, tone: vc.unconfirmed ? 'danger' : undefined },
+    { key: 'h', label: '활동 중 도우미', value: `${helpers.filter((h) => h.active).length}명` }
+  ]
+  const conditionRows = conditions.map((x) => ({ key: x.key, label: x.label, value: x.title }))
+
   const flow = [
     { label: '대피 대상 인원', value: fmt(targetsAll), unit: '명', note: `${inScope.length}개 마을` },
     { label: '기준 배정 시 이동 불가 인원', value: fmt(scopeTotal), unit: '명', note: '발령 전, 현재 차량 기준', tone: 'danger' },
@@ -143,7 +165,7 @@ export default function OverviewPage() {
           />
         )}
       />
-      <div className="grid min-w-0 gap-6">
+      <div className="grid min-w-0 gap-5">
         {live ? (
           <StatusBand tag={d.kind === 'drill' ? '훈련 발령 중' : '발령 중'} tone="primary" action={<Button as={Link} to="/console/dispatch">발령 운영 열기</Button>}>
             현재 배정표 시 이동 불가 인원 {fmt(liveUnserved)}명
@@ -164,40 +186,70 @@ export default function OverviewPage() {
 
         {!live && <NumberFlow items={flow} />}
 
-        <div className="grid min-w-0 gap-x-12 gap-y-6 cq-lg:grid-cols-[1fr_1fr] cq-lg:items-start cq-lg:gap-x-8">
-          <Section id="ov-todo" title="처리할 일" count={todo}>
-            {todoRows.length === 0 ? (
-              <p className="type-body text-text-sec">처리할 일 없음</p>
-            ) : (
-              <ul>
-                {todoRows.map((t) => <li key={t.key}><LinkRow to={t.to} title={t.title} sub={t.sub} value={t.n} /></li>)}
-              </ul>
-            )}
-          </Section>
-
-          <div className="grid min-w-0 gap-6">
+        {/* 대시보드: 한 화면에서 여러 면을 동시에 본다. 열 배치는 본문 폭 기준(공통 부품 규칙) */}
+        <div
+          className={clsx(
+            'grid min-w-0 gap-x-8 gap-y-6',
+            "cq-lg:[grid-template-columns:minmax(0,1fr)_20rem] cq-lg:[grid-template-areas:'chart_todo''facts_facts']",
+            "cq-xl:[grid-template-columns:17rem_minmax(0,1fr)_21rem] cq-xl:[grid-template-areas:'facts_chart_todo']",
+            "cq-2xl:[grid-template-columns:19rem_minmax(0,1fr)_24rem]"
+          )}
+        >
+          <div className="grid min-w-0 content-start gap-6 [grid-area:chart]">
+            <Section id="ov-chart" title="마을별 이동 불가 인원" action={<Link to="/console/map" className="inline-flex min-h-7 items-center type-strong text-primary-text hover:underline">상황판에서 보기</Link>}>
+              {bars.length ? <VillageBars rows={bars} /> : <p className="type-body text-text-sec">대피 대상 마을 없음</p>}
+              <div role="radiogroup" aria-label="이송 등급" className="mt-3 flex flex-wrap gap-2">
+                {chips.map((c) => {
+                  const on = grade === c.key
+                  return (
+                    <button
+                      key={c.key} type="button" role="radio" aria-checked={on} onClick={() => setGrade(c.key)}
+                      className={clsx('inline-flex h-8 items-center gap-1.5 rounded-xs px-3 type-body-sm font-bold', on ? 'bg-primary text-text-inverse' : 'bg-subtle text-text-pri hover:bg-mute')}
+                    >
+                      {c.label}<span className="tabular-nums">{c.n}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </Section>
             <Section id="ov-village" title={`${shortVillages.length ? '이동 불가 발생 마을' : '대피 대상 마을'} ${villageRows.length}곳`}>
-              <ul>
+              <ul className="cq-xl:grid cq-xl:grid-cols-2 cq-xl:gap-x-4 cq-2xl:grid-cols-3">
                 {villageRows.map(({ v, r }) => (
                   <li key={v.code}>
-                    <LinkRow onClick={() => setPicked(v.code)} title={v.label} sub={`기한 ${fmtH(deadlineOf(v.code)) || '계산 전'}`} value={r.total > 0 ? `${r.total}명` : '없음'} tone={r.total > 0 ? 'danger' : undefined} />
+                    <LinkRow dense onClick={() => setPicked(v.code)} title={v.label} sub={rowSub(v)} value={r.total > 0 ? `${r.total}명` : '없음'} tone={r.total > 0 ? 'danger' : undefined} />
                   </li>
                 ))}
               </ul>
             </Section>
           </div>
+
+          <div className="grid min-w-0 content-start gap-5 [grid-area:todo]">
+            <Section id="ov-todo" title="처리할 일" count={todo}>
+              {todoRows.length === 0 ? (
+                <p className="type-body text-text-sec">처리할 일 없음</p>
+              ) : (
+                <ul>
+                  {todoRows.map((t) => <li key={t.key}><LinkRow dense to={t.to} title={t.title} sub={t.sub} value={t.n} /></li>)}
+                </ul>
+              )}
+            </Section>
+            <Section tone="surface" dense id="ov-state" title="오늘 산불 여건">
+              <SummaryRows rows={conditionRows} />
+              <p className="mt-1 type-meta text-text-sec">산림청 국립산림과학원, 기상청 조회서비스</p>
+            </Section>
+          </div>
+
+          <div className="grid min-w-0 content-start gap-4 cq-lg:grid-cols-2 cq-xl:grid-cols-1 [grid-area:facts]">
+            <Section tone="surface" dense id="ov-facts" title="대피 대상 현황">
+              <SummaryRows rows={factRows} />
+            </Section>
+            <div className="grid min-w-0 content-start gap-4">
+              <Section tone="surface" dense id="ov-cars" title="출동 가능 차량" action={<Link to="/console/resources" className="inline-flex min-h-8 items-center type-strong text-primary-text hover:underline">협약 차량 확인</Link>}>
+                <SummaryRows rows={carRows} />
+              </Section>
+            </div>
+          </div>
         </div>
-        <Section tone="surface" id="ov-state" title="오늘 상황" action={<Link to="/console/resources" className="inline-flex min-h-10 items-center type-strong text-primary-text hover:underline">협약 차량 확인</Link>}>
-          <dl className="flex flex-wrap gap-x-10 gap-y-2">
-            {[
-              ...conditions.map((x) => [x.label, x.title]),
-              ['출동 가능 차량', `${vc.usable}대 (협약 확정 ${vc.agreed}, 미확정 ${vc.unconfirmed})`],
-              ['활동 중 도우미', `${helpers.filter((h) => h.active).length}명`]
-            ].map(([k, v]) => (
-              <div key={k} className="min-w-0"><dt className="type-meta text-text-sec">{k}</dt><dd className="type-body tabular-nums text-text-pri">{v}</dd></div>
-            ))}
-          </dl>
-        </Section>
       </div>
 
       <Modal
