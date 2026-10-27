@@ -36,7 +36,7 @@ export default function DispatchAction() {
       >
         <ul className="grid gap-1 type-body text-text-pri">
           <li>구분: 훈련 발령</li>
-          <li>속도: 실제 시간의 60배</li>
+          <li>속도 60배</li>
           <li>개시 후 발령 운영 화면으로 이동</li>
         </ul>
       </Modal>

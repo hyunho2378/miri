@@ -252,7 +252,7 @@ export default function ShortagePage() {
     { id: 'vehicle', title: `${typeOf(neck.vehicleType)?.label || neck.vehicleType} 1대 추가`, sub: `${neck.vehicleGain}명 감소`, trailing: `${neck.plusVehicle}명` },
     { id: 'helper', title: '도우미 1명 추가', sub: `${neck.helperGain}명 감소`, trailing: `${neck.plusHelper}명` },
     { id: 'unconfirmed', title: `미확정 차량 ${agreedCompare.unconfirmed}대 제외`, sub: '확정 차량만 사용', trailing: `${agreedCompare.agreed}명` },
-    ...(agreedPlan.alone > 0 && agreedPlan.total === 0 ? [{ id: 'agreed', title: '확정 차량만 사용 시 필요 협약', sub: lines(agreedPlan.need), trailing: '0명' }] : [])
+    ...(agreedPlan.alone > 0 && agreedPlan.total === 0 ? [{ id: 'agreed', title: '확정 차량만 사용 시 협약', sub: lines(agreedPlan.need), trailing: '0명' }] : [])
   ]
   const methodId = methods.some((m) => m.id === method) ? method : methods[0].id
   const goResources = <Button as={Link} to="/console/resources">협약 차량 확인</Button>
@@ -267,8 +267,8 @@ export default function ShortagePage() {
   const flow = [
     { label: '대피 대상 인원', value: result.scopeTargets, unit: '명', note: `${result.scopeVillages}개 마을` },
     { label: '기준 배정 시 이동 불가 인원', value: result.total, unit: '명', note: '현재 차량 기준', tone: result.total ? 'danger' : undefined },
-    { label: '추천 배정 시 이동 불가 인원', value: boardingNow in boardingRec ? boardingRec[boardingNow] : '계산 중', unit: boardingNow in boardingRec ? '명' : '', note: '현재 차량 기준' },
-    ...(fixLine && !unresolved ? [{ label: '협약 후 이동 불가 인원', value: 0, unit: '명', note: `${extraLine} 추가` }] : [])
+    { label: '추천 배정 시 이동 불가 인원', value: boardingNow in boardingRec ? boardingRec[boardingNow] : '조회 중', unit: boardingNow in boardingRec ? '명' : '', note: '현재 차량 기준' },
+    ...(fixLine && !unresolved ? [{ label: '협약 후 이동 불가 인원', value: 0, unit: '명', note: `현재 차량 기준, ${extraLine} 추가` }] : [])
   ]
 
   return (
@@ -340,7 +340,7 @@ export default function ShortagePage() {
             {boardingLead && <p className="mt-1 type-body-sm text-text-sec">{boardingLead}</p>}
             <ul className="mt-1">
               {boardingCompare.map(({ m, r }) => (
-                <Row key={m} label={boardingLabel(m, boardingNow)} value={`${r.total}명 (추천 배정 ${m in boardingRec ? `${boardingRec[m]}명` : '계산 중'})`} strong />
+                <Row key={m} label={boardingLabel(m, boardingNow)} value={`${r.total}명 (추천 배정 ${m in boardingRec ? `${boardingRec[m]}명` : '조회 중'})`} strong />
               ))}
             </ul>
           </section>

@@ -254,8 +254,8 @@ export default function IntakePage() {
                     <button type="button" role="option" aria-selected={i === pos} onClick={() => setIdx(i)}
                       className={clsx('flex min-h-[56px] w-full items-center gap-3 rounded-xl px-3 py-1.5 text-left transition-colors duration-fast', i === pos ? 'bg-mute' : 'hover:bg-subtle')}>
                       <span className="min-w-0 flex-1">
-                        <span className={clsx('block truncate type-body text-text-pri', i === pos && 'font-bold')}>{vlabel(q.doc.villageCode)} <span className="type-body-sm text-text-sec tabular-nums">{q.result.personCode.split('-').pop()}</span></span>
-                        <span className="block truncate type-body-sm text-text-sec">{KIND_LABEL[q.doc.kind]}, 읽은 등급 {g?.label || '읽기 불가'}</span>
+                        <span className={clsx('block truncate type-body text-text-pri', i === pos && 'font-bold')}><span className="tabular-nums">{q.result.personCode}</span></span>
+                        <span className="block truncate type-body-sm text-text-sec">{vlabel(q.doc.villageCode)}, {KIND_LABEL[q.doc.kind]}, 읽은 등급 {g?.label || '읽기 불가'}</span>
                       </span>
                       <span className={clsx('shrink-0 type-body-sm font-bold', c.tone)}>{c.label}</span>
                     </button>

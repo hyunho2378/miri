@@ -22,7 +22,7 @@ function offText(c) {
 // 설명 자리: 등록 42대 중 가용 39대(소방 구급차 3대 소방 출동 중 제외), 약속 31대, 확인 전 11대
 export function vehicleSummaryLong(vehicles) {
   const c = vehicleCounts(vehicles)
-  return `등록 ${c.total}대 중 가용 ${c.usable}대${offText(c)}, 약속 ${c.agreed}대, 확인 전 ${c.unconfirmed}대`
+  return `등록 ${c.total}대 중 가용 ${c.usable}대${offText(c)}, 협약 확정 ${c.agreed}대, 미확정 ${c.unconfirmed}대`
 }
 
 // 숫자 칩: 등록 42 / 출동 가능 39 / 협약 확정 31 / 미확정 11

@@ -143,7 +143,7 @@ function ServerLink({ remote }) {
   if (remote?.state === 'error') {
     return (
       <List label="서버 연결">
-        <ListRow title="다시 연결하기" subtitle="인터넷이 끊겨 이 휴대폰에만 저장돼요. 계정을 다시 고르면 연결해요" chevron onClick={() => { logout(); navigate('/m/f') }} />
+        <ListRow title="다시 연결하기" subtitle="연결 끊김, 이 기기에 저장" chevron onClick={() => { logout(); navigate('/m/f') }} />
       </List>
     )
   }

@@ -75,7 +75,6 @@ function SpeedControl({ value, onChange }) {
     <div>
       <p className="mb-1.5 type-caption text-text-sec">훈련 속도</p>
       <SegmentControl label="훈련 속도" items={SPEEDS} value={value} onChange={onChange} />
-      {value > 1 && <p className="mt-1.5 type-body-sm text-text-sec">훈련 속도 적용 중, 숫자 계속 변동</p>}
     </div>
   )
 }
@@ -556,7 +555,7 @@ function SentPanel({ now, meta }) {
 
       {d.smsLog.length > 0 && (
         <Card as="div">
-          <Disclosure summary={<span className="inline-flex items-center gap-2"><MessageSquareText size={16} aria-hidden="true" />모의 문자 발송 기록 {d.smsLog.length}건</span>}>
+          <Disclosure summary={<span className="inline-flex items-center gap-2"><MessageSquareText size={16} aria-hidden="true" />문자 발송 기록 {d.smsLog.length}건</span>}>
             <ul className="divide-y divide-line-sub">
               {d.smsLog.map((m, i) => (
                 <li key={`${m.helper}-${i}`} className="flex gap-3 py-2 type-body-sm">

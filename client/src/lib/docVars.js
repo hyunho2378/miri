@@ -42,7 +42,7 @@ export const VAR_DEFS = [
   { key: 'extraVehiclesDetail', label: '필요 추가 차량(차종별)', group: '시나리오' },
   { key: 'vehicles', label: '전체 차량', unit: '대', group: '자원', num: true },
   { key: 'vehiclesAvail', label: '가용 차량', unit: '대', group: '자원', num: true },
-  { key: 'vehicleSummaryLong', label: '차량 현황(등록, 가용, 약속, 확인 전)', group: '자원' },
+  { key: 'vehicleSummaryLong', label: '차량 현황(등록, 가용, 협약 확정, 미확정)', group: '자원' },
   { key: 'helpers', label: '대피 도우미', unit: '명', group: '자원', num: true },
   { key: 'shelters', label: '임시주거시설', unit: '곳', group: '자원', num: true },
   { key: 'shelterCapacity', label: '임시주거시설 수용', unit: '명', group: '자원', num: true },

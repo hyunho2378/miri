@@ -13,7 +13,7 @@ test('차량 표기: 시드 차량에서 등록, 가용, 약속, 확인 전을 �
   const c = vehicleCounts(seed.vehicles)
   assert.equal(c.total, c.agreed + c.unconfirmed)
   assert.equal(c.usable, c.total - c.fireOff - c.otherOff)
-  assert.equal(vehicleSummaryLong(seed.vehicles), `등록 ${c.total}대 중 가용 ${c.usable}대(소방 구급차 ${c.fireOff}대 소방 출동 중 제외), 약속 ${c.agreed}대, 확인 전 ${c.unconfirmed}대`)
+  assert.equal(vehicleSummaryLong(seed.vehicles), `등록 ${c.total}대 중 가용 ${c.usable}대(소방 구급차 ${c.fireOff}대 소방 출동 중 제외), 협약 확정 ${c.agreed}대, 미확정 ${c.unconfirmed}대`)
   assert.equal(vehicleSummaryShort(seed.vehicles), `출동 가능 ${c.usable}대 / 등록 ${c.total}대`)
 })
 
