@@ -57,7 +57,7 @@ test('현장 소식: 대상자 화면에서 ?p= 로 들어오면 대상자를 �
   assert.equal(prefillCode(''), '')
   const src = readFileSync(new URL('../src/mobile/field/FieldScreens.jsx', import.meta.url), 'utf8')
   assert.ok(src.includes('/m/f/note?p='))
-  assert.ok(src.includes('글만 먼저 저장'))
+  assert.ok(src.includes('글만 저장했어요'))
 })
 
 test('나중에 읽기: setNoteRead 는 읽은 결과를 붙이고 명부는 바꾸지 않음', async () => {
@@ -80,8 +80,8 @@ test('검수 반영: 끊김 검사와 글만 저장 버튼은 현장 소식 화�
   const start = src.indexOf('export function FieldNotePage')
   const end = src.indexOf('\nfunction ', start + 10) > 0 ? src.indexOf('\nfunction ', start + 10) : src.length
   const body = src.slice(start, end)
-  assert.ok(body.includes("phase: 'offline'"))
-  assert.ok(body.includes('canSaveTextOnly(state) &&'))
-  assert.equal(src.split("phase: 'offline'").length - 1, 1)
-  assert.equal(src.split('canSaveTextOnly(state) &&').length - 1, 1)
+  assert.ok(body.includes('navigator.onLine === false'))
+  assert.ok(body.includes('saveNow({ req, read: null })'))
+  assert.equal(src.split('navigator.onLine === false').length - 1, 1)
+  assert.equal(src.split('const saveNow').length - 1, 1)
 })

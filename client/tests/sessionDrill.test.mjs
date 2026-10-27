@@ -127,7 +127,7 @@ await ok('화면 연결: 401 이면 세션을 받아 한 번 다시 보냄, 로�
   assert.match(auth, /setDemoUser: .*ensureDemoSession\(undefined, whoOf\(DEMO_USERS\[role\]\)\)/)
   const fs = readFileSync(new URL('../src/mobile/field/FieldScreens.jsx', import.meta.url), 'utf8')
   assert.ok(!fs.includes('서버 저장은 콘솔 로그인 뒤'))
-  assert.match(fs, /title="다시 로그인"/)
+  assert.match(fs, /title="다시 연결하기"/)
 })
 
 await ok('동 담당자 범위는 그대로(서버 발령을 받아도 화면에서 자기 동만)', async () => {

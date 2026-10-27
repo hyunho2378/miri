@@ -25,8 +25,8 @@ test('휴대폰 화면에 시 관리자 몫 문구와 누구 화면 줄 없음',
 
 test('발령 홈과 소방 화면: 숫자 이름 하나씩(대피소에 아직 못 간 사람, 차량 배정 없음), 동 담당자는 우리 동', () => {
   assert.match(f, /`\$\{scope\.isDong \? '우리 동 ' : ''\}대피소에 아직 못 간 사람`/)
-  assert.match(f, /title=\{`차량 배정 없음 \$\{u\.total\}명`\}/)
-  assert.match(f, /label=\{`\$\{scope\.isDong \? '우리 동 ' : ''\}차량 배정 없음`\}/)
+  assert.match(f, /title=\{`기한 안에 못 옮기는 사람 \$\{u\.total\}명`\}/)
+  assert.match(f, /label=\{`\$\{scope\.isDong \? '우리 동 ' : ''\}기한 안에 못 옮기는 사람`\}/)
   assert.ok(!f.includes('차량이나 도우미가 없는 사람'))
 })
 

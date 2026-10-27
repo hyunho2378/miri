@@ -1,6 +1,7 @@
 // fieldModel.js 현장 담당자 휴대폰 화면(F1~F7)의 파생 값. 순수 함수. 콘솔과 같은 store 값을 같은 함수로 센다.
 import { STEP_LABEL, ackOf, indexStops, stepOf } from '../../lib/dispatchSim.js'
 import { UNSERVED_REASON } from '../../lib/assign.js'
+import { gradeOf } from '../../lib/shortage.js'
 import { elapsedMinOf } from '../../lib/clock.js'
 
 export const ACTIVE = new Set(['standby', 'assigned', 'sent'])
@@ -189,4 +190,19 @@ export function docQueue(docs, persons, inScope, scopeCodes) {
 // 확인할 현장 소식: 대기 중인 소식만, 담당 범위 안
 export function noteQueue(notes, inScope) {
   return (notes || []).filter((n) => n.status === 'pending' && inScope(n.villageCode)).sort((a, b) => (b.receivedAt || 0) - (a.receivedAt || 0))
+}
+
+// 기한 안에 못 옮기는 사람을 마을별 번호 목록으로 묶는다(소방 인계 전인 사람만)
+export function unservedPeople(d, persons, villages) {
+  if (!d?.result) return []
+  const byCode = Object.fromEntries(persons.map((p) => [p.code, p]))
+  const names = Object.fromEntries(villages.map((v) => [v.code, v.label || v.name]))
+  const groups = {}
+  for (const u of d.result.unassigned) {
+    if (d.events?.[u.personCode]?.step === 'handedToFire') continue
+    const p = byCode[u.personCode]
+    if (!p) continue
+    ;(groups[p.villageCode] ||= { code: p.villageCode, name: names[p.villageCode] || p.villageCode, rows: [] }).rows.push({ code: p.code, grade: gradeOf(p.grade)?.label || '등급 확인' })
+  }
+  return Object.values(groups).sort((a, b) => b.rows.length - a.rows.length)
 }

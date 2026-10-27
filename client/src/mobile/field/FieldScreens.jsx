@@ -18,13 +18,13 @@ import { OWNERS, COMMITMENTS, GRADES, commitmentOf, gradeOf } from '../../lib/sh
 import { personCare } from '../../lib/tripChecks.js'
 import { readDocument, verifyResult } from '../../lib/intake.js'
 import { readNote, sourceLabel } from '../../lib/notes.js'
-import { unreadNote, canSaveTextOnly, prefillCode } from '../../lib/noteDraft.js'
+import { unreadNote, prefillCode } from '../../lib/noteDraft.js'
 import { FOLLOW_UPS, FOLLOW_UP_BASIS, FOLLOW_UP_DONE, FOLLOW_UP_TITLE, followUpKindFor, lastFollowUp } from '../../lib/noAckFollowUp.js'
 import { AI_CARD, NOT_ENTERED, placeLine, reviewReasons } from '../../lib/aiCard.js'
 import { aiErrorMessage } from '../../lib/aiErrors.js'
 import { REAL_READ_SOURCE } from '../../mock/realReadings.js'
 import { AppBar, DisplaySettings, Button, Dialog, EmptyState, Figure, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, Segmented, Sheet, Spinner, Toggle, useMobileToast } from '../ui.jsx'
-import { ACTIVE, failedPending, scopeDispatch, fieldSummary, helperResponses, hm, searchPersons, stepLabel, unservedByReason, villageName, villageProgress, deadlineTag, scopedShortage, scopedOptimized, lateVillages, docQueue, noteQueue } from './fieldModel.js'
+import { ACTIVE, failedPending, unservedPeople, scopeDispatch, fieldSummary, helperResponses, hm, searchPersons, stepLabel, unservedByReason, villageName, villageProgress, deadlineTag, scopedShortage, scopedOptimized, lateVillages, docQueue, noteQueue } from './fieldModel.js'
 
 // 발령 복원과 10초 주기 조회(콘솔 발령 운영과 같은 방식)
 function useDispatchLive() {
@@ -86,19 +86,23 @@ export function FieldStatusPage() {
         <Figure plain label={`${scope.isDong ? '우리 동 ' : ''}대피소에 아직 못 간 사람`} value={left} unit="명">
           <Progress value={pct} label="이송 완료 비율" />
           <p className="mob-t-callout tabular-nums">{s.total}명 중 {s.counts.done}명 도착</p>
+          {d.kind === 'drill' && d.speed > 1 && <p className="mob-t-callout">훈련은 시간이 {d.speed}배 빨리 흘러서 숫자가 계속 바뀌어요</p>}
         </Figure>
-        <List label="늦는 마을">
-          {late.map((v) => (
+        <List label="늦는 마을, 기한이 빠른 순">
+          {late.map((v, i) => (
             <ListRow key={v.code} lead={<Clock size={22} />} title={v.name} subtitle={`${v.left}명 남음${v.at ? `, ${hm(v.at)}까지` : ''}`}
-              trailing={tagText(v.tag) ? <Tag tone="red">{tagText(v.tag)}</Tag> : null} chevron onClick={() => navigate(`/m/f/villages/${v.code}`)} />
+              trailing={tagText(v.tag) ? <Tag tone="red">{tagText(v.tag)}</Tag> : i === 0 ? <Tag tone="red">가장 먼저 늦어요</Tag> : null} chevron onClick={() => navigate(`/m/f/villages/${v.code}`)} />
           ))}
           <ListRow title="모든 마을 보기" chevron onClick={() => navigate('/m/f/villages')} />
         </List>
         {notMoved > 0 && (
-          <List label="배정 없음">
-            <ListRow lead={<PhoneOutgoing size={22} />} title={`차량 배정 없음 ${u.total}명`} subtitle={scope.isDong ? '명단 보기' : '동해소방서 지원 요청 대상'} chevron onClick={() => navigate('/m/f/fire')} />
+          <List label="차량이 닿지 않는 사람">
+            <ListRow lead={<PhoneOutgoing size={22} />} title={`기한 안에 못 옮기는 사람 ${u.total}명`} subtitle={scope.isDong ? '마을별 번호를 보고 직접 연락하기' : '동해소방서 지원 요청 대상'} chevron onClick={() => navigate('/m/f/fire')} />
           </List>
         )}
+        <List label="보내기">
+          <ListRow lead={<MessageSquare size={22} />} title="현장 소식 남기기" chevron onClick={() => navigate('/m/f/note')} />
+        </List>
         {scope.isDong ? null : u.total > 0 && <Button block variant="danger" onClick={() => navigate('/m/f/fire')}>동해소방서 지원 요청</Button>}
         {d.remote?.state !== 'saved' && <ServerLink remote={d.remote} />}
         <CloseDispatch isDong={scope.isDong} left={left} />
@@ -139,7 +143,7 @@ function ServerLink({ remote }) {
   if (remote?.state === 'error') {
     return (
       <List label="서버 연결">
-        <ListRow title="다시 로그인" subtitle="서버에 연결하지 못해 이 휴대폰 안에서만 진행 중" chevron onClick={() => { logout(); navigate('/m/f') }} />
+        <ListRow title="다시 연결하기" subtitle="인터넷이 끊겨 이 휴대폰에만 저장돼요. 계정을 다시 고르면 연결해요" chevron onClick={() => { logout(); navigate('/m/f') }} />
       </List>
     )
   }
@@ -160,14 +164,19 @@ function PeaceHome() {
   const stale = staleRosterCount(data.persons.filter((p) => p.review !== 'rejected' && scope.inScope(p.villageCode)), now)
   const docs = docQueue(data.intakeDocs, data.persons, scope.inScope, scopeCodes)
   const notes = noteQueue(data.fieldNotes, scope.inScope)
+  const [drillOpen, setDrillOpen] = useState(false)
   return (
     <>
       <AppBar title="오늘 할 일" large />
       <main id="main" className="mob-content mob-grid2">
+        <List label="훈련">
+          <ListRow lead={<Play size={22} />} title="훈련 발령 시작" subtitle="훈련은 시간이 60배 빨리 흘러요" chevron onClick={() => setDrillOpen(true)} />
+        </List>
+        <DrillStartDialog open={drillOpen} onClose={() => setDrillOpen(false)} />
         <List label={`확인할 일 ${[docs.length, notes.length, stale].filter((n) => n > 0).length}건`}>
           <ListRow lead={<FileText size={22} />} title={`서류 확인 ${docs.length}건`} subtitle={docs.length ? undefined : '모두 확인함'} chevron onClick={() => navigate('/m/f/docs')} />
           <ListRow lead={<MessageSquare size={22} />} title={`현장 소식 확인 ${notes.length}건`} subtitle={notes.length ? undefined : '모두 확인함'} chevron onClick={() => navigate('/m/f/notes')} />
-          <ListRow lead={<Users size={22} />} title={`명부 재확인 ${stale.toLocaleString('ko-KR')}명`} subtitle={stale ? '컴퓨터 명부에서 확인' : '모두 최근 확인함'} />
+          <ListRow lead={<Users size={22} />} title={`명부 재확인 ${stale.toLocaleString('ko-KR')}명`} subtitle={stale ? '컴퓨터에서 명부를 확인해 주세요' : '모두 최근 확인함'} />
         </List>
         <List label="보내기">
           <ListRow lead={<Camera size={22} />} title="서류 사진 올리기" chevron onClick={() => navigate('/m/f/intake')} />
@@ -176,6 +185,7 @@ function PeaceHome() {
         {scope.isDong ? (
           <Figure plain label={`우리 동 기한 안에 못 옮기는 사람, ${scenario?.name || '기준 시나리오'}`} value={opt ?? '-'} unit="명">
             {stamp && <p className="mob-t-callout tabular-nums">추천 배정 기준, {stamp}</p>}
+            <Button block variant="tonal" onClick={() => setDrillOpen(true)}>훈련 발령으로 명단 확인</Button>
           </Figure>
         ) : (
           <Figure plain label={`동해시 전체 기한 안에 못 옮기는 사람, ${scenario?.name || '기준 시나리오'}`} value={sh.unserved ?? '-'} unit="명">
@@ -332,7 +342,7 @@ export function FieldNoteReviewPage() {
         </List>
         {n.unread && !n.read && (
           <List label="읽기 전">
-            <ListRow title="아직 읽지 않은 소식" subtitle="끊김이나 읽기 실패로 글만 먼저 저장됨" />
+            <ListRow title="아직 AI가 읽지 않은 소식" subtitle="연결이 끊겨 글만 저장했어요. 연결되면 AI가 읽고 담당자가 확인해요" />
           </List>
         )}
         <div className="mob-stack-8">
@@ -506,11 +516,20 @@ export function FieldFirePage() {
   const failed = failedPending(sc.d, sc.persons, vnow)
   return (
     <>
-      <AppBar title={scope.isDong ? '차량 배정 없는 사람' : '소방 지원 요청'} onBack={() => navigate(-1)} backLabel="뒤로" />
+      <AppBar title={scope.isDong ? '기한 안에 못 옮기는 사람' : '소방 지원 요청'} onBack={() => navigate(-1)} backLabel="뒤로" />
       <main id="main" className="mob-content mob-grid2">
-        {!d.result ? <EmptyState icon={<Truck size={28} />} title="배정 전" body="배정 뒤 못 옮길 사람이 여기에 보임" /> : (
+        {!d.result ? <EmptyState icon={<Truck size={28} />} title="배정 전" body="발령이 시작되면 여기에 사람이 나와요" /> : (
           <>
-            <Figure plain label={`${scope.isDong ? '우리 동 ' : ''}차량 배정 없음`} value={u.total} unit="명" />
+            <Figure plain label={`${scope.isDong ? '우리 동 ' : ''}기한 안에 못 옮기는 사람`} value={u.total} unit="명" />
+            <List label="마을별 번호">
+              {unservedPeople(sc.d, data.persons, data.villages).map((g) => (
+                <InfoSheet key={g.code} title={`${g.name} ${g.rows.length}명`} sheetTitle={g.name}>
+                  <List label={`${g.name} 번호`}>
+                    {g.rows.map((r) => <ListRow key={r.code} title={r.code} subtitle={`${g.name}, ${r.grade}`} chevron onClick={() => navigate(`/m/f/people/${r.code}`)} />)}
+                  </List>
+                </InfoSheet>
+              ))}
+            </List>
             <List label="사유별 인원">
               {u.reasons.map((r) => <ListRow key={r.key} title={r.label} trailing={<span className="mob-t-body">{r.n}명</span>} />)}
               {!!failed.length && (
@@ -628,7 +647,7 @@ function VillagePicker({ villages, value, onChange }) {
 // AI 판독 오류 문구. 휴대폰 로그인에는 시연 코드 칸이 없으므로 콘솔 로그인으로 안내한다(막다른 안내 제거)
 const fieldAiError = (e, kind) => {
   const m = aiErrorMessage(e, kind)
-  if (e?.code === 'STORED_ONLY') return { title: '시연은 저장된 결과로 보여 드려요', desc: '실시간 AI 호출은 멈춰 두었어요. 확인할 서류의 저장된 결과를 봐 주세요' }
+  if (e?.code === 'STORED_ONLY') return { title: '지금은 예시 서류만 읽어요', desc: '준비된 예시 서류로 AI가 읽은 결과를 확인해 주세요' }
   if (e?.code === 'NEED_SESSION' || e?.code === 401) return { title: 'AI 서류 읽기는 시연 코드가 필요해요', desc: '같은 브라우저의 콘솔 로그인에서 시연 코드를 넣은 뒤 다시 시도' }
   return m
 }
@@ -686,7 +705,7 @@ export function FieldIntakePage() {
               </InfoSheet>
             </List>
             <input ref={fileRef} type="file" accept="image/png,image/jpeg,application/pdf" capture="environment" hidden onChange={(e) => { run(e.target.files?.[0]); e.target.value = '' }} />
-            {state.phase === 'loading' && <div className="mob-pad mob-inline"><Spinner label="읽는 중" /><span className="mob-t-body">읽는 중, 보통 5초 안팎</span></div>}
+            {state.phase === 'loading' && <div className="mob-pad mob-inline"><Spinner label="AI가 읽는 중" /><span className="mob-t-body">AI가 읽는 중, 보통 5초 안팎</span></div>}
             {state.phase === 'error' && <List label="오류"><ListRow title={state.err.title} subtitle={state.err.desc} /></List>}
             <div className="mob-stack-8">
               <Button block disabled={!!need || state.phase === 'loading'} onClick={() => fileRef.current?.click()}><Camera size={20} aria-hidden="true" />사진 찍기 또는 고르기</Button>
@@ -731,19 +750,29 @@ export function FieldNotePage() {
   const person = data.persons.find((p) => p.code === code.trim().toUpperCase() && scope.inScope(p.villageCode))
   const candidates = searchPersons(data.persons.filter((p) => scope.inScope(p.villageCode)), data.villages, code, 20)
   const reqSeq = useRef(0)
+  // 글은 보내기 한 번으로 저장까지 끝낸다. 읽기가 안 되면 글만 먼저 저장하고 연결되면 이어서 읽는다
+  const saveNow = ({ req, read }) => {
+    addFieldNote(read
+      ? { id: nextNoteId(), personCode: req.personCode, villageCode: req.villageCode, source: 'dong', status: 'pending', receivedAt: Date.now(), current: req.current, mode: req.mode, fileName: '', text: read.transcript || req.text, read, mock: false }
+      : unreadNote({ id: nextNoteId(), req, now: Date.now() }))
+    toast(read ? `${req.personCode} 소식을 저장했어요. 담당자가 확인해요` : `${req.personCode} 소식을 저장했어요. 연결되면 시청에 전달돼요`)
+    setText(''); setState({ phase: 'idle' })
+  }
   const send = async (file) => {
     if (!person) { toast('대상자 번호 확인 필요'); return }
     // 요청 시작 시 대상자, 마을, 현재 값, 방식, 글을 한 요청 객체로 고정. 결과와 저장 모두 이 객체만 사용
     const req = { id: ++reqSeq.current, personCode: person.code, villageCode: person.villageCode, current: { grade: person.grade, tags: [...(person.tags || [])] }, mode, text: text.trim() }
-    if (!file && typeof navigator !== 'undefined' && navigator.onLine === false) { setState({ phase: 'offline', req }); return }
+    if (!file && typeof navigator !== 'undefined' && navigator.onLine === false) { saveNow({ req, read: null }); return }
     setState({ phase: 'loading', req })
     try {
       const read = await readNote({ text: file ? undefined : req.text, file: file || undefined, current: req.current })
       if (req.id !== reqSeq.current) return // 늦게 온 이전 요청 응답은 버림
+      if (!file) { saveNow({ req, read }); return }
       setState({ phase: 'done', read, file, req })
       setSheet(true)
     } catch (e) {
       if (req.id !== reqSeq.current) return
+      if (!file) { saveNow({ req, read: null }); return }
       setState({ phase: 'error', err: fieldAiError(e, '소식'), req })
     }
   }
@@ -754,13 +783,6 @@ export function FieldNotePage() {
     toast(`${req.personCode} 확인할 소식으로 저장`)
     setSheet(false); setText(''); setState({ phase: 'idle' })
   }
-  // 읽기 실패나 끊김 때 글만 먼저 저장. 읽기는 확인 화면에서 연결되면 다시
-  const keepText = () => {
-    if (!canSaveTextOnly(state)) return
-    addFieldNote(unreadNote({ id: nextNoteId(), req: state.req, now: Date.now() }))
-    toast(`${state.req.personCode} 글만 먼저 저장, 읽기는 연결되면`)
-    setText(''); setState({ phase: 'idle' })
-  }
   const r = state.read
   const busy = state.phase === 'loading'
   return (
@@ -768,7 +790,7 @@ export function FieldNotePage() {
       <AppBar title="현장 소식 남기기" onBack={() => navigate(-1)} backLabel="뒤로" />
       <main id="main" className="mob-content">
         <List label="대상자">
-          <ListRow title={person ? person.code : '대상자 고르기'} subtitle={person ? `${villageName(data.villages, person.villageCode)}, 지금 ${gradeOf(person.grade)?.label || '등급 확인'}` : '번호나 마을로 찾기'} chevron onClick={() => setPickOpen(true)} />
+          <ListRow title={person ? person.code : '대상자 고르기'} subtitle={person ? `${villageName(data.villages, person.villageCode)}, 도움 방식 ${gradeOf(person.grade)?.label || '등급 확인'}` : '번호나 마을로 찾기'} chevron onClick={() => setPickOpen(true)} />
         </List>
         <Segmented label="남기는 방식" value={mode} onChange={setMode} options={[{ value: 'text', label: '글' }, { value: 'voice', label: '음성 파일' }]} />
         {mode === 'text'
@@ -776,8 +798,6 @@ export function FieldNotePage() {
           : <input ref={fileRef} type="file" accept="audio/wav,audio/mpeg,audio/mp4,audio/x-m4a" hidden onChange={(e) => { send(e.target.files?.[0]); e.target.value = '' }} />}
         {busy && <div className="mob-pad mob-inline"><Spinner label="읽는 중" /><span className="mob-t-body">읽는 중</span></div>}
         {state.phase === 'error' && <List label="오류"><ListRow title={state.err.title} subtitle={state.err.desc} /></List>}
-        {state.phase === 'offline' && <List label="연결 끊김"><ListRow title="연결이 끊겨 지금은 읽을 수 없음" subtitle="쓴 글은 그대로 있습니다. 글만 먼저 저장하면 연결된 뒤 읽습니다" /></List>}
-        {canSaveTextOnly(state) && <div className="mob-stack-8"><Button block variant="tonal" onClick={keepText}>글만 먼저 저장</Button></div>}
         <div className="mob-stack-8">
           {mode === 'text'
             ? <Button block disabled={!person || !text.trim() || busy} onClick={() => send(null)}>보내기</Button>
@@ -822,6 +842,29 @@ function NoDispatch({ title, body }) {
   )
 }
 
+// 훈련 발령 시작 확인 창(앱 안). 평시 홈과 더보기에서 같이 쓴다
+function DrillStartDialog({ open, onClose }) {
+  const navigate = useNavigate()
+  const toast = useMobileToast()
+  const startDrill = () => {
+    const st = useDispatchStore.getState()
+    if (st.status === 'closed') st.reset()
+    useDispatchStore.getState().start({ kind: 'drill', speed: 60 })
+    useDispatchStore.getState().runAssign()
+    useDispatchStore.getState().confirmAndSend()
+    onClose()
+    toast('훈련 발령을 시작했어요')
+    navigate('/m/f')
+  }
+  return (
+    <Dialog
+      open={open} onClose={onClose} title="훈련 발령을 시작할까요?"
+      body="지금부터 훈련 상태로 바뀌어요. 실제 발령은 아니고, 시간이 60배 빨리 흘러요."
+      actions={(<><Button variant="plain" onClick={onClose}>취소</Button><Button onClick={startDrill}>시작</Button></>)}
+    />
+  )
+}
+
 // 더보기: 다른 업무, 시연, 계정, 화면 설정
 export function FieldMorePage() {
   const navigate = useNavigate()
@@ -831,21 +874,13 @@ export function FieldMorePage() {
   const scope = useFieldScope()
   const toast = useMobileToast()
   const u = unservedByReason(scope.scopeDispatch(d, data.persons).d)
-  const startDrill = () => {
-    const st = useDispatchStore.getState()
-    if (st.status === 'closed') st.reset()
-    useDispatchStore.getState().start({ kind: 'drill', speed: 60 })
-    useDispatchStore.getState().runAssign()
-    useDispatchStore.getState().confirmAndSend()
-    toast('훈련 발령 시작')
-    navigate('/m/f')
-  }
+  const [drillOpen, setDrillOpen] = useState(false)
   return (
     <>
       <AppBar title="더보기" large />
       <main id="main" className="mob-content mob-grid2">
         <List label="다른 업무">
-          <ListRow lead={<PhoneOutgoing size={22} />} title={scope.isDong ? '차량 배정 없는 사람' : '소방 지원 요청'} subtitle={d.result ? `${u.total}명` : '발령 뒤 표시'} chevron onClick={() => navigate('/m/f/fire')} />
+          <ListRow lead={<PhoneOutgoing size={22} />} title={scope.isDong ? '기한 안에 못 옮기는 사람' : '소방 지원 요청'} subtitle={d.result ? `${u.total}명` : '발령이 시작되면 사람이 나와요'} chevron onClick={() => navigate('/m/f/fire')} />
           <ListRow lead={<Search size={22} />} title="대상자 찾기" chevron onClick={() => navigate('/m/f/people')} />
           <InfoSheet lead={<Users size={22} />} title="차량 소속과 확인 상태" sheetTitle="차량 소속과 확인 상태">
             <List label="차량 소속">
@@ -859,9 +894,10 @@ export function FieldMorePage() {
         </List>
         {!ACTIVE.has(d.status) && (
           <List label="시연">
-            <ListRow lead={<Play size={22} />} title="훈련 발령 시작" subtitle="1시간을 1분으로(60배)" onClick={startDrill} />
+            <ListRow lead={<Play size={22} />} title="훈련 발령 시작" subtitle="훈련은 시간이 60배 빨리 흘러요" onClick={() => setDrillOpen(true)} />
           </List>
         )}
+        <DrillStartDialog open={drillOpen} onClose={() => setDrillOpen(false)} />
         <List label="계정">
           <ListRow title={account.user ? ROLE_LABEL[account.user.role] : '로그인 전'} subtitle={account.user?.name} trailing={<Button size="sm" variant="plain" onClick={account.logout}>로그아웃</Button>} />
         </List>
