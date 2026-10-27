@@ -4,10 +4,11 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8')
 
-test('배정 검토: 결론 숫자(기한 안에 못 옮기는 사람)를 크게, 회차 수와 개발 설명 줄은 없음', () => {
+test('배정 검토: 결론 숫자(배정표 기준 이동 불가 인원)를 본문 크기로, 회차 수와 개발 설명 줄은 없음', () => {
   const s = read('../src/pages/console/DispatchPage.jsx')
   assert.match(s, /title="배정표 확인"/)
-  assert.match(s, /이 배정표로 기한 안에 못 옮기는 사람/)
+  assert.match(s, /배정표 기준 이동 불가 인원/)
+  assert.doesNotMatch(s, /type-display/)
   assert.doesNotMatch(s, /\$\{trips\}회차/)
   assert.doesNotMatch(s, /평시 현황판 값은 발령 직후 출발을 가정해/)
 })

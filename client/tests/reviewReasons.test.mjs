@@ -51,13 +51,13 @@ test('모델 카드: 절 구성과 시험 기록 값, 휴대폰 문장 80자 이
   assert.ok(read('../src/components/miri/ReviewRow.jsx').includes('AiCardButton'))
 })
 
-test('집결지와 대피소 정의: 설정 화면 문장 기준, 지도와 휴대폰 마을 상세와 도우미 알림에 노출', () => {
+test('집결지와 대피소 정의: 설정 화면 문장 기준, 휴대폰 마을 상세와 도우미 알림에 노출, 지도 마을 상세에는 설명 줄 없음', () => {
   // 화면 설명 줄을 지우고 설정의 자료 안내(dataNotes.js)로 옮김(1027 공공 서비스 문구 정리)
   assert.ok(read('../src/lib/dataNotes.js').includes('경로당 가운데 분포 중심에 가까운 곳'))
   assert.ok(PLACE_TERMS.pickup.text.includes('분포 중심에 가까운 곳'))
   assert.ok(PLACE_TERMS.shelter.text.includes('임시주거시설'))
   for (const t of Object.values(PLACE_TERMS)) assert.ok(`${t.term}: ${t.text}`.length <= 80)
-  assert.ok(read('../src/components/map/VillageDetail.jsx').includes("placeLine('shelter')"))
+  assert.ok(!read('../src/components/map/VillageDetail.jsx').includes('placeLine'))
   assert.ok(read('../src/mobile/field/FieldScreens.jsx').includes("meta={placeLine('pickup')}"))
   assert.ok(read('../src/mobile/helper/HelperScreens.jsx').includes('label="장소 뜻"'))
 })

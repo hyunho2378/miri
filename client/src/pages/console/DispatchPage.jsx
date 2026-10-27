@@ -75,27 +75,28 @@ function SpeedControl({ value, onChange }) {
     <div>
       <p className="mb-1.5 type-caption text-text-sec">훈련 속도</p>
       <SegmentControl label="훈련 속도" items={SPEEDS} value={value} onChange={onChange} />
-      {value > 1 && <p className="mt-1.5 type-body-sm text-text-sec">훈련은 시간이 빨리 흘러서 숫자가 계속 바뀌어요</p>}
+      {value > 1 && <p className="mt-1.5 type-body-sm text-text-sec">훈련 속도 적용 중, 숫자 계속 변동</p>}
     </div>
   )
 }
 
-// 현재 단계의 할 일 하나를 크게 보이는 영역
+// 현재 단계의 할 일 하나. 상자 없이 제목 줄 오른쪽에 주 행동을 두어 첫 화면에서 바로 누를 수 있게 한다
 function TaskCard({ step, title, desc, metric, actions, children }) {
   return (
-    <Card as="section" padding="lg" aria-labelledby="dispatch-task">
-      <h2 id="dispatch-task" className="type-h1 text-text-pri">{title}</h2>
+    <section aria-labelledby="dispatch-task" className="min-w-0">
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <h2 id="dispatch-task" className="type-title text-text-pri">{title}</h2>
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      </div>
       {metric && (
-        <p className="mt-3 flex flex-wrap items-baseline gap-x-2">
+        <p className="mt-3 flex flex-wrap items-baseline gap-x-3">
           <span className="type-body text-text-sec">{metric.label}</span>
-          <span className="type-display tabular-nums text-text-pri">{metric.value}</span>
-          <span className="type-body text-text-sec">{metric.unit}</span>
+          <span className="type-body-strong tabular-nums text-text-pri">{metric.value}{metric.unit}</span>
         </p>
       )}
-      {desc && <p className="mt-2 max-w-text type-body text-text-sec tabular-nums">{desc}</p>}
-      {children && <div className="mt-5 space-y-4">{children}</div>}
-      {actions && <div className="mt-5 flex flex-wrap items-center gap-3">{actions}</div>}
-    </Card>
+      {desc && <p className="mt-1 max-w-text type-body-sm text-text-sec tabular-nums">{desc}</p>}
+      {children && <div className="mt-4 space-y-4">{children}</div>}
+    </section>
   )
 }
 
@@ -122,8 +123,8 @@ function StartPanel() {
     <div className="space-y-4">
       {status === 'closed' && closedRecordId && (
         <div role="status" className="rounded-lg bg-subtle p-4">
-          <p className="type-body-sm text-text-pri">발령이 종료되었습니다. 이송 기록을 저장했습니다.</p>
-          <Link to={`/console/records/${closedRecordId}`} className="mt-1 inline-flex min-h-11 md:min-h-0 items-center type-body-sm text-primary-text underline underline-offset-2">방금 저장한 기록 보기</Link>
+          <p className="type-body-sm text-text-pri">발령 종료, 이송 기록 저장</p>
+          <Link to={`/console/records/${closedRecordId}`} className="mt-1 inline-flex min-h-11 md:min-h-0 items-center type-body-sm text-primary-text underline underline-offset-2">이송 기록 보기</Link>
         </div>
       )}
       <div className="grid gap-4 xl:grid-cols-2 xl:items-start">
@@ -134,7 +135,7 @@ function StartPanel() {
             {kind === 'drill' ? '훈련 발령 개시' : '실제 발령 개시'}
           </Button>
         ) : (
-          <p className="rounded-md bg-subtle p-3 type-body-sm text-text-sec">발령 개시와 종료는 시 관리자 권한으로만 처리합니다.</p>
+          <p className="type-body-sm text-text-sec">발령 개시와 종료는 시 관리자 권한</p>
         )}
       >
         <div>
@@ -144,7 +145,7 @@ function StartPanel() {
           {kind === 'drill'
             ? <Button className="mt-1.5" size="sm" variant="ghost" onClick={() => setRealAsk(true)}>실제 발령으로 바꾸기</Button>
             : <Button className="mt-1.5" size="sm" variant="ghost" onClick={() => setKind('drill')}>훈련 발령으로 돌아가기</Button>}
-          {kind === 'real' && <p className="mt-1.5 type-meta text-text-meta">실제 발령은 도우미 보고 서버 연결 뒤 열립니다. 지금은 훈련 발령만 가능합니다.</p>}
+          {kind === 'real' && <p className="mt-1.5 type-meta text-text-meta">실제 발령 준비 중, 현재 훈련 발령만 가능</p>}
         </div>
         <Modal
           open={realAsk} onClose={() => setRealAsk(false)} title="실제 발령으로 바꿀까요?"
@@ -159,17 +160,17 @@ function StartPanel() {
         </Modal>
         {kind === 'drill' && <SpeedControl value={speed} onChange={setSpeed} />}
       </TaskCard>
-      <Card title="발령 기준">
+      <section aria-label="발령 기준"><h2 className="mb-2 type-title text-text-pri">발령 기준</h2>
         <KeyValue items={[
-          { label: '시나리오', value: scenario?.name, strong: true },
+          { label: '확산 조건', value: scenario?.name, strong: true },
           { label: '이송 대상(대피 대상 구역)', value: <>{sum.villages}개 마을 {sum.targets.toLocaleString('ko-KR')}명{sum.pending > 0 && <span className="text-primary-text">, 확인 대기 서류 {sum.pending}건 포함</span>}</> },
           { label: '명부 전체', value: `${sum.roster.toLocaleString('ko-KR')}건(확인 대기 ${sum.rosterPending}건 포함)` },
           { label: '차량', value: vehicleSummaryShort(vehicles) },
           { label: '도우미', value: `${helpers.filter((h) => h.active !== false).length}명` }
         ]} />
         <BasisLine className="mt-3" today={today} />
-        <Link to="/console/shortage" className="mt-3 inline-flex min-h-11 md:min-h-0 items-center type-body-sm text-primary-text underline underline-offset-2">시나리오 변경</Link>
-      </Card>
+        <Link to="/console/shortage" className="mt-3 inline-flex min-h-11 md:min-h-0 items-center type-body-sm text-primary-text underline underline-offset-2">확산 조건 변경</Link>
+      </section>
       </div>
     </div>
   )
@@ -261,7 +262,7 @@ function AssignedPanel({ meta }) {
       <div className="grid gap-4 xl:grid-cols-2 xl:items-start">
       <TaskCard
         step="배정 검토" title="배정표 확인"
-        metric={{ label: `${result.basis?.elapsedMin > 0 ? `발령 ${result.basis.elapsedMin}분 뒤 기준` : '발령 직후 기준'}, 이 배정표로 기한 안에 못 옮기는 사람`, value: result.unassigned.length.toLocaleString('ko-KR'), unit: '명' }}
+        metric={{ label: `배정표 기준 이동 불가 인원(${result.basis?.elapsedMin > 0 ? `발령 ${result.basis.elapsedMin}분 뒤` : '발령 직후'})`, value: result.unassigned.length.toLocaleString('ko-KR'), unit: '명' }}
         desc={`배정 차량 ${result.assignments.length}대, 마지막 이송 완료 ${fmtHMFrom(result.metrics.lastFinishAt, firstDepart)}`}
         actions={(
           <>
@@ -658,10 +659,10 @@ export default function DispatchPage() {
 
   return (
     <PageShell title="발령 운영">
-      <Card as="div" className="mb-5" bodyClassName="flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
         <div className="min-w-0 flex-1"><StepIndicator status={status} /></div>
         {status !== 'sent' && <CloseControl status={status} />}
-      </Card>
+      </div>
       {(status === 'idle' || status === 'closed') && <StartPanel />}
       {status === 'standby' && <StandbyPanel now={now} meta={meta} />}
       {status === 'assigned' && hasResult && <AssignedPanel meta={meta} />}

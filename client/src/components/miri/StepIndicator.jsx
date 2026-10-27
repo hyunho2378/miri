@@ -4,7 +4,7 @@
 import clsx from 'clsx'
 
 export const DISPATCH_STEPS = [
-  { key: 'idle', label: '평시' },
+  { key: 'idle', label: '발령 전' },
   { key: 'standby', label: '실행대기 발령' },
   { key: 'assigned', label: '배정 검토' },
   { key: 'sent', label: '이송 진행' },
