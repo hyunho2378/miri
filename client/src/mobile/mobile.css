@@ -329,6 +329,7 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 .mob-check-row { cursor:pointer; min-height:var(--m-touch); }
 .mob-filled-input { appearance:none; font:inherit; width:100%; min-height:var(--m-touch); padding:12px; color:var(--m-ink); background:var(--m-fill); border:0; border-radius:var(--m-r-md); }
 .mob-sheet > h2 { margin-bottom:12px; }
+.mob-sheet > p.mob-t-callout + .mob-list { margin-top: calc(var(--m-space) * 3); }   /* 시트 안내 문장과 목록 사이 12(시트 제목 간격과 같음) */
 .mob-grabber { width:60px; height:4px; }
 .mob-root.platform-android .mob-grabber { width:32px; }
 .mob-root.platform-android .mob-btn:focus-visible { background-image:linear-gradient(var(--m-press),var(--m-press)); }
