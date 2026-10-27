@@ -13,7 +13,7 @@ test('명부: 재확인 필요 인원 칩을 숫자와 함께 보이고 누르�
 test('차량: 협약 미확정 차량 수와 협약 확인 단추, 미확정 먼저 정렬', () => {
   const s = read('../src/pages/console/ResourcesPage.jsx')
   assert.match(s, /협약 미확정 차량/)
-  assert.match(s, /'협약 확인'/)
+  assert.match(s, /'미확정 차량만 보기'/)
   assert.match(s, /commitmentOf\(a\) === 'unconfirmed' \? 0 : 1/)
 })
 

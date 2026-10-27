@@ -1,6 +1,6 @@
 // 차량과 도우미(IA 4.4). 탭 세 개. ?tab=helpers, ?tab=shelters(대피소 승강기 확인). 차종 탑승 정원은 자문 전 가정값.
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import EditPencil from '../../components/edit/EditPencil.jsx'
@@ -166,6 +166,8 @@ export default function ResourcesPage() {
   ]
 
   const unconfirmedCount = vehicles.filter((v) => commitmentOf(v) === 'unconfirmed').length
+  // 차종별로 풀어 보여, 부족분 계산의 협약 대수와 어떤 관계인지 한 줄로 읽히게 한다
+  const unconfirmedByType = Object.entries(vehicles.filter((v) => commitmentOf(v) === 'unconfirmed').reduce((a, v) => { const l = typeOf(v.type)?.label || v.type; a[l] = (a[l] || 0) + 1; return a }, {})).map(([l, n]) => `${l} ${n}대`).join(', ')
   const vehicleRows = vehicles
     .filter((v) => !onlyUnconfirmed || commitmentOf(v) === 'unconfirmed')
     .slice().sort((a, b) => (commitmentOf(a) === 'unconfirmed' ? 0 : 1) - (commitmentOf(b) === 'unconfirmed' ? 0 : 1))
@@ -187,10 +189,11 @@ export default function ResourcesPage() {
         <>
         {unconfirmedCount > 0 && (
           <div className="mb-4 flex flex-wrap items-center gap-3">
-            <p className="type-body text-text-pri">협약 미확정 차량 <strong className="type-strong tabular-nums">{unconfirmedCount}대</strong></p>
+            <p className="type-body text-text-pri tabular-nums">협약 미확정 차량 <strong className="type-strong">{unconfirmedCount}대</strong>({unconfirmedByType})</p>
             <Button variant={onlyUnconfirmed ? 'secondary' : 'primary'} size="sm" onClick={() => setOnlyUnconfirmed((v) => !v)}>
-              {onlyUnconfirmed ? '전체 차량 보기' : '협약 확인'}
+              {onlyUnconfirmed ? '전체 차량 보기' : '미확정 차량만 보기'}
             </Button>
+            <Button as={Link} to="/console/shortage" variant="secondary" size="sm">필요한 협약 대수 보기</Button>
           </div>
         )}
         <TableCard
