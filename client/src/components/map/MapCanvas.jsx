@@ -446,7 +446,7 @@ export default function MapCanvas({
       const wrap = document.createElement('div')
       const el = document.createElement('span')
       el.className = 'pointer-events-none inline-flex h-6 items-center rounded-full bg-text-pri px-2 type-caption text-text-inverse shadow-sm'
-      el.textContent = '산불 확산 가정 구역'
+      el.textContent = '산불 확산 구역'
       wrap.appendChild(el)
       fireMarkerRef.current = new Marker({ element: wrap, anchor: 'center' }).setLngLat(fire.mid).addTo(map)
       fireMarkerRef.current.labelEl = el

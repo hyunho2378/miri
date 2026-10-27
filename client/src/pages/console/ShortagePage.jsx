@@ -113,17 +113,17 @@ export default function ShortagePage() {
   const setExtra = (type, n) => setDraft((d) => ({ ...d, extraVehicles: { ...d.extraVehicles, [type]: n } }))
 
   const saveAsNew = () => {
-    if (userScenarioCount(scenarios) >= MAX_SCENARIOS) { toast(`시나리오는 최대 ${MAX_SCENARIOS}개까지 저장합니다. 기존 시나리오를 삭제한 뒤 저장해 주십시오.`, 'danger'); return }
+    if (userScenarioCount(scenarios) >= MAX_SCENARIOS) { toast(`계산 조건은 최대 ${MAX_SCENARIOS}개까지 저장합니다. 기존 조건을 삭제한 뒤 저장 필요`, 'danger'); return }
     const id = `S-${Math.max(0, ...scenarios.map((s) => Number(s.id.split('-')[1]) || 0)) + 1}`
     saveScenario({ ...draft, id, name: name.trim() || `${base.name} 변형` })
     setSelectedId(id)
-    toast('시나리오를 저장했습니다.', 'primary')
+    toast('계산 조건 저장 완료', 'primary')
   }
-  const overwrite = () => { saveScenario({ ...draft, id: base.id }); toast(`${base.name} 시나리오를 갱신했습니다.`, 'primary') }
+  const overwrite = () => { saveScenario({ ...draft, id: base.id }); toast(`${base.name} 계산 조건 갱신 완료`, 'primary') }
 
   const compareCols = [
     {
-      key: 'name', label: '시나리오',
+      key: 'name', label: '계산 조건',
       render: ({ sc }) => (
         <span className="inline-flex flex-wrap items-center gap-2">
           <span className="type-strong text-text-pri">{sc.name}</span>
@@ -147,7 +147,7 @@ export default function ShortagePage() {
       render: ({ sc }) => (sc.id !== activeId ? (
         <span className="inline-flex gap-1">
           <Button size="sm" variant="ghost" aria-label={`${sc.name} 현황판 기준 지정`} leftIcon={<Star size={14} aria-hidden="true" />} onClick={() => { setActiveScenario(sc.id); toast(`현황판 기준 지정: ${sc.name}`, 'primary') }}>기준 지정</Button>
-          {scenarios.length > 1 && <Button size="sm" variant="ghost" aria-label={`${sc.name} 시나리오 삭제`} onClick={() => { removeScenario(sc.id); if (selectedId === sc.id) setSelectedId(activeId); toast('시나리오를 삭제했습니다.') }}>삭제</Button>}
+          {scenarios.length > 1 && <Button size="sm" variant="ghost" aria-label={`${sc.name} 계산 조건 삭제`} onClick={() => { removeScenario(sc.id); if (selectedId === sc.id) setSelectedId(activeId); toast('계산 조건 삭제 완료') }}>삭제</Button>}
         </span>
       ) : null)
     }] : [])
@@ -167,47 +167,47 @@ export default function ShortagePage() {
         <div>
           <Select label="시나리오" value={selectedId} onChange={setSelectedId}
             options={scenarios.map((s) => ({ value: s.id, label: s.name, secondary: s.id === activeId ? '현황판 기준' : s.id }))} />
-          {dirty && <p className="mt-2 type-meta text-primary-text">저장하지 않은 변경이 있습니다.</p>}
+          {dirty && <p className="mt-2 type-meta text-primary-text">저장 전 변경 있음</p>}
         </div>
         {draft.kind === 'fire' && (
           <div className="space-y-4">
-            <p className="type-caption text-text-sec">확산 가정</p>
-            <NumberStepper label="확산 속도" value={draft.speedKmh} min={0.5} max={10} step={0.5} unit="km/h" format={(v) => `시속 ${v}km`} onChange={(v) => setFire({ speedKmh: v })} />
-            <NumberStepper label="발화 전 사전 발령" value={draft.leadHours ?? 0} min={0} max={6} step={0.5} unit="시간" onChange={(v) => setFire({ leadHours: v })} />
-            <NumberStepper label="대피 대상 범위(첫 도달 뒤)" value={draft.scopeHours} min={0.5} max={8} step={0.5} unit="시간" onChange={(v) => setFire({ scopeHours: v })} />
-            <p className="type-meta leading-5 text-text-meta">발화 가정 지점 {draft.originLabel}. 확산 방향 띠 안 마을에 앞쪽 거리 ÷ 속도만큼 늦게 도달한다고 계산합니다.</p>
+            <p className="type-caption text-text-sec">확산 조건</p>
+            <NumberStepper label="확산 속도(시속)" value={draft.speedKmh} min={0.5} max={10} step={0.5} unit="km/h" format={(v) => `시속 ${v}km`} onChange={(v) => setFire({ speedKmh: v })} />
+            <NumberStepper label="사전 발령 시간" value={draft.leadHours ?? 0} min={0} max={6} step={0.5} unit="시간" onChange={(v) => setFire({ leadHours: v })} />
+            <NumberStepper label="대피 대상 범위(첫 도달 후)" value={draft.scopeHours} min={0.5} max={8} step={0.5} unit="시간" onChange={(v) => setFire({ scopeHours: v })} />
+            <p className="type-meta leading-5 text-text-meta">발화 지점 {draft.originLabel}, 마을 도달 시각 = 발화 지점 거리 ÷ 확산 속도</p>
           </div>
         )}
         <div>
           <p className="mb-1.5 type-caption text-text-sec">발령 시간대</p>
           <SegmentControl label="발령 시간대" value={draft.timeBand || 'home'} onChange={(v) => set({ timeBand: v })}
             items={TIME_BANDS.map((b) => ({ value: b.value, label: b.label }))} />
-          <p className="mt-1.5 type-meta leading-5 text-text-meta">{bandOf(draft).desc} 주야간보호 이용 {LTC_DAYCARE.toLocaleString('ko-KR')}명은 공단 통계이고, 누가 이용자인지는 시연 명부 기준입니다.</p>
+          <p className="mt-1.5 type-meta leading-5 text-text-meta">{bandOf(draft).desc} 주야간보호 이용자 {LTC_DAYCARE.toLocaleString('ko-KR')}명(공단 통계)</p>
         </div>
         <div>
           <NumberStepper label="차량 가용률" value={draft.availability ?? 100} min={30} max={100} step={10} unit="%" format={(v) => `${v}%`} onChange={(v) => set({ availability: v })}
-            hint="야간이나 휴일에 모을 수 있는 차량 비율" />
+            hint="야간·휴일 동원 가능 차량 비율" />
         </div>
         <div>
-          <p className="mb-1.5 type-caption text-text-sec">준비 시간</p>
-          <SegmentControl label="준비 시간" value={draft.prepMinutes} onChange={(v) => set({ prepMinutes: v })}
+          <p className="mb-1.5 type-caption text-text-sec">출발 준비 시간</p>
+          <SegmentControl label="출발 준비 시간" value={draft.prepMinutes} onChange={(v) => set({ prepMinutes: v })}
             items={[{ value: 30, label: '30분' }, { value: 60, label: '1시간' }, { value: 90, label: '1시간 30분' }]} />
         </div>
         <div>
           <p className="mb-1.5 type-caption text-text-sec">이송 완료 기한</p>
           <SegmentControl label="이송 완료 기한" value={draft.completeBeforeHours ?? 0} onChange={(v) => set({ completeBeforeHours: v })}
             items={[{ value: 0, label: '도달 시각' }, { value: 5, label: '도달 5시간 전' }]} />
-          <p className="mt-1.5 type-meta text-text-meta tabular-nums">첫 도달 마을 가용 시간 {Math.max(0, Math.round((draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes))}분</p>
+          <p className="mt-1.5 type-meta text-text-meta tabular-nums">첫 도달 마을 이송 가능 시간 {Math.max(0, Math.round((draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes))}분</p>
         </div>
         <div>
-          <p className="mb-1.5 type-caption text-text-sec">추가 협약 차량</p>
+          <p className="mb-1.5 type-caption text-text-sec">협약 차량 추가</p>
           <div className="grid gap-4 sm:grid-cols-2">
             {EXTRA_TYPES.map((t) => (
               <NumberStepper key={t} label={typeOf(t).label} value={draft.extraVehicles?.[t] || 0} min={0} max={20} unit="대" onChange={(n) => setExtra(t, n)} />
             ))}
           </div>
         </div>
-        <Disclosure summary={`마을별 첫 도달 뒤 도달 시간${changedVillages ? ` (변경 ${changedVillages}곳)` : ''}`}>
+        <Disclosure summary={`마을별 도달 시간(첫 도달 후)${changedVillages ? ` (변경 ${changedVillages}곳)` : ''}`}>
           <ul className="grid gap-y-2 max-h-[420px] overflow-y-auto pr-1">
             {villages.filter((v) => scopeSet.has(v.code)).map((v) => (
               <li key={v.code} className="min-w-0">

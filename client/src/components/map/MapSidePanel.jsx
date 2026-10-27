@@ -34,7 +34,7 @@ export default function MapSidePanel({ switcher, total, rows, onPick, stats, veh
         <Button as={Link} to="/console/shortage">부족분 계산</Button>
         <Button as={Link} to="/console/resources" variant="secondary">협약 차량 확인</Button>
       </div>
-      <h2 className="mt-5 type-title text-text-pri">부족 마을 {rows.length}곳</h2>
+      <h2 className="mt-5 type-title text-text-pri">이동 불가 발생 마을 {rows.length}곳</h2>
       <ul className="-mx-2 mt-1 min-h-0 flex-1 overflow-y-auto">
         {rows.map((v, i) => (
           <li key={v.code}>
@@ -48,7 +48,7 @@ export default function MapSidePanel({ switcher, total, rows, onPick, stats, veh
             </button>
           </li>
         ))}
-        {rows.length === 0 && <li className="px-3 py-3 type-body text-text-sec">부족 마을 없음</li>}
+        {rows.length === 0 && <li className="px-3 py-3 type-body text-text-sec">해당 마을 없음</li>}
       </ul>
       <p className="mt-3 type-meta text-text-sec">대상자와 차량은 가상 자료</p>
     </div>

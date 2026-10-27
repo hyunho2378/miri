@@ -34,16 +34,16 @@ export default function VillageDetail({ village, onBack, today }) {
   return (
     <div>
       <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={16} aria-hidden="true" />} className="-ml-2">
-        부족 마을 목록
+        마을 목록
       </Button>
       <h2 className="mt-2 type-title text-text-pri">{v.label}<span className="ml-2 type-body-sm font-normal text-text-sec">{v.dongName}</span></h2>
 
       <Part title="결론">
         <p className="type-body-strong text-text-pri tabular-nums">
-          {!v.inScope ? '대피 대상 구역 밖, 계산 제외' : v.shortage ? `기준 배정 시 이동 불가 인원 ${v.shortage}명` : '기한 안 이송 가능'}
+          {!v.inScope ? '대피 대상 구역 밖, 계산 제외' : v.shortage ? `기준 배정 시 이동 불가 인원 ${v.shortage}명` : '기한 내 이송 가능'}
         </p>
         {v.shortage > 0 && <p className="type-body-sm text-text-sec tabular-nums">{byGrade(v.shortageByGrade)}</p>}
-        {v.timeOnly > 0 && <p className="type-body-sm text-danger-text">{v.timeOnly}명은 첫 왕복 전에 도달</p>}
+        {v.timeOnly > 0 && <p className="type-body-sm text-danger-text">{v.timeOnly}명, 첫 왕복 전 도달</p>}
       </Part>
 
       <Part title="할 일">

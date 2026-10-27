@@ -12,7 +12,7 @@ import { prefersReducedMotion } from '../motion/useReducedMotion.js'
 
 const PLAY_MS_PER_HOUR = 900
 const STEP = 0.25
-const captionRest = (prepH) => `마을별 이송 가능 인원이 준비 완료(발령 후 ${fmtElapsed(prepH)}) 시각부터 그 마을 도달 시각까지 같은 속도로 옮겨진다고 보고 계산했습니다. 실제 배정 순서와 다를 수 있습니다.`
+const captionRest = (prepH) => `이송 속도 일정 적용, 출발 준비 완료 발령 후 ${fmtElapsed(prepH)}부터 마을 도달까지. 실제 배정 순서와 다를 수 있음`
 
 export default function TimeAxis({ t, onT, timeline, t0, progress, total, playing, onPlaying }) {
   const id = useId()
@@ -78,7 +78,7 @@ export default function TimeAxis({ t, onT, timeline, t0, progress, total, playin
       </div>
       <div className="mt-2 flex items-center gap-3">
         <IconButton
-          variant="soft" size="md" aria-label={playing ? '재생 멈춤' : '발령부터 재생'}
+          variant="soft" size="md" aria-label={playing ? '재생 정지' : '처음부터 재생'}
           onClick={() => onPlaying(!playing)}
         >
           {playing ? <Pause size={20} aria-hidden="true" /> : <Play size={20} aria-hidden="true" />}
@@ -107,7 +107,7 @@ export default function TimeAxis({ t, onT, timeline, t0, progress, total, playin
           ))}
         </div>
       </div>
-      <Disclosure summary="확산 조건" summaryClassName="type-meta">
+      <Disclosure summary="계산 방식" summaryClassName="type-meta">
         <p className="type-meta text-text-meta">{captionRest(prepH)}</p>
       </Disclosure>
     </div>

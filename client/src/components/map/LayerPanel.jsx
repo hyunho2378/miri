@@ -57,7 +57,7 @@ export default function LayerPanel({
 }) {
   const src = (k) => (sources[k] ? `${sources[k].org}, ${sources[k].period}` : '')
   const shelterDesc = shelterStats
-    ? `${shelterTotal}곳 중 이번 시나리오 배정 ${shelterStats.used}곳${shelterStats.over ? `, 수용 초과 ${shelterStats.over}곳` : ''}${shelterStats.blocked ? `, 구역 안이라 제외 ${shelterStats.blocked}곳` : ''}. 점선은 마을 집결지와 배정 시설을 잇는 직선입니다. 출처: ${src('shelters')}`
+    ? `${shelterTotal}곳 중 배정 ${shelterStats.used}곳${shelterStats.over ? `, 수용 초과 ${shelterStats.over}곳` : ''}${shelterStats.blocked ? `, 구역 안이라 제외 ${shelterStats.blocked}곳` : ''}. 점선, 마을 집결지와 배정 시설 연결. 출처: ${src('shelters')}`
     : ''
   return (
     <div className="space-y-6">
@@ -73,22 +73,22 @@ export default function LayerPanel({
       <section aria-labelledby="map-layer-title">
         <h3 id="map-layer-title" className="type-caption text-text-meta">레이어</h3>
         <ul className="mt-1.5 -mx-2 divide-y divide-line-sub">
-          <LayerRow label="마을별 부족분" checked={layers.shortage} onChange={(v) => onLayer('shortage', v)} swatch="bg-chart-heatDanger-3" />
+          <LayerRow label="마을별 이동 불가 인원" checked={layers.shortage} onChange={(v) => onLayer('shortage', v)} swatch="bg-chart-heatDanger-3" />
           <LayerRow label={mode === '3d' ? '읍면동 조각 선과 이름' : '행정동 경계'} checked={layers.dongs} onChange={(v) => onLayer('dongs', v)} />
           {mode === '3d' && (
             <LayerRow label="조각 펼치기" checked={!!layers.spread} onChange={(v) => onLayer('spread', v)}
-              desc={layers.spread ? '읍면동 조각을 바깥으로 벌려 서로 가려진 곳을 볼 수 있게 합니다.' : undefined} />
+              desc={layers.spread ? '읍면동 조각 벌려 보기' : undefined} />
           )}
-          <LayerRow label="산불 확산 가정 구역" checked={layers.fire} onChange={(v) => onLayer('fire', v)} swatch="bg-text-pri"
+          <LayerRow label="산불 확산 구역" checked={layers.fire} onChange={(v) => onLayer('fire', v)} swatch="bg-text-pri"
             desc={layers.fire ? (fireInfo ? `발화 지점 ${fireInfo.label}, 확산 속도 시속 ${fireInfo.speed}km, 마을 도달 발령 후 ${fmtElapsed(fireInfo.fromH)}~${fmtElapsed(fireInfo.toH)}` : '시 전체 조건, 발화 지점 없음') : undefined} />
           <LayerRow label="이재민 임시주거시설" checked={layers.shelters} onChange={(v) => onLayer('shelters', v)} swatch="bg-primary" desc={layers.shelters ? shelterDesc : undefined} />
           {extraLayers.map((x) => (
             <LayerRow key={x.key} label={x.label} desc={layers[x.key] ? x.desc : undefined} checked={!!layers[x.key]} onChange={(v) => onLayer(x.key, v)} swatch={x.swatch} />
           ))}
           <LayerRow label="장기요양 입소시설과 주야간보호" checked={layers.ltc} onChange={(v) => onLayer('ltc', v)} swatch="bg-chart-2"
-            desc={layers.ltc ? `노인요양시설 ${ltcCounts?.residential ?? 0}곳(채운 점), 주야간보호 ${ltcCounts?.daycare ?? 0}곳(빈 점). 입소자는 시설 자체 대피계획 대상이라 부족분 계산에 넣지 않습니다. 출처: ${src('ltcFacilities')}` : undefined} />
+            desc={layers.ltc ? `노인요양시설 ${ltcCounts?.residential ?? 0}곳(채운 점), 주야간보호 ${ltcCounts?.daycare ?? 0}곳(빈 점). 입소자는 시설 자체 대피계획 대상, 계산 제외. 출처: ${src('ltcFacilities')}` : undefined} />
           <LayerRow label="행정동 고령화율" checked={layers.aging} onChange={(v) => onLayer('aging', v)} swatch="bg-chart-heat-3"
-            desc={layers.aging ? `65세 이상 인구 비율입니다. 출처: ${src('population')}` : undefined} />
+            desc={layers.aging ? `65세 이상 인구 비율. 출처: ${src('population')}` : undefined} />
           <LayerRow label="차량 위치" checked={layers.vehicles} onChange={(v) => onLayer('vehicles', v)} swatch="bg-primary"
             desc={layers.vehicles ? `차량 ${vehicleCount}대` : undefined} />
         </ul>
@@ -96,7 +96,7 @@ export default function LayerPanel({
 
       <section aria-labelledby="map-legend-title">
         <h3 id="map-legend-title" className="type-caption text-text-meta">범례</h3>
-        <p className="mt-2 type-meta leading-5 text-text-sec">색은 도달 시점의 부족분 단계입니다.</p>
+        <p className="mt-2 type-meta leading-5 text-text-sec">색, 도달 시점 이동 불가 인원 단계</p>
         <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2">
           {SEVERITY_STEPS.map((s) => (
             <li key={s.level} className="flex items-center gap-2 type-meta text-text-sec">
@@ -125,20 +125,20 @@ export default function LayerPanel({
           </ul>
         )}
         <ul className="mt-3 space-y-1.5 type-meta leading-5 text-text-meta">
-          <li>회색 작은 점은 대피 대상 구역 밖 마을입니다.</li>
-          <li>숫자는 선택한 시점의 대기 인원입니다. 도달 시점에는 부족분과 같습니다.</li>
+          <li>회색 점, 대피 대상 구역 밖 마을</li>
+          <li>숫자, 선택 시점 대기 인원(도달 시점에는 이동 불가 인원과 동일)</li>
           {mode === '3d' ? (
             <>
-              <li>땅 위 원 크기는 선택한 시점의 대기 인원입니다.</li>
-              <li>원 중심 550m 안 건물은 그 마을의 부족 단계 색으로 칠합니다. 대상자의 실제 거주 위치를 뜻하지 않습니다.</li>
+              <li>원 크기, 선택 시점 대기 인원</li>
+              <li>원 중심 550m 안 건물, 마을 단계 색 표시(실제 거주 위치 아님)</li>
               <li>
-                건물은 국토교통부 GIS건물통합정보(2026. 9. 9.) 196,111동입니다.
-                <Disclosure summary="확산 조건" summaryClassName="type-meta">
-                  <p>높이는 건축물대장 높이, 없으면 층수 x 3.2m, 둘 다 없으면 1층으로 세웁니다. 지형과 건물 높이는 2배로 과장했습니다.</p>
+                건물 196,111동, 국토교통부 GIS건물통합정보(2026. 9. 9.)
+                <Disclosure summary="건물 표시 기준" summaryClassName="type-meta">
+                  <p>건물 높이, 건축물대장 기준(없으면 층수 x 3.2m, 둘 다 없으면 1층). 지형과 건물 높이 2배 표시</p>
                 </Disclosure>
               </li>
             </>
-          ) : <li>원 크기는 선택한 시점의 대기 인원입니다.</li>}
+          ) : <li>원 크기, 선택 시점 대기 인원</li>}
         </ul>
       </section>
     </div>
