@@ -65,8 +65,8 @@ function TemplateThumb({ kind, t }) {
   return (
     <span className="relative block aspect-[3/4] overflow-hidden rounded-2xl bg-page shadow-md transition-[box-shadow,transform] duration-fast group-hover:-translate-y-0.5 group-hover:shadow-lg">
       {/* 종류 색 머리: 문서 파랑, 시트 초록, 설문지 보라. 머리에 '종류 (서식 이름)'을 적는다. 긴 이름은 두 줄까지 */}
-      <span className={clsx('flex h-14 items-center gap-2 bg-mute px-4 text-[15px] font-bold leading-5 text-text-pri')}>
-        <K.Icon size={18} aria-hidden="true" className={clsx('shrink-0', K.text)} />
+      <span className={clsx('flex h-14 items-center gap-2 px-4 text-[15px] font-bold leading-5 text-text-inverse', K.bg)}>
+        <K.Icon size={18} aria-hidden="true" className="shrink-0" />
         <span className="line-clamp-2 min-w-0">{thumbHeadLabel(kind, t.title)}</span>
       </span>
       <span className="block h-[calc(100%-3.5rem)] overflow-hidden p-4">{inner}</span>

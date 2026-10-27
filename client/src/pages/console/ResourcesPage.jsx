@@ -113,7 +113,7 @@ export default function ResourcesPage() {
     { key: 'code', label: '차량 코드', sortable: true, render: (v) => <span className="type-strong tabular-nums">{v.code}</span> },
     { key: 'type', label: '차종', sortable: true, render: (v) => typeOf(v.type)?.label },
     { key: 'commitment', label: '협약 상태', sortable: true, sortValue: (v) => commitmentOf(v), render: (v) => <span className={commitmentOf(v) === 'unconfirmed' ? 'type-strong text-text-pri' : 'text-text-sec'}>{COMMITMENTS[commitmentOf(v)]}</span> },
-    { key: 'contractUntil', label: '협약 만료일', sortable: true, sortValue: (v) => v.contractUntil || Infinity, render: (v) => (v.contractUntil ? <span className={contractStatus(v) ? 'type-strong text-danger-text' : 'text-text-sec'}>{fmtDate(v.contractUntil)}</span> : <span className="text-text-meta">해당 없음</span>) },
+    { key: 'contractUntil', label: '협약 만료일', sortable: true, sortValue: (v) => v.contractUntil || Infinity, render: (v) => (v.contractUntil ? <span className={contractStatus(v) ? 'font-bold text-danger-text' : 'text-text-pri'}>{fmtDate(v.contractUntil)}</span> : <span className="text-text-pri">해당 없음</span>) },
     { key: 'available', label: '출동', render: (v) => <span className={v.available !== false ? 'text-text-sec' : 'type-strong text-text-pri'}>{v.available !== false ? '출동 가능' : (v.note || '제외')}</span> }
   ]
   const vehicleGrid = 'minmax(5.5rem,1fr) minmax(6.5rem,1.3fr) minmax(5.5rem,1fr) minmax(6.5rem,1.1fr) minmax(5.5rem,1fr)'
@@ -133,7 +133,7 @@ export default function ResourcesPage() {
     { key: 'name', label: '대피소', render: (r) => <span className="type-strong">{r.name}</span> },
     { key: 'capacity', label: '수용', sortValue: (r) => r.capacity || 0, sortable: true, render: (r) => <span className="font-normal tabular-nums text-text-sec">{(r.capacity || 0).toLocaleString('ko-KR')}명</span> },
     { key: 'liftNeed', label: '휠체어와 침상', sortValue: (r) => r.liftNeed || 0, sortable: true, render: (r) => <span className="font-normal tabular-nums text-text-sec">{r.liftNeed ? `${r.liftNeed.toLocaleString('ko-KR')}명` : '없음'}</span> },
-    { key: 'lift', label: '승강기와 진입로', render: (r) => <span className={r.liftAlert ? 'type-strong text-danger-text' : 'text-text-sec'}>{LIFT_LABEL[r.liftStatus]}</span> }
+    { key: 'lift', label: '승강기와 진입로', render: (r) => <span className={r.liftAlert ? 'font-bold text-danger-text' : 'text-text-pri'}>{LIFT_LABEL[r.liftStatus]}</span> }
   ]
   const shelterGrid = 'minmax(8rem,1.6fr) minmax(5rem,0.8fr) minmax(6.5rem,1fr) minmax(8rem,1.3fr)'
 
@@ -152,7 +152,7 @@ export default function ResourcesPage() {
   const pane = (label, head, body, foot) => (
     <section aria-label={label} className="flex min-h-0 min-w-0 flex-col">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-4">
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">{head}</div>
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">{head}</div>
         {foot && <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">{foot}</div>}
       </div>
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">{body}</div>

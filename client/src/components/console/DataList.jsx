@@ -83,7 +83,7 @@ export default function DataList({ columns, rows, rowKey, selectedKey, onSelect,
           )
         })}
       </div>
-      <ul role="listbox" aria-label={label} className="min-h-0 flex-1 space-y-0.5 pr-1">
+      <ul role="listbox" aria-label={label} style={pages > 1 ? { minHeight: `${pageStep * 46}px` } : undefined} className="min-h-0 flex-1 space-y-0.5 pr-1">
         {shown.map((r, i) => {
           const k = rowKey(r)
           const on = k === selectedKey
@@ -92,7 +92,7 @@ export default function DataList({ columns, rows, rowKey, selectedKey, onSelect,
               <button
                 ref={(el) => { refs.current[k] = el }} type="button" role="option" aria-selected={on} tabIndex={k === activeKey ? 0 : -1}
                 onClick={() => onSelect(k)} onKeyDown={keys(i)} style={{ gridTemplateColumns: grid }}
-                className={clsx('grid min-h-11 w-full items-center gap-x-3 rounded-xl px-4 py-1 text-left type-body text-text-pri transition-colors duration-fast', on ? 'bg-mute' : 'hover:bg-subtle')}
+                className={clsx('grid h-11 w-full items-center gap-x-3 rounded-xl px-4 text-left type-body text-text-pri transition-colors duration-fast', on ? 'bg-mute' : 'hover:bg-subtle')}
               >
                 {columns.map((c) => <span key={c.key} className={clsx('flex min-w-0 items-center overflow-hidden whitespace-nowrap tabular-nums', c.className)}>{c.render ? c.render(r) : r[c.key]}</span>)}
               </button>

@@ -221,7 +221,7 @@ export default function RosterPage() {
   const detail = open ? (
     <section aria-label="선택한 대상자" className="flex min-h-0 min-w-0 flex-col">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-4">
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
         <h2 className="type-title tabular-nums text-text-pri">{open.code}</h2>
         <span className="type-body text-text-sec">{vlabel(open.villageCode)}</span>
         <GradeChip grade={open.grade} />
