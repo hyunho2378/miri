@@ -21,6 +21,7 @@ import { SAMPLE_UPLOAD } from '../../mock/seed.js'
 import { REAL_READINGS, REAL_READ_SOURCE } from '../../mock/realReadings.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import Checkbox from '../../components/ui/Checkbox.jsx'
+import Input from '../../components/ui/Input.jsx'
 import { canConfirmPlan, checkerOf } from '../../lib/planCheck.js'
 import useMiriStore from '../../store/useMiriStore.js'
 import { gradeOf } from '../../lib/shortage.js'
@@ -48,6 +49,9 @@ export default function IntakePage() {
   const canEdit = useAuthStore((s) => s.canEdit('intake'))
   const authUser = useAuthStore((s) => s.user)
   const [checkOnConfirm, setCheckOnConfirm] = useState(false)
+  // 확정 때 함께 남기는 탑승 메모(1026 복지관 면담). 대상자별 입력값
+  const [boardingDraft, setBoardingDraft] = useState({})
+  const boardingPatch = (code) => { const t = (boardingDraft[code] || '').trim(); return t ? { boardingNote: t } : {} }
   const planCheckFor = (q) => {
     if (!checkOnConfirm) return undefined
     const person = persons?.find((p) => p.code === q.result.personCode) || { villageCode: q.doc.villageCode }
@@ -231,12 +235,20 @@ export default function IntakePage() {
               key={current.result.personCode}
               doc={current.doc} result={current.result} kindLabel={KIND_LABEL[current.doc.kind]}
               villageLabel={vlabel(current.doc.villageCode)} canEdit={canEdit}
-              onConfirm={() => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'confirm', {}, ck); toast(`${current.result.personCode} 판독을 확인했습니다.${ck ? ' 당사자와 계획 확인도 기록했습니다.' : ''}`, 'primary') }}
-              onEdit={(patch) => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'edit', patch, ck); toast(`${current.result.personCode} 수정한 값으로 확인했습니다.${ck ? ' 당사자와 계획 확인도 기록했습니다.' : ''}`, 'primary') }}
+              onConfirm={() => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'confirm', boardingPatch(current.result.personCode), ck); toast(`${current.result.personCode} 판독을 확인했습니다.${ck ? ' 당사자와 계획 확인도 기록했습니다.' : ''}`, 'primary') }}
+              onEdit={(patch) => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'edit', { ...patch, ...boardingPatch(current.result.personCode) }, ck); toast(`${current.result.personCode} 수정한 값으로 확인했습니다.${ck ? ' 당사자와 계획 확인도 기록했습니다.' : ''}`, 'primary') }}
               onReject={() => { reviewResult(current.doc.id, current.result.personCode, 'reject'); toast(`${current.result.personCode}을 제외했습니다. 서류를 다시 찍어 달라고 요청해 주세요.`) }}
             />
             {canEdit && (
-              <Checkbox checked={checkOnConfirm} onChange={setCheckOnConfirm} label="확인할 때 당사자와 계획 확인 완료로 함께 기록(마지막 확인 날짜를 오늘로)" />
+              <>
+                <Input
+                  label="탑승 메모(선택, 확인할 때 명부에 함께 남김)" value={boardingDraft[current.result.personCode] ?? ''}
+                  placeholder="예: 왼쪽 편마비, 운전석 뒤 왼쪽 자리, 지팡이는 도우미가 보관"
+                  hint="수락한 도우미에게만 보입니다. 이름과 주소는 적지 않습니다."
+                  onChange={(e) => setBoardingDraft((b) => ({ ...b, [current.result.personCode]: e.target.value }))}
+                />
+                <Checkbox checked={checkOnConfirm} onChange={setCheckOnConfirm} label="확인할 때 당사자와 계획 확인 완료로 함께 기록(마지막 확인 날짜를 오늘로)" />
+              </>
             )}
           </div>
         </div>

@@ -5,7 +5,7 @@ import { EXP_NOTICE, expSource, useExpScreen } from '../../lib/expTrack.js'
 import { helperKeyOf } from '../../lib/expSchema.js'
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { CheckCircle2, CircleX, ClipboardList, Route, Clock, CloudOff, HandHeart, Link2Off, MapPin, Phone, RefreshCw, Send, User, Users } from 'lucide-react'
+import { Armchair, CheckCircle2, CircleX, ClipboardList, Route, Clock, CloudOff, HandHeart, Link2Off, MapPin, Phone, RefreshCw, Send, User, Users } from 'lucide-react'
 import { AppBar, BottomAction, Button, Dialog, DisplaySettings, EmergencyButton, EmptyState, Figure, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, SelectRow, Sheet, Spinner, TwoPane, useLayout, useMobileToast } from '../ui.jsx'
 import { usePlatform } from '../usePlatform.js'
 import { fmtHM } from '../../lib/time.js'
@@ -249,6 +249,8 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
         <LocationRows m={m} code={code} />
         <List label="이 대상자">
           {m.completeBy && <ListRow lead={<Clock size={20} />} title={`이송 완료 기한 ${fmtHM(m.completeBy)}까지`} subtitle={[m.drill ? '훈련' : '', remainText(m.completeBy, m.now)?.text].filter(Boolean).join(', ')} />}
+          {/* 탑승 메모(1026 복지관 면담): 수락한 본인 대상자에게만, 이름 없이 */}
+          {m.accepted && d?.care?.boardingNote && <ListRow lead={<Armchair size={20} />} title="탑승 메모" subtitle={d.care.boardingNote} />}
           {d?.care?.companionCall && <ListRow lead={<Phone size={20} />} title="평소 돌봄 담당자에게 연락" subtitle={d.care.caregiverType} href={d.guardianPhone ? `tel:${d.guardianPhone}` : undefined} chevron={!!d.guardianPhone} />}
           {(d?.routeCheck || trip?.routeCheck) && <ListRow lead={<Route size={20} />} title={st === 'wait' ? '출발 전 담당자에게 길 확인' : '길이 막히면 담당자에게 전화'} subtitle={`경로 확인 필요, ${routeBasisLabel(trip?.routeBasis)}`} href={telOf(m.officerContact) || undefined} chevron={!!telOf(m.officerContact)} />}
           <InfoSheet lead={<User size={20} />} title="대상자 정보" summary={d ? '돌봄 담당자, 보조기구, 대피소' : '이름과 주소는 휴대폰으로 보내지 않음'}>
@@ -258,6 +260,7 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
                 <Kv label="연락" value={d.care.reachableLabel} />
                 <Kv label="의사소통" value={d.care.comm.length ? d.care.comm.join(', ') : '특이 없음'} />
                 <Kv label="보조기구" value={d.care.aids.length ? d.care.aids.join(', ') : '없음'} />
+                {m.accepted && <Kv label="탑승 메모" value={d.care.boardingNote || '없음'} />}
                 <Kv label="도착 대피소" value={d.shelter} />
                 <Kv label="리프트 차량 진입" value={d.lift} />
                 <Kv label="야간과 휴일 개방" value={d.night} />

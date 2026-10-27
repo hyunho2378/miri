@@ -21,7 +21,8 @@ import KeyValue from '../../components/ui/KeyValue.jsx'
 import Drawer from '../../components/ui/Drawer.jsx'
 import Modal from '../../components/ui/Modal.jsx'
 import Checkbox from '../../components/ui/Checkbox.jsx'
-import { canConfirmPlan, checkerOf, lastPlanCheck, PLAN_CHECK_VIA } from '../../lib/planCheck.js'
+import { canConfirmPlan, checkerOf, lastPlanCheck, PLAN_CHECK_VIA, PLAN_CHECK_WITH, planWithLabel } from '../../lib/planCheck.js'
+import ChoiceChips from '../../components/ui/ChoiceChips.jsx'
 import FilterBar from '../../components/ui/FilterBar.jsx'
 import MultiSelect from '../../components/ui/MultiSelect.jsx'
 import Select from '../../components/ui/Select.jsx'
@@ -67,6 +68,8 @@ export default function RosterPage() {
   const removePerson = useMiriStore((s) => s.removePerson)
   const confirmPlanCheck = useMiriStore((s) => s.confirmPlanCheck)
   const [planAsk, setPlanAsk] = useState(false)
+  // 당사자와 누가 확인했는지(담당 공무원 직접, 통장, 반장). 1026 망상동 면담
+  const [planWith, setPlanWith] = useState('officer')
   const [checkOnSave, setCheckOnSave] = useState(false)
   const user = useAuthStore((s) => s.user)
   const canEdit = useAuthStore((s) => s.canEdit('persons'))
@@ -106,7 +109,9 @@ export default function RosterPage() {
   const fields = [
     { key: 'villageCode', label: '마을', kind: 'select', required: true, disabled: editing?.mode === 'edit', options: villages.filter((v) => dong === 'all' || v.dongCode === dong).map((v) => ({ value: v.code, label: v.label, secondary: v.code })) },
     { key: 'grade', label: '이송 등급', kind: 'select', required: true, options: GRADE_OPTIONS },
-    { key: 'tags', label: '특이사항', kind: 'multiselect', options: TAG_OPTIONS }
+    { key: 'tags', label: '특이사항', kind: 'multiselect', options: TAG_OPTIONS },
+    // 1026 복지관 면담: 편마비 쪽과 체격으로 앉을 자리를 정하고 지팡이는 따로 보관. 이름은 적지 않음
+    { key: 'boardingNote', label: '탑승 메모', kind: 'text', placeholder: '예: 왼쪽 편마비, 운전석 뒤 왼쪽 자리, 지팡이는 도우미가 보관', hint: '수락한 도우미에게만 보입니다. 이름과 주소는 적지 않습니다.' }
   ]
 
   const openPerson = (code) => setParams((p) => { const n = new URLSearchParams(p); n.set('person', code); return n })
@@ -129,13 +134,13 @@ export default function RosterPage() {
     if (editing.mode === 'add') {
       const nums = persons.filter((p) => p.villageCode === v.villageCode).map((p) => Number(p.code.split('-').pop()) || 0)
       const code = `${v.villageCode}-${String(Math.max(0, ...nums) + 1).padStart(3, '0')}`
-      addPerson({ code, villageCode: v.villageCode, grade: v.grade, tags: v.tags || [], docId: null })
+      addPerson({ code, villageCode: v.villageCode, grade: v.grade, tags: v.tags || [], docId: null, ...((v.boardingNote || '').trim() ? { boardingNote: v.boardingNote.trim() } : {}) })
       toast(`${code} 추가 완료`, 'primary')
       setEditing(null)
       openPerson(code)
     } else {
-      const check = checkOnSave && canPlan ? { by: checkerOf(user), via: 'edit' } : undefined
-      updatePerson(open.code, { grade: v.grade, tags: v.tags || [], gradeSource: v.grade !== open.grade ? 'manual' : open.gradeSource, review: open.review === 'pending' ? 'edited' : open.review }, check)
+      const check = checkOnSave && canPlan ? { by: checkerOf(user), via: 'edit', with: planWith } : undefined
+      updatePerson(open.code, { grade: v.grade, tags: v.tags || [], boardingNote: (v.boardingNote || '').trim(), gradeSource: v.grade !== open.grade ? 'manual' : open.gradeSource, review: open.review === 'pending' ? 'edited' : open.review }, check)
       toast(check ? `${open.code} 수정과 확인 완료 기록` : `${open.code} 수정 완료`, 'primary')
       setCheckOnSave(false)
       setEditing(null)
@@ -145,7 +150,7 @@ export default function RosterPage() {
   const canPlan = canEdit && !!open && canConfirmPlan(user, open, dongOf)
   const planLast = lastPlanCheck(open)
   const confirmPlan = () => {
-    confirmPlanCheck(open.code, { by: checkerOf(user) })
+    confirmPlanCheck(open.code, { by: checkerOf(user), with: planWith })
     setPlanAsk(false)
     toast(`${open.code} 당사자와 계획 확인 완료 기록`, 'primary')
   }
@@ -165,7 +170,7 @@ export default function RosterPage() {
     { key: 'review', label: '확인 상태', sortable: true, render: (p) => <StatusPill status={p.review} /> },
     { key: 'planCheckedAt', label: '마지막 확인', sortable: true, sortValue: (p) => p.planCheckedAt || 0, render: (p) => { const c = checkedOf(p, now); return <span className={`whitespace-nowrap ${c.stale ? 'type-strong text-danger-text' : 'text-text-sec'}`}>{c.text}</span> } },
     { key: 'updatedAt', label: '갱신일', sortable: true, hideBelow: '3xl', render: (p) => fmtDate(p.updatedAt) },
-    { key: 'edit', label: '편집', render: (p) => <EditPencil resource="persons" label={`${p.code} 수정`} onClick={() => { openPerson(p.code); setEditing({ mode: 'edit', value: { villageCode: p.villageCode, grade: p.grade, tags: p.tags } }) }} /> }
+    { key: 'edit', label: '편집', render: (p) => <EditPencil resource="persons" label={`${p.code} 수정`} onClick={() => { openPerson(p.code); setEditing({ mode: 'edit', value: { villageCode: p.villageCode, grade: p.grade, tags: p.tags, boardingNote: p.boardingNote || '' } }) }} /> }
   ].filter((c) => c.key !== 'edit' || canEdit)
 
   const hiddenActive = source !== 'all' ? 1 : 0
@@ -246,7 +251,7 @@ export default function RosterPage() {
           <>
             <Button variant="ghost" leftIcon={<Trash2 size={16} aria-hidden="true" />} onClick={() => { removePerson(open.code); toast(`${open.code} 삭제 완료`); closePerson() }}>삭제</Button>
             {canPlan && <Button variant="secondary" onClick={() => setPlanAsk(true)}>확인 완료</Button>}
-            <Button variant="primary" onClick={() => setEditing({ mode: 'edit', value: { villageCode: open.villageCode, grade: open.grade, tags: open.tags } })}>수정</Button>
+            <Button variant="primary" onClick={() => setEditing({ mode: 'edit', value: { villageCode: open.villageCode, grade: open.grade, tags: open.tags, boardingNote: open.boardingNote || '' } })}>수정</Button>
           </>
         ) : null}
       >
@@ -254,7 +259,10 @@ export default function RosterPage() {
           <div className="space-y-4">
             <EntityForm fields={fields} value={editing.value} errors={errors} onChange={(value) => setEditing({ ...editing, value })} />
             {editing.mode === 'edit' && canPlan && (
-              <Checkbox checked={checkOnSave} onChange={setCheckOnSave} label="당사자와 계획 확인 완료로 함께 기록(마지막 확인 날짜를 오늘로)" />
+              <>
+                <Checkbox checked={checkOnSave} onChange={setCheckOnSave} label="당사자와 계획 확인 완료로 함께 기록(마지막 확인 날짜를 오늘로)" />
+                {checkOnSave && <ChoiceChips label="당사자와 확인한 사람" size="sm" value={planWith} onChange={setPlanWith} options={Object.entries(PLAN_CHECK_WITH).map(([value, label]) => ({ value, label }))} />}
+              </>
             )}
           </div>
         ) : open && (
@@ -266,7 +274,7 @@ export default function RosterPage() {
               { label: '입력 방법', value: <SourceLabel source={open.gradeSource} /> },
               { label: '확인 상태', value: <StatusPill status={open.review} /> },
               { label: '도우미 위치 정보 제공', value: open.locConsent === true ? '동의(발령 때 수락한 도우미에게 주소, 동호수와 층, 엘리베이터, 보호자 연락처)' : '미동의(실제 발령 중 급박한 경우에만 제공)' },
-              { label: '당사자와 계획 확인', value: open.planCheckedAt ? `확인 완료, 마지막 확인 ${fmtDate(open.planCheckedAt)}${planLast?.by?.name ? ` (${planLast.by.name}, ${PLAN_CHECK_VIA[planLast.via] || planLast.via})` : ''}` : '확인 전' },
+              { label: '당사자와 계획 확인', value: open.planCheckedAt ? `확인 완료, 마지막 확인 ${fmtDate(open.planCheckedAt)}${planLast?.by?.name ? ` (${planLast.by.name}, ${PLAN_CHECK_VIA[planLast.via] || planLast.via}${planWithLabel(planLast) ? `, ${planWithLabel(planLast)} 확인` : ''})` : ''}` : '확인 전' },
               ...(open.access ? [
                 { label: '거주 층수', value: open.access.floor },
                 { label: '계단과 엘리베이터', value: open.access.stairs },
@@ -277,7 +285,8 @@ export default function RosterPage() {
                 { label: '평소 돌봄 담당자', value: !c.known ? NOT_ENTERED : c.caregiverType },
                 { label: '돌봄 담당자 연락', value: !c.known ? NOT_ENTERED : c.reachableLabel },
                 { label: '의사소통 특성', value: !c.known ? NOT_ENTERED : c.comm.length ? c.comm.join(', ') : '없음' },
-                { label: '보조기구', value: !c.known ? NOT_ENTERED : c.aids.length ? c.aids.join(', ') : '없음' }
+                { label: '보조기구', value: !c.known ? NOT_ENTERED : c.aids.length ? c.aids.join(', ') : '없음' },
+                { label: '탑승 메모', value: c.boardingNote || '없음' }
               ] })(),
               { label: '근거 서류', value: open.docId || '없음' },
               { label: '갱신일', value: fmtDate(open.updatedAt) },
@@ -313,6 +322,12 @@ export default function RosterPage() {
           <p className="type-body text-text-sec">
             {open.code}의 거주, 거동 상태, 이송 계획을 당사자나 보호자와 확인했으면 기록합니다. 마지막 확인 날짜가 오늘로 바뀌고, 확인한 사람과 시각이 남습니다.
           </p>
+        )}
+        {open && (
+          <div className="mt-4 space-y-2">
+            <p className="type-strong text-text-pri">당사자와 확인한 사람</p>
+            <ChoiceChips label="당사자와 확인한 사람" value={planWith} onChange={setPlanWith} options={Object.entries(PLAN_CHECK_WITH).map(([value, label]) => ({ value, label }))} />
+          </div>
         )}
       </Modal>
     </PageShell>

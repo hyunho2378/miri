@@ -6,6 +6,10 @@
 
 export const PLAN_CHECK_VIA = { manual: '명부 확인 완료', edit: '명부 수정 저장', intake: '서류 읽기 확인' }
 
+// 당사자와 확인한 사람. 망상동은 명단 확인과 동의를 통장과 반장이 맡는다(1026 망상동 행정복지센터 재난 담당 면담 05:32, 05:54)
+export const PLAN_CHECK_WITH = { officer: '담당 공무원 직접', tongjang: '통장', banjang: '반장' }
+export const planWithLabel = (entry) => (entry?.with ? PLAN_CHECK_WITH[entry.with] || entry.with : '')
+
 // 시 담당자는 전체, 동 담당자는 자기 동 대상자만
 export function canConfirmPlan(user, person, dongOf) {
   if (!user || !person) return false
@@ -15,8 +19,8 @@ export function canConfirmPlan(user, person, dongOf) {
 }
 
 // 누가(역할과 이름), 언제, 어떤 화면에서 확인했는지 남긴다
-export function applyPlanCheck(person, { at, by, via }) {
-  const entry = { at, by: by || null, via: via || 'manual' }
+export function applyPlanCheck(person, { at, by, via, with: withWhom }) {
+  const entry = { at, by: by || null, via: via || 'manual', ...(withWhom ? { with: withWhom } : {}) }
   return { ...person, planCheckedAt: at, planChecks: [...(person.planChecks || []), entry] }
 }
 

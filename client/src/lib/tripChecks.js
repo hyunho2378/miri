@@ -35,7 +35,9 @@ export function roadPath(villageCode, shelterCode) {
 // 대상자 돌봄과 의사소통 정보. 값이 없는 대상자(판독 확인 대기 등)는 확인 필요로 본다
 export function personCare(person) {
   const care = person?.care
-  if (!care) return { known: false, companionCall: false, caregiverUnreachable: false, commCaution: false, comm: [], aids: [], caregiverType: UNKNOWN, reachableLabel: UNKNOWN }
+  // 탑승 메모(1026 복지관 면담)는 돌봄 정보와 따로 둔다. 돌봄 정보가 없어도 담당자가 적은 메모는 보인다
+  const boardingNote = person?.boardingNote || ''
+  if (!care) return { known: false, companionCall: false, caregiverUnreachable: false, commCaution: false, comm: [], aids: [], caregiverType: UNKNOWN, reachableLabel: UNKNOWN, boardingNote }
   const hasCaregiver = !!care.caregiverType && care.caregiverType !== '없음'
   return {
     known: true,
@@ -44,6 +46,7 @@ export function personCare(person) {
     commCaution: (care.comm || []).length > 0,
     comm: care.comm || [],
     aids: care.aids || [],
+    boardingNote,
     caregiverType: care.caregiverType || UNKNOWN,
     reachableLabel: !hasCaregiver ? '해당 없음' : care.caregiverReachable === true ? '연락 가능' : care.caregiverReachable === false ? '연락 불가' : UNKNOWN
   }

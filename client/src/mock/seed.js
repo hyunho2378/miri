@@ -76,6 +76,14 @@ export function careOf(tags, grade, k, ltcGrade) {
   return { comm, caregiverType, caregiverReachable, aids }
 }
 
+// 탑승 메모(1026 동해시노인종합복지관 주간보호센터 사회복지사 면담: 편마비 쪽과 체격으로 앉을 자리를 정하고 지팡이는 직원이 따로 보관).
+// 시연 자료 일부에만 가상 예시 값. 난수를 쓰지 않아 다른 시드 값은 그대로
+export function boardingNoteOf(grade, k) {
+  if (grade === 'assist' && k % 9 === 0) return k % 2 === 0 ? '왼쪽 편마비: 운전석 뒤 왼쪽 자리, 지팡이는 도우미가 따로 보관' : '오른쪽 편마비: 조수석 뒤 오른쪽 자리, 보행기는 접어서 짐칸'
+  if (grade === 'wheelchair' && k % 7 === 0) return '휠체어 고정 뒤 옆자리에 도우미 한 명'
+  return ''
+}
+
 export function buildSeed() {
   const r = mulberry32(20260405)
   const villages = VILLAGES.map((v) => {
@@ -126,7 +134,8 @@ export function buildSeed() {
         },
         // 치매 전문 언론 자문 회신: 평소 돌봄 담당자, 의사소통 특성, 보조기구. 모두 가상 값이고 이름은 두지 않음
         // 난수 순서를 바꾸지 않도록 태그와 k로 정함
-        care: careOf(tags, grade, k, ltcGrade)
+        care: careOf(tags, grade, k, ltcGrade),
+        ...(boardingNoteOf(grade, k) ? { boardingNote: boardingNoteOf(grade, k) } : {})
       })
       privateInfo[code] = {
         address: `동해시 ${v.name} (가상 대상자, 번지 없음)`,
@@ -214,7 +223,7 @@ export function buildSeed() {
     fireScenario({
       id: 'S-1', name: '옥계 방면 북측 확산', villages,
       origin: ORIGIN_NAMYANG, originLabel: '강릉시 옥계면 남양리', heading: 95, halfWidthKm: 4, speedKmh: 2, leadHours: 0, scopeHours: 3,
-      basis: '2022년 3월 5일 01시 20분께 강릉시 옥계면 남양리에서 난 불이 05시 30분께 동해시 망상동까지 번졌습니다(연합뉴스 2022. 3. 5.). 확산 속도 시속 2km와 동쪽 방향 확산은 이 기록을 참고한 가정값이며, 발화 확인과 동시에 발령한다고 봅니다.'
+      basis: '2022년 3월 5일 01시 20분께 강릉시 옥계면 남양리에서 난 불이 05시 30분께 동해시 망상동까지 번졌습니다(연합뉴스 2022. 3. 5.). 확산 속도 시속 2km와 동쪽 방향 확산은 이 기록을 참고한 가정값이며, 발화 확인과 동시에 발령한다고 봅니다. 실제로는 소방이 산불 진행 방향을 알려 준 뒤 동이 단계별로 대피를 판단하므로(망상동 행정복지센터 재난 담당 면담, 2026. 10. 26.) 발령이 늦어질수록 기한 안에 못 옮기는 사람이 늘어납니다. 늦어질 때의 변화는 부족분 계산의 출발 준비 시간 민감도로 봅니다.'
     }),
     fireScenario({
       id: 'S-2', name: '삼화동 서측 산림 발화', villages,
