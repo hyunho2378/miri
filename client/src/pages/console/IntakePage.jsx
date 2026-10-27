@@ -238,7 +238,7 @@ export default function IntakePage() {
       {current ? (
         <div className="grid min-h-0 flex-1 gap-x-8 gap-y-4 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
           <section aria-label="확인 대기 목록" className="flex min-h-0 flex-col max-lg:max-h-[40vh]">
-            <div className="flex shrink-0 items-center justify-between gap-2 pb-2">
+            <div className="flex shrink-0 items-baseline justify-between gap-2 pb-2">
               <h2 className="type-title text-text-pri">확인 대기 <span className="font-normal tabular-nums text-text-sec">{queue.length}건</span></h2>
               {canEdit && highCount > 0 && (
                 <button type="button" onClick={confirmAllHigh} className="min-h-11 rounded-md px-2 type-body-sm font-bold text-primary-text hover:underline md:min-h-0">서류와 같음 {highCount}건 일괄 확인</button>

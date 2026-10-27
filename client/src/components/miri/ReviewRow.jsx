@@ -46,7 +46,7 @@ export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdi
   const care = docCare(result)
   return (
     <div className="flex min-h-0 flex-1 flex-col" aria-label={`서류 ${doc.name}, 대상자 ${result.personCode}`}>
-      <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 pb-3">
+      <div className="flex shrink-0 flex-wrap items-baseline gap-x-3 gap-y-1 pb-3">
         <p className="type-title text-text-pri tabular-nums">{result.personCode}</p>
         <span className="type-body-sm text-text-sec">{villageLabel}, {kindLabel}</span>
         <span className="ml-auto inline-flex items-center gap-2">

@@ -151,7 +151,7 @@ export default function ResourcesPage() {
   // 오른쪽 상세 공통 틀: 머리(이름과 상태), 본문(내부 스크롤), 아래 고정 단추
   const pane = (label, head, body, foot) => (
     <section aria-label={label} className="flex min-h-0 min-w-0 flex-col">
-      <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 pb-3">{head}</div>
+      <div className="flex shrink-0 flex-wrap items-baseline gap-x-3 gap-y-1 pb-3">{head}</div>
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">{body}</div>
       {foot && <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 pt-3">{foot}</div>}
     </section>
