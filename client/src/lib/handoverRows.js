@@ -53,7 +53,7 @@ export function locationOf(person, info) {
   const unit = (info?.unit || '').replace(/^가상 /, '')
   const floor = person?.access?.floor || ''
   const head = unit || info?.address || ''
-  return [head, floor].filter(Boolean).join(', ') + (info?.unit ? ' (가상)' : '') || '명부에 없음'
+  return [head, floor].filter(Boolean).join(', ') || '명부에 없음'
 }
 
 export function checkedOf(person, now) {
@@ -119,7 +119,7 @@ export function handoverCsvColumns(baseAt) {
     { key: 'grade', label: '등급', value: (r) => gradeOf(r.grade)?.label }, { key: 'gradeTerm', label: '거동 상태' },
     { key: 'location', label: '상세 위치(동호수, 층)' }, { key: 'elevator', label: '엘리베이터' },
     { key: 'guardianPhone', label: '보호자 연락처' },
-    { key: 'address', label: '주소(가상)' }, { key: 'crew', label: '필요 대원 수' },
+    { key: 'address', label: '주소' }, { key: 'crew', label: '필요 대원 수' },
     { key: 'device', label: '의료기기' }, { key: 'pet', label: '반려동물' },
     { key: 'checked', label: '명부 마지막 확인', value: (r) => (r.checked.days == null ? r.checked.text : `${fmtDate(r.checked.at)}(${r.checked.text}${r.checked.stale ? ', 재확인 필요' : ''})`) },
     { key: 'tags', label: '특이사항' },
@@ -140,7 +140,7 @@ export function handoverPrintColumns() {
     { key: 'village', label: '마을(동)', value: (r) => `${r.village}(${r.dong})` },
     { key: 'arrival', label: '산불 도달', value: (r) => fmtHM(r.arrival) },
     { key: 'grade', label: '등급(거동)', value: (r) => `${gradeOf(r.grade)?.label || ''}(${r.gradeTerm || ''})` },
-    { key: 'address', label: '주소(가상)' },
+    { key: 'address', label: '주소' },
     { key: 'location', label: '동호수, 층' },
     { key: 'elevator', label: '엘리베이터' },
     { key: 'crew', label: '필요 대원 수' },

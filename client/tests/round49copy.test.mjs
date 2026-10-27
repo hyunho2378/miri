@@ -34,11 +34,10 @@ test('콘솔 화면 문구에 면담, 자문, 가정값, 협약 후보, 시연�
   }
 })
 
-test('자료 안내 한 곳: 옮긴 문장을 그대로 담고 설정 화면에서 보임, 시연 표지가 자료 안내로 이동', () => {
+test('자료 안내 한 곳: 옮긴 문장을 그대로 담고 설정 화면에서 보임, 시연 표지 삭제', () => {
   const notes = read('../src/lib/dataNotes.js')
   for (const w of ['가상 명부', '협의 전 가정값', '장애인 단체 자문', '경로당 가운데 분포 중심']) assert.ok(notes.includes(w) || read('../src/lib/rosterCount.js').includes(w) || read('../src/lib/shortage.js').includes(w), w)
   assert.match(read(PAGES + 'SettingsPage.jsx'), /title="자료 안내"/)
-  assert.match(read('../src/components/miri/MockDataBadge.jsx'), /#data-notes/)
 })
 
 test('출처 줄과 숫자 칩에 가운데점 없음', () => {

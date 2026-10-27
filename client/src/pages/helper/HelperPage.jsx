@@ -75,7 +75,7 @@ function DemoHelperPage() {
   }
 
   const demoButton = USE_MOCK && (
-    <Button size="xl" onClick={startDemo}>시연 발령 시작</Button>
+    <Button size="xl" onClick={startDemo}>훈련 발령 시작</Button>
   )
 
   if (d.status === 'closed') {

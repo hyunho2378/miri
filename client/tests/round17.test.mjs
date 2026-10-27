@@ -36,7 +36,7 @@ test('계산 시각 꼬리말과 기준일 설명', () => {
   assert.equal(calcStamp({ at, rosterAt }), '10. 25. 00:20 계산, 명부 10. 2. 기준')
   assert.equal(calcStamp({ at }), '')
   assert.match(peaceBasisText({ villages: 12, targets: 848, at, rosterAt }), /^10\. 25\. 00:20 계산, 명부 10\. 2\. 기준, 발령 직후 출발 가정/)
-  assert.match(rosterDateNote(rosterAt), /10\. 2\. 기준으로 고정한 자료/)
+  assert.match(rosterDateNote(rosterAt), /10\. 2\. 기준, 마지막 확인은/)
 })
 
 test('화면 연결: 네 화면이 같은 차량 표기 함수, 실제 발령은 앱 안 확인 창', () => {

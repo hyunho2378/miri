@@ -56,7 +56,7 @@ test('소방 인계 화면 표는 다섯 열, 나머지는 행 상세에서, CSV
   assert.ok(h.includes('onRowClick={(r) => setDetail(r)}') && h.includes("['보호자 연락처', detail.guardianPhone]"))
   const { handoverCsvColumns } = await import('../src/lib/handoverRows.js')
   const csv = handoverCsvColumns(0).map((c) => c.label)
-  for (const l of ['보호자 연락처', '엘리베이터', '필요 대원 수', '주소(가상)']) assert.ok(csv.includes(l), l)
+  for (const l of ['보호자 연락처', '엘리베이터', '필요 대원 수', '주소']) assert.ok(csv.includes(l), l)
 })
 
 test('주소 표시는 괄호 문구 없이 번지 없음만, 시드 값은 그대로', async () => {

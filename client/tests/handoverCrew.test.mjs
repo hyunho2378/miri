@@ -35,7 +35,7 @@ t('시드 명부 전체: 값이 한 가지로 몰리지 않고 CSV 에 네 열',
   assert.ok(rows.some((r) => r.pet === '있음') && rows.some((r) => r.pet === '없음'))
   assert.ok(rows.every((r) => r.address && r.address.includes('가상')))
   const labels = handoverCsvColumns(seed.today).map((c) => c.label)
-  for (const l of ['주소(가상)', '필요 대원 수', '의료기기', '반려동물']) assert.ok(labels.includes(l), l)
+  for (const l of ['주소', '필요 대원 수', '의료기기', '반려동물']) assert.ok(labels.includes(l), l)
 })
 
 console.log(`handoverCrew: ${n} passed`)

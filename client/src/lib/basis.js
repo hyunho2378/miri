@@ -19,7 +19,7 @@ export function peaceBasisText({ villages, targets, at, rosterAt } = {}) {
 // 시연 명부 기준일과 오늘 기준 경과 일수가 함께 보이는 이유(화면 아래 한 줄)
 export function rosterDateNote(rosterAt) {
   if (rosterAt == null) return ''
-  return `시연 명부는 ${md(rosterAt)} 기준으로 고정한 자료이고, 명부 마지막 확인은 오늘 날짜에서 지난 날수로 계산합니다.`
+  return `명부 ${md(rosterAt)} 기준, 마지막 확인은 오늘부터 지난 날수로 계산`
 }
 
 // 발령 운영: 발령 개시 뒤 흐른 시간만큼 남은 시간이 줄어든 값
