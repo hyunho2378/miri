@@ -3,7 +3,7 @@ import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { personCare } from '../../lib/tripChecks.js'
 import { NOT_ENTERED } from '../../lib/aiCard.js'
 import { MessageSquareText, ScanText, Trash2, UserRound, X } from 'lucide-react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import { firstAndMore } from '../../lib/rosterCompact.js'
@@ -46,13 +46,13 @@ const RosterMap = lazy(() => import('../../components/miri/RosterMap.jsx'))
 const VIEWS = [{ value: 'list', label: '목록' }, { value: 'map', label: '지도' }, { value: 'print', label: '서식 출력' }]
 
 const REVIEW_OPTIONS = [
-  { value: 'all', label: '전체 확인 상태' }, { value: 'pending', label: '확인 대기' },
+  { value: 'all', label: '전체 등급 확인' }, { value: 'pending', label: '확인 대기' },
   { value: 'confirmed', label: '확인 완료' }, { value: 'edited', label: '담당자 수정' }, { value: 'rejected', label: '제외' }
 ]
-const SOURCE_OPTIONS = [{ value: 'all', label: '전체 입력 방법' }, { value: 'ai', label: '서류 자동 판독' }, { value: 'note', label: '현장 소식 반영' }, { value: 'manual', label: '담당자 입력' }]
+const SOURCE_OPTIONS = [{ value: 'all', label: '전체 입력 방법' }, { value: 'ai', label: '서류 읽기' }, { value: 'note', label: '현장 소식 반영' }, { value: 'manual', label: '담당자 입력' }]
 
 function SourceLabel({ source }) {
-  if (source === 'ai') return <span className="inline-flex items-center gap-1 type-caption text-text-sec"><ScanText size={14} aria-hidden="true" />서류 자동 판독</span>
+  if (source === 'ai') return <span className="inline-flex items-center gap-1 type-caption text-text-sec"><ScanText size={14} aria-hidden="true" />서류 읽기</span>
   if (source === 'note') return <span className="inline-flex items-center gap-1 type-caption text-text-sec"><MessageSquareText size={14} aria-hidden="true" />현장 소식 반영</span>
   return <span className="inline-flex items-center gap-1 type-caption text-text-sec"><UserRound size={14} aria-hidden="true" />담당자 입력</span>
 }
@@ -167,7 +167,7 @@ export default function RosterPage() {
     { key: 'tags', label: '특이사항', hideBelow: 'lg', render: (p) => { const f = firstAndMore(p.tags.map((t) => TAGS[t])); return <span className="type-meta text-text-sec whitespace-nowrap" title={f.full || undefined}>{f.text}</span> } },
     { key: 'care', label: '동행과 소통', hideBelow: '3xl', render: (p) => { const c = personCare(p); const f = firstAndMore([c.companionCall && '동행 연락 필요', c.caregiverUnreachable && '돌봄 담당자 연락 불가', c.commCaution && `의사소통 유의(${c.comm.join(', ')})`]); return <span className="type-meta text-text-sec whitespace-nowrap" title={f.full || undefined}>{!c.known ? NOT_ENTERED : f.text}</span> } },
     { key: 'source', label: '입력 방법', hideBelow: '2xl', render: (p) => <SourceLabel source={p.gradeSource} /> },
-    { key: 'review', label: '확인 상태', sortable: true, render: (p) => <StatusPill status={p.review} /> },
+    { key: 'review', label: '등급 확인', sortable: true, render: (p) => <StatusPill status={p.review} /> },
     { key: 'planCheckedAt', label: '마지막 확인', title: '90일이 지나면 빨간 글자로 표시, 다시 확인합니다', sortable: true, sortValue: (p) => p.planCheckedAt || 0, render: (p) => { const c = checkedOf(p, now); return <span className={`whitespace-nowrap ${c.stale ? 'type-strong text-danger-text' : 'text-text-sec'}`}>{c.text}</span> } },
     { key: 'updatedAt', label: '갱신일', sortable: true, hideBelow: '3xl', render: (p) => fmtDate(p.updatedAt) },
     { key: 'edit', label: '편집', render: (p) => <EditPencil resource="persons" label={`${p.code} 수정`} onClick={() => { openPerson(p.code); setEditing({ mode: 'edit', value: { villageCode: p.villageCode, grade: p.grade, tags: p.tags, boardingNote: p.boardingNote || '' } }) }} /> }
@@ -188,7 +188,7 @@ export default function RosterPage() {
             <Select compact label="동" value={dong} onChange={setDong} options={dongOptions} disabled={user?.role === 'dong'} />
             <Select compact label="마을" value={village} onChange={setVillage} options={villageOptions} />
             <MultiSelect compact label="이송 등급" values={grades} onChange={setGrades} options={GRADE_OPTIONS} placeholder="전체" />
-            <Select compact label="확인 상태" value={review} onChange={setReview} options={REVIEW_OPTIONS} />
+            <Select compact label="등급 확인" value={review} onChange={setReview} options={REVIEW_OPTIONS} />
             <Select compact label="마지막 확인" value={recheck} onChange={changeRecheck} options={RECHECK_OPTIONS} />
             {recheck === 'stale' && (
               <Chip variant="selected" onClick={() => changeRecheck('all')} aria-label="재확인 필요 필터 해제">
@@ -268,13 +268,12 @@ export default function RosterPage() {
         ) : open && (
           <div className="space-y-5">
             <KeyValue items={[
-              { label: '마을', value: vlabel(open.villageCode), strong: true },
+              { label: '당사자와 계획 확인', value: open.planCheckedAt ? `마지막 확인 ${fmtDate(open.planCheckedAt)}${planLast?.by?.name ? ` (${planLast.by.name}${planWithLabel(planLast) ? `, ${planWithLabel(planLast)} 확인` : ''})` : ''}` : '재확인 필요', strong: true },
               { label: '이송 등급', value: <GradeChip grade={open.grade} /> },
+              { label: '등급 확인', value: <StatusPill status={open.review} /> },
+              { label: '마을', value: vlabel(open.villageCode) },
               { label: '특이사항', value: open.tags.map((t) => TAGS[t]).join(', ') || '없음' },
-              { label: '입력 방법', value: <SourceLabel source={open.gradeSource} /> },
-              { label: '확인 상태', value: <StatusPill status={open.review} /> },
-              { label: '도우미 위치 정보 제공', value: open.locConsent === true ? '동의(발령 때 수락한 도우미에게 주소, 동호수와 층, 엘리베이터, 보호자 연락처)' : '미동의(실제 발령 중 급박한 경우에만 제공)' },
-              { label: '당사자와 계획 확인', value: open.planCheckedAt ? `확인 완료, 마지막 확인 ${fmtDate(open.planCheckedAt)}${planLast?.by?.name ? ` (${planLast.by.name}, ${PLAN_CHECK_VIA[planLast.via] || planLast.via}${planWithLabel(planLast) ? `, ${planWithLabel(planLast)} 확인` : ''})` : ''}` : '확인 전' },
+              { label: '도우미에게 주소 알림', value: open.locConsent === true ? '동의' : '미동의' },
               ...(open.access ? [
                 { label: '거주 층수', value: open.access.floor },
                 { label: '계단과 엘리베이터', value: open.access.stairs },
@@ -288,20 +287,16 @@ export default function RosterPage() {
                 { label: '보조기구', value: !c.known ? NOT_ENTERED : c.aids.length ? c.aids.join(', ') : '없음' },
                 { label: '탑승 메모', value: c.boardingNote || '없음' }
               ] })(),
+              { label: '입력 방법', value: <SourceLabel source={open.gradeSource} /> },
               { label: '근거 서류', value: open.docId || '없음' },
-              { label: '갱신일', value: fmtDate(open.updatedAt) },
-              { label: '갱신 담당', value: <span>읍면동 맞춤형복지 담당자가 <Link to="/console/notes" className="text-primary-text underline underline-offset-2">현장 소식</Link>에서 승인해 반영</span> }
+              { label: '갱신일', value: fmtDate(open.updatedAt) }
             ]} />
-            {evidence ? (
+            {evidence && (
               <div className="space-y-3">
-                <h3 className="type-h3 text-text-pri">판독 근거</h3>
+                <h3 className="type-h3 text-text-pri">서류 근거</h3>
                 <DocImage src={doc.image} alt={`${doc.name} 판독 영역`} box={evidence.box} />
                 <EvidencePanel quote={evidence.quote} matched={evidence.quoteMatched} confidence={evidence.confidence} conflict={evidence.conflict} transcript={doc.transcript} docName={doc.name} source={doc.source} />
               </div>
-            ) : (
-              <p className="rounded-md bg-subtle p-4 type-meta text-text-meta">
-                {open.gradeSource === 'ai' ? '판독 근거는 서류 읽기 화면에서 올린 서류에 대해서만 표시합니다.' : open.gradeSource === 'note' ? '현장 소식 화면에서 담당자가 승인한 변경입니다. 근거 문구는 현장 소식 화면의 처리 완료 목록에 남아 있습니다.' : '담당자가 직접 입력한 건이므로 판독 근거가 없습니다.'}
-              </p>
             )}
           </div>
         )}
