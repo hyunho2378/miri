@@ -1,6 +1,6 @@
 // 서류 읽기(IA 4.3). 미리의 핵심 화면. 종이 대피계획서를 AI가 읽고 담당자가 한 건씩 확인해 명부에 확정한다(PRD v2 F2).
 // 위: 한 줄 단계 띠(올리기, AI 읽기, 담당자 확인). 아래: 왼쪽 확인 대기 목록, 오른쪽 선택한 건(원본, 읽은 값, 근거). 두 칸은 화면 높이 안에서 각자 안에서만 스크롤하고 확인 단추는 늘 보인다.
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { ChevronRight, CircleAlert, FileUp } from 'lucide-react'
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
@@ -177,6 +177,26 @@ export default function IntakePage() {
     { n: 3, label: '담당자 확인', count: `확인 대기 ${countText(queue.length, '건')}`, active: !uploadOpen && queue.length > 0 }
   ]
 
+  const listRef = useRef(null)
+  const confirmCurrent = () => {
+    if (!current) return
+    const ck = planCheckFor(current)
+    reviewResult(current.doc.id, current.result.personCode, 'confirm', boardingPatch(current.result.personCode), ck)
+    toast(`${current.result.personCode} 읽기 결과를 확인했습니다.${ck ? ' 당사자와 계획 확인 기록 완료' : ''}`, 'primary')
+  }
+  // 목록에서 마우스 없이: 위아래 화살표로 이동, 선택한 건에서 Enter 로 확인
+  const onListKey = (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      const n = Math.max(0, Math.min(queue.length - 1, pos + (e.key === 'ArrowDown' ? 1 : -1)))
+      setIdx(n)
+      requestAnimationFrame(() => listRef.current?.querySelectorAll('[role="option"]')[n]?.focus())
+    } else if (e.key === 'Enter' && canEdit && e.target.getAttribute?.('aria-selected') === 'true') {
+      e.preventDefault()
+      confirmCurrent()
+    }
+  }
+
   return (
     <PageShell title="서류 읽기" hideHeader className="flex flex-col lg:h-full lg:pb-4">
       <PageHeader title="서류 읽기" className="!mb-3 shrink-0" action={canEdit && (
@@ -244,14 +264,15 @@ export default function IntakePage() {
                 <button type="button" onClick={confirmAllHigh} className="min-h-11 rounded-md px-2 type-body-sm font-bold text-primary-text hover:underline md:min-h-0">서류와 같음 {highCount}건 일괄 확인</button>
               )}
             </div>
-            {mismatch > 0 && <p className="shrink-0 pb-2 type-body-sm text-danger-text">서류와 다름 {mismatch}건 우선</p>}
-            <ul role="listbox" aria-label="확인 대기 서류" className="min-h-0 flex-1 space-y-0.5 overflow-y-auto pr-1">
+            {mismatch > 0 && <p className="shrink-0 pb-1 type-body-sm text-danger-text">서류와 다름 {mismatch}건 우선</p>}
+            {canEdit && <p className="shrink-0 pb-2 type-body-sm text-text-sec">↑↓ 이동, Enter 확인</p>}
+            <ul ref={listRef} role="listbox" aria-label="확인 대기 서류" onKeyDown={onListKey} className="min-h-0 flex-1 space-y-0.5 overflow-y-auto pr-1">
               {queue.map((q, i) => {
                 const g = gradeOf(q.result.grade)
                 const c = CONF[q.result.confidence] || CONF.mid
                 return (
                   <li key={q.result.personCode} role="presentation">
-                    <button type="button" role="option" aria-selected={i === pos} onClick={() => setIdx(i)}
+                    <button type="button" role="option" aria-selected={i === pos} tabIndex={i === pos ? 0 : -1} onClick={() => setIdx(i)}
                       className={clsx('flex min-h-[56px] w-full items-center gap-3 rounded-xl px-3 py-1.5 text-left transition-colors duration-fast', i === pos ? 'bg-mute' : 'hover:bg-subtle')}>
                       <span className="min-w-0 flex-1">
                         <span className={clsx('block truncate type-body text-text-pri', i === pos && 'font-bold')}><span className="tabular-nums">{q.result.personCode}</span></span>
@@ -280,7 +301,7 @@ export default function IntakePage() {
                 </div>
               )}
               footer={canEdit && <Checkbox checked={checkOnConfirm} onChange={setCheckOnConfirm} label="확인 시 당사자와 계획 확인 함께 기록" />}
-              onConfirm={() => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'confirm', boardingPatch(current.result.personCode), ck); toast(`${current.result.personCode} 읽기 결과를 확인했습니다.${ck ? ' 당사자와 계획 확인 기록 완료' : ''}`, 'primary') }}
+              onConfirm={confirmCurrent}
               onEdit={(patch) => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'edit', { ...patch, ...boardingPatch(current.result.personCode) }, ck); toast(`${current.result.personCode} 수정한 값으로 확인했습니다.${ck ? ' 당사자와 계획 확인 기록 완료' : ''}`, 'primary') }}
               onReject={() => { reviewResult(current.doc.id, current.result.personCode, 'reject'); toast(`${current.result.personCode} 제외. 서류 재촬영 요청 필요`) }}
             />
