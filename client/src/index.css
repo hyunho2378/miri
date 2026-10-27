@@ -75,6 +75,8 @@
   .type-display { font-size: clamp(28px, 1.6vw + 19px, 36px); font-weight: 700; letter-spacing: -0.01em; line-height: 1.4; }
   .type-h1      { font-size: clamp(24px, 1.1vw + 18px, 32px); font-weight: 700; letter-spacing: -0.01em; line-height: 1.4; }
   .type-h2      { font-size: clamp(22px, 0.3vw + 20px, 24px); font-weight: 700; letter-spacing: -0.005em; line-height: 1.5; }
+  /* M3 title/large 22/28 (키트 M3/title/large). 섹션 제목 */
+  .type-title   { font-size: 22px; font-weight: 700; line-height: 28px; letter-spacing: 0; }
   .type-h3      { font-size: 19px; font-weight: 700; line-height: 1.5; }
   .type-kpi     { font-size: clamp(32px, 1.1vw + 26px, 40px); font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; font-variant-numeric: tabular-nums; }
   .type-body    { font-size: 17px; font-weight: 400; line-height: 1.5; }

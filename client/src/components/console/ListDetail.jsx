@@ -1,4 +1,4 @@
-// 왼쪽 목록 면 + 오른쪽 상세 면. 1040 이상은 두 칸(5:7), 좁으면 위아래. 키보드: 위아래 화살표, Home, End
+// 한 면을 둘로 나눈 왼쪽 목록과 오른쪽 상세(상자 없음). 840 이상은 두 칸(5:7), 좁으면 위아래. 키보드: 위아래 화살표, Home, End
 // items: [{ id, icon, title, sub, chip, trailing }], selectedId, onSelect(id), listLabel, children = 상세
 import { useRef } from 'react'
 import ListItem from './ListItem.jsx'
@@ -19,9 +19,9 @@ export default function ListDetail({ items, selectedId, onSelect, listLabel, lis
   }
   const activeId = items.some((x) => x.id === selectedId) ? selectedId : items[0]?.id
   return (
-    <div className="grid min-w-0 gap-4 cq-xl:grid-cols-[5fr_7fr] cq-xl:items-start">
-      <div className="min-w-0 rounded-xl bg-subtle p-2">
-        {listTitle && <h2 className="px-4 pb-1 pt-3 type-strong text-text-sec">{listTitle}</h2>}
+    <div className="grid min-w-0 gap-8 cq-xl:grid-cols-[5fr_7fr] cq-xl:items-start cq-xl:gap-12">
+      <div className="min-w-0">
+        {listTitle && <h2 className="mb-2 type-title text-text-pri">{listTitle}</h2>}
         <ul role="listbox" aria-label={listLabel} className="flex flex-col gap-1">
           {items.map((it, i) => (
             <ListItem
@@ -31,7 +31,7 @@ export default function ListDetail({ items, selectedId, onSelect, listLabel, lis
           ))}
         </ul>
       </div>
-      <div className="min-w-0 rounded-xl bg-subtle p-6" aria-live="polite">{children}</div>
+      <div className="min-w-0 px-2 pt-1" aria-live="polite">{children}</div>
     </div>
   )
 }

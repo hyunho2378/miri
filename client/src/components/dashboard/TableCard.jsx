@@ -4,10 +4,10 @@ import Card from '../ui/Card.jsx'
 import DataTable from './DataTable.jsx'
 
 export default function TableCard({
-  title, count, desc, actions, filters, headingLevel = 2, className, children, as, ...table
+  title, count, desc, actions, filters, headingLevel = 2, className, children, as, tone, ...table
 }) {
   return (
-    <Card as={as} padding="none" title={title} meta={count} desc={desc} actions={actions} toolbar={filters} headingLevel={headingLevel} className={className}>
+    <Card as={as} tone={tone} padding="none" title={title} meta={count} desc={desc} actions={actions} toolbar={filters} headingLevel={headingLevel} className={className}>
       {children ?? <DataTable {...table} />}
     </Card>
   )

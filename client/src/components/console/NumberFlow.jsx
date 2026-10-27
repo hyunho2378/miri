@@ -12,7 +12,7 @@ export default function NumberFlow({ items, label = '숫자 흐름', className }
           {i > 0 && <li aria-hidden="true" className="flex w-8 shrink-0 items-center justify-center text-text-sec"><ChevronRight size={22} /></li>}
           <li className="min-w-[9.5rem] flex-1 basis-40">
             <p className="type-strong text-text-sec">{it.label}</p>
-            <p className={clsx('mt-1 type-kpi tabular-nums', it.tone === 'danger' ? 'text-danger-text' : 'text-text-pri')}>
+            <p className={clsx('mt-1 tabular-nums', /^[\d,.]+$/.test(String(it.value)) ? 'type-kpi' : 'type-h2', it.tone === 'danger' ? 'text-danger-text' : 'text-text-pri')}>
               {it.value}{it.unit && <span className="ml-1 type-h3">{it.unit}</span>}
             </p>
             {it.note && <p className="mt-1 type-body-sm text-text-sec">{it.note}</p>}

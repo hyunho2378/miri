@@ -7,7 +7,7 @@ import clsx from 'clsx'
 
 const PAD = { md: 'p-4 lg:p-5', sm: 'p-3 lg:p-4', lg: 'p-5 lg:p-6', none: '' }
 const HEAD = { md: 'px-4 pt-4 lg:px-5 lg:pt-5', sm: 'px-3 pt-3 lg:px-4 lg:pt-4', lg: 'px-5 pt-5 lg:px-6 lg:pt-6', none: 'px-4 pt-4 lg:px-5' }
-const TONE = { default: 'bg-page shadow-card', primary: 'bg-primary-soft', danger: 'bg-danger-soft', mute: 'bg-subtle' }
+const TONE = { default: 'bg-page shadow-card', primary: 'bg-primary-soft', danger: 'bg-danger-soft', mute: 'bg-subtle', flat: '' }
 
 export default function Card({
   title, desc, meta, actions, toolbar, eyebrow, media, children, className, bodyClassName,
@@ -17,17 +17,19 @@ export default function Card({
   const hasHead = title || actions || eyebrow || media
   const hasBody = children != null && children !== false
   return (
-    <As className={clsx('rounded-lg min-w-0', padding === 'none' && 'overflow-hidden', TONE[tone], className)} {...rest}>
+    <As className={clsx('rounded-lg min-w-0', padding === 'none' && tone !== 'flat' && 'overflow-hidden', TONE[tone], className)} {...rest}>
       {hasHead && (
-        <header className={clsx('flex flex-wrap items-center justify-between gap-x-3 gap-y-2', HEAD[padding], (padding === 'none' || !hasBody) && 'pb-3 lg:pb-4', !hasBody && padding !== 'none' && 'pb-4 lg:pb-5')}>
+        <header className={clsx('flex flex-wrap items-center justify-between gap-x-3 gap-y-2', HEAD[padding], tone === 'flat' && '!px-0 !pt-0', (padding === 'none' || !hasBody) && 'pb-3 lg:pb-4', !hasBody && padding !== 'none' && 'pb-4 lg:pb-5')}>
           <div className="min-w-0">
             {media && <div className="mb-3">{media}</div>}
             {eyebrow && <p className="mb-1 type-caption text-text-meta">{eyebrow}</p>}
             <div className="flex flex-wrap items-baseline gap-x-2">
-              {title && <H className="flex items-center gap-2 type-strong text-text-pri"><span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-primary" />{title}</H>}
+              {title && (tone === 'flat'
+                ? <H className="type-title text-text-pri">{title}</H>
+                : <H className="flex items-center gap-2 type-strong text-text-pri"><span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-primary" />{title}</H>)}
               {meta != null && meta !== false && <span className="type-body-sm text-text-meta tabular-nums">{meta}</span>}
             </div>
-            {desc && <p className="mt-1 pl-4 type-meta text-text-meta">{desc}</p>}
+            {desc && <p className={clsx('mt-1 type-meta text-text-meta', tone !== 'flat' && 'pl-4')}>{desc}</p>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </header>
