@@ -39,7 +39,7 @@ export default function SettingsPage() {
     { key: 'label', label: '마을(법정동)', sortable: true, render: (v) => <span className="type-strong text-text-pri">{v.label}</span> },
     { key: 'dong', label: '행정동', render: (v) => dongName({ dongs }, v.dongCode), hideBelow: 'lg' },
     { key: 'pickup', label: '집결지', hideBelow: 'md', render: (v) => (v.pickup ? <span><span className="block">{v.pickup.name}</span><span className="block type-meta text-text-meta">{v.pickup.road.replace('동해시 ', '')}</span></span> : <span className="text-text-meta">미지정(법정동 기준점)</span>) },
-    { key: 'shelter', label: '평시 지정 대피소', render: (v) => sname(v.shelterCode), hideBelow: 'md' },
+    { key: 'shelter', label: '지정 대피소', render: (v) => sname(v.shelterCode), hideBelow: 'md' },
     { key: 'driveMin', label: '편도 주행', align: 'right', sortable: true, hideBelow: 'lg', render: (v) => `${v.driveMin}분` },
     { key: 'roundTripMin', label: '왕복', align: 'right', sortable: true, render: (v) => <span className="type-strong tabular-nums">{Math.round(2 * v.driveMin + (settings.boardingMinutes ?? 20))}분</span> },
     { key: 'estTargets', label: '추정 대상자', align: 'right', sortable: true, hideBelow: 'lg', render: (v) => `${v.estTargets}명` }
@@ -68,8 +68,8 @@ export default function SettingsPage() {
 
   return (
     <PageShell title="설정">
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card title="기관 정보">
+      <div className="grid gap-x-12 gap-y-8 cq-xl:grid-cols-2 cq-xl:items-start">
+        <Card tone="flat" title="기관 정보">
           <KeyValue items={[
             { label: '기관명', value: ORG_NAME, strong: true },
             { label: '행정동', value: `${dongs.length}개 (${dongs.map((d) => d.name).join(', ')})` },
@@ -81,10 +81,10 @@ export default function SettingsPage() {
           ]} />
         </Card>
 
-        <Card title="계산 기본값">
+        <Card tone="flat" title="계산 기본값">
           <div className="divide-y divide-line-sub">
-            <NumberStepper className="pb-3" label="준비 시간" unit="분" step={15} min={0} max={180} value={settings.prepMinutes} onChange={(v) => updateSettings({ prepMinutes: v })} hint="발령 후 첫 차량이 출발하기까지 걸리는 시간" />
-            <NumberStepper className="py-3" label="탑승과 하차 시간" unit="분" step={5} min={5} max={60} value={settings.boardingMinutes ?? 20} onChange={(v) => updateSettings({ boardingMinutes: v })} hint="왕복 시간은 편도 주행 시간의 두 배에 이 값을 더해 셉니다. 주행 시간은 실제 도로 경로로 계산합니다." />
+            <NumberStepper className="pb-3" label="준비 시간" unit="분" step={15} min={0} max={180} value={settings.prepMinutes} onChange={(v) => updateSettings({ prepMinutes: v })} hint="발령 후 첫 차량 출발까지 시간" />
+            <NumberStepper className="py-3" label="탑승과 하차 시간" unit="분" step={5} min={5} max={60} value={settings.boardingMinutes ?? 20} onChange={(v) => updateSettings({ boardingMinutes: v })} hint="왕복 시간 = 편도 주행 시간 x 2 + 이 값. 주행 시간은 도로 경로 기준" />
             <div className="pt-3">
               <p className="type-caption text-text-sec">이송 완료 기한</p>
               <SegmentControl
@@ -97,7 +97,7 @@ export default function SettingsPage() {
           </div>
         </Card>
 
-        <Card title="확인 알림 기준">
+        <Card tone="flat" title="확인 알림 기준">
           <div className="divide-y divide-line-sub">
             <NumberStepper className="pb-3" label="서류 확인 지연 알림" unit="일" min={1} max={60} value={settings.pendingDays} onChange={(v) => updateSettings({ pendingDays: v })} />
             <NumberStepper className="py-3" label="협약 만료 임박 기준" unit="일" step={5} min={5} max={120} value={settings.contractWarnDays} onChange={(v) => updateSettings({ contractWarnDays: v })} />
@@ -106,7 +106,7 @@ export default function SettingsPage() {
           </div>
         </Card>
 
-        <Card title="사용자와 역할">
+        <Card tone="flat" title="사용자와 역할">
           <ul className="divide-y divide-line-sub">
             {Object.values(DEMO_USERS).map((u) => (
               <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
@@ -124,13 +124,14 @@ export default function SettingsPage() {
         </Card>
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-2 xl:items-start">
+      <div className="mt-8 grid gap-x-12 gap-y-8 cq-xl:grid-cols-2 cq-xl:items-start">
         <TableCard
-          title="차종별 회차당 탑승 정원" count={`${VEHICLE_TYPES.length}종`}
+          tone="flat"
+          title="차종별 한 번에 태우는 수" count={`${VEHICLE_TYPES.length}종`}
           columns={capacityCols} rows={VEHICLE_TYPES} rowKey={(t) => t.key} pageSize={20} caption="차종과 등급별 정원"
         />
 
-        <Card id="data-notes" className="scroll-mt-20" title="자료 안내">
+        <Card id="data-notes" tone="flat" className="scroll-mt-20" title="자료 안내">
           <ul className="divide-y divide-line-sub">
             {DATA_NOTES.map((x) => (
               <li key={x.key} className="py-3">
@@ -142,15 +143,17 @@ export default function SettingsPage() {
         </Card>
       </div>
 
-      <Disclosure className="mt-4" summary={`마을과 평시 지정 대피소(${villages.length}곳)`}>
+      <Disclosure className="mt-4" summary={`마을과 지정 대피소(${villages.length}곳)`}>
         <TableCard
-          title="마을과 평시 지정 대피소" count={`${villages.length}곳`}
+          tone="flat"
+          title="마을과 지정 대피소" count={`${villages.length}곳`}
           columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 집결지, 대피소, 왕복 시간" pageSize={20}
         />
       </Disclosure>
 
       <Disclosure className="mt-2" summary={`이재민 임시주거시설(${shelters.length}곳)`}>
         <TableCard
+          tone="flat"
           title="이재민 임시주거시설" count={`${shelters.length}곳`}
           columns={shelterCols} rows={shelters} rowKey={(x) => x.code} caption="임시주거시설 목록" pageSize={10}
         />
@@ -158,6 +161,7 @@ export default function SettingsPage() {
 
       <Disclosure className="mt-2" summary={`데이터 출처(${sourceRows.length}건)`}>
         <TableCard
+          tone="flat"
           title="데이터 출처" count={`${sourceRows.length}건`}
           columns={sourceCols} rows={sourceRows} rowKey={(x) => x.key} caption="데이터 출처와 기준 시점" pageSize={20}
         />

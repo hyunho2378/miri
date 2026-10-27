@@ -2,7 +2,8 @@
 import { ArrowLeft, Printer } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
-import MetricCard from '../../components/miri/MetricCard.jsx'
+import Section from '../../components/console/Section.jsx'
+import InfoRows from '../../components/console/InfoRows.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
@@ -74,50 +75,50 @@ export default function RecordDetailPage() {
       </div>
 
       <div className="space-y-4">
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-          <MetricCard label="대상자" value={t.total} unit="명" />
-          <MetricCard label="인계 완료" value={t.done} unit="명" />
-          <MetricCard label="소방 인계" value={t.fire} unit="명" tone={t.fire ? 'danger' : 'neutral'} />
-          <MetricCard label="미완료" value={t.open} unit="명" tone={t.open ? 'danger' : 'neutral'} sub="이송 중이거나 실패로 종료된 인원" />
+        <div className="grid gap-x-10 gap-y-6 cq-xl:grid-cols-2 cq-xl:items-start">
+          <Section title="종료 시점 결과">
+            <InfoRows rows={[
+              { key: 'total', label: '대상자', value: `${t.total}명` },
+              { key: 'done', label: '인계 완료', value: `${t.done}명` },
+              { key: 'fire', label: '소방 인계', value: `${t.fire}명` },
+              { key: 'open', label: '미완료', value: `${t.open}명`, note: t.open ? '이송 중이거나 실패로 종료' : null },
+              { key: 'help', label: '도우미', value: `${rec.helpers}명, 소방 전달 ${rec.handovers?.length || 0}회` }
+            ]} />
+          </Section>
+          <Section title="단계별 인원">
+            <ul className="flex flex-wrap gap-2">
+              {COUNT_KEYS.filter((k) => rec.counts?.[k]).map((k) => (
+                <li key={k} className="inline-flex items-center gap-2">
+                  <StatusPill status={k} label={`${COUNT_LABEL[k]} ${rec.counts[k]}명`} />
+                </li>
+              ))}
+            </ul>
+            {m && b && (
+              <InfoRows className="mt-3" rows={[
+                { key: 'u', label: '기한 내 이동 불가 인원', value: `기준 배정 ${b.unserved}명, 추천 배정 ${m.unserved}명` },
+                { key: 'w', label: '등급 가중 이동 불가', value: `기준 배정 ${b.weightedUnserved}점, 추천 배정 ${m.weightedUnserved}점` },
+                { key: 'l', label: '마지막 이송 완료', value: `기준 배정 ${fmtHM(b.lastFinishAt)}, 추천 배정 ${fmtHM(m.lastFinishAt)}` }
+              ]} />
+            )}
+          </Section>
         </div>
-
-        <Card title="종료 시점 단계별 인원">
-          <ul className="flex flex-wrap gap-2">
-            {COUNT_KEYS.filter((k) => rec.counts?.[k]).map((k) => (
-              <li key={k} className="inline-flex items-center gap-2">
-                <StatusPill status={k} label={`${COUNT_LABEL[k]} ${rec.counts[k]}명`} />
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 type-meta text-text-meta tabular-nums">도우미 {rec.helpers}명, 소방 전달 {rec.handovers?.length || 0}회</p>
-        </Card>
-
-        {m && b && (
-          <Card title="기본 순서 대비 추천 배정 지표" desc="발령 당시 계산값">
-            <dl className="grid gap-2 sm:grid-cols-3 tabular-nums">
-              <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">미이송 예상</dt><dd className="mt-1 type-strong text-text-pri">기본 순서 {b.unserved}명, 추천 배정 {m.unserved}명</dd></div>
-              <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">등급 가중 미이송</dt><dd className="mt-1 type-strong text-text-pri">기본 순서 {b.weightedUnserved}점, 추천 배정 {m.weightedUnserved}점</dd></div>
-              <div className="rounded-md bg-subtle p-3"><dt className="type-caption text-text-sec">마지막 이송 완료</dt><dd className="mt-1 type-strong text-text-pri">기본 순서 {fmtHM(b.lastFinishAt)}, 추천 배정 {fmtHM(m.lastFinishAt)}</dd></div>
-            </dl>
-          </Card>
-        )}
 
         <TableCard
           title="마을별 결과" count={`${rows.length}곳`}
-          columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={20} caption="마을별 이송 결과"
+          tone="flat" columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={20} caption="마을별 이송 결과"
         />
 
-        <Card title="차량 협약 규모 산정 근거" meta={short.length ? `미이송 마을 ${short.length}곳` : null}>
+        <Card title="차량 협약 규모 산정 근거" tone="flat" meta={short.length ? `미완료 마을 ${short.length}곳` : null}>
           {short.length ? (
             <ul className="divide-y divide-line-sub">
               {short.map((r) => (
                 <li key={r.code} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
                   <span className="type-body-sm text-text-pri">{r.label}</span>
-                  <span className="type-strong text-danger-text tabular-nums">미이송 {r.open + r.fire}명</span>
+                  <span className="type-strong text-danger-text tabular-nums">미완료 {r.open + r.fire}명</span>
                 </li>
               ))}
             </ul>
-          ) : <p className="type-body-sm text-text-meta">전 마을에서 기한 내 인계를 완료했습니다.</p>}
+          ) : <p className="type-body-sm text-text-meta">전 마을 기한 내 인계 완료</p>}
           <Link to="/console/shortage" className="mt-3 inline-flex min-h-11 md:min-h-0 items-center type-body-sm text-primary-text underline underline-offset-2">부족분 계산</Link>
         </Card>
       </div>

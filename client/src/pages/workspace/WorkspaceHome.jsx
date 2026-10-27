@@ -148,7 +148,7 @@ export default function WorkspaceHome() {
           leftIcon={<Search size={16} aria-hidden="true" />} className="w-full cq-md:w-80" />
       </div>
 
-      <section className="mt-6 rounded-lg bg-subtle p-4 cq-lg:p-6" aria-labelledby="tpl-title">
+      <section className="mt-6" aria-labelledby="tpl-title">
         <div className="flex min-h-10 flex-wrap items-center justify-between gap-3">
           <h2 id="tpl-title" className="type-h3 text-text-pri">{kind.newLabel} 시작</h2>
           {kind.key === 'doc' && (
@@ -161,7 +161,7 @@ export default function WorkspaceHome() {
           )}
         </div>
         <ChoiceChips label="서식 종류" size="sm" value={cat} onChange={setCat} options={cats} className="mt-3" />
-        <ul className="mt-4 grid grid-cols-2 gap-4 cq-sm:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-6">
+        <ul className="mt-4 grid grid-cols-2 gap-3 cq-sm:grid-cols-4 cq-lg:grid-cols-6 cq-xl:grid-cols-8">
           {listed.filter((t) => kind.key !== 'doc' || cat === 'all' || t.key === 'blank' || t.cat === cat).map((t) => (
             <li key={t.key} className="min-w-0">
               <button type="button" onClick={() => make(t)} className="group block w-full text-left">
@@ -172,7 +172,7 @@ export default function WorkspaceHome() {
         </ul>
       </section>
 
-      <section className="mt-8" aria-labelledby="recent-title">
+      <section className="mt-6" aria-labelledby="recent-title">
         <h2 id="recent-title" className="type-h3 text-text-pri">최근 {kind.label} <span className="ml-1 type-body-sm text-text-meta tabular-nums">{list.length}개</span></h2>
         {!ready ? (
           <p className="mt-3 type-body-sm text-text-meta">문서함을 불러오는 중입니다.</p>

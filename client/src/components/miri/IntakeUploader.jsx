@@ -46,9 +46,9 @@ export default function IntakeUploader({ villages, onFile, onSample, onReal, rea
         <Select label="문서 종류" value={kind} onChange={setKind} options={[{ value: 'plan', label: '대피계획서' }, { value: 'card', label: '대피카드' }, { value: 'etc', label: '기타' }]} />
       </div>
       <div role="note" className="rounded-md bg-danger-soft p-4 text-danger-text">
-        <p className="type-strong">가상 자료만 올립니다</p>
+        <p className="type-strong">개인정보 없는 자료만 업로드</p>
         <p className="mt-1 type-meta">실제 주민의 이름, 연락처, 주소, 주민번호가 담긴 서류는 올리지 마십시오. 개인정보로 보이는 글자가 남으면 읽기를 멈춥니다.</p>
-        <Checkbox className="mt-2" checked={virtualOk} onChange={setVirtualOk} label="실제 개인정보가 없는 가상 자료임을 확인했습니다" />
+        <Checkbox className="mt-2" checked={virtualOk} onChange={setVirtualOk} label="개인정보 없는 자료임을 확인" />
       </div>
       <div
         onDragOver={(e) => { e.preventDefault(); setDrag(true) }}

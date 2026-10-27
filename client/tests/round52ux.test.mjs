@@ -26,9 +26,9 @@ test('훈련 배너와 소방 인계: 개발 말 없이 할 일로', () => {
   assert.match(read('../src/pages/console/HandoverPage.jsx'), /'선택 후 소방 인계'/)
 })
 
-test('로그인: 시연 코드는 선택이고 코드 없이도 모든 화면을 본다', () => {
+test('로그인: 접속 코드는 선택이고 코드 없이도 모든 화면을 본다', () => {
   const s = read('../src/pages/console/LoginPage.jsx')
-  assert.match(s, /시연 코드\(선택\)/)
-  assert.match(s, /코드가 없어도 모든 화면을 볼 수 있습니다/)
+  assert.match(s, /접속 코드\(선택\)/)
+  assert.match(s, /코드 없이 모든 화면 사용 가능/)
   assert.doesNotMatch(s, /서버 저장<\/p>/)
 })

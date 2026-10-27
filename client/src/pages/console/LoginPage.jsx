@@ -11,8 +11,8 @@ import { USE_MOCK } from '../../lib/api.js'
 import useAuthStore, { DEMO_USERS, ROLE_LABEL } from '../../store/useAuthStore.js'
 
 const DEMO = [
-  { role: 'city', desc: '전체 화면을 이용합니다. 발령 개시와 종료, 소방 인계, 설정을 처리합니다.' },
-  { role: 'dong', desc: '망상동 명부 관리, 서류 읽기, 부족분 계산, 배정 확인을 처리합니다.' }
+  { role: 'city', desc: '전체 화면 이용, 발령 개시와 종료, 소방 인계, 설정' },
+  { role: 'dong', desc: '망상동 명부 관리, 서류 읽기, 부족분 계산, 배정 확인' }
 ]
 
 // 시연 코드: AI 판독과 문서함 서버 저장을 쓰려면 서버가 발급하는 서명 쿠키가 필요하다
@@ -27,19 +27,19 @@ function DemoCode() {
     const r = await fetch('/api/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) }).catch(() => null)
     const b = r ? await r.json().catch(() => null) : null
     if (r?.ok && b?.active) { setState({ active: true, checked: true, error: '' }); setCode('') }
-    else setState((s) => ({ ...s, error: b?.error?.message || '시연 코드를 확인하지 못했습니다' }))
+    else setState((s) => ({ ...s, error: b?.error?.message || '코드 확인 실패' }))
   }
   if (!state.checked) return null
   return (
     <form onSubmit={submit} className="mt-6 rounded-md bg-subtle p-4">
-      <p className="type-strong text-text-pri">시연 코드(선택)</p>
+      <p className="type-strong text-text-pri">접속 코드(선택)</p>
       {state.active ? (
-        <p className="mt-1 type-body-sm text-text-sec" role="status">시연 코드가 확인되었습니다. 12시간 동안 올린 서류와 현장 소식을 AI가 직접 읽고, 문서함이 저장됩니다.</p>
+        <p className="mt-1 type-body-sm text-text-sec" role="status">코드 확인 완료. 12시간 동안 올린 서류와 현장 소식 AI 읽기, 문서함 저장</p>
       ) : (
         <>
-          <p className="mt-1 type-meta text-text-meta">코드가 없어도 모든 화면을 볼 수 있습니다. 코드를 넣으면 올린 서류를 AI가 직접 읽습니다.</p>
+          <p className="mt-1 type-meta text-text-meta">코드 없이 모든 화면 사용 가능. 코드 입력 시 올린 서류 AI 읽기</p>
           <div className="mt-3 flex items-end gap-2">
-            <Input className="flex-1" label="시연 코드" type="password" autoComplete="off" value={code} onChange={(e) => setCode(e.target.value)} error={state.error || undefined} />
+            <Input className="flex-1" label="접속 코드" type="password" autoComplete="off" value={code} onChange={(e) => setCode(e.target.value)} error={state.error || undefined} />
             <Button type="submit" disabled={!code}>확인</Button>
           </div>
         </>
@@ -60,7 +60,6 @@ export default function LoginPage() {
         <Card as="div" padding="lg" className="mt-6">
           <p className="type-caption text-text-sec">재난취약자 사전 이송 배정</p>
           <h1 className="mt-1 type-h1 text-text-pri">담당자 로그인</h1>
-          {USE_MOCK && <p className="mt-2 type-body-sm text-text-sec">시연 계정을 선택합니다.</p>}
           {USE_MOCK ? (
             <>
               <ul className="mt-6 space-y-2">
