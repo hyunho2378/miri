@@ -1,13 +1,13 @@
 // 현황판. 상태 띠 한 줄, 숫자 흐름, 부족 마을 목록과 선택한 마을 상세(목록과 상세 구조), 확인할 일 한 줄 목록, 작은 상태 줄.
 // 문장은 사실만 서술한다(PRD v2 4절).
 import { useMemo, useState } from 'react'
-import clsx from 'clsx'
-import { ChevronRight, Circle, Layers, MapPin } from 'lucide-react'
+import { Layers } from 'lucide-react'
 import { vehicleCounts } from '../../lib/vehicleSummary.js'
 import { Link } from 'react-router-dom'
 import Button from '../../components/ui/Button.jsx'
 import PageShell, { todayLabel } from '../../components/miri/PageShell.jsx'
-import { PageHeader, StatusBand, NumberFlow, ListDetail, DetailSection, StatusChip, Section, InfoRows } from '../../components/console/index.js'
+import { PageHeader, StatusBand, NumberFlow, DetailSection, Section, InfoRows, LinkRow } from '../../components/console/index.js'
+import Modal from '../../components/ui/Modal.jsx'
 import FreshnessNote from '../../components/miri/FreshnessNote.jsx'
 import { useFireRisk, useWarning, useWind, dirName } from '../../components/miri/FireRiskStrip.jsx'
 import useAnomalies from '../../hooks/useAnomalies.js'
@@ -90,19 +90,19 @@ export default function OverviewPage() {
   const conditions = [
     {
       key: 'fire',
-      label: '산불위험지수', title: fire.data ? `평균 ${fire.data.mean}, 최고 ${fire.data.max}` : fire.error ? `산불위험지수를 불러오지 못했습니다(${fire.error}).` : '산불위험지수를 불러오는 중입니다.',
+      label: '산불위험지수', title: fire.data ? `평균 ${fire.data.mean}, 최고 ${fire.data.max}` : fire.error ? `조회 실패(${fire.error})` : '조회 중',
       sub: fire.data ? `지수 51 이상 면적 ${over51}%, 산림청 국립산림과학원` : '산림청 국립산림과학원',
       fresh: <FreshnessNote kind="fire" state={fire} />
     },
     {
       key: 'warning',
-      label: '기상특보', title: warning.data ? (warning.data.active.length ? `동해 ${warning.data.active.join(', ')}` : '동해 발효 특보 없음') : warning.error ? `기상특보를 불러오지 못했습니다(${warning.error}).` : '기상특보를 불러오는 중입니다.',
+      label: '기상특보', title: warning.data ? (warning.data.active.length ? warning.data.active.join(', ') : '발효 특보 없음') : warning.error ? `조회 실패(${warning.error})` : '조회 중',
       sub: '기상청 기상특보 조회서비스',
       fresh: <FreshnessNote kind="warning" state={warning} />
     },
     {
       key: 'wind',
-      label: '바람과 습도', title: h0 ? `${dirName(h0.fromDeg)}풍 ${h0.speed}m/s, 습도 ${h0.humidity}%` : wind.error ? `단기예보를 불러오지 못했습니다(${wind.error}).` : '단기예보를 불러오는 중입니다.',
+      label: '바람과 습도', title: h0 ? `${dirName(h0.fromDeg)}풍 ${h0.speed}m/s, 습도 ${h0.humidity}%` : wind.error ? `조회 실패(${wind.error})` : '조회 중',
       sub: '기상청 단기예보 조회서비스',
       fresh: <FreshnessNote kind="wind" state={wind} />
     }
@@ -110,125 +110,110 @@ export default function OverviewPage() {
 
   const fmtH = (ms) => (ms == null || !Number.isFinite(ms) ? null : `발령 후 ${fmtElapsed((ms - today) / 3600000)}`)
   const deadlineOf = (code) => result.ctx?.deadlines?.[code]?.completeBy
-  // 부족 마을 목록: 기한 빠른 순. 부족이 없으면 대피 대상 마을 전체
-  const listRows = (shortVillages.length ? ordered.filter((x) => x.r.total > 0) : ordered)
-  const items = listRows.map(({ v, r }, i) => ({
-    id: v.code,
-    icon: <MapPin size={20} />,
-    title: v.label,
-    sub: `기한 ${fmtH(deadlineOf(v.code)) || '계산 전'}`,
-    trailing: r.total > 0 ? `${r.total}명` : '부족 없음',
-    chip: i === 0 && r.total > 0 ? <StatusChip tone="danger">가장 급함</StatusChip> : null
-  }))
-  const selId = items.some((x) => x.id === picked) ? picked : items[0]?.id
-  const sel = listRows.find((x) => x.v.code === selId)
+  const villageRows = (shortVillages.length ? ordered.filter((x) => x.r.total > 0) : ordered)
+  const sel = villageRows.find((x) => x.v.code === picked)
   const targetsAll = isDong ? inScope.reduce((s, x) => s + x.r.targetTotal, 0) : result.scopeTargets
   const extraLine = extraNeed.length > 0 && extraNeed.every((e) => e.resolved) ? extraNeed.map((e) => `${e.typeLabel} ${e.count}대`).join(', ') : null
 
   const flow = [
-    { label: '대피 대상', value: fmt(targetsAll), unit: '명', note: `${inScope.length}개 마을` },
-    { label: '기준 배정으로 못 옮기는 사람', value: fmt(scopeTotal), unit: '명', note: '지금 차량 기준', tone: 'danger' },
-    { label: '추천 배정 적용', value: optUnserved == null ? '계산하는 중' : fmt(optUnserved), unit: optUnserved == null ? '' : '명', note: optUnserved != null && diff < 0 ? `${-diff}명 줄어듦` : '지금 차량 기준' },
-    ...(!isDong && extraLine ? [{ label: '협약 뒤', value: '0', unit: '명', note: `${extraLine} 협약 시` }] : [])
+    { label: '대피 대상 인원', value: fmt(targetsAll), unit: '명', note: `${inScope.length}개 마을` },
+    { label: '기준 배정 시 이동 불가 인원', value: fmt(scopeTotal), unit: '명', note: '현재 차량 기준', tone: 'danger' },
+    { label: '추천 배정 시 이동 불가 인원', value: optUnserved == null ? '계산 중' : fmt(optUnserved), unit: optUnserved == null ? '' : '명', note: optUnserved != null && diff < 0 ? `${-diff}명 감소` : '현재 차량 기준' },
+    ...(!isDong && extraLine ? [{ label: '협약 후 이동 불가 인원', value: '0', unit: '명', note: `${extraLine} 추가` }] : [])
   ]
 
-  const rowLink = 'flex min-h-12 items-center gap-3 rounded-lg px-3 hover:bg-mute'
   const todoRows = [
-    ...anomalies.slice(0, 5).map((a) => ({ key: a.id, to: a.to, title: ANOMALY_RULES[a.rule], sub: a.target, hot: a.rule === 'deadline' || a.rule === 'noAck' })),
-    ...(pending > 0 ? [{ key: 'docs', to: '/console/intake', title: '확인할 서류', n: `${pending}건` }] : []),
-    ...(pc.notes > 0 ? [{ key: 'notes', to: '/console/notes', title: '확인할 현장 소식', n: `${pc.notes}건` }] : []),
-    ...(staleRoster > 0 ? [{ key: 'stale', to: '/console/roster?recheck=1', title: '명부 재확인 필요', n: `${staleRoster}명` }] : [])
+    ...anomalies.slice(0, 5).map((a) => ({ key: a.id, to: a.to, title: ANOMALY_RULES[a.rule], sub: a.target })),
+    ...(pending > 0 ? [{ key: 'docs', to: '/console/intake', title: '서류 확인 대기', n: `${pending}건` }] : []),
+    ...(pc.notes > 0 ? [{ key: 'notes', to: '/console/notes', title: '현장 소식 확인 대기', n: `${pc.notes}건` }] : []),
+    ...(staleRoster > 0 ? [{ key: 'stale', to: '/console/roster?recheck=1', title: '명부 재확인 대상', n: `${staleRoster}명` }] : [])
   ]
 
   return (
     <PageShell title="오늘의 현황" hideHeader>
       <PageHeader
-        title="오늘의 현황" meta={todayLabel()}
+        title="오늘의 현황" meta={todayLabel()} className="mb-3"
         action={<Link to="/console/map" className="inline-flex h-10 items-center gap-2 rounded-md bg-subtle px-4 type-body-sm text-text-sec hover:bg-mute"><Layers size={16} aria-hidden="true" /><span className="max-w-[16rem] truncate">{scenario.name}</span></Link>}
       />
-      <div className="grid min-w-0 gap-6">
+      <div className="grid min-w-0 gap-4">
         {live ? (
           <StatusBand tag={d.kind === 'drill' ? '훈련 발령 중' : '발령 중'} tone="primary" action={<Button as={Link} to="/console/dispatch">발령 운영 열기</Button>}>
-            이 배정표로 기한 안에 못 옮기는 사람 {fmt(liveUnserved)}명
+            현재 배정표 시 이동 불가 인원 {fmt(liveUnserved)}명
           </StatusBand>
         ) : (
           <StatusBand
             tag={scopeTotal > 0 ? '기한 초과 우려' : '이상 없음'} tone={scopeTotal > 0 ? 'danger' : 'primary'}
             action={(
               <>
-                <Button as={Link} to="/console/shortage">부족분 계산 열기</Button>
-                {!isDong && extraNeed.length > 0 && <Button as={Link} to="/console/workspace?kind=doc&new=gian-simple" variant="secondary">협약 추진 기안 쓰기</Button>}
+                <Button as={Link} to="/console/shortage">부족분 계산</Button>
+                {!isDong && extraNeed.length > 0 && <Button as={Link} to="/console/workspace?kind=doc&new=gian-simple" variant="secondary">협약 추진 기안</Button>}
               </>
             )}
           >
-            {scopeTotal > 0 ? `${isDong ? `${scopeName}에서 ` : ''}발령이 나면 기한 안에 옮기지 못하는 사람이 ${fmt(scopeTotal)}명입니다` : '발령이 나도 대피 대상 모두 기한 안에 옮길 수 있습니다'}
-            {!isDong && extraLine && <span className="mt-1 block type-body text-text-sec">지금 차량 기준, {extraLine}를 더 약속받으면 0명</span>}
+            {scopeTotal > 0 ? `${isDong ? `${scopeName} ` : ''}기준 배정 시 이동 불가 인원 ${fmt(scopeTotal)}명, 협약 차량 확보 필요` : '대피 대상 전원 기한 내 이송 가능'}
           </StatusBand>
         )}
 
         {!live && <NumberFlow items={flow} />}
 
-        <ListDetail items={items} selectedId={selId} onSelect={setPicked} listLabel="부족 마을" listTitle={`${shortVillages.length ? '부족 마을' : '대피 대상 마을'} ${items.length}곳`}>
-          {sel ? (
-            <>
-              <div className="flex flex-wrap items-baseline justify-between gap-3">
-                <h2 className="type-h2 text-text-pri">{sel.v.label}</h2>
-                <p className={sel.r.total > 0 ? 'type-kpi text-danger-text' : 'type-kpi text-text-pri'}>{fmt(sel.r.total)}<span className="ml-1 type-h3">명</span></p>
-              </div>
-              <DetailSection title="결론" className="mt-4">
-                <p className="type-body text-text-pri tabular-nums">
-                  {sel.r.total > 0
-                    ? `기한 안에 못 옮기는 사람은 ${GRADES.filter((g) => sel.r.shortage[g.key]).map((g) => `${g.label} ${sel.r.shortage[g.key]}명`).join(', ')}입니다${sel.r.provisional > 0 ? `. 확인 대기 서류 ${sel.r.provisional}건이 들어 있습니다` : ''}.`
-                    : '이 마을은 기한 안에 모두 옮길 수 있습니다.'}
-                </p>
-              </DetailSection>
-              <DetailSection title="할 일">
-                <div className="flex flex-wrap gap-2">
-                  <Button as={Link} to={`/console/roster?village=${sel.v.code}`}>이 마을 명부 보기</Button>
-                  <Button as={Link} to="/console/resources" variant="secondary">협약 차량 확인하기</Button>
-                </div>
-              </DetailSection>
-              <DetailSection title="근거">
-                <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 type-body-sm tabular-nums">
-                  <dt className="text-text-sec">대상자</dt><dd className="text-text-pri">{sel.r.targetTotal}명</dd>
-                  <dt className="text-text-sec">대피소 왕복</dt><dd className="text-text-pri">{sel.v.roundTripMin == null ? '대피소 없음' : `${sel.v.roundTripMin}분`}</dd>
-                  <dt className="text-text-sec">산불 도달</dt><dd className="text-text-pri">{fmtH(result.arrivals?.[sel.v.code]) || '계산 전'}</dd>
-                  <dt className="text-text-sec">이송 완료 기한</dt><dd className="text-text-pri">{fmtH(deadlineOf(sel.v.code)) || '계산 전'}</dd>
-                </dl>
-              </DetailSection>
-            </>
-          ) : <p className="type-body text-text-sec">대피 대상 마을이 없습니다.</p>}
-        </ListDetail>
+        <div className="grid min-w-0 gap-x-12 gap-y-6 cq-xl:grid-cols-[1fr_1fr] cq-xl:items-start">
+          <Section id="ov-todo" title="처리할 일" count={todo}>
+            {todoRows.length === 0 ? (
+              <p className="type-body text-text-sec">처리할 일 없음</p>
+            ) : (
+              <ul>
+                {todoRows.map((t) => <li key={t.key}><LinkRow to={t.to} title={t.title} sub={t.sub} value={t.n} /></li>)}
+              </ul>
+            )}
+          </Section>
 
-        <Section id="ov-todo" title="확인할 일" count={todo}>
-          {todoRows.length === 0 ? (
-            <p className="type-body text-text-sec">확인할 항목이 없습니다.</p>
-          ) : (
-            <ul className="grid cq-xl:grid-cols-2 cq-xl:gap-x-10">
-              {todoRows.map((t) => (
-                <li key={t.key}>
-                  <Link to={t.to} className="flex min-h-14 items-center gap-3 rounded-2xl px-4 hover:bg-subtle">
-                    <Circle size={16} aria-hidden="true" className={clsx('shrink-0', t.hot ? 'text-danger' : 'text-text-sec')} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block break-keep type-body text-text-pri">{t.title}</span>
-                      {t.sub && <span className="block truncate type-body-sm text-text-sec tabular-nums" title={t.sub}>{t.sub}</span>}
-                    </span>
-                    {t.n && <span className="type-body-strong text-text-pri tabular-nums">{t.n}</span>}
-                    <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-text-sec" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Section>
-
-        <Section id="ov-state" title="오늘 상황" action={<Link to="/console/resources" className="inline-flex min-h-10 items-center gap-0.5 type-strong text-primary-text hover:underline">협약 차량 확인하기<ChevronRight size={14} aria-hidden="true" /></Link>}>
-          <InfoRows columns={2} rows={[
-            ...conditions.map((x) => ({ key: x.key, label: x.label, value: x.title, note: x.sub, extra: x.fresh })),
-            { key: 'veh', label: '출동 가능 차량', value: `${vc.usable}대`, strong: true, note: `협약 확정 ${vc.agreed}대, 협약 미확정 ${vc.unconfirmed}대, 활동 중 도우미 ${helpers.filter((h) => h.active).length}명` }
-          ]} />
+          <div className="grid min-w-0 gap-6">
+            <Section id="ov-village" title={`${shortVillages.length ? '이동 불가 발생 마을' : '대피 대상 마을'} ${villageRows.length}곳`}>
+              <ul>
+                {villageRows.map(({ v, r }) => (
+                  <li key={v.code}>
+                    <LinkRow onClick={() => setPicked(v.code)} title={v.label} sub={`기한 ${fmtH(deadlineOf(v.code)) || '계산 전'}`} value={r.total > 0 ? `${r.total}명` : '없음'} tone={r.total > 0 ? 'danger' : undefined} />
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          </div>
+        </div>
+        <Section id="ov-state" title="오늘 상황" action={<Link to="/console/resources" className="inline-flex min-h-10 items-center type-strong text-primary-text hover:underline">협약 차량 확인</Link>}>
+          <dl className="flex flex-wrap gap-x-10 gap-y-2">
+            {[
+              ...conditions.map((x) => [x.label, x.title]),
+              ['출동 가능 차량', `${vc.usable}대 (협약 확정 ${vc.agreed}, 미확정 ${vc.unconfirmed})`],
+              ['활동 중 도우미', `${helpers.filter((h) => h.active).length}명`]
+            ].map(([k, v]) => (
+              <div key={k} className="min-w-0"><dt className="type-meta text-text-sec">{k}</dt><dd className="type-body tabular-nums text-text-pri">{v}</dd></div>
+            ))}
+          </dl>
         </Section>
       </div>
+
+      <Modal
+        open={!!sel} onClose={() => setPicked(null)} title={sel ? `${sel.v.label} 이동 불가 인원 ${fmt(sel.r.total)}명` : ''} className="max-w-[520px]"
+        footer={sel && (
+          <>
+            <Button as={Link} to="/console/resources" variant="secondary">협약 차량 확인</Button>
+            <Button as={Link} to={`/console/roster?village=${sel.v.code}`}>마을 명부</Button>
+          </>
+        )}
+      >
+        {sel && (
+          <DetailSection title="근거">
+            <InfoRows rows={[
+              { key: 'g', label: '등급별 이동 불가', value: GRADES.filter((g) => sel.r.shortage[g.key]).map((g) => `${g.label} ${sel.r.shortage[g.key]}명`).join(', ') || '없음' },
+              ...(sel.r.provisional > 0 ? [{ key: 'p', label: '확인 대기 서류 포함', value: `${sel.r.provisional}건` }] : []),
+              { key: 't', label: '대상자', value: `${sel.r.targetTotal}명` },
+              { key: 'r', label: '대피소 왕복', value: sel.v.roundTripMin == null ? '대피소 없음' : `${sel.v.roundTripMin}분` },
+              { key: 'a', label: '산불 도달', value: fmtH(result.arrivals?.[sel.v.code]) || '계산 전' },
+              { key: 'd', label: '이송 완료 기한', value: fmtH(deadlineOf(sel.v.code)) || '계산 전' }
+            ]} />
+          </DetailSection>
+        )}
+      </Modal>
     </PageShell>
   )
 }

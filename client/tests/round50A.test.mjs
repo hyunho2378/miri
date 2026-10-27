@@ -6,7 +6,7 @@ const read = (p) => readFileSync(new URL('../src/' + p, import.meta.url), 'utf8'
 
 test('현황판: 결론 숫자 바로 아래 다음 행동 단추, 문장 속 숫자 나열 줄 없음, 첫 화면 동기 추천 탐색 없음', () => {
   const s = read('pages/console/OverviewPage.jsx')
-  assert.match(s, /부족분 계산 열기/)
+  assert.match(s, />부족분 계산</)
   assert.match(s, /협약 차량 확인/)
   assert.ok(!s.includes('todoSummaryLine'))
   assert.ok(!s.includes('optimizedUnserved('))
