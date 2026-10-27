@@ -5,7 +5,7 @@ import { VEHICLE_NOTE } from './shortage.js'
 import { DATA_SOURCES } from '../mock/donghaeData.js'
 
 export const DATA_NOTES = [
-  { key: 'demo', title: '시연 자료', text: '마을과 대피소와 건물은 실제 위치, 대상자 개인과 차량은 가상입니다. 대상자 수는 장기요양 재가 수급자 2025년 통계, 명부는 시연용 자료입니다. 계산 규칙 1.2판(2026. 10. 20.).' },
+  { key: 'demo', title: '시연 자료', text: '마을과 대피소와 건물은 실제 위치, 대상자 개인과 차량은 가상입니다. 대상자 수는 장기요양 재가 수급자 2025년 통계, 명부는 시연용 자료입니다. 계산 규칙 1.2판(2026. 10. 20.). 훈련 발령의 수락과 이송 진행은 시연용 자동 진행입니다.' },
   { key: 'roster', title: '대상자 명부', text: '이름 없이 대상자 코드로 표시합니다. 마지막 확인이 빨간 글자면 90일이 지났거나 기록이 없어 재확인이 필요합니다.' },
   { key: 'rosterScope', title: '명부에 아직 없는 대상', text: DISABLED_NOTE },
   { key: 'vehicles', title: '차량 운영 규칙', text: `${VEHICLE_NOTE}. 차종별 회차당 정원은 협의 전 가정값입니다. 협약 만료는 명부 기준일로 판정합니다.` },

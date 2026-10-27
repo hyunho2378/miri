@@ -131,7 +131,7 @@ function StartPanel() {
           {kind === 'drill'
             ? <Button className="mt-1.5" size="sm" variant="ghost" onClick={() => setRealAsk(true)}>실제 발령으로 바꾸기</Button>
             : <Button className="mt-1.5" size="sm" variant="ghost" onClick={() => setKind('drill')}>훈련 발령으로 돌아가기</Button>}
-          {kind === 'real' && <p className="mt-1.5 type-meta text-text-meta">실제 발령은 도우미 휴대폰 보고를 받는 서버를 연결한 뒤 엽니다. 지금 시안은 훈련 발령만 진행하며, 훈련의 수락과 이송 진행은 시연용 자동 진행입니다.</p>}
+          {kind === 'real' && <p className="mt-1.5 type-meta text-text-meta">실제 발령은 도우미 보고 서버 연결 뒤 열립니다. 지금은 훈련 발령만 가능합니다.</p>}
         </div>
         <Modal
           open={realAsk} onClose={() => setRealAsk(false)} title="실제 발령으로 바꿀까요?"
