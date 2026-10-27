@@ -43,9 +43,8 @@ test('셀 72: 산불 단계 이름은 코드 기준 두 개만, 그 밖은 이�
   assert.match(fire, /발표`/)
 })
 
-test('셀 72: 수락도 UNDO_MS 동안 되돌리기 뒤 보냄, 서버와 콘솔은 그대로', () => {
-  assert.equal(UNDO_MS, 6000)
-  assert.match(helper, /ackTimer\.current = setTimeout\(sendAccept, UNDO_MS\)/)
-  assert.match(helper, /label: '되돌리기', onClick: \(\) => \{ clearTimeout\(ackTimer\.current\)/)
-  assert.ok(!/onClick: \(\) => \{ m\.ack\('accept'\)/.test(helper))
+test('수락은 기다림 없이 바로 보냄(사용자 지적 2026. 10. 27., 6초 지연 삭제), 실패하면 되돌림 안내', () => {
+  assert.ok(!/ackTimer\.current = setTimeout\(sendAccept/.test(helper))
+  assert.match(helper, /const r = m\.ack\('accept'\)/)
+  assert.match(helper, /수락 전송 실패, 다시 수락/)
 })

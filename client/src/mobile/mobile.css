@@ -558,7 +558,7 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 /* 알림 위치 보정: 하단 고정 동작(도우미 화면)이 있으면 그 위, 옆 막대와 레일만큼 비킴, 두 단이면 목록 단 폭 안에 둔다(상세 단을 가리지 않음) */
 .mob-root:has(.mob-h-bottom) .mob-toast-wrap { bottom: calc(var(--m-safe-bottom) + var(--m-toast-above, 132px)); }
 .mob-root .mob-toast-wrap { left: calc(var(--m-safe-left) + var(--m-rail)); right: calc(var(--m-safe-right) + var(--m-side-bar)); }
-.mob-root.two-pane .mob-toast-wrap { right: calc(50% + var(--m-side-bar) / 2); justify-content: center; }
+.mob-root.two-pane .mob-toast-wrap { left: calc(50% + var(--m-side-bar) / 2); right: var(--m-safe-right); justify-content: center; }   /* 두 단: 선택한 화면(오른쪽 면) 안 아래 */
 .mob-root.platform-android { --m-toast-above: 84px; }
 /* 옆 세로 막대 자리는 이동 막대가 있는 화면에서만 비운다(도우미 화면처럼 탭이 없으면 84 를 비우지 않음) */
 .mob-root.platform-ios.bar-side:not(:has(.mob-nav)) { --m-side-bar: 0px; }

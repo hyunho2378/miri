@@ -117,17 +117,16 @@ function IdleHome({ consentKey, onStart }) {
 // 배정 알림: 큰 기한 하나, 어디서와 몇 명, 수락 하나. 차량과 동승, 확인할 점은 자세히 시트
 function AlertScreen({ m, onDecline }) {
   const toast = useMobileToast()
-  // 수락도 단계 보고처럼 UNDO_MS 동안 되돌릴 수 있게 기다렸다가 보낸다(플랫폼 셀 72 검토 반영). 서버와 콘솔은 그대로
+  // 수락은 바로 보낸다(기다림 없음). 서버 전송은 m.ack 가 이어서 하고, 실패하면 아래에서 되돌린다.
   const [accepting, setAccepting] = useState(false)
-  const ackTimer = useRef(null)
-  const sent = useRef(false)
-  const sendAccept = () => { if (sent.current) return; sent.current = true; clearTimeout(ackTimer.current); m.ack('accept') }
-  useEffect(() => () => { if (ackTimer.current && !sent.current) sendAccept() }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const accept = () => {
     if (accepting) return
-    setAccepting(true); sent.current = false
-    ackTimer.current = setTimeout(sendAccept, UNDO_MS)
-    toast(`수락을 ${UNDO_MS / 1000}초 뒤 보내요. 첫 대상자부터 진행해요.`, { label: '되돌리기', onClick: () => { clearTimeout(ackTimer.current); ackTimer.current = null; setAccepting(false) } })
+    setAccepting(true)
+    try {
+      const r = m.ack('accept')
+      if (r && typeof r.catch === 'function') r.catch(() => { setAccepting(false); toast('수락 전송 실패, 다시 수락') })
+      toast('수락 완료')
+    } catch { setAccepting(false); toast('수락 전송 실패, 다시 수락') }
   }
   const first = m.trips[0]
   return (
@@ -152,7 +151,7 @@ function AlertScreen({ m, onDecline }) {
         </List>
         <p className="mob-t-callout mob-h-lead">{ACK_NOTE}</p>
       </main>
-      <BottomAction primary={{ label: accepting ? '수락 보내는 중' : '수락', onClick: accept, disabled: accepting }} secondary={{ label: '불가', onClick: onDecline, disabled: accepting }} />
+      <BottomAction primary={{ label: accepting ? '수락 처리 중' : '수락', onClick: accept, disabled: accepting }} secondary={{ label: '불가', onClick: onDecline, disabled: accepting }} />
     </>
   )
 }
