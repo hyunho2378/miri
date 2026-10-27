@@ -3,7 +3,7 @@
 // 이름, 주소, 연락처, 생년월일은 가린 글자만 담는다. 시연에서 외부 호출 없이 쓴다.
 export const REAL_READ_SOURCE = 'hcx005-20261022'
 export const REAL_READ_LABEL = '저장된 판독 결과(2026. 10. 22. HyperCLOVA X HCX-005 실제 판독)'
-export const EXAMPLE_READ_LABEL = '예시 결과(시연용으로 미리 써 둔 결과)'
+export const EXAMPLE_READ_LABEL = '예시 결과'
 export const REAL_READINGS = [
   {
     "id": "HO2-01",

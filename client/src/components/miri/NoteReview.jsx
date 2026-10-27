@@ -42,7 +42,6 @@ export default function NoteReview({ note, villageLabel, canEdit, onApply, onEdi
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <p className="type-caption text-text-sec">받은 소식</p>
             <span className="type-meta text-text-meta">{sourceLabel(note.source)}, {fmtDate(note.receivedAt)}</span>
-            {note.mock && <Badge tone="neutral" className="ml-auto">시연용 모의 응답</Badge>}
           </div>
           {note.mode === 'voice' && (
             <p className="mb-2 inline-flex items-center gap-1.5 rounded-md bg-mute px-3 py-2 type-meta text-text-sec">
@@ -84,7 +83,7 @@ export default function NoteReview({ note, villageLabel, canEdit, onApply, onEdi
           {!read.quoteMatched && d.changed && (
             <p role="note" className="flex items-start gap-1.5 rounded-md bg-danger-soft p-3 type-meta text-danger-text">
               <CircleAlert size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
-              AI가 낸 근거 문구를 소식 원문에서 찾지 못했습니다. 요약은 숨겼습니다. 반영하지 말고 소식을 다시 확인해 주십시오.
+              근거 문장을 소식에서 찾지 못했습니다. 반영하기 전에 소식을 다시 확인하십시오.
             </p>
           )}
           {read.lightened && (

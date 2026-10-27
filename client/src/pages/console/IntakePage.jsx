@@ -30,9 +30,9 @@ import { countText } from '../../lib/unitText.js'
 const CONF_ORDER = { low: 0, mid: 1, high: 2 }
 const KIND_LABEL = { plan: '대피계획서', card: '대피카드', etc: '기타' }
 const CONF = {
-  high: { label: '원문 일치', tone: 'text-text-meta' },
-  mid: { label: '확인 권장', tone: 'text-text-pri' },
-  low: { label: '원문 불일치', tone: 'text-danger-text' }
+  high: { label: '서류와 같음', tone: 'text-text-meta' },
+  mid: { label: '확인 필요', tone: 'text-text-pri' },
+  low: { label: '서류와 다름', tone: 'text-danger-text' }
 }
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -179,7 +179,6 @@ export default function IntakePage() {
         <StepCard n={2} Icon={ScanText} title="AI가 읽기" count={`대상자 ${countText(readPeople, '명')}`} />
         <StepCard n={3} Icon={UserCheck} title="담당자 확인" count={`확인 대기 ${countText(queue.length, '건')}`} active={!uploadOpen && queue.length > 0} />
       </section>
-      <p className="-mt-1 mb-4 type-meta text-text-meta">왼쪽 메뉴의 숫자 {countText(pendingDocs + pendingNotes, '')}은 확인 대기 판독 결과 {countText(pendingDocs, '건')}과 현장 소식 {countText(pendingNotes, '건')}을 더한 값입니다.</p>
 
       {uploadOpen && (
         <Card title="서류 올리기" className="mb-4">
@@ -204,7 +203,7 @@ export default function IntakePage() {
           <Card as="aside" padding="none" aria-label="확인 대기 목록" className="xl:sticky xl:top-20">
             <div className="flex items-center justify-between gap-2 border-b border-line-sub px-4 py-3">
               <p className="type-strong text-text-pri">확인 대기 <span className="tabular-nums">{queue.length}</span>건</p>
-              {mismatch > 0 && <span className="type-meta text-danger-text">원문 불일치 {mismatch}건 먼저</span>}
+              {mismatch > 0 && <span className="type-meta text-danger-text">서류와 다른 {mismatch}건 먼저</span>}
             </div>
             <ul className="max-h-[60vh] overflow-y-auto py-1">
               {queue.map((q, i) => {
@@ -216,7 +215,7 @@ export default function IntakePage() {
                       className={clsx('flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-fast', i === pos ? 'bg-page' : 'hover:bg-mute')}>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate type-strong text-text-pri">{vlabel(q.doc.villageCode)} <span className="type-meta text-text-meta tabular-nums">{q.result.personCode.split('-').pop()}</span></span>
-                        <span className="block truncate type-meta text-text-meta">{KIND_LABEL[q.doc.kind]}, AI 판정 {g?.label || '판독 불가'}</span>
+                        <span className="block truncate type-meta text-text-meta">{KIND_LABEL[q.doc.kind]}, 읽은 등급 {g?.label || '판독 불가'}</span>
                       </span>
                       <span className={clsx('shrink-0 rounded-xs px-1.5 py-0.5 type-caption', c.tone)}>{c.label}</span>
                     </button>
@@ -226,7 +225,7 @@ export default function IntakePage() {
             </ul>
             {canEdit && highCount > 0 && (
               <div className="border-t border-line-sub p-3">
-                <Button variant="ghost" size="sm" className="w-full" onClick={confirmAllHigh} leftIcon={<ScanText size={16} aria-hidden="true" />}>원문 일치 {highCount}건 한 번에 확인</Button>
+                <Button variant="ghost" size="sm" className="w-full" onClick={confirmAllHigh} leftIcon={<ScanText size={16} aria-hidden="true" />}>서류와 같은 {highCount}건 한 번에 확인</Button>
               </div>
             )}
           </Card>

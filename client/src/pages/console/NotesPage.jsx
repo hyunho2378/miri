@@ -28,8 +28,8 @@ import useMiriStore from '../../store/useMiriStore.js'
 
 const CONF_ORDER = { low: 0, mid: 1, high: 2 }
 const CONF = {
-  high: { label: '원문 일치', tone: 'text-text-meta' },
-  mid: { label: '확인 권장', tone: 'text-text-pri' },
+  high: { label: '서류와 같음', tone: 'text-text-meta' },
+  mid: { label: '확인 필요', tone: 'text-text-pri' },
   low: { label: '확인 필요', tone: 'text-danger-text' }
 }
 const NOTE_STEPS = ['소식 받아 적기', '달라진 점 찾기', '근거 추출', '원문 대조']
@@ -200,7 +200,7 @@ export default function NotesPage() {
           <Card as="aside" padding="none" aria-label="확인 대기 목록" className="xl:sticky xl:top-20">
             <div className="flex items-center justify-between gap-2 border-b border-line-sub px-4 py-3">
               <p className="type-strong text-text-pri">확인 대기 <span className="tabular-nums">{queue.length}</span>건</p>
-              {lightCount > 0 && <span className="type-meta text-text-meta">등급 낮춤 제안 {lightCount}건</span>}
+              {lightCount > 0 && <span className="type-meta text-text-meta">등급 하향 {lightCount}건</span>}
             </div>
             <ul className="max-h-[60vh] overflow-y-auto py-1">
               {queue.map((q, i) => {

@@ -14,7 +14,7 @@ export const REVIEW_REASON = {
   noField: '서류에 이 사람 거동 내용 없음',
   modelSkip: 'AI가 이 순번을 판정하지 않음',
   noQuote: '근거 문구 없음',
-  quoteMismatch: '근거 문구가 원문에 없음',
+  quoteMismatch: '서류에서 이 문장을 찾지 못함',
   conflict: '등급과 특이사항이 서로 맞지 않음',
   assistCue: '도보 판정이지만 보조 단서 있음',
   weak: '근거가 약한 도보나 부축 판정',

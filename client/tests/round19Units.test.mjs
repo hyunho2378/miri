@@ -31,7 +31,6 @@ test('서류 읽기 단계 카드: 무엇을 세는지 숫자 앞에, 메뉴 배
   assert.ok(intake.includes("count={`서류 ${countText(docs.length, '건')}`}"))
   assert.ok(intake.includes("count={`대상자 ${countText(readPeople, '명')}`}"))
   assert.ok(intake.includes("count={`확인 대기 ${countText(queue.length, '건')}`}"))
-  assert.ok(intake.includes('현장 소식'))
 })
 
 test('발령 운영 기본 속도는 60배를 유지하고 표기만 풀어 씀', () => {
