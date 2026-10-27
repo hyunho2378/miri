@@ -451,7 +451,7 @@ export default function DocEditor() {
   const ribbon = {
     file: <>
       <RibbonBtn label="새 문서" Icon={FilePlus2} onClick={newDoc} />
-      <RibbonBtn label="문서함" Icon={FileText} onClick={() => navigate('/console/workspace?kind=doc')} />
+      <RibbonBtn label="문서 센터" Icon={FileText} onClick={() => navigate('/console/workspace?kind=doc')} />
       <RibbonBtn label="저장" Icon={Cloud} onClick={() => { saveVersion(id, '저장'); toast('저장했습니다', 'primary') }} />
       <RibbonSep />
       <RibbonBtn label="한글로 저장" Icon={FileDown} wide onClick={() => doExport('hwpx')} />

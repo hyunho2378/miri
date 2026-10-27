@@ -139,7 +139,7 @@ export default function WorkspaceHome() {
     : [{ value: 'all', label: `전체 ${listed.length - 1}` }]
 
   return (
-    <PageShell title="문서함">
+    <PageShell title="문서 센터">
       {/* 머리: 종류 전환(공용 SegmentControl)과 검색(공용 Input). 세 종류 모두 같은 배치 */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <SegmentControl label="종류" value={kind.key} onChange={(v) => { setParams({ kind: v }); setCat('all'); setQ('') }}
@@ -175,7 +175,7 @@ export default function WorkspaceHome() {
       <section className="mt-6" aria-labelledby="recent-title">
         <h2 id="recent-title" className="type-h3 text-text-pri">최근 {kind.label} <span className="ml-1 type-body-sm text-text-meta tabular-nums">{list.length}개</span></h2>
         {!ready ? (
-          <p className="mt-3 type-body-sm text-text-meta">문서함을 불러오는 중입니다.</p>
+          <p className="mt-3 type-body-sm text-text-meta">문서 센터 조회 중</p>
         ) : list.length === 0 ? (
           <p className="mt-3 type-body-sm text-text-meta">{kind.label} 없음</p>
         ) : (

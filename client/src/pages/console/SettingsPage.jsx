@@ -67,7 +67,7 @@ export default function SettingsPage() {
   ]
 
   return (
-    <PageShell title="설정">
+    <PageShell title="운영 기준">
       <div className="grid gap-x-12 gap-y-8 cq-xl:grid-cols-2 cq-xl:items-start">
         <Card tone="flat" title="기관 정보">
           <KeyValue items={[

@@ -30,7 +30,7 @@ export default function EditorFrame({ fill = false, kind, Icon, title, onTitle, 
     <div className={fill ? 'flex h-dvh flex-col overflow-hidden bg-canvas' : 'flex min-h-dvh flex-col bg-canvas'}>
       <header className="sticky top-0 z-nav shrink-0 border-b border-line-sub bg-page">
         <div className="flex h-14 items-center gap-1.5 px-2 sm:gap-2 md:h-11">
-          <Link to={`/console/workspace?kind=${kind}`} aria-label="문서함으로" title="문서함으로" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-text-sec hover:bg-mute">
+          <Link to={`/console/workspace?kind=${kind}`} aria-label="문서 센터로" title="문서 센터로" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-text-sec hover:bg-mute">
             <ArrowLeft size={18} aria-hidden="true" />
           </Link>
           <span className={clsx('hidden h-6 shrink-0 items-center gap-1 rounded-xs px-1.5 text-[11px] font-bold text-text-inverse sm:inline-flex', { doc: 'bg-kind-doc', sheet: 'bg-kind-sheet', form: 'bg-kind-form' }[kind])}>

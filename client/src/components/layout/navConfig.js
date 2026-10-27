@@ -1,5 +1,5 @@
 // 담당자 메뉴 구조. 업무 순서대로 놓는다: 현황 확인 → 서류 읽기(AI) → 명부 → 지도 → 자원 → 발령. 같은 일을 하는 화면은 상단 탭으로 묶는다.
-import { Archive, BookOpenText, FileScan, FolderOpen, History, LayoutDashboard, LayoutGrid, MapPinned, Network, Settings, ShieldCheck, Siren, Smartphone, Truck, UsersRound } from 'lucide-react'
+import { Archive, BookOpenText, FileScan, FolderOpen, History, LayoutDashboard, LayoutGrid, MapPinned, Settings, ShieldCheck, Siren, Smartphone, Truck, UsersRound } from 'lucide-react'
 
 export const MAIN_NAV = [
   { key: 'home', to: '/console', end: true, label: '현황판', Icon: LayoutDashboard, match: ['/console'] , exact: true },
@@ -12,19 +12,17 @@ export const MAIN_NAV = [
 
 // 문서함은 업무 메뉴와 따로 레일에 둔다. 열면 메뉴 칸 없이 본문 전체를 쓴다
 export const DOCS_NAV = [
-  { key: 'workspace', to: '/console/workspace', label: '문서함', Icon: FolderOpen, match: ['/console/workspace'] }
+  { key: 'workspace', to: '/console/workspace', label: '문서 센터', Icon: FolderOpen, match: ['/console/workspace'] }
 ]
 
 export const SUB_NAV = [
   { key: 'records', to: '/console/records', label: '이송 기록', Icon: History, match: ['/console/records'] },
-  { key: 'settings', to: '/console/settings', label: '설정', role: 'city', Icon: Settings, match: ['/console/settings'] },
-  { key: 'diagrams', href: '/diagrams/index.html', label: '서비스 도식', Icon: Network }
+  { key: 'settings', to: '/console/settings', label: '운영 기준', role: 'city', Icon: Settings, match: ['/console/settings'] }
 ]
 
 // 공개 화면. 담당자 화면 밖에서 열린다
 export const PUBLIC_NAV = [
   { key: 'mobile', href: '/m', label: '휴대폰 화면', Icon: Smartphone },
-  { key: 'open', to: '/open', label: '개방 API', Icon: BookOpenText },
   { key: 'privacy', to: '/privacy', label: '개인정보 처리방침', Icon: ShieldCheck }
 ]
 
@@ -34,7 +32,7 @@ export const RAIL_GROUPS = [
   { key: 'admin', label: '기록과 설정', Icon: Archive, items: SUB_NAV },
   { key: 'public', label: '공개 화면', Icon: BookOpenText, items: PUBLIC_NAV },
   // 문서함은 세 묶음 아래에 따로 둔다
-  { key: 'docs', label: '문서함', Icon: FolderOpen, items: DOCS_NAV, direct: true }
+  { key: 'docs', label: '문서 센터', Icon: FolderOpen, items: DOCS_NAV, direct: true }
 ]
 
 export function groupOf(pathname) {

@@ -1,8 +1,8 @@
 // 담당자 상단 띠. 레퍼런스(IMG_1531)처럼 회색 바탕 위 한 줄로 둔다.
-// 왼쪽은 메뉴 칸 폭만큼 뒤로, 앞으로, 메뉴 칸 접기. 그 오른쪽은 현재 위치. 맨 오른쪽은 발령 중 상태와 발령 단추.
+// 왼쪽은 메뉴 접기. 그 오른쪽은 현재 위치. 맨 오른쪽은 발령 중 상태와 발령 단추.
 import clsx from 'clsx'
-import { ArrowLeft, ArrowRight, ChevronRight, Menu, PanelLeft } from 'lucide-react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { ChevronRight, Menu, PanelLeft } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import useAdminUi from '../../store/useAdminUi.js'
 import { sectionOf } from './navConfig.js'
 import AnomalyBell from '../miri/AnomalyBell.jsx'
@@ -15,7 +15,6 @@ const ICON_BTN = 'inline-flex h-10 w-10 items-center justify-center rounded-md t
 export default function Topbar({ isDesktop, panelOpen, onTogglePanel }) {
   const topbar = useAdminUi((s) => s.topbar)
   const setSidebarOpen = useAdminUi((s) => s.setSidebarOpen)
-  const navigate = useNavigate()
   const { pathname } = useLocation()
   const section = sectionOf(pathname)
   const live = useDispatchStore((s) => ['standby', 'assigned', 'sent'].includes(s.status))
@@ -25,9 +24,7 @@ export default function Topbar({ isDesktop, panelOpen, onTogglePanel }) {
     <header className="flex h-16 shrink-0 items-center gap-4 pr-4 md:pr-4">
       {isDesktop ? (
         <div className="flex shrink-0 items-center gap-1 pl-4">
-          <button type="button" aria-label="뒤로" className={ICON_BTN} onClick={() => navigate(-1)}><ArrowLeft size={18} aria-hidden="true" /></button>
-          <button type="button" aria-label="앞으로" className={ICON_BTN} onClick={() => navigate(1)}><ArrowRight size={18} aria-hidden="true" /></button>
-          <button type="button" aria-label={panelOpen ? '메뉴 칸 접기' : '메뉴 칸 펴기'} aria-pressed={panelOpen} className={ICON_BTN} onClick={onTogglePanel}><PanelLeft size={18} aria-hidden="true" /></button>
+          <button type="button" aria-label={panelOpen ? '메뉴 접기' : '메뉴 펴기'} aria-pressed={panelOpen} className={ICON_BTN} onClick={onTogglePanel}><PanelLeft size={18} aria-hidden="true" /></button>
         </div>
       ) : (
         <button type="button" aria-label="메뉴 열기" className={clsx(ICON_BTN, 'ml-2 h-11 w-11')} onClick={() => setSidebarOpen(true)}>
