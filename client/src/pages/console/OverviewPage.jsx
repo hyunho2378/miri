@@ -16,7 +16,7 @@ import useAnomalies from '../../hooks/useAnomalies.js'
 import useNow from '../../hooks/useNow.js'
 import { ANOMALY_RULES } from '../../lib/anomaly.js'
 import { GRADES, emptyByGrade } from '../../lib/shortage.js'
-import { computeShortage } from '../../lib/shortageCalc.js'
+import { computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import useBoardingRecommended from '../../hooks/useBoardingRecommended.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
 import { fmtElapsed } from '../../lib/geo.js'
@@ -98,6 +98,8 @@ export default function OverviewPage() {
     [persons, villages, vehicles, helpers, settings, scenario, today]
   )
   // 추천 배정 탐색은 1초 안팎이 걸려 첫 화면을 멈추게 하므로 부족분 화면과 같은 캐시로 뒤에서 구한다
+  // 0명이 되는 조건(지금 차량 기준 추가 협약)은 첫 화면 큰 숫자 아래에 한 줄로 보인다
+  const extraNeed = useMemo(() => (result.total > 0 ? requiredExtraVehicles({ persons, villages, vehicles, helpers, settings, scenario, t0: today }, result) : []), [result]) // eslint-disable-line react-hooks/exhaustive-deps
   const recInput = useMemo(() => ({ persons, villages, vehicles, helpers, settings, scenario, t0: today }), [persons, villages, vehicles, helpers, settings, scenario, today])
   const recSteps = useMemo(() => [settings.boardingMinutes], [settings.boardingMinutes])
   const optUnserved = useBoardingRecommended(recInput, recSteps)[settings.boardingMinutes]
@@ -129,7 +131,7 @@ export default function OverviewPage() {
   const bars = ordered.map(({ v, r }) => ({ key: v.code, name: v.label, value: grade === 'all' ? r.total : r.shortage[grade] })).sort((a, b) => b.value - a.value).slice(0, 12)
   const chips = [{ key: 'all', label: '전체', n: scopeTotal }, ...GRADES.map((g) => ({ key: g.key, label: g.label, n: scopeByGrade[g.key] }))]
 
-  const availVehicles = vehicles.filter((v) => v.available).length
+  const vc = vehicleCounts(vehicles)
   const staleRoster = staleRosterCount(active, now)
   const todo = pending + pc.notes + anomalies.length
   // 이송 완료 기한: 규칙 글자 대신 첫 마을의 실제 기한(발령 후 경과 시간)을 보이고, 규칙은 아래 줄에 적는다
@@ -186,10 +188,17 @@ export default function OverviewPage() {
           <Card title="기한 안에 못 옮기는 사람" className="flex flex-col cq-md:col-span-3 cq-xl:col-span-3" bodyClassName="flex flex-1 flex-col">
             <p className="type-meta text-text-meta">{scopeName}, {scenario.name}</p>
             <p className="mt-1 type-kpi text-danger-text">{fmt(scopeTotal)}<span className="ml-1 type-h3">명</span></p>
-            <p className="mt-1 type-meta text-text-meta tabular-nums">{GRADES.filter((x) => scopeByGrade[x.key]).map((x) => `${x.label} ${scopeByGrade[x.key]}`).join(', ') || '부족 없음'}{scopeProvisional > 0 ? `, 확인 대기 서류 ${scopeProvisional}건 포함` : ''}</p>
-            <p className="mt-3 type-body-sm text-text-sec tabular-nums">추천 배정 적용 시 {optUnserved == null ? '계산 중' : `${fmt(optUnserved)}명${diff < 0 ? `(${-diff}명 감소)` : ''}`}</p>
-            <div className="mt-auto pt-5">
+            <p className="mt-1 type-body-sm text-text-sec tabular-nums">{GRADES.filter((x) => scopeByGrade[x.key]).map((x) => `${x.label} ${scopeByGrade[x.key]}`).join(', ') || '부족 없음'}{scopeProvisional > 0 ? `, 확인 대기 서류 ${scopeProvisional}건 포함` : ''}</p>
+            {!isDong && extraNeed.length > 0 && extraNeed.every((e) => e.resolved) && (
+              <p className="mt-3 type-body text-text-pri tabular-nums">지금 차량 기준, {extraNeed.map((e) => `${e.typeLabel} ${e.count}대`).join(', ')}를 더 약속받으면 0명</p>
+            )}
+            <p className="mt-2 flex flex-wrap items-center gap-x-2 type-body-sm text-text-sec tabular-nums">
+              <span>추천 배정 적용 시 {optUnserved == null ? '계산하는 중' : `${fmt(optUnserved)}명${diff < 0 ? `(${-diff}명 감소)` : ''}`}</span>
+              <Link to="/console/shortage" className="type-strong text-primary-text hover:underline">추천 배정 보기</Link>
+            </p>
+            <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-5">
               <Link to="/console/shortage" className={btn}>부족분 계산 열기{btnIcon}</Link>
+              {!isDong && extraNeed.length > 0 && <Link to="/console/workspace?kind=doc&new=gian-simple" className="type-strong text-primary-text hover:underline">협약 추진 기안 쓰기</Link>}
             </div>
           </Card>
         )}
@@ -239,8 +248,11 @@ export default function OverviewPage() {
                 <li key={a.id}>
                   <Link to={a.to} className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
                     <Circle size={16} aria-hidden="true" className={clsx('shrink-0', a.rule === 'deadline' || a.rule === 'noAck' ? 'text-danger' : 'text-text-meta')} />
-                    <span className="min-w-0 flex-1 break-keep type-body-sm text-text-pri">{ANOMALY_RULES[a.rule]}</span>
-                    <span className="max-w-[45%] shrink-0 truncate type-meta text-text-meta tabular-nums" title={a.target}>{a.target}</span>
+                    <span className="min-w-0 flex-1 py-1.5">
+                      <span className="block break-keep type-body-sm text-text-pri">{ANOMALY_RULES[a.rule]}</span>
+                      <span className="block truncate type-meta text-text-sec tabular-nums" title={a.target}>{a.target}</span>
+                    </span>
+                    <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-text-sec" />
                   </Link>
                 </li>
               ))}
@@ -249,7 +261,8 @@ export default function OverviewPage() {
                   <Link to="/console/intake" className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
                     <Circle size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
                     <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">확인할 서류</span>
-                    <span className="type-meta text-text-meta tabular-nums">{pending}건</span>
+                    <span className="type-meta text-text-sec tabular-nums">{pending}건</span>
+                    <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-text-sec" />
                   </Link>
                 </li>
               )}
@@ -258,7 +271,8 @@ export default function OverviewPage() {
                   <Link to="/console/notes" className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
                     <Circle size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
                     <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">확인할 현장 소식</span>
-                    <span className="type-meta text-text-meta tabular-nums">{pc.notes}건</span>
+                    <span className="type-meta text-text-sec tabular-nums">{pc.notes}건</span>
+                    <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-text-sec" />
                   </Link>
                 </li>
               )}
@@ -267,7 +281,8 @@ export default function OverviewPage() {
                   <Link to="/console/roster?recheck=1" className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
                     <Circle size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
                     <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri" title={`마지막 확인 ${STALE_DAYS}일 경과 또는 확인 기록 없음`}>명부 재확인 필요</span>
-                    <span className="type-meta text-text-meta tabular-nums">{staleRoster}명</span>
+                    <span className="type-meta text-text-sec tabular-nums">{staleRoster}명</span>
+                    <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-text-sec" />
                   </Link>
                 </li>
               )}
@@ -293,10 +308,15 @@ export default function OverviewPage() {
 
         {/* 출동 가능 차량과 다음 행동 */}
         <Card title="출동 가능 차량" className="cq-md:col-span-3 cq-xl:col-span-6">
-          <p className="type-h2 text-text-pri tabular-nums">{availVehicles}<span className="ml-0.5 type-body-sm">대</span></p>
-          <Meter value={availVehicles} max={vehicles.length} />
-          <p className="mt-2 type-meta text-text-meta tabular-nums">등록 {vehicleCounts(vehicles).total}대, 도우미 {helpers.filter((h) => h.active).length}명</p>
-          <Link to="/console/resources" className={clsx(link, 'mt-3')}>협약 차량 확인<ChevronRight size={14} aria-hidden="true" /></Link>
+          <div className="flex flex-wrap items-end gap-x-10 gap-y-3">
+            <p className="type-h2 text-text-pri tabular-nums">{vc.usable}<span className="ml-0.5 type-body-sm">대</span></p>
+            <Stat label="협약 확정" value={vc.agreed} unit="대" />
+            <Stat label="협약 미확정" value={vc.unconfirmed} unit="대" tone={vc.unconfirmed ? 'danger' : undefined} />
+            <Stat label="활동 중 도우미" value={helpers.filter((h) => h.active).length} unit="명" />
+          </div>
+          <Meter value={vc.usable} max={vehicles.length} />
+          <p className="mt-2 type-body-sm text-text-sec tabular-nums">등록 {vc.total}대 중 출동 가능 {vc.usable}대</p>
+          <Link to="/console/resources" className="mt-3 inline-flex min-h-9 items-center gap-0.5 type-strong text-primary-text hover:underline">협약 차량 확인하기<ChevronRight size={14} aria-hidden="true" /></Link>
         </Card>
       </div>
     </PageShell>
