@@ -54,11 +54,11 @@ function PrivacySheet() {
   return (
     <InfoSheet title="개인정보와 그만두는 방법" summary="배정된 분 정보만, 발령이 끝나면 삭제">
       <List label="개인정보와 그만두는 방법">
-        <ListRow title="문자 링크로 열어요" subtitle="앱 설치와 로그인 없음" />
-        <ListRow title="배정된 대상자만 보여요" subtitle="다른 대상자와 명부 전체는 보이지 않음" />
-        <ListRow title="발령이 끝나면 지워요" subtitle="배정 정보와 연락처 삭제" />
-        <ListRow title="보고는 담당자에게만 가요" subtitle="출발, 도착, 탑승, 인계, 실패 기록" />
-        <ListRow title="언제든 그만둘 수 있어요" subtitle="연락 화면의 참여 그만두기, 불이익 없음" />
+        <ListRow title="문자 링크로 열기" subtitle="앱 설치와 로그인 없음" />
+        <ListRow title="배정 대상자만 표시" subtitle="다른 대상자와 명부 전체는 보이지 않음" />
+        <ListRow title="발령 종료 시 삭제" subtitle="배정 정보와 연락처 삭제" />
+        <ListRow title="보고는 담당자에게만 전달" subtitle="출발, 도착, 탑승, 인계, 실패 기록" />
+        <ListRow title="언제든 그만두기 가능" subtitle="연락 화면의 참여 그만두기, 불이익 없음" />
         <ListRow title="안전교육과 보험" subtitle="이수 여부는 담당자가 확인, 모르면 담당자에게 문의" />
       </List>
     </InfoSheet>
@@ -75,9 +75,9 @@ export function ConsentScreen({ initialRoles = ['ride'], onBack, onDone }) {
       <main id="main" className="mob-content no-nav">
         <p className="mob-t-body mob-h-lead">가능한 도움 선택</p>
         <List label="할 수 있는 일">
-          {Object.entries(ROLE_OPTIONS).map(([k, v]) => <SelectRow key={k} multiple title={v} subtitle={k === 'ride' ? '차량 배정 후보가 돼요' : undefined} selected={roles.includes(k)} onSelect={() => toggle(k)} />)}
+          {Object.entries(ROLE_OPTIONS).map(([k, v]) => <SelectRow key={k} multiple title={v} subtitle={k === 'ride' ? '차량 배정 후보 등록' : undefined} selected={roles.includes(k)} onSelect={() => toggle(k)} />)}
         </List>
-        <p className="mob-t-callout mob-h-lead">참여가 불가하거나 나중에 그만둬도 불이익은 없어요.</p>
+        <p className="mob-t-callout mob-h-lead">참여 불가 또는 중도 그만둠에 따른 불이익 없음</p>
         <List label="안내"><PrivacySheet /></List>
       </main>
       <BottomAction primary={{ label: '동의하고 시작', disabled: !roles.length, onClick: () => onDone(roles) }} />
@@ -104,9 +104,9 @@ function IdleHome({ consentKey, onStart }) {
         <List label="내 상태">
           <ListRow className="kv" title="참여 동의" trailing={<span className="mob-h-kv">{consented ? '동의함' : '아직'}</span>} onClick={consented ? () => setEditing(true) : undefined} chevron={consented} />
           {consented && <Kv label="역할" value={roleText(roles) || '-'} />}
-          <Kv label="배정" value="아직 요청이 없어요" />
+          <Kv label="배정" value="요청 없음" />
         </List>
-        <p className="mob-t-callout mob-h-lead">배정이 오면 문자로 링크를 보내 드려요.</p>
+        <p className="mob-t-callout mob-h-lead">배정 시 문자로 링크 전송</p>
         {expSource() && <p className="mob-t-foot mob-pad">{EXP_NOTICE}</p>}
       </main>
       <BottomAction primary={consented ? null : { label: '참여 동의하기', onClick: () => setEditing(true) }} secondary={{ label: busy ? '배정 조회 중' : '훈련 배정 받기', onClick: begin, disabled: busy }} />
@@ -183,7 +183,7 @@ function EmergencySheet({ open, onClose, m, onFail }) {
   const [page, setPage] = useState('main')
   useEffect(() => { if (!open) setPage('main') }, [open])
   const officerTel = telOf(m.officerContact)
-  const title = page === 'guide' ? '응급 대응 안내' : page === 'phrases' ? '말할 때 쓰는 문구' : '대상자 상태가 나빠졌어요'
+  const title = page === 'guide' ? '응급 대응 안내' : page === 'phrases' ? '말할 때 쓰는 문구' : '대상자 상태 악화'
   return (
     <Sheet open={open} onClose={onClose} title={title}>
       {page === 'main' && (
@@ -191,7 +191,7 @@ function EmergencySheet({ open, onClose, m, onFail }) {
           <p className="mob-t-body mob-h-lead">안전한 곳에서 정지 후 119 신고</p>
           <Button block variant="danger" onClick={() => { window.location.href = 'tel:119' }}><Phone size={20} aria-hidden="true" />119에 전화</Button>
           <List label="다음 할 일">
-            {onFail && <ListRow title="이송할 수 없어요" subtitle="실패 보고 시 담당자가 소방 지원 요청" chevron onClick={() => { onClose(); onFail() }} />}
+            {onFail && <ListRow title="이송 불가" subtitle="실패 보고 시 담당자가 소방 지원 요청" chevron onClick={() => { onClose(); onFail() }} />}
             <ListRow title="담당자 전화" subtitle={m.officerContact} href={officerTel || undefined} chevron={!!officerTel} />
             <ListRow title="응급 대응 안내" subtitle="의식과 호흡 확인, 하지 말아야 할 것" chevron onClick={() => setPage('guide')} />
             <ListRow title="말할 때 쓰는 문구" subtitle={`권장 문구 ${HELPER_PHRASES.length}개와 피할 표현`} chevron onClick={() => setPage('phrases')} />
@@ -271,13 +271,13 @@ function TransportScreen({ m, code, steps, go, onBack, report, predepKey, inPane
         {nowQs && <List label="전송 대기"><ListRow lead={<CloudOff size={20} />} title={nowQs.title} subtitle={nowQs.subtitle} chevron onClick={() => go({ name: 'H8' })} /></List>}
         {!next && <EmptyState icon={<CheckCircle2 size={28} />} title="이 대상자 보고 끝" body={STEP_LABEL[st]} />}
       </main>
-      {next && <BottomAction primary={{ label: STEP_ACTION[st], onClick: press }} secondary={{ label: '이송할 수 없어요', onClick: () => go({ name: 'H6', code }) }} />}
+      {next && <BottomAction primary={{ label: STEP_ACTION[st], onClick: press }} secondary={{ label: '이송 불가', onClick: () => go({ name: 'H6', code }) }} />}
       <EmergencySheet open={sos} onClose={() => setSos(false)} m={m} onFail={next ? () => go({ name: 'H6', code }) : null} />
       <Sheet open={predep} onClose={() => setPredep(false)} title="출발 전 확인">
         <List label="출발 전 확인">{PREDEPARTURE_ITEMS.map((x) => <ListRow key={x} title={x} />)}</List>
         <p className="mob-t-callout mob-h-sheet-note">{sentencesOf(PREDEPARTURE)[1]}</p>
         <div className="mob-h-sheet-actions">
-          <Button block onClick={() => { store.set(PREDEP_KEY + predepKey, '1'); setPredep(false); report(code, 'depart', {}) }}>확인했어요, 출발</Button>
+          <Button block onClick={() => { store.set(PREDEP_KEY + predepKey, '1'); setPredep(false); report(code, 'depart', {}) }}>확인 후 출발</Button>
           <Button block variant="plain" onClick={() => setPredep(false)}>닫기</Button>
         </div>
       </Sheet>
@@ -348,7 +348,7 @@ function ContactScreen({ m, onBack }) {
       <Dialog open={ask} onClose={() => setAsk(false)} title="참여를 그만둘까요?" body="현재 배정은 담당자 연락 후 조정" actions={
         <>
           <Button variant="plain" onClick={() => setAsk(false)}>취소</Button>
-          <Button variant="plain" className="mob-h-danger-text" onClick={() => { m.preference(false, []); setAsk(false); toast('그만두기 요청을 보냈어요') }}>그만두기</Button>
+          <Button variant="plain" className="mob-h-danger-text" onClick={() => { m.preference(false, []); setAsk(false); toast('그만두기 요청 전송') }}>그만두기</Button>
         </>
       } />
     </>
@@ -365,13 +365,13 @@ function QueueScreen({ m, onBack }) {
       <AppBar title="전송 대기" onBack={onBack} />
       <main id="main" className="mob-content no-nav">
         <p className="mob-t-callout mob-h-lead">{m.lastOk ? `마지막 연결 ${fmtHM(m.lastOk)}` : '아직 연결 기록 없음'}</p>
-        {m.queue.length === 0 ? <EmptyState icon={<Send size={28} />} title="보낼 보고 없음" body="모든 보고를 담당자에게 보냈어요." /> : (
+        {m.queue.length === 0 ? <EmptyState icon={<Send size={28} />} title="보낼 보고 없음" body="모든 보고 담당자 전달 완료" /> : (
           <List label="전송 대기">{m.queue.map((q) => <ListRow key={q.key} lead={<Clock size={20} />} title={name(q)} subtitle={queueRowSubtitle(q)} />)}</List>
         )}
         {/* 서버가 받지 않은 보고는 지우지 않고 사유와 함께 남김. 담당자에게 전화로 알림 */}
         {m.rejected?.length > 0 && <List label="보내지 못한 보고">{m.rejected.map((q) => <ListRow key={q.key} lead={<CircleX size={20} />} title={name(q)} subtitle={`보내지 못함: ${q.rejected}. 담당자에게 전화로 알림`} />)}</List>}
       </main>
-      {m.queue.length > 0 && <BottomAction primary={{ label: busy ? '보내는 중' : '다시 보내기', disabled: busy, onClick: async () => { setBusy(true); const r = await m.resend(); setBusy(false); toast(r.left ? `아직 ${r.left}건 대기, 연결되면 자동 전송` : '모두 보냈어요') } }} />}
+      {m.queue.length > 0 && <BottomAction primary={{ label: busy ? '보내는 중' : '다시 보내기', disabled: busy, onClick: async () => { setBusy(true); const r = await m.resend(); setBusy(false); toast(r.left ? `아직 ${r.left}건 대기, 연결되면 자동 전송` : '모두 전송 완료') } }} />}
     </>
   )
 }
@@ -388,7 +388,7 @@ function EndScreen({ m, steps, declined }) {
       <>
         <AppBar title="불가 응답" large />
         <main id="main" className="mob-content no-nav">
-          <EmptyState icon={<CircleX size={28} />} title="불가 응답을 보냈어요" body={`사유: ${DECLINE_REASONS_M[ackR?.reason] || '기타'}. 담당자가 다른 도우미 배정`} />
+          <EmptyState icon={<CircleX size={28} />} title="불가 응답 전송 완료" body={`사유: ${DECLINE_REASONS_M[ackR?.reason] || '기타'}. 담당자가 다른 도우미 배정`} />
           {pending}
         </main>
       </>
@@ -459,7 +459,7 @@ function Flow({ m, consentKey }) {
   const detailOf = (v, goTo, onBackTo, inPane) => {
     if (v?.name === 'list') return <PeopleList m={m} steps={steps} go={goTo} onBack={onBackTo} />
     if (v?.name === 'H5' || v?.name === 'H4') return <TransportScreen m={m} code={v.code} steps={steps} go={goTo} onBack={onBackTo} report={report} predepKey={predepKey} inPane={inPane} />
-    if (v?.name === 'H6') return <ReasonScreen title="이송할 수 없어요" lead={`${houseOf(m.trips, v.code)}, 사유 선택 시 담당자가 소방 지원 요청`} reasons={FAIL_REASONS_M} label="실패로 보고" danger onBack={onBackTo} onSend={(reason, memo) => { report(v.code, 'fail', { reason, memo }); setStack((s) => s.filter((x) => x.code !== v.code)) }} />
+    if (v?.name === 'H6') return <ReasonScreen title="이송 불가" lead={`${houseOf(m.trips, v.code)}, 사유 선택 시 담당자가 소방 지원 요청`} reasons={FAIL_REASONS_M} label="실패로 보고" danger onBack={onBackTo} onSend={(reason, memo) => { report(v.code, 'fail', { reason, memo }); setStack((s) => s.filter((x) => x.code !== v.code)) }} />
     if (v?.name === 'H7') return <ContactScreen m={m} onBack={onBackTo} />
     if (v?.name === 'H8') return <QueueScreen m={m} onBack={onBackTo} />
     return null
@@ -494,8 +494,8 @@ function DemoHelper() {
   }, [m.phase]) // eslint-disable-line react-hooks/exhaustive-deps
   const start = <Button block variant="tonal" onClick={startDemoDispatch}>훈련 배정 다시 받기</Button>
   if (m.phase === 'idle') return <IdleHome consentKey="demo" onStart={startDemoDispatch} />
-  if (m.phase === 'preparing') return <Notice icon={<Spinner />} title="배정 준비 중" body="배정이 전송되면 이 화면에 표시돼요." />
-  if (m.phase === 'closed') return <Notice icon={<CheckCircle2 size={28} />} title="발령이 끝났어요" body="배정 정보와 연락처를 지웠어요." action={start} />
+  if (m.phase === 'preparing') return <Notice icon={<Spinner />} title="배정 준비 중" body="배정 전송 시 이 화면에 표시" />
+  if (m.phase === 'closed') return <Notice icon={<CheckCircle2 size={28} />} title="발령 종료" body="배정 정보와 연락처 삭제 완료" action={start} />
   if (m.phase === 'none') return <Notice icon={<CircleX size={28} />} title="이번 발령에 배정 없음" body="담당자 연락 대기" />
   return <Flow m={m} consentKey="demo" />
 }
@@ -508,7 +508,7 @@ function RemoteHelperM({ token }) {
   if (m.phase === 'loading') return <Notice icon={<Spinner />} title="배정 정보 불러오는 중" />
   if (m.phase === 'error') {
     const s = screenOf({ error: m.error })
-    if (s === 'closed') return <Notice icon={<CheckCircle2 size={28} />} title="발령이 끝났어요" body="배정 정보와 연락처를 지웠어요." />
+    if (s === 'closed') return <Notice icon={<CheckCircle2 size={28} />} title="발령 종료" body="배정 정보와 연락처 삭제 완료" />
     if (s === 'expired') return <Notice icon={<Link2Off size={28} />} title="열 수 없는 링크" body="링크 만료 또는 도우미 변경, 담당자에게 새 링크 요청" />
     return <Notice icon={<CloudOff size={28} />} title="연결할 수 없음" body="잠시 뒤 재시도" action={<Button block onClick={() => window.location.reload()}><RefreshCw size={18} aria-hidden="true" />다시 시도</Button>} />
   }

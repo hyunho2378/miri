@@ -98,7 +98,7 @@ export function helperBrief({ result, me, scenario, villages = [], hazardLabel }
 // 플랫폼 AI 협업 툴 검토 반영(셀 80): 할 일(수락이나 불가)을 맨 앞에, 링크를 뺀 본문을 90바이트 이하로 줄여 단문에 맞춤.
 // 이름, 주소, 전화번호는 넣지 않는다(마을 이름과 인원수, 도우미 코드만).
 export const SMS_SHORT_LIMIT = 90
-export const SMS_ACTION = '수락이나 불가를 눌러 주세요'
+export const SMS_ACTION = '수락 또는 불가 선택'
 export function smsBytes(text) { let n = 0; for (const ch of text) n += ch.charCodeAt(0) > 127 ? 2 : 1; return n }
 const smsHead = (drill) => (drill ? '[미리 훈련]' : '[미리]')
 function smsResult(body, link) {

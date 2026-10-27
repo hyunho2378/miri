@@ -50,9 +50,9 @@ function KitBody({ platform }) {
         { key: 'h', label: '도우미', icon: <Users size={24} aria-hidden="true" /> },
         { key: 'm', label: '더보기', icon: <Menu size={24} aria-hidden="true" /> }
       ]} />
-      <Sheet open={sheet} onClose={() => setSheet(false)} title="상태가 나빠졌어요">
+      <Sheet open={sheet} onClose={() => setSheet(false)} title="상태 악화">
         <List label="긴급">
-          {['119 전화', '이송할 수 없어요', '담당자 전화'].map((r) => <ListRow key={r} title={r} chevron onClick={() => setSheet(false)} />)}
+          {['119 전화', '이송 불가', '담당자 전화'].map((r) => <ListRow key={r} title={r} chevron onClick={() => setSheet(false)} />)}
         </List>
       </Sheet>
       <Dialog open={dialog} onClose={() => setDialog(false)} title="배정을 수락할까요?" body="수락하면 담당자 화면에 바로 표시됨" actions={

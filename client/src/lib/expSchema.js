@@ -12,10 +12,10 @@ export const SOURCE_LABEL = { yeollim: '청년공간 열림', bongsa: '한림봉
 
 // 버튼 문구(앞부분) → 버튼 키. 목록에 없는 버튼은 'other' 로만 센다(문구는 남기지 않음)
 export const ACTION_LABELS = [
-  ['확인했어요, 출발', 'depart_confirm'], ['출발했어요', 'depart'], ['도착했어요', 'arrive'], ['탑승했어요', 'board'], ['인계했어요', 'handover'],
+  ['확인 후 출발', 'depart_confirm'], ['출발 완료', 'depart'], ['도착 완료', 'arrive'], ['탑승 완료', 'board'], ['인계 완료', 'handover'],
   ['시연 배정 다시 받기', 'demo_restart'], ['시연 배정 받기', 'demo_start'], ['참여 동의하기', 'consent_open'], ['동의하고 시작', 'consent_ok'],
-  ['불가 보내기', 'decline_send'], ['수락', 'accept'], ['불가', 'decline'], ['되돌리기', 'undo'], ['실패로 보고', 'fail_send'], ['이송할 수 없어요', 'fail_open'],
-  ['상태가 나빠졌어요', 'sos'], ['대상자 상태 악화', 'sos'], ['119에 전화', 'call119'], ['응급 대응 안내', 'guide'], ['말할 때 쓰는 문구', 'phrases'], ['연락', 'contact'],
+  ['불가 보내기', 'decline_send'], ['수락', 'accept'], ['불가', 'decline'], ['되돌리기', 'undo'], ['실패로 보고', 'fail_send'], ['이송 불가', 'fail_open'],
+  ['상태 악화', 'sos'], ['대상자 상태 악화', 'sos'], ['119에 전화', 'call119'], ['응급 대응 안내', 'guide'], ['말할 때 쓰는 문구', 'phrases'], ['연락', 'contact'],
   ['참여 그만두기', 'quit_open'], ['그만두기', 'quit'], ['인계 기록(선택)', 'care_open'], ['저장', 'care_save'], ['자세히', 'detail'],
   ['개인정보와 그만두는 방법', 'privacy'], ['다시 보내기', 'resend'], ['다시 시도', 'retry'], ['뒤로', 'back'], ['닫기', 'close'], ['취소', 'cancel'],
   ['도우미용', 'start_helper'], ['현장 담당자용', 'start_field'], ['전체 ', 'list']

@@ -98,7 +98,7 @@ export function helperPaneOf({ twoPane = false, base, view = null, currentCode =
 
 // ===== 도우미 화면 재구성(2a): 벤치마크 규칙 2(주 버튼 이름이 곧 지금 단계) =====
 // 주 버튼 하나의 이름이 단계에 따라 바뀐다. 남은 단계를 카드로 늘어놓지 않는다
-export const STEP_ACTION = { wait: '출발했어요', depart: '도착했어요', arrive: '탑승했어요', board: '인계했어요' }
+export const STEP_ACTION = { wait: '출발 완료', depart: '도착 완료', arrive: '탑승 완료', board: '인계 완료' }
 // 지금 단계 한 줄(진행 n/4 와 함께)
 export const STEP_NOW = { wait: '출발 전', depart: '가는 중', arrive: '도착', board: '대피소로 가는 중' }
 // 진행 칸: 출발, 도착, 탑승, 인계 네 단계 중 몇 번째를 할 차례인지(1~4). 끝났으면 4

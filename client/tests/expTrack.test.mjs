@@ -55,8 +55,8 @@ test('체험 모드면 동의 화면 없이 항상 기록: 화면 키와 시각�
 
 test('버튼 문구는 정해진 키로만 바뀌고 모르는 문구는 other', () => {
   assert.equal(S.actionKeyOf('수락'), 'accept')
-  assert.equal(S.actionKeyOf('출발했어요'), 'depart')
-  assert.equal(S.actionKeyOf('확인했어요, 출발'), 'depart_confirm')
+  assert.equal(S.actionKeyOf('출발 완료'), 'depart')
+  assert.equal(S.actionKeyOf('확인 후 출발'), 'depart_confirm')
   assert.equal(S.actionKeyOf('불가 보내기'), 'decline_send')
   assert.equal(S.actionKeyOf('홍길동 010-1234-5678'), 'other')
   assert.equal(S.pathKeyOf('/m'), 'start')

@@ -16,9 +16,9 @@ test('도우미 화면은 키트에 대응 부품이 없는 옛 부품(칩, 카�
   assert.deepEqual([KIT_PARTS.Figure.status, KIT_PARTS.SelectRow.status], ['combo', 'combo'])
 })
 
-test('주 버튼 하나의 이름이 단계(출발했어요, 도착했어요, 탑승했어요, 인계했어요)로 바뀌고 확인 창 없이 되돌리기', () => {
+test('주 버튼 하나의 이름이 단계(출발 완료, 도착 완료, 탑승 완료, 인계 완료)로 바뀌고 확인 창 없이 되돌리기', () => {
   assert.deepEqual(Object.keys(STEP_ACTION), ['wait', 'depart', 'arrive', 'board'])
-  assert.deepEqual(Object.values(STEP_ACTION), ['출발했어요', '도착했어요', '탑승했어요', '인계했어요'])
+  assert.deepEqual(Object.values(STEP_ACTION), ['출발 완료', '도착 완료', '탑승 완료', '인계 완료'])
   for (const k of Object.keys(STEP_ACTION)) { assert.ok(NEXT_STEP[k]); assert.ok(STEP_NOW[k]) }
   assert.deepEqual(STEP_ORDER.slice(0, 4).map(stepIndexOf), [1, 2, 3, 4])
   assert.equal(stepIndexOf('handover'), 4)
@@ -61,12 +61,12 @@ test('긴 안전 문단은 문장 하나씩 시트 안 목록으로(원문 글�
 
 test('긴급 버튼은 이송 화면 앱 바 끝 같은 자리, 시트에 119와 실패 보고와 담당자 전화', () => {
   assert.match(src, /trailing=\{<EmergencyButton onClick=\{\(\) => setSos\(true\)\} \/>\}/)
-  for (const t of ['119에 전화', '이송할 수 없어요', '담당자 전화', '응급 대응 안내', '말할 때 쓰는 문구']) assert.ok(src.includes(t), t)
+  for (const t of ['119에 전화', '이송 불가', '담당자 전화', '응급 대응 안내', '말할 때 쓰는 문구']) assert.ok(src.includes(t), t)
 })
 
 test('수락 안내 한 문장 유지, 불이익 없음은 동의 화면에도 한 줄(버튼 말과 같은 불가)', () => {
   assert.ok(src.includes('수락을 누르면 배정이 확정됩니다. 불가를 눌러도 불이익은 없고, 다른 도우미에게 넘어갑니다.'))
-  assert.ok(src.includes('참여가 불가하거나 나중에 그만둬도 불이익은 없어요.'))
+  assert.ok(src.includes('참여 불가 또는 중도 그만둠에 따른 불이익 없음'))
   assert.match(src, /<InfoSheet title="개인정보와 그만두는 방법"/)
 })
 

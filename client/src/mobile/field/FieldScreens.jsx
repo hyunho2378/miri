@@ -101,7 +101,7 @@ export function FieldStatusPage() {
         <List label="늦는 마을, 기한이 빠른 순">
           {late.map((v, i) => (
             <ListRow key={v.code} lead={<Clock size={22} />} title={v.name} subtitle={`${v.left}명 남음${v.at ? `, ${hm(v.at)}까지` : ''}`}
-              trailing={tagText(v.tag) ? <Tag tone="red">{tagText(v.tag)}</Tag> : i === 0 ? <Tag tone="red">가장 먼저 늦어요</Tag> : null} chevron onClick={() => navigate(`/m/f/villages/${v.code}`)} />
+              trailing={tagText(v.tag) ? <Tag tone="red">{tagText(v.tag)}</Tag> : i === 0 ? <Tag tone="red">가장 먼저 늦음</Tag> : null} chevron onClick={() => navigate(`/m/f/villages/${v.code}`)} />
           ))}
           <ListRow title="모든 마을 보기" chevron onClick={() => navigate('/m/f/villages')} />
         </List>
@@ -521,7 +521,7 @@ export function FieldFirePage() {
     <>
       <AppBar title={scope.isDong ? '이동 불가 인원' : '소방 지원 요청'} onBack={() => navigate(-1)} backLabel="뒤로" />
       <main id="main" className="mob-content mob-grid2">
-        {!d.result ? <EmptyState icon={<Truck size={28} />} title="배정 전" body="발령이 시작되면 여기에 사람이 나와요" /> : (
+        {!d.result ? <EmptyState icon={<Truck size={28} />} title="배정 전" body="발령 시작 후 대상자 표시" /> : (
           <>
             <Figure plain label={`${scope.isDong ? '우리 동 ' : ''}이동 불가 인원`} value={u.total} unit="명" />
             <List label="마을별 번호">
@@ -650,7 +650,7 @@ function VillagePicker({ villages, value, onChange }) {
 // AI 판독 오류 문구. 휴대폰 로그인에는 시연 코드 칸이 없으므로 콘솔 로그인으로 안내한다(막다른 안내 제거)
 const fieldAiError = (e, kind) => {
   const m = aiErrorMessage(e, kind)
-  if (e?.code === 'STORED_ONLY') return { title: '지금은 예시 서류만 읽어요', desc: '예시 서류의 AI 읽기 결과 확인' }
+  if (e?.code === 'STORED_ONLY') return { title: '예시 서류만 읽기 가능', desc: '예시 서류의 AI 읽기 결과 확인' }
   if (e?.code === 'NEED_SESSION' || e?.code === 401) return { title: 'AI 서류 읽기는 접속 코드 필요', desc: '콘솔 로그인에서 접속 코드 입력 후 재시도' }
   return m
 }
@@ -867,7 +867,7 @@ function DrillStartDialog({ open, onClose }) {
     useDispatchStore.getState().runAssign()
     useDispatchStore.getState().confirmAndSend()
     onClose()
-    toast('훈련 발령을 시작했어요')
+    toast('훈련 발령 시작')
     navigate('/m/f')
   }
   return (
@@ -894,7 +894,7 @@ export function FieldMorePage() {
       <AppBar title="더보기" large />
       <main id="main" className="mob-content mob-grid2">
         <List label="다른 업무">
-          <ListRow lead={<PhoneOutgoing size={22} />} title={scope.isDong ? '이동 불가 인원' : '소방 지원 요청'} subtitle={d.result ? `${u.total}명` : '발령이 시작되면 사람이 나와요'} chevron onClick={() => navigate('/m/f/fire')} />
+          <ListRow lead={<PhoneOutgoing size={22} />} title={scope.isDong ? '이동 불가 인원' : '소방 지원 요청'} subtitle={d.result ? `${u.total}명` : '발령 시작 후 대상자 표시'} chevron onClick={() => navigate('/m/f/fire')} />
           <ListRow lead={<Search size={22} />} title="대상자 찾기" chevron onClick={() => navigate('/m/f/people')} />
           <InfoSheet lead={<Users size={22} />} title="차량 소속과 확인 상태" sheetTitle="차량 소속과 확인 상태">
             <List label="차량 소속">

@@ -23,12 +23,12 @@ t('배정 문자: 할 일이 맨 앞, 링크 뺀 본문 90바이트 이하, 개�
 
 t('배정 문자: 마을이 많으면 첫 마을 외 n곳으로 줄임', () => {
   const m = dispatchSms(brief(['묵호진동', '발한동', '부곡동', '평릉동']), { drill: false })
-  assert.match(m.body, /^\[미리\] 수락이나 불가를 눌러 주세요\. 지진해일 (대피 )?이송, 묵호진동(, 발한동)? 외 [23]곳 12명, \d\d:\d\d까지$/)
+  assert.match(m.body, /^\[미리\] 수락 또는 불가 선택\. 지진해일 (대피 )?이송, 묵호진동(, 발한동)? 외 [23]곳 12명, \d\d:\d\d까지$/)
 })
 
 t('대체 배정 문자와 재발송 문자: 할 일 먼저, 90바이트 이하, 도우미 코드만', () => {
   for (const m of [replaceSms('H-084', { drill: true }), replaceSms('H-084', { drill: false }), resendSms('H-084', { drill: true })]) {
-    assert.match(m.body, /^\[미리( 훈련)?\] 수락이나 불가를 눌러 주세요\./)
+    assert.match(m.body, /^\[미리( 훈련)?\] 수락 또는 불가 선택\./)
     assert.ok(m.bodyBytes <= 90, `${m.bodyBytes} ${m.body}`)
     assert.ok(m.body.includes('H-084'))
   }

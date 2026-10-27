@@ -43,6 +43,6 @@ t('한 줄 요약: 행동 먼저, 0건 제외, 기준 시각, 월 앞자리 0 �
 t('동의 화면은 거절 대신 불가', () => {
   const src = readFileSync(new URL('../src/mobile/helper/HelperScreens.jsx', import.meta.url), 'utf8')
   assert.ok(!src.includes('거절하거나'))
-  assert.ok(src.includes('참여가 불가하거나 나중에 그만둬도 불이익은 없어요.'))
+  assert.ok(src.includes('참여 불가 또는 중도 그만둠에 따른 불이익 없음'))
 })
 console.log(`${n} passed`)
