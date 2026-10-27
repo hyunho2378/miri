@@ -6,7 +6,7 @@ const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8')
 
 test('부족분 계산: 결론 문장이 먼저, 내부 메모 문장 없음, 좌우 두 칸 없음', () => {
   const src = read('../src/pages/console/ShortagePage.jsx')
-  assert.match(src, /기한 안에 옮기지 못하는 사람이/)
+  assert.match(src, /기한 안에 못 옮기는 사람 \$\{result\.total\}명/)
   assert.match(src, /무엇을 늘리면 줄어드나/)
   assert.match(src, /계산 방법과 근거/)
   assert.ok(!src.includes('근거가 한 곳뿐'))

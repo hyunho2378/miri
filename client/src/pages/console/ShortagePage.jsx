@@ -26,7 +26,6 @@ import { calcStamp } from '../../lib/basis.js'
 import useNow from '../../hooks/useNow.js'
 import useBoardingRecommended from '../../hooks/useBoardingRecommended.js'
 import { Link } from 'react-router-dom'
-import { DISABLED_NOTE } from '../../lib/rosterCount.js'
 import { fireScenario } from '../../lib/scenario.js'
 import { fmtElapsed } from '../../lib/geo.js'
 import useAuthStore from '../../store/useAuthStore.js'
@@ -189,7 +188,7 @@ export default function ShortagePage() {
         </div>
         <div>
           <NumberStepper label="차량 가용률" value={draft.availability ?? 100} min={30} max={100} step={10} unit="%" format={(v) => `${v}%`} onChange={(v) => set({ availability: v })}
-            hint="야간이나 휴일에 차량과 운전 인력을 다 모으지 못하는 경우를 봅니다. 기관 조사 전 담당자 입력값입니다." />
+            hint="야간이나 휴일에 모을 수 있는 차량 비율" />
         </div>
         <div>
           <p className="mb-1.5 type-caption text-text-sec">준비 시간</p>
@@ -226,20 +225,20 @@ export default function ShortagePage() {
   // 담당자가 읽을 결론 문장. 숫자를 먼저, 짧게
   const unresolved = extra.some((e) => !e.resolved)
   const headline = result.total > 0
-    ? `이 조건이면 기한 안에 옮기지 못하는 사람이 ${result.total}명입니다.`
-    : `이 조건이면 대피 대상 ${result.scopeTargets}명을 기한 안에 모두 옮길 수 있습니다.`
-  const fixLine = result.total > 0 && extraLine ? `${extraLine}${unresolved ? ' 이상을' : '를'} 더 확보하면 ${unresolved ? '크게 줄어듭니다' : '0명이 됩니다'}.` : null
+    ? `기한 안에 못 옮기는 사람 ${result.total}명`
+    : `대피 대상 ${result.scopeTargets}명 모두 기한 안 이송 가능`
+  const fixLine = result.total > 0 && extraLine ? `${extraLine}${unresolved ? ' 이상' : ''} 추가 시 ${unresolved ? '크게 줄어듦' : '0명'}` : null
   const firstMinutes = Math.max(0, Math.round((draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes))
   // 계산 경고: 경로 정보 없는 마을, 필요 차종이 없는 등급(숫자 산식은 그대로, 까닭만 따로 보임)
   const routeMissing = result.routeMissing || []
   const noType = result.noVehicleType || {}
   const noTypeTotal = Object.values(noType).reduce((s, x) => s + x, 0)
   const neckSentence = {
-    vehicle: '지금은 차량이 모자라 막혀 있습니다. 도우미를 늘려도 줄지 않고, 차량을 늘려야 줄어듭니다.',
-    helper: '지금은 함께 탈 도우미가 모자랍니다. 도우미를 늘려야 줄어듭니다.',
-    both: '차량과 도우미가 함께 모자랍니다. 둘 다 늘려야 줄어듭니다.',
-    other: '차량과 도우미를 더해도 줄지 않습니다. 남은 시간이나 대피소 자리가 막고 있습니다.',
-    none: '못 옮기는 사람이 없습니다.'
+    vehicle: '부족 원인: 차량',
+    helper: '부족 원인: 도우미',
+    both: '부족 원인: 차량과 도우미',
+    other: '부족 원인: 남은 시간 또는 대피소 자리',
+    none: '부족 없음'
   }[neck.limit] || BOTTLENECK_LABEL[neck.limit]
   const Row = ({ label, value, strong }) => (
     <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-4 py-3">
@@ -249,7 +248,7 @@ export default function ShortagePage() {
   )
 
   return (
-    <PageShell title="부족분 계산" desc="산불이 번지는 조건을 정하면, 지금 있는 차량과 도우미로 기한 안에 못 옮기는 사람이 몇 명인지 계산합니다.">
+    <PageShell title="부족분 계산">
       {panelOpen && <div className="mb-4">{conditions}</div>}
 
       <div className="grid gap-4 min-w-0">
@@ -312,7 +311,7 @@ export default function ShortagePage() {
             <Row label="도우미 1명 더" value={`${neck.helperGain}명 줄어 ${neck.plusHelper}명`} strong />
             <Row label={`확인 전 차량 ${agreedCompare.unconfirmed}대가 오지 않으면`} value={`${agreedCompare.agreed}명`} strong />
           </ul>
-          <p className="mt-3 type-meta leading-5 text-text-meta">택시와 버스는 재난 때 교통 부서가 그때 요청하므로, 확정되기 전까지 확인 전 차량으로 따로 셉니다. 평소에 협약해 두면 약속된 차량으로 바뀝니다.</p>
+          
         </Card>
 
         {agreedPlan.alone > 0 && agreedPlan.total === 0 && (
@@ -321,7 +320,6 @@ export default function ShortagePage() {
             <ul aria-label="하나씩 줄이면" className="mt-3 grid gap-2">
               {agreedPlan.lessOne.map((x) => <Row key={x.type} label={`${x.label} ${x.count - 1}대로 줄이면`} value={`${x.left}명 남음`} strong />)}
             </ul>
-            <p className="mt-3 type-meta leading-5 text-text-meta">요양시설과 주야간보호기관 차량은 낮에는 이용 어르신이 먼저이고 근무 시간 밖에는 쓰기 어렵습니다. 같은 규칙으로 다시 계산한 값입니다(출처: 동해시노인종합복지관 주간보호센터 면담, 2026. 10. 26.)</p>
           </Card>
         )}
 
@@ -332,7 +330,6 @@ export default function ShortagePage() {
             <section aria-labelledby="chk-cond">
               <h3 id="chk-cond" className="type-h3 text-text-pri">지금 계산 조건</h3>
               <p className="mt-2 type-body-sm text-text-pri tabular-nums">{summary}</p>
-              <p className="mt-1 type-meta text-text-meta">대상자 수는 장기요양 재가 수급자 2025년 통계, 명부는 시연용 자료입니다. 계산 규칙 1.2판(2026. 10. 20.)</p>
             </section>
             <section aria-labelledby="chk-band">
               <h3 id="chk-band" className="type-h3 text-text-pri">발령 시간대에 따라</h3>
@@ -342,24 +339,20 @@ export default function ShortagePage() {
                   <Row key={b.value} label={`${b.label}${b.value === (draft.timeBand || 'home') ? ' (지금 조건)' : ''}`} value={`${r.total}명${r.dayCareAway ? `, 센터 대피 ${r.dayCareAway}명 제외` : ''}`} strong />
                 ))}
               </ul>
-              <p className="mt-2 type-meta text-text-meta">근거: 재난문자 서비스 개발자, 행정학 교수 자문</p>
             </section>
             <section aria-labelledby="chk-board">
               <h3 id="chk-board" className="type-h3 text-text-pri">한 번 태우고 내리는 시간에 따라</h3>
-              <p className="mt-1 type-body-sm text-text-sec">{boardingLead ? `${boardingLead} ` : ''}휠체어 이용자는 리프트 승합차와 도우미 2명으로 옮기고, 한 번에 태우고 내리는 데 {boardingNow}분으로 계산합니다. 숙련된 운전자는 5분 안에 태운다는 의견이 있고, 요구조자가 몰리면 더 걸린다는 의견도 있어 시간을 바꿨을 때를 함께 보여 드립니다.</p>
+              <p className="mt-1 type-body-sm text-text-sec">{boardingLead ? `${boardingLead} ` : ''}휠체어 이용자는 리프트 승합차와 도우미 2명으로 옮기고, 한 번에 태우고 내리는 데 {boardingNow}분으로 계산합니다.</p>
               <ul className="mt-2 grid gap-2">
                 {boardingCompare.map(({ m, r }) => (
                   <Row key={m} label={boardingLabel(m, boardingNow)} value={`${r.total}명 (추천 배정 ${m in boardingRec ? `${boardingRec[m]}명` : '계산 중'})`} strong />
                 ))}
               </ul>
-              <p className="mt-2 type-meta text-text-meta">장애인 단체 자문을 근거로 했습니다. 함께 탈 도우미가 모자라면 그 사람도 못 옮기는 사람에 들어가고, 발령 때 배정도 같은 조건을 씁니다.</p>
             </section>
             <section aria-labelledby="chk-owner">
               <h3 id="chk-owner" className="type-h3 text-text-pri">차량을 나누는 기준</h3>
               <p className="mt-1 type-body-sm text-text-sec">{Object.values(OWNERS).join(', ')}</p>
-              <p className="mt-1 type-meta leading-5 text-text-meta">개인 차량은 등록하지 않습니다. 소방 구급차는 시 차량과 따로 운용합니다. 요양시설과 주야간보호기관 차량은 협약 전까지 확인 전 차량으로 둡니다. 근거: 동해시 재난안전 담당 부서 답변, 재난안전 자문</p>
             </section>
-            <p className="rounded-md bg-page px-4 py-3 type-meta leading-5 text-text-sec">{DISABLED_NOTE}</p>
           </div>
         </Disclosure>
 
