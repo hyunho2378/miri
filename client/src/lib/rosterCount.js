@@ -36,6 +36,14 @@ export function rosterPartsText(b) {
   return parts.join(', ')
 }
 
+// 숫자 칩: 전체 2,013 / 확인 대기 7 / 중복 의심 1
+export function rosterChipsText(b) {
+  const parts = [`전체 ${n(b.total)}`]
+  if (b.pending) parts.push(`확인 대기 ${n(b.pending)}`)
+  if (b.duplicate) parts.push(`중복 의심 ${n(b.duplicate)}`)
+  return parts.join(' / ')
+}
+
 export function rosterSourceText(b) {
   return `명부 ${n(b.total)}건은 ${rosterPartsText(b)}입니다. 확인된 대상자는 ${b.period}년 장기요양 재가 수급자 추정 ${n(b.estimate)}명(국민건강보험공단, KOSIS)을 마을별로 나눈 수에 맞춘 가상 명부입니다. 부족분 계산에는 판독 확인 대기를 잠정값으로 넣고, 중복 의심은 정리 전까지 그대로 셉니다.`
 }

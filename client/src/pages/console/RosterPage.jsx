@@ -13,7 +13,7 @@ import InlineEditBar from '../../components/edit/InlineEditBar.jsx'
 import EvidencePanel from '../../components/miri/EvidencePanel.jsx'
 import GradeChip from '../../components/miri/GradeChip.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
-import { DISABLED_NOTE, rosterBreakdown, rosterSourceText } from '../../lib/rosterCount.js'
+import { rosterBreakdown, rosterChipsText } from '../../lib/rosterCount.js'
 import { DocImage, GRADE_OPTIONS, TAG_OPTIONS } from '../../components/miri/ReviewRow.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Chip from '../../components/ui/Chip.jsx'
@@ -168,7 +168,7 @@ export default function RosterPage() {
     { key: 'care', label: '동행과 소통', hideBelow: '3xl', render: (p) => { const c = personCare(p); const f = firstAndMore([c.companionCall && '동행 연락 필요', c.caregiverUnreachable && '돌봄 담당자 연락 불가', c.commCaution && `의사소통 유의(${c.comm.join(', ')})`]); return <span className="type-meta text-text-sec whitespace-nowrap" title={f.full || undefined}>{!c.known ? NOT_ENTERED : f.text}</span> } },
     { key: 'source', label: '입력 방법', hideBelow: '2xl', render: (p) => <SourceLabel source={p.gradeSource} /> },
     { key: 'review', label: '확인 상태', sortable: true, render: (p) => <StatusPill status={p.review} /> },
-    { key: 'planCheckedAt', label: '마지막 확인', sortable: true, sortValue: (p) => p.planCheckedAt || 0, render: (p) => { const c = checkedOf(p, now); return <span className={`whitespace-nowrap ${c.stale ? 'type-strong text-danger-text' : 'text-text-sec'}`}>{c.text}</span> } },
+    { key: 'planCheckedAt', label: '마지막 확인', title: '90일이 지나면 빨간 글자로 표시, 다시 확인합니다', sortable: true, sortValue: (p) => p.planCheckedAt || 0, render: (p) => { const c = checkedOf(p, now); return <span className={`whitespace-nowrap ${c.stale ? 'type-strong text-danger-text' : 'text-text-sec'}`}>{c.text}</span> } },
     { key: 'updatedAt', label: '갱신일', sortable: true, hideBelow: '3xl', render: (p) => fmtDate(p.updatedAt) },
     { key: 'edit', label: '편집', render: (p) => <EditPencil resource="persons" label={`${p.code} 수정`} onClick={() => { openPerson(p.code); setEditing({ mode: 'edit', value: { villageCode: p.villageCode, grade: p.grade, tags: p.tags, boardingNote: p.boardingNote || '' } }) }} /> }
   ].filter((c) => c.key !== 'edit' || canEdit)
@@ -217,7 +217,7 @@ export default function RosterPage() {
       </div>
       {view === 'list' ? (
       <TableCard
-        title="대상자" count={countText(rows.length, '건')} desc={`${fmtKDate(today)} 명부 기준입니다. 이름 없이 대상자 코드로 표시합니다. 마지막 확인이 빨간 글자면 90일이 지났거나 기록이 없어 재확인이 필요합니다. ${rosterSourceText(rosterBreakdown(persons))} ${DISABLED_NOTE}`}
+        title="대상자" count={countText(rows.length, '건')}
         actions={<InlineEditBar resource="persons" addLabel="대상자 추가" onAdd={() => { setErrors({}); setEditing({ mode: 'add', value: { villageCode: village !== 'all' ? village : villageOptions[1]?.value, grade: 'assist', tags: [] } }) }} />}
         filters={filterBar}
         columns={columns} rows={rows} rowKey={(p) => p.code} onRowClick={(p) => { setEditing(null); openPerson(p.code) }} emptyTitle="조건에 맞는 대상자가 없습니다" emptyDesc="필터 조건을 바꿔 다시 확인해 주십시오." caption="대상자 명부"
@@ -225,8 +225,7 @@ export default function RosterPage() {
       ) : (
         <TableCard
           title={view === 'map' ? '마을별 분포' : '서식 출력'} count={countText(rows.length, '건')}
-          desc={view === 'map' ? '목록과 같은 필터를 씁니다. 원을 누르면 그 마을로 목록이 좁혀집니다.' : '마을별 명부를 인쇄합니다. 이름과 연락처는 지자체 서버 원본에서 채워 씁니다.'}
-        filters={filterBar}
+          filters={filterBar}
         >
           {view === 'map' ? (
             <Suspense fallback={<div className="h-[60vh] min-h-96 animate-pulse rounded-lg bg-mute" />}>
@@ -237,6 +236,7 @@ export default function RosterPage() {
           )}
         </TableCard>
       )}
+      <p className="mt-2 type-meta text-text-meta tabular-nums">{rosterChipsText(rosterBreakdown(persons))}. {fmtKDate(today)} 기준, 동해시 명부</p>
 
       <Drawer
         open={!!open || editing?.mode === 'add'}
@@ -290,7 +290,7 @@ export default function RosterPage() {
               ] })(),
               { label: '근거 서류', value: open.docId || '없음' },
               { label: '갱신일', value: fmtDate(open.updatedAt) },
-              { label: '갱신 담당', value: <span>소식 전달: 요양보호사는 재가노인복지시설, 생활지원사는 노인맞춤돌봄 수행기관 소속입니다. 기관 관리: 각 기관 사회복지사가 소식을 확인합니다. 명부 승인: 읍면동 맞춤형복지 담당자가 이사, 입원, 거동 변화를 확인하고 <Link to="/console/notes" className="text-primary-text underline underline-offset-2">현장 소식</Link>에서 승인해 반영합니다.</span> }
+              { label: '갱신 담당', value: <span>읍면동 맞춤형복지 담당자가 <Link to="/console/notes" className="text-primary-text underline underline-offset-2">현장 소식</Link>에서 승인해 반영</span> }
             ]} />
             {evidence ? (
               <div className="space-y-3">

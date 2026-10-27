@@ -34,5 +34,7 @@ test('서식 본문에 등록 대상자 숫자와 옛 차량 문장이 남지 �
 test('명부 마지막 확인 칸은 날짜만, 뜻은 표 설명에', () => {
   const r = readFileSync(new URL('../src/pages/console/RosterPage.jsx', import.meta.url), 'utf8')
   assert.equal(r.includes(", 재확인 필요' : ''"), false)
-  assert.ok(r.includes('마지막 확인이 빨간 글자면 90일이 지났거나 기록이 없어 재확인이 필요합니다'))
+  // 뜻은 열 머리 도움말과 자료 안내로 옮김(1027 공공 서비스 문구 정리)
+  assert.ok(r.includes('90일이 지나면 빨간 글자로 표시, 다시 확인합니다'))
+  assert.ok(readFileSync(new URL('../src/lib/dataNotes.js', import.meta.url), 'utf8').includes('마지막 확인이 빨간 글자면 90일이 지났거나 기록이 없어 재확인이 필요합니다'))
 })
