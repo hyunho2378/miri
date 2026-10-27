@@ -14,12 +14,12 @@ export function vehicleCounts(vehicles) {
 
 function offText(c) {
   const parts = []
-  if (c.fireOff) parts.push(`소방 구급차 ${c.fireOff}대 응급 출동 대기`)
+  if (c.fireOff) parts.push(`소방 구급차 ${c.fireOff}대 소방 출동 중`)
   if (c.otherOff) parts.push(`그 밖의 차량 ${c.otherOff}대 불가`)
   return parts.length ? `(${parts.join(', ')} 제외)` : ''
 }
 
-// 설명 자리: 등록 42대 중 가용 39대(소방 구급차 3대 응급 출동 대기 제외), 약속 31대, 확인 전 11대
+// 설명 자리: 등록 42대 중 가용 39대(소방 구급차 3대 소방 출동 중 제외), 약속 31대, 확인 전 11대
 export function vehicleSummaryLong(vehicles) {
   const c = vehicleCounts(vehicles)
   return `등록 ${c.total}대 중 가용 ${c.usable}대${offText(c)}, 약속 ${c.agreed}대, 확인 전 ${c.unconfirmed}대`

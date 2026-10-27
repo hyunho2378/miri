@@ -185,7 +185,7 @@ export function buildSeed() {
   const vehicles = [
     ...[1, 2, 3, 4, 5, 6].map((i) => ({
       code: `V-0${i}`, type: 'ambulance', owner: 'fire', baseDong: ['CG', 'BP', 'MH', 'CG', 'BP', 'SH'][i - 1],
-      available: i <= 3, note: i <= 3 ? '' : '응급 출동 대기', commitment: 'fire'
+      available: i <= 3, note: i <= 3 ? '' : '소방 출동 중(제외)', commitment: 'fire'
     })),
     { code: 'V-07', type: 'bedVan', owner: 'facility', baseDong: 'BG', available: true, note: '노인요양시설 차량(가정)', commitment: 'unconfirmed' },
     { code: 'V-08', type: 'bedVan', owner: 'facility', baseDong: 'BP', available: true, note: '노인요양시설 차량(가정)', commitment: 'unconfirmed' },
