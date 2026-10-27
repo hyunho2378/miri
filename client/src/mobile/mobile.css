@@ -689,3 +689,6 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
   .mob-content.mob-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; row-gap: 16px; align-content: start; align-items: start; }
   .mob-content.mob-grid2 > .mob-btn, .mob-content.mob-grid2 > p, .mob-content.mob-grid2 > .mob-empty { grid-column: 1 / -1; }
 }
+
+/* 기기 틀 안(iframe) 아이폰 계열: 틀 그림에는 env 안전 영역이 없어 다이내믹 아일랜드 아래로 59 */
+.mob-root.platform-ios.in-frame { --m-safe-top: max(env(safe-area-inset-top, 0px), 59px); }

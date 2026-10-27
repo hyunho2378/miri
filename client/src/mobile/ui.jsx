@@ -38,7 +38,7 @@ export function MobileRoot({ platform: forced, className = '', children, ...rest
   const layout = layoutFor({ platform: p, ...vp })
   return (
     <LayoutContext.Provider value={layout}>
-      <div className={`mob-root platform-${p} size-${layout.size} bar-${layout.bar} ${layout.twoPane ? 'two-pane' : ''} ${layout.posture ? `posture-${layout.posture}` : ''} ${largeText ? 'text-large' : ''} ${className}`} data-platform={p} data-size={layout.size} data-bar={layout.bar} {...rest}>
+      <div className={`mob-root platform-${p} size-${layout.size} bar-${layout.bar} ${layout.twoPane ? 'two-pane' : ''} ${layout.posture ? `posture-${layout.posture}` : ''} ${typeof window !== 'undefined' && window.self !== window.top ? 'in-frame' : ''} ${largeText ? 'text-large' : ''} ${className}`} data-platform={p} data-size={layout.size} data-bar={layout.bar} {...rest}>
         <ToastHost>{children}</ToastHost>
       </div>
     </LayoutContext.Provider>
