@@ -179,7 +179,7 @@ export default function RosterPage() {
   ]
   const listGrid = 'minmax(6.5rem,1.1fr) minmax(4.5rem,0.9fr) minmax(5.5rem,1fr) minmax(5.5rem,1fr) minmax(5rem,0.9fr)'
 
-  const hiddenActive = source !== 'all' ? 1 : 0
+  const hiddenActive = [source !== 'all', dong !== 'all', review !== 'all'].filter(Boolean).length
   // 지도와 서식 출력은 목록과 같은 필터 결과를 마을 단위로 묶어 쓴다
   const byVillage = useMemo(() => {
     const m = {}
@@ -193,11 +193,8 @@ export default function RosterPage() {
 
   const filterBar = (
           <FilterBar>
-            <Select compact label="동" value={dong} onChange={setDong} options={dongOptions} disabled={user?.role === 'dong'} />
             <Select compact label="마을" value={village} onChange={setVillage} options={villageOptions} />
             <MultiSelect compact label="이송 등급" values={grades} onChange={setGrades} options={GRADE_OPTIONS} placeholder="전체" />
-            <Select compact label="등급 확인" value={review} onChange={setReview} options={REVIEW_OPTIONS} />
-            <Select compact label="마지막 확인" value={recheck} onChange={changeRecheck} options={recheckOptions} />
             {recheck === 'stale' ? (
               <Chip variant="selected" onClick={() => changeRecheck('all')} aria-label="재확인 대상 조건 해제">
                 재확인 대상 {staleCount.toLocaleString('ko-KR')}명<X size={16} aria-hidden="true" />
@@ -208,7 +205,12 @@ export default function RosterPage() {
               </Chip>
             )}
             {moreFilters && (
-              <Select compact label="입력 방법" value={source} onChange={setSource} options={SOURCE_OPTIONS} />
+              <>
+                <Select compact label="동" value={dong} onChange={setDong} options={dongOptions} disabled={user?.role === 'dong'} />
+                <Select compact label="등급 확인" value={review} onChange={setReview} options={REVIEW_OPTIONS} />
+                <Select compact label="마지막 확인" value={recheck} onChange={changeRecheck} options={recheckOptions} />
+                <Select compact label="입력 방법" value={source} onChange={setSource} options={SOURCE_OPTIONS} />
+              </>
             )}
             <Button variant="ghost" size="sm" aria-expanded={moreFilters} onClick={() => setMoreFilters((v) => !v)}>
               {moreFilters ? '조건 접기' : `조건 더보기${hiddenActive ? ` (적용 ${hiddenActive})` : ''}`}
@@ -218,11 +220,20 @@ export default function RosterPage() {
 
   const detail = open ? (
     <section aria-label="선택한 대상자" className="flex min-h-0 min-w-0 flex-col">
-      <div className="flex shrink-0 flex-wrap items-baseline gap-x-3 gap-y-1 pb-3">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-4">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
         <h2 className="type-title tabular-nums text-text-pri">{open.code}</h2>
         <span className="type-body text-text-sec">{vlabel(open.villageCode)}</span>
         <GradeChip grade={open.grade} />
         <StatusPill status={open.review} />
+        </div>
+        {canEdit && (
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+            <Button variant="ghost" leftIcon={<Trash2 size={16} aria-hidden="true" />} onClick={() => { removePerson(open.code); toast(`${open.code} 삭제 완료`); closePerson() }}>삭제</Button>
+            {canPlan && <Button variant="secondary" onClick={() => setPlanAsk(true)}>확인 완료</Button>}
+            <Button variant="primary" onClick={() => { setErrors({}); setEditing({ mode: 'edit', value: { villageCode: open.villageCode, grade: open.grade, tags: open.tags, boardingNote: open.boardingNote || '' } }) }}>수정</Button>
+          </div>
+        )}
       </div>
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
         <InfoRows rows={[
@@ -260,13 +271,6 @@ export default function RosterPage() {
           </Section>
         )}
       </div>
-      {canEdit && (
-        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 pt-3">
-          <Button variant="ghost" leftIcon={<Trash2 size={16} aria-hidden="true" />} onClick={() => { removePerson(open.code); toast(`${open.code} 삭제 완료`); closePerson() }}>삭제</Button>
-          {canPlan && <Button variant="secondary" onClick={() => setPlanAsk(true)}>확인 완료</Button>}
-          <Button variant="primary" onClick={() => { setErrors({}); setEditing({ mode: 'edit', value: { villageCode: open.villageCode, grade: open.grade, tags: open.tags, boardingNote: open.boardingNote || '' } }) }}>수정</Button>
-        </div>
-      )}
     </section>
   ) : <EmptyState compact title="표시할 대상자 없음" />
 
@@ -287,10 +291,13 @@ export default function RosterPage() {
       {view === 'list' ? (
         <div className="grid min-h-0 flex-1 gap-x-10 gap-y-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(400px,1fr)]">
           <section aria-label="대상자 목록" className="flex min-h-0 flex-col max-lg:max-h-[50vh]">
-            <h2 className="shrink-0 pb-2 type-title text-text-pri">
-              표시 중인 명부 <span className="font-normal tabular-nums text-text-sec">{countText(rows.length, '건')}</span>
-              <span className="font-normal text-text-sec tabular-nums">, 마을 {byVillage.length}곳{grades.length > 0 && `, 등급 ${grades.map((g) => gradeOf(g)?.label).join(', ')}`}</span>
-            </h2>
+            <div className="shrink-0 pb-3">
+              <h2 className="flex items-baseline gap-2 type-title text-text-pri">표시 중인 명부<span className="font-normal tabular-nums text-text-sec">{countText(rows.length, '건')}</span></h2>
+              <dl className="mt-2 flex flex-wrap items-baseline gap-x-6 gap-y-1 type-body-sm tabular-nums">
+                <div className="flex items-baseline gap-1.5"><dt className="text-text-sec">마을</dt><dd className="text-text-pri">{byVillage.length}곳</dd></div>
+                {grades.length > 0 && <div className="flex items-baseline gap-1.5"><dt className="text-text-sec">이송 등급</dt><dd className="text-text-pri">{grades.map((g) => gradeOf(g)?.label).join(' ')}</dd></div>}
+              </dl>
+            </div>
             <DataList
               label="대상자 명부" columns={columns} grid={listGrid} rows={rows} rowKey={(p) => p.code} selectedKey={open?.code}
               onSelect={(code) => { setEditing(null); openPerson(code) }}
