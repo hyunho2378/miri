@@ -852,7 +852,7 @@ export function FieldMorePage() {
               {Object.entries(OWNERS).map(([key, label]) => {
                 const list = data.vehicles.filter((v) => v.owner === key)
                 const promised = list.filter((v) => commitmentOf(v) === 'agreed').length
-                return <ListRow key={key} title={`${label} ${list.length}대`} subtitle={list.length ? `약속됨 ${promised}대` : '없음'} />
+                return <ListRow key={key} title={`${label} ${list.length}대`} subtitle={list.length ? `협약 확정 ${promised}대` : '없음'} />
               })}
             </List>
           </InfoSheet>

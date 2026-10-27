@@ -33,7 +33,7 @@ export const VEHICLE_NOTE = '개인 차량은 등록하지 않습니다. 재난 
 export const vehicleLabel = (v) => `${v.code} ${OWNERS[v.owner] || '소속 확인 필요'}, ${COMMITMENTS[commitmentOf(v)]}`
 
 // 차량 가용 확실성(회신 R01): 소방 구급차는 지자체 가용 차량과 따로 보고, 협약이나 소유로 약속된 차량과 아직 확인하지 않은 차량을 나눈다
-export const COMMITMENTS = { agreed: '약속됨', unconfirmed: '미확인', fire: '소방 운용' }
+export const COMMITMENTS = { agreed: '협약 확정', unconfirmed: '미확정', fire: '소방 운용' }
 export const commitmentOf = (v) => v?.commitment || (v?.owner === 'fire' ? 'fire' : (v?.owner === 'facility' || v?.owner === 'request') ? 'unconfirmed' : 'agreed')
 
 // 도우미 역할(회신 R12)

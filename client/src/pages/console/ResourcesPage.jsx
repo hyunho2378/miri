@@ -117,10 +117,10 @@ export default function ResourcesPage() {
     { key: 'baseDong', label: '대기 동', hideBelow: 'lg', render: (v) => dongName(v.baseDong) },
     { key: 'commitment', label: '협약 상태', sortable: true, sortValue: (v) => commitmentOf(v), hideBelow: 'md', render: (v) => <span className="type-body-sm text-text-sec">{COMMITMENTS[commitmentOf(v)]}</span> },
     {
-      key: 'available', label: '가용',
+      key: 'available', label: '출동',
       render: (v) => (canVehicle
-        ? <Toggle checked={v.available !== false} label={v.available !== false ? '가용' : (v.note || '불가')} onChange={(x) => upsertVehicle({ code: v.code, available: x })} />
-        : <StatusPill status={v.available !== false ? 'available' : 'unavailable'} label={v.available !== false ? '가용' : (v.note || '불가')} />)
+        ? <Toggle checked={v.available !== false} label={v.available !== false ? '출동 가능' : (v.note || '제외')} onChange={(x) => upsertVehicle({ code: v.code, available: x })} />
+        : <StatusPill status={v.available !== false ? 'available' : 'unavailable'} label={v.available !== false ? '출동 가능' : (v.note || '제외')} />)
     },
     { key: 'edit', label: '편집', render: (v) => <EditPencil resource="vehicles" label={`${v.code} 수정`} onClick={() => openVehicle(v)} /> }
   ]
