@@ -48,7 +48,6 @@ export const TOURS = {
   '/console/map': [
     { title: '이동 불가 발생 마을', body: '기한 빠른 순 목록, 선택 시 마을 상세와 이동 단추', targets: [{ find: 'h2', text: '이동 불가 발생 마을', up: 'aside' }] },
     { title: '지도 도구', body: '2D와 3D, 라이트와 다크, 전체 화면, 레이어 전환', targets: [btn('레이어', { up: 'div.absolute' })] },
-    { title: '지도 마을 표지', body: '마을별 대상자 수 표시, 선택 시 마을 상세 이동', targets: [{ find: 'button', text: '천곡동, 대상자' }] },
     { title: '시간축', body: '발령 후 시각별 대기 인원, 재생과 이동', targets: [{ find: 'button', text: '처음부터 재생', up: 'div.rounded-lg' }] }
   ],
   '/console/notes': [
@@ -66,7 +65,8 @@ export const TOURS = {
   ],
   '/console/workspace': [
     { title: '문서 종류', body: '문서, 시트, 설문지 전환', targets: [btn('시트', { exact: true, up: 'div' })] },
-    { title: '새 문서 시작', body: '서식 종류별 목록, 선택 시 숫자 자동 입력, 한글 파일 저장', targets: [{ find: 'h2', text: '새 문서 시작', up: 'div' }, btn('전체 22', { up: 'div' }), btn('빈 문서')] },
+    { title: '서식 분류', body: '공문, 보고서, 계획서 등 종류별 모아보기', targets: [{ find: 'h2', text: '새 문서 시작', up: 'div' }, btn('전체 22', { up: 'div' })] },
+    { title: '서식 카드', body: '선택 시 숫자 자동 입력, 한글 파일 저장', targets: [btn('빈 문서'), btn('협조 요청 공문')] },
     { title: '검색과 가져오기', body: '문서 검색, 한글 파일 가져오기', targets: [{ find: 'input' }, btn('한글 파일 가져오기')] }
   ],
   '/console/handover': [
