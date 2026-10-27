@@ -62,7 +62,7 @@ await t('재난문자 파서: 동해시 수신만, 일련번호 중복 제거, �
     { SN: '2', CRT_DT: '2026-10-21 08:00:00', MSG_CN: '건조', RCPTN_RGN_NM: '강원특별자치도 동해시, 강원특별자치도 삼척시', EMRG_STEP_NM: '안전안내', DST_SE_NM: '건조' },
     { SN: '3', CRT_DT: '2026-10-21 10:00:00', MSG_CN: '다른 지역', RCPTN_RGN_NM: '강원특별자치도 강릉시', EMRG_STEP_NM: '긴급재난', DST_SE_NM: '산불' }
   ]
-  const out = mod.parseAlerts(rows)
+  const out = mod.parseAlerts(rows, '동해시', Date.parse('2026-10-22T00:00:00.000Z'))
   assert.deepEqual(out.map((m) => m.id), ['2', '1'])
   assert.equal(out[1].step, '긴급재난')
   assert.equal(out[0].at, '2026-10-20T23:00:00.000Z')
