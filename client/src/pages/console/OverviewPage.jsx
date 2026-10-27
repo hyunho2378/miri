@@ -9,20 +9,18 @@ import { ArrowRight, ChevronRight, Circle, Layers } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
 import PageShell, { todayLabel } from '../../components/miri/PageShell.jsx'
-import { rosterBreakdown, rosterPartsText } from '../../lib/rosterCount.js'
 import FreshnessNote from '../../components/miri/FreshnessNote.jsx'
-import DisasterAlertsCard from '../../components/miri/DisasterAlertsCard.jsx'
 import { useFireRisk, useWarning, useWind, dirName } from '../../components/miri/FireRiskStrip.jsx'
 import useAnomalies from '../../hooks/useAnomalies.js'
 import useNow from '../../hooks/useNow.js'
 import { ANOMALY_RULES } from '../../lib/anomaly.js'
 import { GRADES, emptyByGrade } from '../../lib/shortage.js'
-import { computeShortage, optimizedUnserved } from '../../lib/shortageCalc.js'
+import { computeShortage } from '../../lib/shortageCalc.js'
+import useBoardingRecommended from '../../hooks/useBoardingRecommended.js'
+import useDispatchStore from '../../store/useDispatchStore.js'
 import { fmtElapsed } from '../../lib/geo.js'
-import { calcStamp, peaceBasisText, pendingCounts, rosterDateNote } from '../../lib/basis.js'
-import Disclosure from '../../components/ui/Disclosure.jsx'
+import { pendingCounts } from '../../lib/basis.js'
 import { staleRosterCount, STALE_DAYS } from '../../lib/handoverRows.js'
-import { todoSummaryLine } from '../../lib/todoSummary.js'
 import { vehicleSummaryShort } from '../../lib/vehicleSummary.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
@@ -99,7 +97,13 @@ export default function OverviewPage() {
     () => computeShortage({ persons, villages, vehicles, helpers, settings, scenario, t0: today }),
     [persons, villages, vehicles, helpers, settings, scenario, today]
   )
-  const optUnserved = useMemo(() => optimizedUnserved(result), [result])
+  // 추천 배정 탐색은 1초 안팎이 걸려 첫 화면을 멈추게 하므로 부족분 화면과 같은 캐시로 뒤에서 구한다
+  const recInput = useMemo(() => ({ persons, villages, vehicles, helpers, settings, scenario, t0: today }), [persons, villages, vehicles, helpers, settings, scenario, today])
+  const recSteps = useMemo(() => [settings.boardingMinutes], [settings.boardingMinutes])
+  const optUnserved = useBoardingRecommended(recInput, recSteps)[settings.boardingMinutes]
+  const d = useDispatchStore()
+  const live = ['standby', 'assigned', 'sent'].includes(d.status)
+  const liveUnserved = d.result?.unassigned?.length || 0
   const isDong = user?.role === 'dong'
   const myVillages = isDong ? villages.filter((v) => v.dongCode === user.dong) : villages
   const active = persons.filter((p) => p.review !== 'rejected' && myVillages.some((v) => v.code === p.villageCode))
@@ -114,7 +118,7 @@ export default function OverviewPage() {
   const scopeProvisional = scope.filter((x) => x.r.inScope).reduce((s, x) => s + x.r.provisional, 0)
   const inScope = scope.filter((x) => x.r.inScope)
   const shortVillages = inScope.filter((x) => x.r.total > 0)
-  const diff = optUnserved - result.total
+  const diff = optUnserved == null ? 0 : optUnserved - result.total
   const dongName = (c) => dongs.find((d) => d.code === c)?.name || c
   const scopeName = isDong ? dongName(user.dong) : '동해시 전체'
 
@@ -125,25 +129,11 @@ export default function OverviewPage() {
   const bars = ordered.map(({ v, r }) => ({ key: v.code, name: v.label, value: grade === 'all' ? r.total : r.shortage[grade] })).sort((a, b) => b.value - a.value).slice(0, 12)
   const chips = [{ key: 'all', label: '전체', n: scopeTotal }, ...GRADES.map((g) => ({ key: g.key, label: g.label, n: scopeByGrade[g.key] }))]
 
-  const topVillages = [...shortVillages].sort((a, b) => b.r.total - a.r.total).slice(0, 6)
   const availVehicles = vehicles.filter((v) => v.available).length
   const staleRoster = staleRosterCount(active, now)
   const todo = pending + pc.notes + anomalies.length
-  // 머리 한 줄 요약(셀 52 검토 반영): 급한 것부터, 숫자는 아래 카드와 같은 값
-  const ruleN = (rule) => anomalies.filter((a) => a.rule === rule).length
-  const summaryLine = todoSummaryLine([
-    { label: '기한 내 이송 불가', n: ruleN('deadline'), unit: '건' },
-    { label: '도우미 무응답', n: ruleN('noAck'), unit: '건' },
-    { label: '협약 만료 임박', n: ruleN('contract'), unit: '건' },
-    { label: '명부 재확인', n: staleRoster, unit: '명' },
-    { label: '서류', n: pending, unit: '건' },
-    { label: '현장 소식', n: pc.notes, unit: '건' }
-  ], now)
   // 이송 완료 기한: 규칙 글자 대신 첫 마을의 실제 기한(발령 후 경과 시간)을 보이고, 규칙은 아래 줄에 적는다
   const firstCompleteH = Math.max(0, (scenario.windowHours || 0) - (scenario.completeBeforeHours || 0))
-  const completeRule = scenario.completeBeforeHours ? `기준: 산불 도달 ${scenario.completeBeforeHours}시간 전` : '기준: 산불 도달 시각'
-  const scopeTargets = inScope.reduce((s, x) => s + x.r.targetTotal, 0)
-  const rtOf = (v) => result.ctx?.vmap?.[v.code]?.roundTripMin ?? v.roundTripMin
 
   const h0 = wind.data?.hours?.[0]
   const g = fire.data?.grades || {}
@@ -170,54 +160,51 @@ export default function OverviewPage() {
   ]
 
   const actions = (
-    <>
-      <Link to="/console/map" className="inline-flex h-10 items-center gap-2 rounded-md bg-subtle px-4 type-body-sm text-text-sec hover:bg-mute">
-        <Layers size={16} aria-hidden="true" className="text-text-meta" />
-        <span className="max-w-[16rem] truncate">{scenario.name}</span>
-      </Link>
-      <Link to="/console/shortage" className="inline-flex h-10 items-center gap-2 rounded-md bg-text-pri pl-4 pr-1.5 type-strong text-text-inverse hover:bg-text-sec">
-        부족분 계산
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-sm bg-page text-text-pri"><ArrowRight size={16} aria-hidden="true" /></span>
-      </Link>
-    </>
+    <Link to="/console/map" className="inline-flex h-10 items-center gap-2 rounded-md bg-subtle px-4 type-body-sm text-text-sec hover:bg-mute">
+      <Layers size={16} aria-hidden="true" className="text-text-meta" />
+      <span className="max-w-[16rem] truncate">{scenario.name}</span>
+    </Link>
   )
+
+  const btn = 'inline-flex h-10 items-center gap-2 rounded-md bg-text-pri pl-4 pr-1.5 type-strong text-text-inverse hover:bg-text-sec'
+  const btnIcon = <span className="inline-flex h-7 w-7 items-center justify-center rounded-sm bg-page text-text-pri"><ArrowRight size={16} aria-hidden="true" /></span>
+  const link = 'inline-flex items-center gap-0.5 type-meta text-text-sec hover:text-text-pri'
 
   return (
     <PageShell title="오늘의 현황" eyebrow={todayLabel()} actions={actions}>
-      <p className="mb-3 type-body text-text-pri tabular-nums">{summaryLine}</p>
       <div className="grid gap-3 cq-md:grid-flow-row-dense cq-md:grid-cols-6 cq-xl:grid-cols-12">
-        {/* 미이송 예상 */}
-        <Card title="미이송 예상" className="flex flex-col cq-md:col-span-3 cq-xl:col-span-3" bodyClassName="flex flex-1 flex-col">
-          <p className="type-meta text-text-meta">{scopeName}, 기준 시나리오 {scenario.name}</p>
-          <p className="mt-1 type-kpi text-danger-text">{fmt(scopeTotal)}<span className="ml-1 type-h3">명</span></p>
-          <p className="mt-1 type-meta text-text-meta tabular-nums">{GRADES.filter((x) => scopeByGrade[x.key]).map((x) => `${x.label} ${scopeByGrade[x.key]}`).join(', ') || '부족 없음'}</p>
-          <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-3 py-2.5">
-            <span className="whitespace-nowrap type-meta text-text-sec">추천 배정 적용 시</span>
-            <span className="whitespace-nowrap type-strong text-text-pri tabular-nums">{fmt(optUnserved)}명{diff < 0 ? <span className="ml-1 type-meta text-text-sec">{-diff}명 감소</span> : null}</span>
-          </div>
-          <p className="mt-1.5 type-meta text-text-meta tabular-nums">({calcStamp({ at: now, rosterAt: today })})</p>
-          <Disclosure className="mt-1" summary="계산 근거" summaryClassName="type-meta">
-            <p className="type-meta text-text-meta">{peaceBasisText({ villages: inScope.length, targets: scopeTargets })}</p>
-            {scopeProvisional > 0 && <p className="mt-2 type-meta text-text-meta">대피 대상 구역 확인 대기 서류 {scopeProvisional}건 포함</p>}
-            <p className="mt-2 type-meta leading-5 text-text-meta">명부 {fmt(active.length)}건: {rosterPartsText(rosterBreakdown(active))}. 재가 장기요양 수급자 추정(2025, 국민건강보험공단)에 맞춘 가상 명부이며 등록장애인은 명부 확인 뒤 포함합니다.</p>
-            <p className="mt-2 type-meta text-text-meta">{rosterDateNote(today)}</p>
-          </Disclosure>
-          <div className="mt-auto grid grid-cols-2 gap-3 pt-5">
-            <Stat label="명부" value={fmt(active.length)} unit="건" />
-            <Stat label="부족 마을" value={shortVillages.length} unit="곳" tone={shortVillages.length ? 'danger' : undefined} />
-          </div>
-        </Card>
+        {/* 결론 숫자와 다음 행동. 발령 중에는 발령 진행 값을 먼저 보인다 */}
+        {live ? (
+          <Card title={d.kind === 'drill' ? '훈련 발령 진행 중' : '발령 진행 중'} className="flex flex-col cq-md:col-span-3 cq-xl:col-span-3" bodyClassName="flex flex-1 flex-col">
+            <p className="type-meta text-text-meta">이 배정표로 기한 안에 못 옮기는 사람</p>
+            <p className={clsx('mt-1 type-kpi', liveUnserved ? 'text-danger-text' : 'text-text-pri')}>{fmt(liveUnserved)}<span className="ml-1 type-h3">명</span></p>
+            <div className="mt-auto pt-5">
+              <Link to="/console/dispatch" className={btn}>발령 운영 열기{btnIcon}</Link>
+            </div>
+          </Card>
+        ) : (
+          <Card title="기한 안에 못 옮기는 사람" className="flex flex-col cq-md:col-span-3 cq-xl:col-span-3" bodyClassName="flex flex-1 flex-col">
+            <p className="type-meta text-text-meta">{scopeName}, {scenario.name}</p>
+            <p className="mt-1 type-kpi text-danger-text">{fmt(scopeTotal)}<span className="ml-1 type-h3">명</span></p>
+            <p className="mt-1 type-meta text-text-meta tabular-nums">{GRADES.filter((x) => scopeByGrade[x.key]).map((x) => `${x.label} ${scopeByGrade[x.key]}`).join(', ') || '부족 없음'}{scopeProvisional > 0 ? `, 확인 대기 서류 ${scopeProvisional}건 포함` : ''}</p>
+            <p className="mt-3 type-body-sm text-text-sec tabular-nums">추천 배정을 적용하면 {optUnserved == null ? '계산 중' : `${fmt(optUnserved)}명${diff < 0 ? `(${-diff}명 감소)` : ''}`}</p>
+            <div className="mt-auto pt-5">
+              <Link to="/console/shortage" className={btn}>부족분 계산 열기{btnIcon}</Link>
+            </div>
+          </Card>
+        )}
 
         {/* 마을별 미이송 예상 */}
         <Card
           title="마을별 미이송 예상"
           className="cq-md:col-span-6 cq-xl:col-span-6"
-          actions={<Link to="/console/shortage" className="inline-flex items-center gap-0.5 type-meta text-text-sec hover:text-text-pri">전체 보기<ChevronRight size={14} aria-hidden="true" /></Link>}
+          actions={<Link to="/console/map" className={link}>상황판에서 보기<ChevronRight size={14} aria-hidden="true" /></Link>}
         >
           <div className="flex flex-wrap gap-x-8 gap-y-2">
-            <Stat label="첫 도달" value={`발령 후 ${fmtElapsed(scenario.windowHours)}`} />
-            <Stat label="첫 마을 이송 완료 기한" value={`발령 후 ${fmtElapsed(firstCompleteH)}`} sub={completeRule} />
-            <Stat label="대피 대상" value={inScope.length} unit="곳" />
+            <Stat label="첫 산불 도달" value={`발령 후 ${fmtElapsed(scenario.windowHours)}`} />
+            {firstCompleteH !== scenario.windowHours && <Stat label="첫 마을 이송 완료 기한" value={`발령 후 ${fmtElapsed(firstCompleteH)}`} />}
+            <Stat label="대피 대상 마을" value={inScope.length} unit="곳" />
+            <Stat label="부족 마을" value={shortVillages.length} unit="곳" tone={shortVillages.length ? 'danger' : undefined} />
           </div>
           <div className="mt-5">
             {bars.length ? <VillageBars rows={bars} /> : <p className="type-body-sm text-text-meta">대피 대상 마을이 없습니다.</p>}
@@ -238,21 +225,30 @@ export default function OverviewPage() {
           </div>
         </Card>
 
-        {/* 확인할 일 */}
+        {/* 확인할 일: 줄마다 해당 화면으로 바로 간다 */}
         <Card
           title="확인할 일"
           className="cq-md:col-span-3 cq-xl:col-span-3"
           actions={<span className="type-h2 text-text-pri tabular-nums">{todo}</span>}
         >
-          {todo === 0 ? (
+          {todo === 0 && staleRoster === 0 ? (
             <p className="type-body-sm text-text-meta">확인할 항목이 없습니다.</p>
           ) : (
             <ul className="-mx-2 flex flex-col">
+              {anomalies.slice(0, 5).map((a) => (
+                <li key={a.id}>
+                  <Link to={a.to} className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
+                    <Circle size={16} aria-hidden="true" className={clsx('shrink-0', a.rule === 'deadline' || a.rule === 'noAck' ? 'text-danger' : 'text-text-meta')} />
+                    <span className="min-w-0 flex-1 break-keep type-body-sm text-text-pri">{ANOMALY_RULES[a.rule]}</span>
+                    <span className="max-w-[45%] shrink-0 truncate type-meta text-text-meta tabular-nums" title={a.target}>{a.target}</span>
+                  </Link>
+                </li>
+              ))}
               {pending > 0 && (
                 <li>
                   <Link to="/console/intake" className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
                     <Circle size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
-                    <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">확인 대기 서류(명부 전체)</span>
+                    <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">확인할 서류</span>
                     <span className="type-meta text-text-meta tabular-nums">{pending}건</span>
                   </Link>
                 </li>
@@ -261,7 +257,7 @@ export default function OverviewPage() {
                 <li>
                   <Link to="/console/notes" className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
                     <Circle size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
-                    <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">확인 대기 현장 소식</span>
+                    <span className="min-w-0 flex-1 truncate type-body-sm text-text-pri">확인할 현장 소식</span>
                     <span className="type-meta text-text-meta tabular-nums">{pc.notes}건</span>
                   </Link>
                 </li>
@@ -275,48 +271,12 @@ export default function OverviewPage() {
                   </Link>
                 </li>
               )}
-              {anomalies.slice(0, 5).map((a) => (
-                <li key={a.id}>
-                  <Link to={a.to} className="flex min-h-11 items-center gap-2.5 rounded-md px-2 hover:bg-page">
-                    <Circle size={16} aria-hidden="true" className={clsx('shrink-0', a.rule === 'deadline' || a.rule === 'noAck' ? 'text-danger' : 'text-text-meta')} />
-                    <span className="min-w-0 flex-1 break-keep type-body-sm text-text-pri">{ANOMALY_RULES[a.rule]}</span>
-                    <span className="max-w-[45%] shrink-0 truncate type-meta text-text-meta tabular-nums" title={a.target}>{a.target}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
-        {/* 부족 상위 마을 */}
-        <Card
-          title="부족 상위 마을"
-          className="cq-md:col-span-6 cq-xl:col-span-5"
-          actions={<Link to="/console/map" className="inline-flex items-center gap-0.5 type-meta text-text-sec hover:text-text-pri">상황판<ChevronRight size={14} aria-hidden="true" /></Link>}
-        >
-          {topVillages.length === 0 ? (
-            <p className="type-body-sm text-text-meta">부족한 마을이 없습니다.</p>
-          ) : (
-            <ul className="-mx-2 flex flex-col">
-              {topVillages.map(({ v, r }) => (
-                <li key={v.code}>
-                  <Link to="/console/map" className="grid min-h-12 grid-cols-[4.5rem_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md px-2 py-1.5 hover:bg-page">
-                    <span className="type-meta leading-4 text-text-meta">{dongName(v.dongCode)}<br />왕복 {rtOf(v)}분</span>
-                    <span className="min-w-0">
-                      <span className="block truncate type-strong text-text-pri">{v.label}</span>
-                      <span className="block break-keep type-meta text-text-meta tabular-nums">{GRADES.filter((x) => r.targets[x.key]).map((x) => `${x.label} ${r.targets[x.key]}`).join(' ')}</span>
-                    </span>
-                    <span className="type-strong text-danger-text tabular-nums">{r.total}명</span>
-                    <ChevronRight size={16} aria-hidden="true" className="text-text-meta" />
-                  </Link>
-                </li>
-              ))}
             </ul>
           )}
         </Card>
 
         {/* 오늘 산불 여건 */}
-        <Card title="오늘 산불 여건" className="cq-md:col-span-3 cq-xl:col-span-4">
+        <Card title="오늘 산불 여건" className="cq-md:col-span-3 cq-xl:col-span-6">
           <ul className="flex flex-col gap-4">
             {conditions.map((x) => (
               <li key={x.key} className="flex gap-2.5">
@@ -331,26 +291,13 @@ export default function OverviewPage() {
           </ul>
         </Card>
 
-        {/* 부족 마을, 가용 차량 */}
-        <div className="grid gap-3 cq-md:col-span-3 cq-xl:col-span-3">
-          <Card
-            title="부족 마을"
-            actions={<Link to="/console/shortage" aria-label="부족분 계산으로 이동" className="-m-1 inline-flex h-6 w-6 items-center justify-center rounded-sm text-text-meta hover:bg-mute hover:text-text-pri"><ChevronRight size={16} aria-hidden="true" /></Link>}
-          >
-            <p className="type-h2 text-danger-text tabular-nums">{shortVillages.length}<span className="ml-0.5 type-body-sm">곳</span></p>
-            <Meter value={shortVillages.length} max={inScope.length} tone="danger" />
-            <p className="mt-2 type-meta text-text-meta tabular-nums">대피 대상 {inScope.length}곳 중 {inScope.length ? Math.round((shortVillages.length / inScope.length) * 100) : 0}%</p>
-          </Card>
-          <Card
-            title="가용 차량"
-            actions={<Link to="/console/resources" aria-label="차량과 도우미로 이동" className="-m-1 inline-flex h-6 w-6 items-center justify-center rounded-sm text-text-meta hover:bg-mute hover:text-text-pri"><ChevronRight size={16} aria-hidden="true" /></Link>}
-          >
-            <p className="type-h2 text-text-pri tabular-nums">{availVehicles}<span className="ml-0.5 type-body-sm">대</span></p>
-            <Meter value={availVehicles} max={vehicles.length} />
-            <p className="mt-2 type-meta text-text-meta tabular-nums">{vehicleSummaryShort(vehicles)}, 도우미 {helpers.filter((h) => h.active).length}명</p>
-          </Card>
-        </div>
-        <DisasterAlertsCard className="cq-md:col-span-6 cq-xl:col-span-12" />
+        {/* 출동 가능 차량과 다음 행동 */}
+        <Card title="출동 가능 차량" className="cq-md:col-span-3 cq-xl:col-span-6">
+          <p className="type-h2 text-text-pri tabular-nums">{availVehicles}<span className="ml-0.5 type-body-sm">대</span></p>
+          <Meter value={availVehicles} max={vehicles.length} />
+          <p className="mt-2 type-meta text-text-meta tabular-nums">{vehicleSummaryShort(vehicles)}, 도우미 {helpers.filter((h) => h.active).length}명</p>
+          <Link to="/console/resources" className={clsx(link, 'mt-3')}>협약 차량 확인<ChevronRight size={14} aria-hidden="true" /></Link>
+        </Card>
       </div>
     </PageShell>
   )
