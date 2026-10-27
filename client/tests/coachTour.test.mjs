@@ -17,9 +17,10 @@ test('코치마크: 화면마다 영역 단위 2~5단계가 있고 ?tour=off 로
   assert.equal(tourEnabled('?tour=off'), false)
 })
 
-test('코치마크: 말풍선은 영역과 겹치지 않는 쪽에 놓고 영역 밖 클릭은 막기만 한다', () => {
+test('코치마크: 말풍선은 영역과 겹치지 않는 쪽에 놓고 영역 밖 클릭과 Esc 는 안내를 끝낸다', () => {
   const src = readFileSync(new URL('../src/components/onboarding/CoachTour.jsx', import.meta.url), 'utf8')
-  for (const w of ['placeBubble', 'clipToViewport', "'below'", "'above'", "'right'", "'left'", 'bump']) assert.ok(src.includes(w), w)
+  for (const w of ['placeBubble', 'clipToViewport', 'holePath', 'BubbleArrow', "'below'", "'above'", "'right'", "'left'", 'coach-dim', 'coach-ring', 'onClick={close}']) assert.ok(src.includes(w), w)
+  assert.ok(!src.includes('bump'), '흔들림 동작 삭제')
 })
 
 test('코치마크: 새로고침마다 다시 뜨도록 저장소에 기록하지 않는다', () => {

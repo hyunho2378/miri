@@ -1,5 +1,5 @@
 // 코치마크 투어. 콘솔에 들어오거나 새로고침하면 화면마다 한 번 뜬다(저장 없음). ?tour=off 로 끈다.
-// 한 단계는 영역 하나를 밝히고, 말풍선은 영역과 겹치지 않는 쪽에 놓인다. 영역 안은 그대로 눌러 볼 수 있고, 영역 밖 클릭은 가볍게 막기만 한다.
+// 한 단계는 영역 하나를 밝히고, 말풍선은 영역과 겹치지 않는 쪽에 놓인다. 영역 안은 그대로 눌러 볼 수 있고, 영역 밖을 누르거나 Esc 를 누르면 안내가 끝난다.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import Button from '../ui/Button.jsx'
@@ -11,9 +11,11 @@ let openRequest = null
 export function requestTour(setter) { openRequest = setter }
 
 const PAD = 8 // 영역 둘레 여백
-const GAP = 16 // 영역과 말풍선 사이
+const GAP = 12 // 영역과 말풍선 사이
 const MARGIN = 16 // 화면 가장자리 여백
-const BW = 340 // 말풍선 폭
+const BW = 320 // 말풍선 폭
+const RADIUS = 16 // 영역 모서리
+const ARROW = 8 // 화살표 높이
 
 // 영역과 겹치지 않는 자리를 아래, 위, 오른쪽, 왼쪽 순으로 찾는다. 없으면 영역 안쪽 아래 왼쪽에 둔다.
 export function placeBubble(rect, size, vw, vh) {
@@ -42,10 +44,11 @@ export function placeBubble(rect, size, vw, vh) {
 // 영역이 화면보다 크면 보이는 부분만 밝힌다(스포트라이트가 화면 밖으로 잘리지 않게)
 export function clipToViewport(r) {
   if (!r || typeof window === 'undefined') return r
-  const top = Math.max(r.top, PAD)
-  const left = Math.max(r.left, PAD)
-  const bottom = Math.min(r.top + r.height, window.innerHeight - PAD)
-  const right = Math.min(r.left + r.width, window.innerWidth - PAD)
+  const edge = PAD + 12 // 링과 글로가 화면 가장자리에서 잘리지 않게 한다
+  const top = Math.max(r.top, edge)
+  const left = Math.max(r.left, edge)
+  const bottom = Math.min(r.top + r.height, window.innerHeight - edge)
+  const right = Math.min(r.left + r.width, window.innerWidth - edge)
   return { left, top, width: Math.max(0, right - left), height: Math.max(0, bottom - top) }
 }
 
@@ -54,7 +57,6 @@ export default function CoachTour() {
   const [active, setActive] = useState(null) // { steps:[{...step, els}], i }
   const [rect, setRect] = useState(null)
   const [size, setSize] = useState({ w: BW, h: 170 })
-  const [nudge, setNudge] = useState(false)
   const bubbleRef = useRef(null)
   const enabled = tourEnabled(search)
   const hasTour = !!TOURS[pathname]
@@ -105,7 +107,7 @@ export default function CoachTour() {
     }
   })
 
-  useEffect(() => { if (step) document.querySelector('[data-next]')?.focus() }, [step])
+  useEffect(() => { if (step) document.querySelector('[data-next]')?.focus({ focusVisible: false }) }, [step])
 
   const close = useCallback(() => setActive(null), [])
   const go = useCallback((d) => setActive((a) => {
@@ -113,7 +115,6 @@ export default function CoachTour() {
     const n = a.i + d
     return n < 0 ? a : n >= a.steps.length ? null : { ...a, i: n }
   }), [])
-  const bump = useCallback(() => { setNudge(true); setTimeout(() => setNudge(false), 220) }, [])
 
   useEffect(() => {
     if (!active) return undefined
@@ -132,6 +133,7 @@ export default function CoachTour() {
   const place = rect ? placeBubble(rect, size, vw, vh) : null
   const hole = rect ? { left: rect.left - PAD, top: rect.top - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2 } : null
   const dir = place?.side
+  const last = active ? active.i + 1 === total : false
 
   return (
     <>
@@ -139,45 +141,49 @@ export default function CoachTour() {
         <Button size="sm" variant="secondary" onClick={begin} className="fixed right-[188px] top-[16px] z-30 hidden md:inline-flex">안내</Button>
       )}
       {active && step && (
-        <div className="fixed inset-0 z-[90]" role="dialog" aria-modal="false" aria-label={`화면 안내 ${active.i + 1}/${total}`}>
+        <div className="pointer-events-none fixed inset-0 z-[90]" role="dialog" aria-modal="false" aria-label={`화면 안내 ${active.i + 1}/${total}`}>
           {hole ? (
             <>
-              {/* 영역 밖 네 면: 눌러도 아무 일 없이 말풍선만 살짝 흔든다. 영역 안은 비워 두어 그대로 누를 수 있다 */}
-              <div className="absolute left-0 right-0 top-0" style={{ height: Math.max(0, hole.top) }} onClick={bump} />
-              <div className="absolute left-0 right-0 bottom-0" style={{ top: hole.top + hole.height }} onClick={bump} />
-              <div className="absolute left-0" style={{ top: hole.top, height: hole.height, width: Math.max(0, hole.left) }} onClick={bump} />
-              <div className="absolute right-0" style={{ top: hole.top, height: hole.height, left: hole.left + hole.width }} onClick={bump} />
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute rounded-[16px]"
-                style={{ ...hole, boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)', outline: '2px solid #fff' }}
+                className="coach-dim absolute inset-0"
+                style={{ clipPath: holePath(vw, vh, hole), '--coach-cx': `${hole.left + hole.width / 2}px`, '--coach-cy': `${hole.top + hole.height / 2}px` }}
+              />
+              {/* 영역 밖 네 면: 누르면 안내가 끝난다. 영역 안은 비워 두어 그대로 누를 수 있다 */}
+              <div className="pointer-events-auto absolute left-0 right-0 top-0" style={{ height: Math.max(0, hole.top) }} onClick={close} />
+              <div className="pointer-events-auto absolute left-0 right-0 bottom-0" style={{ top: hole.top + hole.height }} onClick={close} />
+              <div className="pointer-events-auto absolute left-0" style={{ top: hole.top, height: hole.height, width: Math.max(0, hole.left) }} onClick={close} />
+              <div className="pointer-events-auto absolute right-0" style={{ top: hole.top, height: hole.height, left: hole.left + hole.width }} onClick={close} />
+              <div
+                key={active.i}
+                aria-hidden="true"
+                className="coach-ring pointer-events-none absolute"
+                style={{ ...hole, borderRadius: RADIUS }}
               />
             </>
-          ) : <div className="absolute inset-0 bg-black/55" onClick={bump} />}
+          ) : <div className="coach-dim pointer-events-auto absolute inset-0" style={{ '--coach-cx': '50%', '--coach-cy': '50%' }} onClick={close} />}
           <div
             ref={bubbleRef}
             data-side={dir || ''}
-            className="absolute rounded-[16px] bg-page p-5 shadow-lg transition-transform"
-            style={{ left: place ? place.left : 24, top: place ? place.top : 24, width: BW, transform: nudge ? 'translateY(-4px)' : 'none' }}
+            className="coach-bubble pointer-events-auto absolute break-keep rounded-[16px] bg-page p-5"
+            style={{ left: place ? place.left : 24, top: place ? place.top : 24, width: BW }}
           >
-            {place?.arrow && (
-              <span
-                aria-hidden="true"
-                className="absolute h-3 w-3 rotate-45 bg-page"
-                style={dir === 'below' ? { top: -6, left: place.arrow.x - 6 }
-                  : dir === 'above' ? { bottom: -6, left: place.arrow.x - 6 }
-                    : dir === 'right' ? { left: -6, top: place.arrow.y - 6 }
-                      : { right: -6, top: place.arrow.y - 6 }}
-              />
-            )}
-            <p className="type-caption text-text-sec tabular-nums">{active.i + 1} / {total}</p>
-            <h2 className="mt-1 type-title text-text-pri">{step.title}</h2>
-            <p className="mt-1 type-body text-text-pri">{step.body}</p>
-            <div className="mt-4 flex items-center justify-between gap-2">
+            {place?.arrow && <BubbleArrow side={dir} arrow={place.arrow} />}
+            <h2 className="type-body-strong text-text-pri">{step.title}</h2>
+            <p className="mt-1 type-body-sm text-text-pri">{step.body}</p>
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center gap-1" aria-hidden="true">
+                {active.steps.map((_, k) => (
+                  <span key={k} className={`h-1.5 rounded-full transition-all duration-200 ${k === active.i ? 'w-4 bg-primary' : 'w-1.5 bg-line-strong'}`} />
+                ))}
+              </div>
+              <p className="type-meta text-text-sec tabular-nums">{active.i + 1} / {total}</p>
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-2">
               <Button size="sm" variant="ghost" onClick={close}>건너뛰기</Button>
-              <div className="flex gap-2">
-                {active.i > 0 && <Button size="sm" variant="secondary" onClick={() => go(-1)}>이전</Button>}
-                <Button data-next="1" size="sm" onClick={() => go(1)}>{active.i + 1 === total ? '완료' : '다음'}</Button>
+              <div className="flex gap-1">
+                {active.i > 0 && <Button size="sm" variant="ghost" onClick={() => go(-1)}>이전</Button>}
+                <Button data-next="1" size="sm" onClick={() => go(1)}>{last ? '완료' : '다음'}</Button>
               </div>
             </div>
           </div>
@@ -185,4 +191,25 @@ export default function CoachTour() {
       )}
     </>
   )
+}
+
+// 말풍선 면에서 자연스럽게 이어지는 작은 삼각형. 끝이 둥글고, 영역 가장자리에서 6 떨어져 영역을 가리킨다
+function BubbleArrow({ side, arrow }) {
+  const W = 18
+  const clip = 'path("M0 8 L6.4 1.2 Q9 -1.2 11.6 1.2 L18 8 Z")'
+  const base = { position: 'absolute', width: W, height: ARROW, clipPath: clip }
+  const pos = {
+    below: { ...base, top: -ARROW + 1, left: arrow.x - W / 2 },
+    above: { ...base, bottom: -ARROW + 1, left: arrow.x - W / 2, transform: 'rotate(180deg)' },
+    right: { ...base, left: -(W + ARROW) / 2 + 1, top: arrow.y - ARROW / 2, transform: 'rotate(-90deg)' },
+    left: { ...base, right: -(W + ARROW) / 2 + 1, top: arrow.y - ARROW / 2, transform: 'rotate(90deg)' }
+  }[side]
+  return <span aria-hidden="true" className="bg-page" style={pos} />
+}
+
+// 화면 전체에서 영역 모서리만 둥글게 도려낸 경로. 같은 명령 구조라 영역이 옮겨 갈 때 부드럽게 이어진다
+export function holePath(vw, vh, h) {
+  const r = Math.min(RADIUS, h.width / 2, h.height / 2)
+  const x = h.left, y = h.top, w = h.width, hh = h.height
+  return `path(evenodd, "M0 0 H${vw} V${vh} H0 Z M${x + r} ${y} H${x + w - r} A${r} ${r} 0 0 1 ${x + w} ${y + r} V${y + hh - r} A${r} ${r} 0 0 1 ${x + w - r} ${y + hh} H${x + r} A${r} ${r} 0 0 1 ${x} ${y + hh - r} V${y + r} A${r} ${r} 0 0 1 ${x + r} ${y} Z")`
 }
