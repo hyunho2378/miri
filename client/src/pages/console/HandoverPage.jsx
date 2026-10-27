@@ -31,6 +31,8 @@ import useDispatchStore from '../../store/useDispatchStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { computeShortage, optimizedUnserved, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import { handoverPreview } from '../../lib/handoverPreview.js'
+import { addressText } from '../../lib/addressText.js'
+import Drawer from '../../components/ui/Drawer.jsx'
 
 const REASON = { ...UNSERVED_REASON, ...FAIL_REASONS }
 
@@ -50,6 +52,7 @@ export default function HandoverPage() {
   const toast = useToast()
   const [selected, setSelected] = useState(() => new Set())
   const [handOpen, setHandOpen] = useState(false)
+  const [detail, setDetail] = useState(null)
 
   const dname = (code) => dongs.find((x) => x.code === code)?.name || code
 
@@ -81,7 +84,7 @@ export default function HandoverPage() {
     return buildHandoverRows({
       entries, persons, villages, privateInfo, arrivals: d.arrivals, now: today,
       dongName: dname, tagText: (t) => TAGS[t] || t
-    })
+    }).map((r, i) => ({ ...r, rank: i + 1 }))
   }, [d, persons, villages, privateInfo, today, now]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const waiting = rows.filter((r) => r.status !== 'handedToFire')
@@ -96,42 +99,33 @@ export default function HandoverPage() {
   })
   const allOn = waiting.length > 0 && picked.length === waiting.length
 
+  // 화면 표는 다섯 열(급한 순, 대상자, 마을과 위치, 등급, 사유)만. 나머지는 행을 누르면 열리는 상세에서 본다.
+  // CSV 와 인쇄는 소방에 넘기는 서식이라 기존 열 그대로(handoverCsvColumns, HandoverPrint)
   const columns = [
+    { key: 'rank', label: '급한 순', align: 'right', render: (r) => <span className="tabular-nums">{r.rank}</span>, sortable: true, sortValue: (r) => r.rank },
     {
       key: 'code', label: '대상자', sortable: true,
       render: (r) => (r.status === 'handedToFire'
         ? <span className="tabular-nums">{r.code}</span>
         : (
-          <span className="inline-flex items-center gap-1">
+          <span className="inline-flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
             <Checkbox checked={selected.has(r.code)} onChange={() => toggle(r.code)} label={`${r.code} 선택`} srOnlyLabel />
             <span className="tabular-nums">{r.code}</span>
           </span>
         ))
     },
-    { key: 'village', label: '마을(동)', sortable: true, render: (r) => <span>{r.village}<span className="block type-meta text-text-meta">{r.dong}</span></span> },
-    { key: 'arrival', label: '산불 도달', sortable: true, render: (r) => <span className="tabular-nums">{fmtHM(r.arrival)}</span>, sortValue: (r) => r.arrival ?? Infinity },
     {
-      key: 'grade', label: '등급(거동)', sortValue: (r) => gradeOf(r.grade)?.weight * -1,
+      key: 'village', label: '마을과 위치', sortable: true,
+      render: (r) => <span>{r.village}<span className="block type-meta text-text-meta">{addressText(r.location)}</span></span>
+    },
+    {
+      key: 'grade', label: '등급', sortValue: (r) => gradeOf(r.grade)?.weight * -1,
       render: (r) => <span className="inline-flex flex-col gap-0.5"><GradeChip grade={r.grade} size="sm" /><span className="type-meta text-text-meta">{r.gradeTerm}</span></span>
     },
-    { key: 'location', label: '상세 위치(동호수, 층)', render: (r) => <span className="type-body-sm">{r.location}</span> },
-    { key: 'elevator', label: '엘리베이터', hideBelow: 'md' },
-    { key: 'guardianPhone', label: '보호자 연락처', render: (r) => <span className="tabular-nums">{r.guardianPhone}</span> },
-    { key: 'crew', label: '필요 대원 수', render: (r) => <span className="type-body-sm">{r.crew}</span> },
-    { key: 'device', label: '의료기기', hideBelow: 'md' },
-    { key: 'pet', label: '반려동물', hideBelow: 'md' },
-    { key: 'address', label: '주소', hideBelow: 'lg', render: (r) => <span className="type-body-sm text-text-sec">{r.address}</span> },
     {
-      key: 'checked', label: '명부 마지막 확인', hideBelow: 'md', sortValue: (r) => r.checked.days ?? Infinity,
-      render: (r) => <span className={r.checked.stale ? 'type-strong text-danger-text' : 'text-text-sec'}>{r.checked.text}{r.checked.stale && r.checked.days != null ? ', 재확인 필요' : ''}</span>
-    },
-    { key: 'tags', label: '특이사항', render: (r) => r.tags || '-', hideBelow: 'lg' },
-    { key: 'reason', label: '사유' },
-    {
-      key: 'care', label: '증상 시각, 관찰, 조치', hideBelow: 'lg',
-      render: (r) => (r.care ? <span className="type-body-sm text-text-sec">{[r.care.symptomAt && `${r.care.symptomAt} 발생`, r.care.observation, r.care.action && `조치: ${r.care.action}`].filter(Boolean).join(', ')}</span> : '-')
-    },
-    { key: 'status', label: '상태', render: (r) => <StatusPill status={r.status} label={r.status === 'handedToFire' ? `소방 인계 ${fmtHM(r.at)}` : undefined} /> }
+      key: 'reason', label: '사유',
+      render: (r) => <span className="inline-flex flex-col items-start gap-1">{r.reason}{r.status === 'handedToFire' && <StatusPill status={r.status} label={`소방 인계 ${fmtHM(r.at)}`} />}</span>
+    }
   ]
   const baseAt = d.result?.basis?.at
   const csvCols = handoverCsvColumns(baseAt)
@@ -183,8 +177,35 @@ export default function HandoverPage() {
               </>
             )}
             columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={20} caption="소방 인계 대상 목록"
+            onRowClick={(r) => setDetail(r)}
             emptyTitle="소방 인계 대상이 없습니다" emptyDesc="전원 기한 안에 이송 중입니다."
           />
+
+          <Drawer open={!!detail} onClose={() => setDetail(null)} title={detail ? `${detail.code} 상세` : ''}>
+            {detail && (
+              <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 type-body-sm">
+                {[
+                  ['마을(동)', `${detail.village}, ${detail.dong}`],
+                  ['산불 도달', fmtHM(detail.arrival)],
+                  ['상세 위치', addressText(detail.location)],
+                  ['엘리베이터', detail.elevator],
+                  ['보호자 연락처', detail.guardianPhone],
+                  ['필요 대원 수', detail.crew],
+                  ['의료기기', detail.device],
+                  ['반려동물', detail.pet],
+                  ['주소', addressText(detail.address)],
+                  ['명부 마지막 확인', `${detail.checked.text}${detail.checked.stale && detail.checked.days != null ? ', 재확인 필요' : ''}`],
+                  ['특이사항', detail.tags || '-'],
+                  ['증상 시각, 관찰, 조치', detail.care ? [detail.care.symptomAt && `${detail.care.symptomAt} 발생`, detail.care.observation, detail.care.action && `조치: ${detail.care.action}`].filter(Boolean).join(', ') : '-']
+                ].map(([k, v]) => (
+                  <div key={k} className="contents">
+                    <dt className="text-text-sec">{k}</dt>
+                    <dd className={k === '명부 마지막 확인' && detail.checked.stale ? 'type-strong text-danger-text' : 'text-text-pri tabular-nums'}>{v || '-'}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+          </Drawer>
 
           <Modal
             open={handOpen} onClose={() => setHandOpen(false)} title="소방 인계"
