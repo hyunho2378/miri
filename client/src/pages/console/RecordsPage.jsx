@@ -68,13 +68,13 @@ export default function RecordsPage() {
         <div className="grid gap-x-10 gap-y-8 cq-xl:grid-cols-[minmax(0,8fr)_minmax(0,4fr)] cq-xl:items-start">
           <TableCard
             title="발령 기록" count={`${records.length}건`} tone="flat"
-            columns={columns} rows={rows} rowKey={(r) => r.id} pageSize={20} caption="이송 기록"
+            columns={columns} rows={rows} rowKey={(r) => r.id} pageSize={10} caption="이송 기록"
             onRowClick={(r) => navigate(`/console/records/${r.id}`)}
           />
           <Card title="마을별 미완료 추이" tone="flat" meta="최근 3건">
             {chart === null && <p className="type-body-sm text-text-meta">이송 기록 2건 이상일 때 표시</p>}
             {Array.isArray(chart) && !chart.length && <p className="type-body-sm text-text-meta">최근 발령 미완료 인원 없음</p>}
-            {Array.isArray(chart) && chart.length > 0 && <BarChart groups={chart} height={260} ariaLabel="마을별 미완료 추이 막대 차트" />}
+            {Array.isArray(chart) && chart.length > 0 && <BarChart groups={chart} height={220} ariaLabel="마을별 미완료 추이 막대 차트" />}
           </Card>
         </div>
       )}

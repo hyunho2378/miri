@@ -24,7 +24,7 @@ export function SideNav({ collapsed = false, onNavigate, showHeader = true }) {
   const row = (m) => {
     if (m.role && m.role !== role) return null
     const active = current?.key === m.key || (m.to && !m.match && pathname === m.to)
-    const cls = clsx('relative flex min-h-10 items-center rounded-lg transition-colors duration-fast',
+    const cls = clsx('relative flex min-h-9 items-center rounded-lg transition-colors duration-fast',
       collapsed ? 'justify-center px-0' : 'gap-2 px-3',
       active ? 'bg-subtle text-text-pri' : 'text-text-sec hover:bg-subtle hover:text-text-pri')
     const badgeLabel = `확인할 서류 ${pendingDocs}건, 현장 소식 ${pendingNotes}건`
@@ -41,18 +41,18 @@ export function SideNav({ collapsed = false, onNavigate, showHeader = true }) {
         )}
       </>
     )
-    const subs = !collapsed ? SECTION_TABS[m.key]?.filter((t) => !t.role || t.role === role) : null
+    const subs = !collapsed && current?.key === m.key ? SECTION_TABS[m.key]?.filter((t) => !t.role || t.role === role) : null
     return (
       <li key={m.key}>
         {m.href
           ? <a href={m.href} target="_blank" rel="noopener" title={collapsed ? m.label : undefined} aria-label={collapsed ? `${m.label} (새 창)` : undefined} className={cls}>{inner}{!collapsed && <span className="sr-only">(새 창)</span>}</a>
           : <NavLink to={m.to} end={m.end} onClick={onNavigate} title={collapsed ? m.label : undefined} aria-label={collapsed ? m.label : undefined} aria-current={active ? 'page' : undefined} className={cls}>{inner}</NavLink>}
         {subs && (
-          <ul className="mb-1 flex flex-col">
+          <ul className="mb-0 flex flex-col">
             {subs.map((t) => (
               <li key={t.to}>
                 <NavLink to={t.to} onClick={onNavigate}
-                  className={({ isActive }) => clsx('flex min-h-8 items-center rounded-lg pl-11 pr-4 type-body-sm transition-colors duration-fast',
+                  className={({ isActive }) => clsx('flex min-h-7 items-center rounded-lg pl-11 pr-4 type-body-sm transition-colors duration-fast',
                     isActive ? 'font-bold text-text-pri' : 'text-text-sec hover:text-text-pri')}>
                   {t.label}
                 </NavLink>
@@ -67,7 +67,7 @@ export function SideNav({ collapsed = false, onNavigate, showHeader = true }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
       {showHeader && (
-        <div className={clsx('flex h-16 shrink-0 items-center', collapsed ? 'justify-center' : 'justify-between pl-5 pr-4')}>
+        <div className={clsx('flex h-14 shrink-0 items-center', collapsed ? 'justify-center' : 'justify-between pl-5 pr-4')}>
           <Link to="/console" aria-label="미리 홈" className="inline-flex items-center gap-2 text-text-pri">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-text-inverse"><Timer size={18} aria-hidden="true" /></span>
             {!collapsed && <span className="type-h3">미리</span>}
@@ -75,18 +75,18 @@ export function SideNav({ collapsed = false, onNavigate, showHeader = true }) {
           {!collapsed && <AnomalyBell />}
         </div>
       )}
-      <nav aria-label="담당자 메뉴" className={clsx('min-h-0 flex-1 overflow-y-auto pb-2 pt-4', collapsed ? 'px-2' : 'px-3')}>
+      <nav aria-label="담당자 메뉴" className={clsx('min-h-0 flex-1 overflow-y-auto pb-1 pt-2', collapsed ? 'px-2' : 'px-3')}>
         {RAIL_GROUPS.map((g, i) => {
           return (
-            <section key={g.key} aria-label={g.label} className={clsx(i > 0 && (collapsed ? 'mt-3' : 'mt-4'))}>
-              {!collapsed && <h2 className="mb-1 px-3 type-body-sm font-bold text-text-meta">{g.label}</h2>}
+            <section key={g.key} aria-label={g.label} className={clsx(i > 0 && (collapsed ? 'mt-3' : 'mt-2'))}>
+              {!collapsed && <h2 className="mb-0.5 px-3 type-body-sm font-bold text-text-meta">{g.label}</h2>}
               {collapsed && i > 0 && <span aria-hidden="true" className="mx-auto mb-2 block h-1 w-1 rounded-full bg-line-strong" />}
               <ul className="flex flex-col gap-0.5">{g.items.map(row)}</ul>
             </section>
           )
         })}
       </nav>
-      <div className={clsx('shrink-0 py-4', collapsed ? 'flex justify-center px-2' : 'px-3')}>
+      <div className={clsx('shrink-0 py-2', collapsed ? 'flex justify-center px-2' : 'px-3')}>
         <UserMenu compact={collapsed} />
       </div>
     </div>
