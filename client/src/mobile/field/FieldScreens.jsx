@@ -97,6 +97,7 @@ export function FieldStatusPage() {
         <List label="보내기">
           <ListRow lead={<MessageSquare size={22} />} title="현장 소식 남기기" chevron onClick={() => navigate('/m/f/note')} />
         </List>
+        <h2 className="mob-section-title">{scope.isDong ? '망상동 담당 마을, 기한 빠른 순' : '시 전체 마을, 기한 빠른 순'}</h2>
         <List label="늦는 마을, 기한이 빠른 순">
           {late.map((v, i) => (
             <ListRow key={v.code} lead={<Clock size={22} />} title={v.name} subtitle={`${v.left}명 남음${v.at ? `, ${hm(v.at)}까지` : ''}`}
@@ -754,13 +755,16 @@ export function FieldNotePage() {
   const reqSeq = useRef(0)
   const remoteState = useDispatchStore((st) => st.remote?.state)
   const pendingDelivery = remoteState === 'error' || isOffline()
+  const resendNote = (id) => { useMiriStore.setState((st) => ({ fieldNotes: st.fieldNotes.map((x) => (x.id === id ? { ...x, deliveredAt: Date.now() } : x)) })); toast('시청 전달 완료') }
   const sentNotes = data.fieldNotes.filter((n) => n.source === 'dong' && scope.inScope(n.villageCode)).slice(0, 3)
   // 글은 보내기 한 번으로 저장까지 끝낸다. 읽기가 안 되면 글만 먼저 저장하고 연결되면 이어서 읽는다
   const saveNow = ({ req, read }) => {
-    addFieldNote(read
+    const online = !isOffline() && remoteState !== 'error'
+    const note = read
       ? { id: nextNoteId(), personCode: req.personCode, villageCode: req.villageCode, source: 'dong', status: 'pending', receivedAt: Date.now(), current: req.current, mode: req.mode, fileName: '', text: read.transcript || req.text, read, mock: false }
-      : unreadNote({ id: nextNoteId(), req, now: Date.now() }))
-    toast(read ? `${req.personCode} 소식 저장 완료, 담당자 확인 대기` : `${req.personCode} 소식을 저장했어요. 연결되면 시청에 전달돼요`)
+      : unreadNote({ id: nextNoteId(), req, now: Date.now() })
+    addFieldNote({ ...note, deliveredAt: online ? Date.now() : null })
+    toast(online ? `${req.personCode} 시청 전달 완료` : `${req.personCode} 전달 대기, 연결 후 다시 보내기`)
     setText(''); setState({ phase: 'idle' })
   }
   const send = async (file) => {
@@ -810,7 +814,7 @@ export function FieldNotePage() {
         </div>
         {sentNotes.length > 0 && (
           <List label="보낸 소식">
-            {sentNotes.map((n) => <ListRow key={n.id} title={n.personCode} subtitle={`${villageName(data.villages, n.villageCode)}, ${hm(n.receivedAt)}`} trailing={<span className="mob-t-callout">{pendingDelivery ? '전달 대기' : '전달됨'}</span>} />)}
+            {sentNotes.map((n) => <ListRow key={n.id} title={n.personCode} subtitle={`${villageName(data.villages, n.villageCode)}, ${hm(n.receivedAt)}`} trailing={n.deliveredAt !== null ? <span className="mob-t-callout">{`전달됨 ${hm(n.deliveredAt ?? n.receivedAt)}`}</span> : <Button size="sm" variant="tonal" disabled={pendingDelivery} onClick={() => resendNote(n.id)}>다시 보내기</Button>} />)}
           </List>
         )}
       </main>

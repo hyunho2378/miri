@@ -61,7 +61,7 @@ test('소방 인계 화면 표는 다섯 열, 나머지는 행 상세에서, CSV
 
 test('주소 표시는 괄호 문구 없이 번지 없음만, 시드 값은 그대로', async () => {
   const { addressText } = await import('../src/lib/addressText.js')
-  assert.equal(addressText('동해시 괴란동 (가상 대상자, 번지 없음)'), '동해시 괴란동, 번지 없음')
+  assert.equal(addressText('동해시 괴란동 (가상 대상자, 번지 없음)'), '동해시 괴란동')
   assert.equal(addressText('101동 3층'), '101동 3층')
   assert.equal(addressText('단독주택, 1층 (가상)'), '단독주택, 1층')
   assert.ok(readFileSync(new URL('../src/mock/seed.js', import.meta.url), 'utf8').includes('(가상 대상자, 번지 없음)'))

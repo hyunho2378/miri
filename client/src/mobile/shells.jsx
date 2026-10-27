@@ -112,6 +112,8 @@ const LOGIN_ROLES = [
 ]
 export function FieldLogin() {
   const setDemoUser = useAuthStore((s) => s.setDemoUser)
+  const navigate = useNavigate()
+  const pick = (role) => { setDemoUser(role); navigate('/m/f', { replace: true }) }
   return (
     <MobileRoot>
       <div className="mob-screen">
@@ -119,8 +121,9 @@ export function FieldLogin() {
         <main id="main" className="mob-content no-nav">
           <List label="계정 선택">
             {LOGIN_ROLES.map(({ role, icon: Icon }) => (
-              <ListRow key={role} lead={<Icon size={22} />} title={ROLE_LABEL[role]} subtitle={DEMO_USERS[role].name} chevron onClick={() => setDemoUser(role)} />
+              <ListRow key={role} lead={<Icon size={22} />} title={ROLE_LABEL[role]} subtitle={DEMO_USERS[role].name} chevron onClick={() => pick(role)} />
             ))}
+            <ListRow lead={<HandHeart size={22} />} title="도우미" subtitle="배정 알림 수락과 이송 보고" chevron onClick={() => navigate('/m/h/demo')} />
           </List>
         </main>
       </div>
