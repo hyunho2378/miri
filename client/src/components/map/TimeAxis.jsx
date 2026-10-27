@@ -60,7 +60,7 @@ export default function TimeAxis({ t, onT, timeline, t0, progress, total, playin
 
   const pct = (h) => `${(h / endH) * 100}%`
   const now = t0 + t * HOUR
-  const valueText = `발령 후 ${fmtElapsed(t)}, ${fmtHM(now)}. 이송 완료 추정 ${progress.moved}명, 대기 ${progress.waiting}명`
+  const valueText = `발령 후 ${fmtElapsed(t)}, ${fmtHM(now)}. 이송 완료 ${progress.moved}명, 대기 ${progress.waiting}명`
 
   return (
     <div>
@@ -68,10 +68,10 @@ export default function TimeAxis({ t, onT, timeline, t0, progress, total, playin
         <p className="type-strong text-text-pri tabular-nums">
           {t <= 0 ? '발령 시각' : `발령 후 ${fmtElapsed(t)}`}
           <span className="ml-2 type-body-sm text-text-meta">{fmtHM(now)}</span>
-          {atEnd && <span className="ml-2 type-caption text-text-sec">{single ? '도달 시점' : '마지막 마을 도달 시점'}</span>}
+          {atEnd && <span className="ml-2 type-caption text-text-sec">{single ? '도달' : '마지막 마을 도달'}</span>}
         </p>
         <p className="type-body-sm text-text-sec tabular-nums">
-          이송 완료 추정 <span className="type-strong text-text-pri">{progress.moved}명</span>
+          이송 완료 <span className="type-strong text-text-pri">{progress.moved}명</span>
           <span className="mx-1 text-text-ter" aria-hidden="true">/</span>
           대상자 {total}명, 대기 <span className={progress.waiting ? 'type-strong text-danger-text' : 'type-strong text-text-pri'}>{progress.waiting}명</span>
         </p>
@@ -107,7 +107,7 @@ export default function TimeAxis({ t, onT, timeline, t0, progress, total, playin
           ))}
         </div>
       </div>
-      <Disclosure summary="가정 보기" summaryClassName="type-meta">
+      <Disclosure summary="확산 조건" summaryClassName="type-meta">
         <p className="type-meta text-text-meta">{captionRest(prepH)}</p>
       </Disclosure>
     </div>

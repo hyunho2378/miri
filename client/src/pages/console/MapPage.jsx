@@ -282,8 +282,7 @@ export default function MapPage() {
                   options={scenarios.map((x) => ({ value: x.id, label: x.name, secondary: HAZARD_KINDS[x.kind]?.label || '재난' }))}
                   className="-ml-1 max-w-full" triggerClassName="bg-subtle ring-0" />
                 <p className="mt-0.5 flex items-baseline gap-1.5">
-                  <span className="type-h2 text-danger-text tabular-nums">{result.total}</span>
-                  <span className="type-body-sm text-text-sec">명 기한 안에 못 옮김</span>
+                  <span className="type-h2 text-danger-text tabular-nums">이동 불가 {result.total}명</span>
                 </p>
                 <p className="type-meta text-text-meta">부족 마을 {shortList.length}곳, 대피 대상 {scopeCount}곳, 필요 추가 차량 {extra.reduce((a, x) => a + x.count, 0)}대</p>
               </div>
@@ -359,7 +358,7 @@ export default function MapPage() {
               ))}
             </div>
             <div role="radiogroup" aria-label="바탕" className="flex rounded-md bg-mute p-0.5">
-              {[['light', '밝게'], ['dark', '어둡게']].map(([v, l]) => (
+              {[['light', '라이트'], ['dark', '다크']].map(([v, l]) => (
                 <button key={v} type="button" role="radio" aria-checked={theme === v} onClick={() => setTheme(v)}
                   className={clsx('h-8 rounded-sm px-3 type-body-sm transition-colors duration-fast', theme === v ? 'bg-page text-text-pri shadow-sm' : 'text-text-meta hover:text-text-pri')}>{l}</button>
               ))}

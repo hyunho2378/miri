@@ -431,7 +431,7 @@ export default function MapCanvas({
   useEffect(() => { mapRef.current?.getSource('routes')?.setData(routeFc(routes)) }, [routes])
   useEffect(() => { mapRef.current?.getSource('ltc')?.setData(ltcFc(ltc)) }, [ltc])
 
-  // 산불 확산 가정 방향 화살표와 라벨
+  // 확산 방향 화살표와 라벨
   useEffect(() => {
     const map = mapRef.current
     if (!map) return

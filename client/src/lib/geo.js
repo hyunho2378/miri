@@ -178,7 +178,7 @@ export function fireArrow(scenario, villages) {
     mid: at(far * 0.45, 0),
     firstHours: scenario.windowHours,
     lastHours: scenario.windowHours + Math.max(0, ...(scenario.affected || []).map((c) => scenario.offsetHours?.[c] ?? 0)),
-    label: `${scenario.originLabel} 발화 가정`
+    label: `${scenario.originLabel} 발화 지점`
   }
 }
 

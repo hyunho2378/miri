@@ -44,7 +44,7 @@ function LayerRow({ label, desc, tone, checked, onChange, swatch }) {
         </span>
       </button>
       {rest && (
-        <Disclosure summary={rest.includes('출처') ? '가정과 출처 보기' : '가정 보기'} className="px-2 pb-1" summaryClassName="type-meta">
+        <Disclosure summary={rest.includes('출처') ? '확산 조건과 출처' : '확산 조건'} className="px-2 pb-1" summaryClassName="type-meta">
           <p className="type-meta leading-5 text-text-meta">{rest}</p>
         </Disclosure>
       )}
@@ -64,7 +64,7 @@ export default function LayerPanel({
       {!compact && <section aria-labelledby="map-view-title" className="space-y-2.5">
         <h3 id="map-view-title" className="type-caption text-text-meta">보기</h3>
         <Segment label="지도" value={mode} onChange={onMode} items={[{ value: '2d', label: '2D' }, { value: '3d', label: '3D' }]} />
-        <Segment label="바탕" value={theme} onChange={onTheme} items={[{ value: 'light', label: '밝게' }, { value: 'dark', label: '어둡게' }]} />
+        <Segment label="바탕" value={theme} onChange={onTheme} items={[{ value: 'light', label: '라이트' }, { value: 'dark', label: '다크' }]} />
         <button type="button" onClick={onFit} className="inline-flex h-9 items-center gap-2 rounded-md px-2 type-strong text-primary-text hover:bg-mute">
           <Maximize size={16} aria-hidden="true" />{mode === '3d' ? '대피 대상 구역 보기' : '동해시 전체 보기'}
         </button>
@@ -80,7 +80,7 @@ export default function LayerPanel({
               desc={layers.spread ? '읍면동 조각을 바깥으로 벌려 서로 가려진 곳을 볼 수 있게 합니다.' : undefined} />
           )}
           <LayerRow label="산불 확산 가정 구역" checked={layers.fire} onChange={(v) => onLayer('fire', v)} swatch="bg-text-pri"
-            desc={layers.fire ? (fireInfo ? `${fireInfo.label}에서 시속 ${fireInfo.speed}km로 번진다고 둔 가정입니다. 띠 안 마을에 발령 후 ${fmtElapsed(fireInfo.fromH)}부터 ${fmtElapsed(fireInfo.toH)} 사이에 차례로 도달합니다.` : '시 전체 시나리오라 발화 가정 지점이 없습니다.') : undefined} />
+            desc={layers.fire ? (fireInfo ? `발화 지점 ${fireInfo.label}, 확산 속도 시속 ${fireInfo.speed}km, 마을 도달 발령 후 ${fmtElapsed(fireInfo.fromH)}~${fmtElapsed(fireInfo.toH)}` : '시 전체 조건, 발화 지점 없음') : undefined} />
           <LayerRow label="이재민 임시주거시설" checked={layers.shelters} onChange={(v) => onLayer('shelters', v)} swatch="bg-primary" desc={layers.shelters ? shelterDesc : undefined} />
           {extraLayers.map((x) => (
             <LayerRow key={x.key} label={x.label} desc={layers[x.key] ? x.desc : undefined} checked={!!layers[x.key]} onChange={(v) => onLayer(x.key, v)} swatch={x.swatch} />
@@ -133,7 +133,7 @@ export default function LayerPanel({
               <li>원 중심 550m 안 건물은 그 마을의 부족 단계 색으로 칠합니다. 대상자의 실제 거주 위치를 뜻하지 않습니다.</li>
               <li>
                 건물은 국토교통부 GIS건물통합정보(2026. 9. 9.) 196,111동입니다.
-                <Disclosure summary="가정 보기" summaryClassName="type-meta">
+                <Disclosure summary="확산 조건" summaryClassName="type-meta">
                   <p>높이는 건축물대장 높이, 없으면 층수 x 3.2m, 둘 다 없으면 1층으로 세웁니다. 지형과 건물 높이는 2배로 과장했습니다.</p>
                 </Disclosure>
               </li>

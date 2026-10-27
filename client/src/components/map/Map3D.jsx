@@ -44,7 +44,7 @@ export default function Map3D({
           const st = h.dongCode ? propsRef.current.dongStats?.[h.dongCode] : null
           setTip({
             x: h.x, y: h.y, title: `${h.sggName} ${h.name}`,
-            line: st ? `대상자 ${st.targets}명, 미이송 예상 ${st.shortage}명, 고령화율 ${st.aging}%` : h.dongCode ? '' : '동해시 밖이라 대피 대상 구역에 들어가지 않습니다'
+            line: st ? `대상자 ${st.targets}명, 이동 불가 ${st.shortage}명, 고령화율 ${st.aging}%` : h.dongCode ? '' : '동해시 밖, 대피 대상 아님'
           })
         }
       }

@@ -40,6 +40,6 @@ test('R42 상황판 긴 설명: 첫 문장은 보이고 나머지는 접으며 �
 test('R42 상황판 화면 코드: 요약 패널, 레이어 패널, 시간축의 긴 가정은 가정 보기 접힘 안에 있음', () => {
   const src = (f) => readFileSync(new URL(`../src/components/map/${f}`, import.meta.url), 'utf8')
   assert.ok(src('SummaryPanel.jsx').includes('summary="확산 조건 보기"'))
-  assert.ok(src('LayerPanel.jsx').includes("'가정과 출처 보기' : '가정 보기'"))
-  assert.ok(src('TimeAxis.jsx').includes('summary="가정 보기"'))
+  assert.ok(src('LayerPanel.jsx').includes("'확산 조건과 출처' : '확산 조건'"))
+  assert.ok(src('TimeAxis.jsx').includes('summary="확산 조건"'))
 })
