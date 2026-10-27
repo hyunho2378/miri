@@ -1,7 +1,10 @@
 // 설정(IA 4.9). 시 관리자 전용. 계산 기본값, 이상 탐지 임계값, 마을과 대피소, 임시주거시설, 차종 정원, 사용자, 데이터 출처.
+import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
-import { rosterBreakdown, rosterSourceText } from '../../lib/rosterCount.js'
+import { rosterBreakdown, rosterChipsText } from '../../lib/rosterCount.js'
+import { DATA_NOTES } from '../../lib/dataNotes.js'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import Badge from '../../components/ui/Badge.jsx'
 import KeyValue from '../../components/ui/KeyValue.jsx'
@@ -15,6 +18,8 @@ import { DATA_SOURCES, DONG_STATS, LTC } from '../../mock/donghaeData.js'
 
 export default function SettingsPage() {
   const settings = useMiriStore((s) => s.settings)
+  const { hash } = useLocation()
+  useEffect(() => { if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' }) }, [hash])
   const persons = useMiriStore((s) => s.persons)
   const villages = useMiriStore((s) => s.villages)
   const shelters = useMiriStore((s) => s.shelters)
@@ -64,7 +69,7 @@ export default function SettingsPage() {
             { label: '마을', value: `법정동 ${villages.length}곳(동호동은 행정동 일대 1곳)` },
             { label: '임시주거시설', value: `${shelters.length}곳, 수용 가능 ${shelterCap.toLocaleString('ko-KR')}명` },
             { label: '재가 장기요양 수급자 추정', value: `${LTC.homeTotal.toLocaleString('ko-KR')}명(${LTC.period}년 급여이용 ${LTC.users['계'].toLocaleString('ko-KR')}명 중 시설급여 ${LTC.facilityUsers['계']}명 제외)` },
-            { label: '명부 건수', value: rosterSourceText(rosterBreakdown(persons)) },
+            { label: '명부 건수', value: rosterChipsText(rosterBreakdown(persons)) },
             { label: '주민등록인구', value: `${dongRows.reduce((t, d) => t + d.total, 0).toLocaleString('ko-KR')}명, 65세 이상 ${dongRows.reduce((t, d) => t + d.age65, 0).toLocaleString('ko-KR')}명(${DATA_SOURCES.population.period})` }
           ]} />
         </Card>
@@ -72,7 +77,7 @@ export default function SettingsPage() {
         <Card title="계산 기본값">
           <div className="divide-y divide-line-sub">
             <NumberStepper className="pb-3" label="준비 시간" unit="분" step={15} min={0} max={180} value={settings.prepMinutes} onChange={(v) => updateSettings({ prepMinutes: v })} hint="발령 후 첫 차량이 출발하기까지 걸리는 시간" />
-            <NumberStepper className="py-3" label="탑승과 하차 시간" unit="분" step={5} min={5} max={60} value={settings.boardingMinutes ?? 20} onChange={(v) => updateSettings({ boardingMinutes: v })} hint="왕복 시간은 편도 주행 시간의 두 배에 이 값을 더해 셉니다. 주행 시간은 실제 도로 경로로 계산합니다. 장애인 단체 자문에 따르면 숙련자는 휠체어 특장차 탑승과 안전벨트 착용을 5분 안에 마칩니다." />
+            <NumberStepper className="py-3" label="탑승과 하차 시간" unit="분" step={5} min={5} max={60} value={settings.boardingMinutes ?? 20} onChange={(v) => updateSettings({ boardingMinutes: v })} hint="왕복 시간은 편도 주행 시간의 두 배에 이 값을 더해 셉니다. 주행 시간은 실제 도로 경로로 계산합니다." />
             <div className="pt-3">
               <p className="type-caption text-text-sec">이송 완료 기한</p>
               <SegmentControl
@@ -94,7 +99,7 @@ export default function SettingsPage() {
           </div>
         </Card>
 
-        <Card title="사용자와 역할" desc="시연용 계정입니다.">
+        <Card title="사용자와 역할">
           <ul className="divide-y divide-line-sub">
             {Object.values(DEMO_USERS).map((u) => (
               <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
@@ -113,25 +118,36 @@ export default function SettingsPage() {
       </div>
 
       <TableCard
-        className="mt-4" title="차종별 회차당 탑승 정원" count={`${VEHICLE_TYPES.length}종`} desc="협의 전 가정값입니다."
+        className="mt-4" title="차종별 회차당 탑승 정원" count={`${VEHICLE_TYPES.length}종`}
         columns={capacityCols} rows={VEHICLE_TYPES} rowKey={(t) => t.key} pageSize={20} caption="차종과 등급별 정원"
       />
 
       <TableCard
         className="mt-4" title="마을과 평시 지정 대피소" count={`${villages.length}곳`}
-        desc={`집결지는 각 법정동 경로당 가운데 분포 중심에 가까운 곳입니다(${DATA_SOURCES.seniorCenters.org}). 대피소는 집결지에서 도로 주행 시간이 가장 짧은 임시주거시설이며, 확산 시나리오에서는 대피 대상 구역 밖 시설로 바뀝니다.`}
+       
         columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 집결지, 대피소, 왕복 시간" pageSize={20}
       />
 
       <TableCard
         className="mt-4" title="이재민 임시주거시설" count={`${shelters.length}곳`}
-        desc={`${DATA_SOURCES.shelters.org} 공개 목록, ${DATA_SOURCES.shelters.period}. 수용 가능 인원은 시설 전체 기준이며 대상자에게 모두 쓸 수 있다고 가정합니다.`}
+       
         columns={shelterCols} rows={shelters} rowKey={(x) => x.code} caption="임시주거시설 목록" pageSize={10}
       />
 
+      <Card id="data-notes" className="mt-4 scroll-mt-20" title="자료 안내">
+        <ul className="divide-y divide-line-sub">
+          {DATA_NOTES.map((x) => (
+            <li key={x.key} className="py-3">
+              <p className="type-strong text-text-pri">{x.title}</p>
+              <p className="mt-1 type-body-sm text-text-sec">{x.text}</p>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
       <TableCard
         className="mt-4" title="데이터 출처" count={`${sourceRows.length}건`}
-        desc="실제 공개 자료와 가정값을 나눠 적습니다. 대상자 개인, 차량 수량, 도우미 배치는 가정입니다."
+       
         columns={sourceCols} rows={sourceRows} rowKey={(x) => x.key} caption="데이터 출처와 기준 시점" pageSize={20}
       />
     </PageShell>

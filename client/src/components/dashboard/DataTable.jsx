@@ -60,7 +60,7 @@ export default function DataTable({
                 const Icon = !active ? ChevronsUpDown : sort.dir === 'asc' ? ChevronUp : ChevronDown
                 return (
                   <th
-                    key={c.key} scope="col" style={c.width ? { width: c.width } : undefined}
+                    key={c.key} scope="col" title={c.title} style={c.width ? { width: c.width } : undefined}
                     aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
                     className={clsx('px-4 py-3 lg:px-5 type-caption text-text-meta whitespace-nowrap', c.align === 'right' && 'text-right', HIDE[c.hideBelow])}
                   >

@@ -13,7 +13,7 @@ export default function StepCard({ n, title, desc, count, active, onClick, Icon 
       <span className="min-w-0">
         <span className="block type-caption text-text-meta">{n}단계</span>
         <span className="block type-strong text-text-pri">{title}</span>
-        <span className="mt-0.5 block type-meta leading-5 text-text-sec">{desc}</span>
+        {desc && <span className="mt-0.5 block type-meta leading-5 text-text-sec">{desc}</span>}
         <span className="mt-2 block type-h3 text-text-pri tabular-nums">{count}</span>
       </span>
     </Tag>
