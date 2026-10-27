@@ -5,7 +5,7 @@
 .mob-h-progress { display: flex; flex-direction: column; gap: 8px; padding: 0 4px; }
 .mob-h-wrap { display: flex; flex-direction: column; flex: 1; word-break: keep-all; overflow-wrap: anywhere; }
 .mob-root.platform-android .mob-h-wrap .mob-bar-row > .mob-bar-slot:first-child:empty { display: none; }
-.mob-root.platform-android .mob-h-wrap .mob-bar-row > .mob-bar-slot:first-child:empty + .mob-bar-title { padding-left: 4px; }
+.mob-root.platform-android .mob-h-wrap .mob-bar-row > .mob-bar-slot:first-child:empty + .mob-bar-title { padding-left: calc(var(--m-margin) - 4px); }
 .mob-h-order { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: var(--m-r-full); background: var(--m-fill); color: var(--m-ink); font-size: var(--t-callout); font-weight: 400; font-variant-numeric: tabular-nums; }
 .mob-h-order.now { background: var(--m-blue); color: var(--m-on-primary); }
 .mob-h-field { display: flex; flex-direction: column; gap: 6px; }
