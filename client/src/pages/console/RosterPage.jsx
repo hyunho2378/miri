@@ -30,7 +30,7 @@ import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
 import { TAGS, verifyResult } from '../../lib/intake.js'
 import { GRADE_RANK } from '../../lib/shortage.js'
-import { fmtDate } from '../../lib/time.js'
+import { fmtDate, fmtDateTime } from '../../lib/time.js'
 import { recheckMatch, RECHECK_OPTIONS } from '../../lib/rosterRecheck.js'
 import { checkedOf } from '../../lib/handoverRows.js'
 import useNow from '../../hooks/useNow.js'
@@ -238,6 +238,7 @@ export default function RosterPage() {
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
         <InfoRows rows={[
           { label: '당사자와 계획 확인', value: open.planCheckedAt ? `${checkedOf(open, now).stale ? '재확인 필요, ' : ''}마지막 확인 ${fmtDate(open.planCheckedAt)}${planLast?.by?.name ? ` (${planLast.by.name}${planWithLabel(planLast) ? `, ${planWithLabel(planLast)} 확인` : ''})` : ''}` : '재확인 필요', strong: true },
+          ...((open.grade === 'walk' || open.grade === 'assist') && open.tags.includes('bedridden') ? [{ label: '등급 불일치', value: `이송 등급 ${open.grade === 'walk' ? '도보' : '부축'}, 특이사항 와상${open.planCheckedAt ? `, 확인 완료 ${fmtDateTime(open.planCheckedAt)}` : ', 확인 대기'}`, strong: true }] : []),
           { label: '장기요양 등급', value: open.ltcGrade || '미기재' },
           { label: '특이사항', value: open.tags.map((t) => TAGS[t]).join(', ') || '없음' },
           { label: '도우미에게 주소 알림', value: open.locConsent === true ? '동의' : '미동의' },
