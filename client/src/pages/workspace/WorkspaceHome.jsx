@@ -16,6 +16,10 @@ import useWorkspaceStore, { useWorkspaceInit } from '../../store/useWorkspaceSto
 import * as api from '../../lib/workspaceApi.js'
 import { markdownToHtml } from './docConvert.js'
 
+// 팀 조사용 서식(인터뷰, 사용성 평가, 발화 기록)은 업무 서식 목록에서 뺀다. 서식 파일과 이미 만든 문서는 그대로 둔다
+const TEAM_ONLY = { doc: ['request', 'interview'], sheet: [], form: ['ut', 'consent'] }
+export const listedTemplates = (k) => k.templates.filter((t) => !TEAM_ONLY[k.key].includes(t.key))
+
 export const KINDS = [
   { key: 'doc', label: '문서', Icon: FileText, templates: DOC_TEMPLATES, newLabel: '새 문서', text: 'text-kind-doc', bg: 'bg-kind-doc' },
   { key: 'sheet', label: '시트', Icon: Sheet, templates: SHEET_TEMPLATES, newLabel: '새 시트', text: 'text-kind-sheet', bg: 'bg-kind-sheet' },
@@ -119,14 +123,10 @@ export default function WorkspaceHome() {
     navigate(`/console/workspace/${kind.key}/${id}`)
   }
 
+  const listed = listedTemplates(kind)
   const cats = kind.key === 'doc'
-    ? [{ value: 'all', label: `전체 ${kind.templates.length - 1}` }, ...DOC_CATEGORIES.map((c) => ({ value: c.key, label: `${c.label} ${DOC_TEMPLATES.filter((t) => t.cat === c.key).length}` }))]
-    : [{ value: 'all', label: `전체 ${kind.templates.length - 1}` }]
-  const NOTE = {
-    doc: '행정업무운영 편람 양식(기안문, 보고서, 계획서, 공고, 회의록, 보도자료)을 따릅니다. 숫자 칸은 상황판의 지금 값으로 채워집니다.',
-    sheet: '명부와 설문 응답에 바로 연결되는 표입니다. 바꾼 값은 명부에도 반영됩니다.',
-    form: '주민과 도우미에게 링크로 보내는 설문입니다. 응답은 시트로 바로 모입니다.'
-  }
+    ? [{ value: 'all', label: `전체 ${listed.length - 1}` }, ...DOC_CATEGORIES.map((c) => ({ value: c.key, label: `${c.label} ${listed.filter((t) => t.cat === c.key).length}`, n: listed.filter((t) => t.cat === c.key).length })).filter((c) => c.n).map(({ value, label }) => ({ value, label }))]
+    : [{ value: 'all', label: `전체 ${listed.length - 1}` }]
 
   return (
     <PageShell title="문서함">
@@ -151,13 +151,11 @@ export default function WorkspaceHome() {
           )}
         </div>
         <ChoiceChips label="서식 종류" size="sm" value={cat} onChange={setCat} options={cats} className="mt-3" />
-        <p className="mt-2 type-meta text-text-meta">{NOTE[kind.key]}</p>
         <ul className="mt-4 grid grid-cols-2 gap-4 cq-sm:grid-cols-3 cq-lg:grid-cols-4 cq-xl:grid-cols-6">
-          {kind.templates.filter((t) => kind.key !== 'doc' || cat === 'all' || t.key === 'blank' || t.cat === cat).map((t) => (
+          {listed.filter((t) => kind.key !== 'doc' || cat === 'all' || t.key === 'blank' || t.cat === cat).map((t) => (
             <li key={t.key} className="min-w-0">
-              <button type="button" onClick={() => make(t)} className="group block w-full text-left" title={t.desc}>
+              <button type="button" onClick={() => make(t)} className="group block w-full text-left">
                 <TemplateThumb kind={kind.key} t={t} />
-                <span className="mt-2 line-clamp-2 block min-h-[2.25rem] type-meta text-text-meta">{t.desc}</span>
               </button>
             </li>
           ))}
