@@ -1,17 +1,18 @@
 // 차량과 도우미(IA 4.4). 탭 세 개. ?tab=helpers, ?tab=shelters(대피소 승강기 확인). 차종 탑승 정원은 자문 전 가정값.
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import TableCard from '../../components/dashboard/TableCard.jsx'
+import { Plus } from 'lucide-react'
+import DataList from '../../components/console/DataList.jsx'
+import InfoRows from '../../components/console/InfoRows.jsx'
+import PageHeader from '../../components/console/PageHeader.jsx'
+import EmptyState from '../../components/ui/EmptyState.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
-import EditPencil from '../../components/edit/EditPencil.jsx'
 import EntityForm, { msToYmd, validate, ymdToMs } from '../../components/edit/EntityForm.jsx'
-import InlineEditBar from '../../components/edit/InlineEditBar.jsx'
 import GradeChip from '../../components/miri/GradeChip.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import { GRADE_OPTIONS } from '../../components/miri/ReviewRow.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Drawer from '../../components/ui/Drawer.jsx'
-import Tabs from '../../components/ui/Tabs.jsx'
 import Toggle from '../../components/ui/Toggle.jsx'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import { shelterLiftRows } from '../../lib/tripChecks.js'
@@ -48,6 +49,10 @@ export default function ResourcesPage() {
   const [errors, setErrors] = useState({})
   // 협약을 확인하지 않은 차량을 먼저 본다(공무원 시점 검수: '확인 전 11대'가 첫 줄에 와야 할 일이 보임)
   const [onlyUnconfirmed, setOnlyUnconfirmed] = useState(false)
+  // 목록에서 고른 줄(탭마다 따로). 고르지 않으면 첫 줄
+  const [selVehicle, setSelVehicle] = useState(null)
+  const [selHelper, setSelHelper] = useState(null)
+  const [selShelter, setSelShelter] = useState(null)
 
   const dongName = (c) => dongs.find((d) => d.code === c)?.name || c
   const vlabel = (c) => villages.find((v) => v.code === c)?.label || c
@@ -103,67 +108,34 @@ export default function ResourcesPage() {
   const openVehicle = (v) => { setErrors({}); setForm({ kind: 'vehicle', mode: 'edit', value: { ...v, contractUntil: msToYmd(v.contractUntil) } }) }
   const openHelper = (h) => { setErrors({}); setForm({ kind: 'helper', mode: 'edit', value: { ...h } }) }
 
+  // 목록 열은 필수만. 소속, 협약 만료일, 대기 동, 한 번에 태우는 수, 비고는 오른쪽 상세
   const vehicleColumns = [
     { key: 'code', label: '차량 코드', sortable: true, render: (v) => <span className="type-strong tabular-nums">{v.code}</span> },
     { key: 'type', label: '차종', sortable: true, render: (v) => typeOf(v.type)?.label },
-    { key: 'cap', label: '한 번에 태우는 수', hideBelow: 'lg', render: (v) => <span className="type-meta text-text-sec">{capText(v.type)}</span> },
-    { key: 'owner', label: '소속', sortable: true, render: (v) => OWNERS[v.owner] },
-    {
-      key: 'contractUntil', label: '협약 만료일', sortable: true, sortValue: (v) => v.contractUntil || Infinity, hideBelow: 'md',
-      render: (v) => (v.contractUntil ? (
-        <span className="inline-flex flex-wrap items-center gap-2 tabular-nums">{fmtDate(v.contractUntil)}{contractStatus(v) && <StatusPill status={contractStatus(v)} size="sm" />}</span>
-      ) : <span className="text-text-meta">해당 없음</span>)
-    },
-    { key: 'baseDong', label: '대기 동', hideBelow: 'lg', render: (v) => dongName(v.baseDong) },
-    { key: 'commitment', label: '협약 상태', sortable: true, sortValue: (v) => commitmentOf(v), hideBelow: 'md', render: (v) => <span className="type-body-sm text-text-sec">{COMMITMENTS[commitmentOf(v)]}</span> },
-    {
-      key: 'available', label: '출동',
-      render: (v) => (canVehicle
-        ? <Toggle checked={v.available !== false} label={v.available !== false ? '출동 가능' : (v.note || '제외')} onChange={(x) => upsertVehicle({ code: v.code, available: x })} />
-        : <StatusPill status={v.available !== false ? 'available' : 'unavailable'} label={v.available !== false ? '출동 가능' : (v.note || '제외')} />)
-    },
-    { key: 'edit', label: '편집', render: (v) => <EditPencil resource="vehicles" label={`${v.code} 수정`} onClick={() => openVehicle(v)} /> }
+    { key: 'commitment', label: '협약 상태', sortable: true, sortValue: (v) => commitmentOf(v), render: (v) => <span className={commitmentOf(v) === 'unconfirmed' ? 'type-strong text-text-pri' : 'text-text-sec'}>{COMMITMENTS[commitmentOf(v)]}</span> },
+    { key: 'contractUntil', label: '협약 만료일', sortable: true, sortValue: (v) => v.contractUntil || Infinity, render: (v) => (v.contractUntil ? <span className={contractStatus(v) ? 'type-strong text-danger-text' : 'text-text-sec'}>{fmtDate(v.contractUntil)}</span> : <span className="text-text-meta">해당 없음</span>) },
+    { key: 'available', label: '출동', render: (v) => <span className={v.available !== false ? 'text-text-sec' : 'type-strong text-text-pri'}>{v.available !== false ? '출동 가능' : (v.note || '제외')}</span> }
   ]
+  const vehicleGrid = 'minmax(5.5rem,1fr) minmax(6.5rem,1.3fr) minmax(5.5rem,1fr) minmax(6.5rem,1.1fr) minmax(5.5rem,1fr)'
   const helperColumns = [
     { key: 'code', label: '도우미 코드', sortable: true, render: (h) => <span className="type-strong tabular-nums">{h.code}</span> },
     { key: 'villages', label: '담당 마을', render: (h) => <span className="type-body-sm">{h.villages.map(vlabel).join(', ')}</span> },
-    { key: 'affiliation', label: '소속', sortable: true, sortValue: (h) => affiliationLabel(h), hideBelow: 'md', render: (h) => <span className="type-body-sm text-text-sec">{affiliationLabel(h)}</span> },
-    { key: 'grades', label: '지원 등급', hideBelow: 'md', render: (h) => <span className="flex flex-wrap gap-1">{GRADES.filter((g) => h.grades.includes(g.key)).map((g) => <GradeChip key={g.key} grade={g.key} size="sm" />)}</span> },
-    { key: 'channel', label: '연락 수단', hideBelow: 'lg', render: () => '문자' },
-    {
-      key: 'consent', label: '동의와 교육', hideBelow: 'md',
-      render: (h) => (
-        <span className="type-body-sm text-text-sec">
-          {h.consent === false ? '동의 철회' : h.consentAt ? '동의' : '동의 기록 없음'}
-          {Array.isArray(h.roles) && h.roles.length ? `, ${h.roles.map((r) => HELPER_ROLES[r] || r).join(', ')}` : ''}
-          {h.bls ? ', 기본소생술 이수' : ''}{h.insured ? ', 상해보험 확인' : ''}
-        </span>
-      )
-    },
-    { key: 'active', label: '상태', render: (h) => <StatusPill status={h.active !== false ? 'accept' : 'unavailable'} label={h.active !== false ? '활동 중' : '휴면'} /> },
-    { key: 'edit', label: '편집', render: (h) => <EditPencil resource="helpers" label={`${h.code} 수정`} onClick={() => openHelper(h)} /> }
+    { key: 'affiliation', label: '소속', sortable: true, sortValue: (h) => affiliationLabel(h), render: (h) => <span className="type-body-sm text-text-sec">{affiliationLabel(h)}</span> },
+    { key: 'grades', label: '지원 등급', render: (h) => <span className="type-body-sm text-text-sec">{GRADES.filter((g) => h.grades.includes(g.key)).map((g) => g.label).join(', ')}</span> },
+    { key: 'active', label: '상태', render: (h) => <span className={h.active !== false ? 'text-text-sec' : 'type-strong text-text-pri'}>{h.active !== false ? '활동 중' : '휴면'}</span> }
   ]
+  const helperGrid = 'minmax(5.5rem,1fr) minmax(6.5rem,1.2fr) minmax(5.5rem,1fr) minmax(8rem,1.4fr) minmax(4.5rem,0.7fr)'
 
   const shelterRows = shelterLiftRows(shelters, villages, persons)
   const liftAlerts = shelterRows.filter((r) => r.liftAlert).length
   const LIFT_LABEL = { yes: '있음', no: '없음', unchecked: '승강기 확인 필요' }
   const shelterColumns = [
     { key: 'name', label: '대피소', render: (r) => <span className="type-strong">{r.name}</span> },
-    { key: 'capacity', label: '수용', hideBelow: 'md', render: (r) => <span className="tabular-nums">{(r.capacity || 0).toLocaleString('ko-KR')}명</span> },
-    { key: 'liftNeed', label: '휠체어와 침상 대상자', render: (r) => <span className="tabular-nums">{r.liftNeed ? `${r.liftNeed.toLocaleString('ko-KR')}명` : '없음'}</span> },
-    {
-      key: 'lift', label: '승강기와 진입로',
-      render: (r) => (canVehicle
-        ? <SegmentControl label={`${r.name} 승강기와 진입로`} value={r.liftStatus} onChange={(x) => { updateShelter(r.code, { liftAccess: x === 'yes' ? true : x === 'no' ? false : null }); toast(`${r.name}: ${LIFT_LABEL[x]}`) }} items={[{ value: 'unchecked', label: '미확인' }, { value: 'yes', label: '있음' }, { value: 'no', label: '없음' }]} />
-        : <StatusPill status={r.liftStatus === 'yes' ? 'available' : r.liftStatus === 'no' ? 'unavailable' : 'expiring'} label={LIFT_LABEL[r.liftStatus]} />)
-    },
-    {
-      key: 'checked', label: '확인 날짜', hideBelow: 'md',
-      render: (r) => (r.liftAlert
-        ? <span className="type-body-sm text-danger-text">{r.liftStatus === 'no' ? '없음, 배정 전 다른 대피소 검토' : '승강기 확인 필요'}</span>
-        : <span className="type-body-sm text-text-sec tabular-nums">{r.liftCheckedAt ? fmtDate(r.liftCheckedAt) : '기록 없음'}</span>)
-    }
+    { key: 'capacity', label: '수용', sortValue: (r) => r.capacity || 0, sortable: true, render: (r) => <span className="tabular-nums text-text-sec">{(r.capacity || 0).toLocaleString('ko-KR')}명</span> },
+    { key: 'liftNeed', label: '휠체어와 침상', sortValue: (r) => r.liftNeed || 0, sortable: true, render: (r) => <span className="tabular-nums text-text-sec">{r.liftNeed ? `${r.liftNeed.toLocaleString('ko-KR')}명` : '없음'}</span> },
+    { key: 'lift', label: '승강기와 진입로', render: (r) => <span className={r.liftAlert ? 'type-strong text-danger-text' : 'text-text-sec'}>{LIFT_LABEL[r.liftStatus]}</span> }
   ]
+  const shelterGrid = 'minmax(8rem,1.6fr) minmax(5rem,0.8fr) minmax(6.5rem,1fr) minmax(8rem,1.3fr)'
 
   const unconfirmedCount = vehicles.filter((v) => commitmentOf(v) === 'unconfirmed').length
   // 차종별로 풀어 보여, 부족분 계산의 협약 대수와 어떤 관계인지 한 줄로 읽히게 한다
@@ -172,42 +144,139 @@ export default function ResourcesPage() {
     .filter((v) => !onlyUnconfirmed || commitmentOf(v) === 'unconfirmed')
     .slice().sort((a, b) => (commitmentOf(a) === 'unconfirmed' ? 0 : 1) - (commitmentOf(b) === 'unconfirmed' ? 0 : 1))
 
+  const vehicle = vehicleRows.find((v) => v.code === selVehicle) || vehicleRows[0] || null
+  const helper = helpers.find((h) => h.code === selHelper) || helpers[0] || null
+  const shelter = shelterRows.find((r) => r.code === selShelter) || shelterRows[0] || null
+
+  // 오른쪽 상세 공통 틀: 머리(이름과 상태), 본문(내부 스크롤), 아래 고정 단추
+  const pane = (label, head, body, foot) => (
+    <section aria-label={label} className="flex min-h-0 min-w-0 flex-col">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 pb-3">{head}</div>
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">{body}</div>
+      {foot && <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 pt-3">{foot}</div>}
+    </section>
+  )
+  const listHead = (title, count, sub) => (
+    <h2 className="shrink-0 pb-2 type-title text-text-pri">
+      {title} <span className="tabular-nums text-text-sec">{count}</span>
+      {sub && <span className="type-body-sm font-normal text-text-sec tabular-nums">, {sub}</span>}
+    </h2>
+  )
+
+  const vehicleDetail = vehicle ? pane('선택한 차량',
+    <>
+      <h2 className="type-title tabular-nums text-text-pri">{vehicle.code}</h2>
+      <span className="type-body text-text-sec">{typeOf(vehicle.type)?.label}</span>
+      <StatusPill status={commitmentOf(vehicle) === 'unconfirmed' ? 'expiring' : 'available'} label={COMMITMENTS[commitmentOf(vehicle)]} />
+    </>,
+    <InfoRows rows={[
+      { label: '협약 상태', value: COMMITMENTS[commitmentOf(vehicle)], strong: true },
+      { label: '소속', value: OWNERS[vehicle.owner] || '소속 확인 필요' },
+      { label: '협약 만료일', value: vehicle.contractUntil ? <span className="inline-flex flex-wrap items-center gap-2">{fmtDate(vehicle.contractUntil)}{contractStatus(vehicle) && <StatusPill status={contractStatus(vehicle)} size="sm" />}</span> : '해당 없음' },
+      { label: '대기 동', value: dongName(vehicle.baseDong) },
+      { label: '한 번에 태우는 수', value: capText(vehicle.type) },
+      { label: '출동', value: canVehicle
+        ? <Toggle checked={vehicle.available !== false} label={vehicle.available !== false ? '출동 가능' : (vehicle.note || '제외')} onChange={(x) => upsertVehicle({ code: vehicle.code, available: x })} />
+        : (vehicle.available !== false ? '출동 가능' : (vehicle.note || '제외')) },
+      { label: '비고', value: vehicle.note || '없음' }
+    ]} />,
+    <>
+      {commitmentOf(vehicle) === 'unconfirmed' && <Button as={Link} to="/console/shortage" variant="secondary">필요한 협약 대수 보기</Button>}
+      {canVehicle && <Button variant="primary" onClick={() => openVehicle(vehicle)}>수정</Button>}
+    </>
+  ) : <EmptyState compact title="표시할 차량 없음" />
+
+  const helperDetail = helper ? pane('선택한 도우미',
+    <>
+      <h2 className="type-title tabular-nums text-text-pri">{helper.code}</h2>
+      <span className="type-body text-text-sec">{affiliationLabel(helper)}</span>
+      <StatusPill status={helper.active !== false ? 'accept' : 'unavailable'} label={helper.active !== false ? '활동 중' : '휴면'} />
+    </>,
+    <InfoRows rows={[
+      { label: '담당 마을', value: helper.villages.map(vlabel).join(', '), strong: true },
+      { label: '지원 가능 등급', value: <span className="inline-flex flex-wrap gap-1">{GRADES.filter((g) => helper.grades.includes(g.key)).map((g) => <GradeChip key={g.key} grade={g.key} size="sm" />)}</span> },
+      { label: '역할', value: Array.isArray(helper.roles) && helper.roles.length ? helper.roles.map((r) => HELPER_ROLES[r] || r).join(', ') : '없음' },
+      { label: '연락 수단', value: '문자' },
+      { label: '사전 동의', value: helper.consent === false ? '동의 철회' : helper.consentAt ? '동의' : '동의 기록 없음' },
+      { label: '기본소생술 교육', value: helper.bls ? '이수' : '미이수' },
+      { label: '봉사 상해보험', value: helper.insured ? '적용 확인' : '확인 전' }
+    ]} />,
+    canVehicle && <Button variant="primary" onClick={() => openHelper(helper)}>수정</Button>
+  ) : <EmptyState compact title="표시할 도우미 없음" />
+
+  const shelterDetail = shelter ? pane('선택한 대피소',
+    <>
+      <h2 className="type-title text-text-pri">{shelter.name}</h2>
+      <StatusPill status={shelter.liftStatus === 'yes' ? 'available' : shelter.liftStatus === 'no' ? 'unavailable' : 'expiring'} label={LIFT_LABEL[shelter.liftStatus]} />
+    </>,
+    <InfoRows rows={[
+      { label: '수용', value: `${(shelter.capacity || 0).toLocaleString('ko-KR')}명` },
+      { label: '휠체어와 침상 대상자', value: shelter.liftNeed ? `${shelter.liftNeed.toLocaleString('ko-KR')}명` : '없음' },
+      { label: '승강기와 진입로', strong: true, value: canVehicle
+        ? <SegmentControl label={`${shelter.name} 승강기와 진입로`} value={shelter.liftStatus} onChange={(x) => { updateShelter(shelter.code, { liftAccess: x === 'yes' ? true : x === 'no' ? false : null }); toast(`${shelter.name}: ${LIFT_LABEL[x]}`) }} items={[{ value: 'unchecked', label: '미확인' }, { value: 'yes', label: '있음' }, { value: 'no', label: '없음' }]} />
+        : LIFT_LABEL[shelter.liftStatus] },
+      { label: '확인 날짜', value: shelter.liftAlert ? (shelter.liftStatus === 'no' ? '없음, 배정 전 다른 대피소 검토' : '승강기 확인 필요') : (shelter.liftCheckedAt ? fmtDate(shelter.liftCheckedAt) : '기록 없음') }
+    ]} />,
+    null
+  ) : <EmptyState compact title="표시할 대피소 없음" />
+
+  const tabItems = [{ value: 'vehicles', label: `차량 ${vehicles.length}` }, { value: 'helpers', label: `도우미 ${helpers.length}` }, { value: 'shelters', label: liftAlerts ? `대피소 확인 ${liftAlerts}` : `대피소 ${shelters.length}` }]
+  const addAction = canVehicle && tab !== 'shelters' && (
+    <Button variant="primary" leftIcon={<Plus size={16} aria-hidden="true" />} onClick={() => {
+      setErrors({})
+      if (tab === 'helpers') setForm({ kind: 'helper', mode: 'add', value: { code: '', villages: [], grades: ['assist', 'walk'], roles: ['ride'], consent: true, consentAt: Date.now(), bls: false, insured: false, active: true } })
+      else setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'request', baseDong: 'MS', available: true, contractUntil: '', note: '', commitment: 'unconfirmed' } })
+    }}>{tab === 'helpers' ? '도우미 추가' : '차량 추가'}</Button>
+  )
+  const grid = 'grid min-h-0 flex-1 gap-x-10 gap-y-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(380px,1fr)]'
+  const listCls = 'flex min-h-0 flex-col max-lg:max-h-[50vh]'
+
   return (
-    <PageShell title="차량과 도우미">
-      <Tabs
-        className="mb-4" value={tab}
-        onChange={(t) => setParams(t === 'vehicles' ? {} : { tab: t })}
-        items={[{ value: 'vehicles', label: `차량 ${vehicles.length}` }, { value: 'helpers', label: `도우미 ${helpers.length}` }, { value: 'shelters', label: liftAlerts ? `대피소 확인 ${liftAlerts}` : `대피소 ${shelters.length}` }]}
+    <PageShell title="차량과 도우미" hideHeader className="flex flex-col lg:h-full lg:pb-4">
+      <PageHeader
+        title="차량과 도우미" className="!mb-3 shrink-0"
+        action={(
+          <>
+            <SegmentControl label="보기" value={tab} onChange={(t) => setParams(t === 'vehicles' ? {} : { tab: t })} items={tabItems} />
+            {addAction}
+          </>
+        )}
       />
       {tab === 'shelters' ? (
-        <TableCard
-          key="shelters" title="대피소 승강기와 진입로" count={`확인 필요 ${liftAlerts}곳 / 전체 ${shelters.length}곳`}
-         
-          columns={shelterColumns} rows={shelterRows} rowKey={(r) => r.code} caption="대피소 승강기 확인 목록"
-        />
+        <div className={grid}>
+          <section aria-label="대피소 목록" className={listCls}>
+            {listHead('대피소', `${shelters.length}곳`, `승강기 확인 필요 ${liftAlerts}곳`)}
+            <DataList label="대피소 목록" columns={shelterColumns} grid={shelterGrid} rows={shelterRows} rowKey={(r) => r.code} selectedKey={shelter?.code} onSelect={setSelShelter} />
+          </section>
+          {shelterDetail}
+        </div>
       ) : tab === 'vehicles' ? (
         <>
-        {unconfirmedCount > 0 && (
-          <div className="mb-4 flex flex-wrap items-center gap-3">
-            <p className="type-body text-text-pri tabular-nums">협약 미확정 차량 <strong className="type-strong">{unconfirmedCount}대</strong>({unconfirmedByType})</p>
-            <Button variant={onlyUnconfirmed ? 'secondary' : 'primary'} size="sm" onClick={() => setOnlyUnconfirmed((v) => !v)}>
-              {onlyUnconfirmed ? '전체 차량 보기' : '미확정 차량만 보기'}
-            </Button>
-            <Button as={Link} to="/console/shortage" variant="secondary" size="sm">필요한 협약 대수 보기</Button>
+          {unconfirmedCount > 0 && (
+            <div className="mb-3 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2">
+              <p className="type-body text-text-pri tabular-nums">협약 미확정 차량 <strong className="type-strong">{unconfirmedCount}대</strong>({unconfirmedByType})</p>
+              <Button variant={onlyUnconfirmed ? 'secondary' : 'primary'} size="sm" onClick={() => setOnlyUnconfirmed((v) => !v)}>
+                {onlyUnconfirmed ? '전체 차량 보기' : '미확정 차량만 보기'}
+              </Button>
+              <Button as={Link} to="/console/shortage" variant="secondary" size="sm">필요한 협약 대수 보기</Button>
+            </div>
+          )}
+          <div className={grid}>
+            <section aria-label="차량 목록" className={listCls}>
+              {listHead('차량', `${vehicleRows.length}대`, vehicleChips(vehicles))}
+              <DataList label="차량 목록" columns={vehicleColumns} grid={vehicleGrid} rows={vehicleRows} rowKey={(v) => v.code} selectedKey={vehicle?.code} onSelect={setSelVehicle} emptyTitle="조건에 맞는 차량 없음" />
+            </section>
+            {vehicleDetail}
           </div>
-        )}
-        <TableCard
-          key="vehicles" title="차량" count={vehicleChips(vehicles)}
-          actions={<InlineEditBar resource="vehicles" addLabel="차량 추가" onAdd={() => { setErrors({}); setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'request', baseDong: 'MS', available: true, contractUntil: '', note: '', commitment: 'unconfirmed' } }) }} />}
-          columns={vehicleColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={vehicleRows} rowKey={(v) => v.code} caption="차량 목록"
-        />
         </>
       ) : (
-        <TableCard
-          key="helpers" title="도우미" count={`활동 중 ${helpers.filter((h) => h.active !== false).length} / 전체 ${helpers.length}명`}
-          actions={<InlineEditBar resource="helpers" addLabel="도우미 추가" onAdd={() => { setErrors({}); setForm({ kind: 'helper', mode: 'add', value: { code: '', villages: [], grades: ['assist', 'walk'], roles: ['ride'], consent: true, consentAt: Date.now(), bls: false, insured: false, active: true } }) }} />}
-          columns={helperColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={helpers} rowKey={(h) => h.code} caption="도우미 목록"
-        />
+        <div className={grid}>
+          <section aria-label="도우미 목록" className={listCls}>
+            {listHead('도우미', `${helpers.length}명`, `활동 중 ${helpers.filter((h) => h.active !== false).length}명`)}
+            <DataList label="도우미 목록" columns={helperColumns} grid={helperGrid} rows={helpers} rowKey={(h) => h.code} selectedKey={helper?.code} onSelect={setSelHelper} emptyTitle="등록된 도우미 없음" />
+          </section>
+          {helperDetail}
+        </div>
       )}
 
       <Drawer
