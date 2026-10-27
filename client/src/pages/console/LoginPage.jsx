@@ -58,8 +58,8 @@ export default function LoginPage() {
       <div className="w-full max-w-[440px]">
         <Logo to="/console" />
         <Card as="div" padding="lg" className="mt-6">
-          <h1 className="type-h1 text-text-pri">담당자 로그인</h1>
-          <p className="mt-2 type-body-sm text-text-sec">혼자 대피하기 어려운 주민을 보호하기 위해, 옮길 차와 사람이 몇 명분 모자라는지 평소에 확인하는 담당자용 서비스입니다.</p>
+          <p className="type-caption text-text-sec">재난취약자 사전 이송 배정</p>
+          <h1 className="mt-1 type-h1 text-text-pri">담당자 로그인</h1>
           {USE_MOCK && <p className="mt-2 type-body-sm text-text-sec">시연 계정을 선택합니다.</p>}
           {USE_MOCK ? (
             <>

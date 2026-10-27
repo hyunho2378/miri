@@ -20,7 +20,13 @@ import { DATA_SOURCES, DONG_STATS, LTC } from '../../mock/donghaeData.js'
 export default function SettingsPage() {
   const settings = useMiriStore((s) => s.settings)
   const { hash } = useLocation()
-  useEffect(() => { if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' }) }, [hash])
+  useEffect(() => {
+    if (!hash) return undefined
+    let n = 0
+    const go = () => { const el = document.getElementById(hash.slice(1)); if (el) el.scrollIntoView({ block: 'start' }); else if (n++ < 10) t = setTimeout(go, 100) }
+    let t = setTimeout(go, 50)
+    return () => clearTimeout(t)
+  }, [hash])
   const persons = useMiriStore((s) => s.persons)
   const villages = useMiriStore((s) => s.villages)
   const shelters = useMiriStore((s) => s.shelters)
