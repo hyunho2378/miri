@@ -277,13 +277,19 @@ export default function RosterPage() {
           </div>
         ) : open && (
           <div className="space-y-5">
+            <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
             <KeyValue items={[
-              { label: '당사자와 계획 확인', value: open.planCheckedAt ? `마지막 확인 ${fmtDate(open.planCheckedAt)}${planLast?.by?.name ? ` (${planLast.by.name}${planWithLabel(planLast) ? `, ${planWithLabel(planLast)} 확인` : ''})` : ''}` : '재확인 필요', strong: true },
+              { label: '당사자와 계획 확인', value: open.planCheckedAt ? `${checkedOf(open, now).stale ? '재확인 필요, ' : ''}마지막 확인 ${fmtDate(open.planCheckedAt)}${planLast?.by?.name ? ` (${planLast.by.name}${planWithLabel(planLast) ? `, ${planWithLabel(planLast)} 확인` : ''})` : ''}` : '재확인 필요', strong: true },
               { label: '이송 등급', value: <GradeChip grade={open.grade} /> },
               { label: '등급 확인', value: <StatusPill status={open.review} /> },
               { label: '마을', value: vlabel(open.villageCode) },
               { label: '특이사항', value: open.tags.map((t) => TAGS[t]).join(', ') || '없음' },
               { label: '도우미에게 주소 알림', value: open.locConsent === true ? '동의' : '미동의' },
+              { label: '입력 방법', value: <SourceLabel source={open.gradeSource} /> },
+              { label: '근거 서류', value: open.docId || '없음' },
+              { label: '갱신일', value: fmtDate(open.updatedAt) }
+            ]} />
+            <KeyValue items={[
               ...(open.access ? [
                 { label: '거주 층수', value: open.access.floor },
                 { label: '계단과 엘리베이터', value: open.access.stairs },
@@ -296,11 +302,9 @@ export default function RosterPage() {
                 { label: '의사소통 특성', value: !c.known ? NOT_ENTERED : c.comm.length ? c.comm.join(', ') : '없음' },
                 { label: '보조기구', value: !c.known ? NOT_ENTERED : c.aids.length ? c.aids.join(', ') : '없음' },
                 { label: '탑승 메모', value: c.boardingNote || '없음' }
-              ] })(),
-              { label: '입력 방법', value: <SourceLabel source={open.gradeSource} /> },
-              { label: '근거 서류', value: open.docId || '없음' },
-              { label: '갱신일', value: fmtDate(open.updatedAt) }
+              ] })()
             ]} />
+            </div>
             {evidence && (
               <div className="space-y-3">
                 <h3 className="type-h3 text-text-pri">서류 근거</h3>
