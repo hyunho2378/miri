@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ArrowRight, CircleAlert, FileAudio } from 'lucide-react'
 import { TAGS } from '../../lib/intake.js'
 import { sourceLabel } from '../../lib/notes.js'
+import { GRADE_RANK } from '../../lib/shortage.js'
 import { fmtDate } from '../../lib/time.js'
 import Badge from '../ui/Badge.jsx'
 import Button from '../ui/Button.jsx'
@@ -34,6 +35,7 @@ export default function NoteReview({ note, villageLabel, canEdit, onApply, onEdi
   const [grade, setGrade] = useState(d.next.grade)
   const [tags, setTags] = useState(d.next.tags)
   const edited = grade !== d.next.grade || !sameTags(tags, d.next.tags)
+  const lightenedNow = GRADE_RANK[grade] > GRADE_RANK[current.grade]
   const willChange = grade !== current.grade || !sameTags(tags, current.tags)
   return (
     <Card as="div" padding="lg" aria-label={`현장 소식, 대상자 ${note.personCode}`}>
@@ -60,11 +62,11 @@ export default function NoteReview({ note, villageLabel, canEdit, onApply, onEdi
           </div>
 
           <div className="rounded-md bg-subtle p-4">
-            <p className="type-caption text-text-sec">명부가 이렇게 바뀝니다</p>
+            <p className="type-caption text-text-sec">명부 반영 내용</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <GradeChip grade={current.grade} />
               <ArrowRight size={16} aria-hidden="true" className="text-text-meta" />
-              {d.gradeChanged ? <GradeChip grade={d.next.grade} /> : <span className="type-meta text-text-meta">등급 그대로</span>}
+              {grade !== current.grade ? <GradeChip grade={grade} /> : <span className="type-meta text-text-meta">등급 유지</span>}
             </div>
             <p className="mt-2 type-meta text-text-sec">
               특이사항 {d.addedTags.length || d.removedTags.length ? [
@@ -77,19 +79,19 @@ export default function NoteReview({ note, villageLabel, canEdit, onApply, onEdi
 
           {!d.changed && (
             <p className="inline-flex items-center gap-1.5 type-meta text-text-sec">
-              <CircleAlert size={16} aria-hidden="true" />소식에서 달라진 점을 찾지 못했습니다. 명부는 그대로 둡니다.
+              <CircleAlert size={16} aria-hidden="true" />변경 사항 없음, 명부 유지
             </p>
           )}
           {!read.quoteMatched && d.changed && (
             <p role="note" className="flex items-start gap-1.5 rounded-md bg-danger-soft p-3 type-meta text-danger-text">
               <CircleAlert size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
-              근거 문장을 소식에서 찾지 못했습니다. 반영하기 전에 소식을 다시 확인하십시오.
+              근거 문장 미확인, 소식 원문 재확인 필요
             </p>
           )}
-          {read.lightened && (
+          {lightenedNow && (
             <p role="note" className="flex items-start gap-1.5 rounded-md bg-warning-soft p-3 type-meta text-warning-text">
               <CircleAlert size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
-              도움이 덜 필요해지는 변경입니다. 안전을 위해 일치도를 한 단계 낮춰 표시했습니다. 소식 원문과 대조한 뒤 반영해 주십시오.
+              등급 하향, 소식 원문 대조 후 반영
             </p>
           )}
 
@@ -97,7 +99,7 @@ export default function NoteReview({ note, villageLabel, canEdit, onApply, onEdi
             <>
               <Select label="이송 등급" value={grade} options={GRADE_OPTIONS} onChange={setGrade} disabled={!canEdit} />
               <MultiSelect label="특이사항" values={tags} options={TAG_OPTIONS} onChange={setTags} disabled={!canEdit} />
-              {edited && <p className="type-meta text-primary-text">AI 제안에서 변경했습니다. 수정 후 반영을 누르면 변경한 값으로 명부를 바꿉니다.</p>}
+              {edited && <p className="type-meta text-primary-text">AI 제안 수정됨, 수정 후 반영 시 변경값 적용</p>}
             </>
           )}
 
