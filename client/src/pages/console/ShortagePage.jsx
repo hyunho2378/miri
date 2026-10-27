@@ -165,7 +165,7 @@ export default function ShortagePage() {
     <div id={panelId} aria-label="계산 조건">
       <div className="space-y-5">
         <div>
-          <Select label="시나리오" value={selectedId} onChange={setSelectedId}
+          <Select label="계산 조건" value={selectedId} onChange={setSelectedId}
             options={scenarios.map((s) => ({ value: s.id, label: s.name, secondary: s.id === activeId ? '현황판 기준' : s.id }))} />
           {dirty && <p className="mt-2 type-meta text-primary-text">저장 전 변경 있음</p>}
         </div>

@@ -277,7 +277,7 @@ export default function MapPage() {
             <SituationSwitch situation={situation} onView={(v) => { setView(v); setSelected(null) }} live={live} kind={dispatchKind} />
             <div className="mt-3 flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <Select label="시나리오" hideLabel compact size="sm" portal menuMinWidth={260} value={scenario.id}
+                <Select label="확산 조건" hideLabel compact size="sm" portal menuMinWidth={260} value={scenario.id}
                   onChange={(v) => { setActiveScenario(v); setSelected(null) }}
                   options={scenarios.map((x) => ({ value: x.id, label: x.name, secondary: HAZARD_KINDS[x.kind]?.label || '재난' }))}
                   className="-ml-1 max-w-full" triggerClassName="bg-subtle ring-0" />

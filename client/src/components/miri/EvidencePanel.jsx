@@ -56,7 +56,7 @@ export default function EvidencePanel({ quote, matched, confidence, conflict, tr
       )}
       <p className={clsx('mt-2 inline-flex items-center gap-1 type-caption', matched ? 'text-text-sec' : 'text-danger-text')}>
         {matched ? <CircleCheck size={16} aria-hidden="true" /> : <CircleAlert size={16} aria-hidden="true" />}
-        {matched ? `${subject} 원문과 일치합니다.` : `${subject} 원문에서 찾지 못한 문구입니다.`}
+        {matched ? `${subject} 원문 일치` : `${subject} 원문에서 미확인`}
       </p>
       {conflict && (
         <p className="mt-2 flex items-start gap-1 type-caption text-danger-text">

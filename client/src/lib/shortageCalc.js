@@ -9,8 +9,8 @@ import { TEMP_SHELTERS } from '../mock/donghaeData.js'
 
 // 발령 시간대. 회신 R24(김현규)와 R27(최충익). 시나리오에 timeBand 가 없으면 이전과 같이 모두 집에 있다고 본다
 export const TIME_BANDS = [
-  { value: 'home', label: '밤이나 휴일', desc: '모든 대상자가 집에 있다고 봅니다.' },
-  { value: 'day', label: '평일 낮', desc: '주야간보호 이용자는 센터에 있어 센터 송영 차량으로 대피한다고 보고 마을 이송 대상에서 뺍니다. 주야간보호기관 차량도 마을 이송에서 뺍니다.' }
+  { value: 'home', label: '밤이나 휴일', desc: '대상자 전원 자택 기준' },
+  { value: 'day', label: '평일 낮', desc: '주야간보호 이용자 센터 대피, 마을 이송 대상 제외' }
 ]
 export const bandOf = (scenario) => TIME_BANDS.find((b) => b.value === (scenario?.timeBand || 'home')) || TIME_BANDS[0]
 const isDayCareVehicle = (v) => Boolean(v.dayCare) || /주야간보호/.test(v.note || '')
