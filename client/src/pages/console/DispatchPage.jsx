@@ -80,10 +80,17 @@ function SpeedControl({ value, onChange }) {
 }
 
 // 현재 단계의 할 일 하나를 크게 보이는 영역
-function TaskCard({ step, title, desc, actions, children }) {
+function TaskCard({ step, title, desc, metric, actions, children }) {
   return (
     <Card as="section" padding="lg" aria-labelledby="dispatch-task">
       <h2 id="dispatch-task" className="type-h1 text-text-pri">{title}</h2>
+      {metric && (
+        <p className="mt-3 flex flex-wrap items-baseline gap-x-2">
+          <span className="type-body text-text-sec">{metric.label}</span>
+          <span className="type-display tabular-nums text-text-pri">{metric.value}</span>
+          <span className="type-body text-text-sec">{metric.unit}</span>
+        </p>
+      )}
       {desc && <p className="mt-2 max-w-text type-body text-text-sec tabular-nums">{desc}</p>}
       {children && <div className="mt-5 space-y-4">{children}</div>}
       {actions && <div className="mt-5 flex flex-wrap items-center gap-3">{actions}</div>}
@@ -228,7 +235,6 @@ function AssignedPanel({ meta }) {
   const scenarioNow = useMiriStore(activeScenario)
   const toast = useToast()
   const [sendOpen, setSendOpen] = useState(false)
-  const trips = result.assignments.reduce((s, a) => s + a.trips.length, 0)
   // 회차 확인 표시(동행 연락, 의사소통, 리프트 진입, 직선 경로). 배정 숫자는 바꾸지 않음
   const checkCtx = useMemo(() => ({
     persons: Object.fromEntries(persons.map((p) => [p.code, p])),
@@ -253,8 +259,9 @@ function AssignedPanel({ meta }) {
     <div className="space-y-4">
       <div className="grid gap-4 xl:grid-cols-2 xl:items-start">
       <TaskCard
-        step="배정 검토" title="배정 확정"
-        desc={`배정 차량 ${result.assignments.length}대, ${trips}회차, 미이송 예상 ${result.unassigned.length}명, 마지막 이송 완료 ${fmtHMFrom(result.metrics.lastFinishAt, firstDepart)}`}
+        step="배정 검토" title="배정표 확인"
+        metric={{ label: '이 배정표로 기한 안에 못 옮기는 사람', value: result.unassigned.length.toLocaleString('ko-KR'), unit: '명' }}
+        desc={`배정 차량 ${result.assignments.length}대, 마지막 이송 완료 ${fmtHMFrom(result.metrics.lastFinishAt, firstDepart)}`}
         actions={(
           <>
             <Button size="lg" leftIcon={<MessageSquareText size={16} aria-hidden="true" />} onClick={() => setSendOpen(true)}>배정표 보내기</Button>
@@ -265,7 +272,7 @@ function AssignedPanel({ meta }) {
         {result.manualEdits ? <p role="status" className="type-body-sm text-text-sec">수동 조정 {result.manualEdits}건을 반영했습니다.</p> : null}
         {kind === 'drill' && <SpeedControl value={speed} onChange={setSpeed} />}
       </TaskCard>
-      <BaselineCompare result={result} villageLabel={meta.label} basisText={`${dispatchBasisText(result.basis)}. 평시 현황판 값은 발령 직후 출발을 가정해 다를 수 있음`} />
+      <BaselineCompare result={result} villageLabel={meta.label} basisText={dispatchBasisText(result.basis)} />
       </div>
       <Modal
         open={sendOpen} onClose={() => setSendOpen(false)} title="배정표 보내기"
@@ -444,12 +451,21 @@ function SentPanel({ now, meta }) {
     return Object.entries(d.arrivals).filter(([c]) => eta[c]).map(([c, arrival]) => ({ code: c, arrival, eta: eta[c] })).sort((a, b) => a.arrival - b.arrival)
   }, [d.result, d.arrivals])
 
+  // 확인 필요(미배정)가 남아 있으면 소방 지원 요청을 먼저, 발령 종료는 그 뒤에 둔다(공무원 시점 점검 2026. 10. 27.)
+  const waitingFire = d.result.unassigned.filter((u) => d.events[u.personCode]?.step !== 'handedToFire')
+  const askFire = () => { const q = d.requestFireSupport(); toast(q ? `소방 지원 요청: 미배정 ${q.count}명, 동해소방서` : '요청할 미배정자가 없습니다.', q ? 'primary' : 'danger') }
+
   return (
     <div className="space-y-4">
       <TaskCard
         step="이송 진행" title="이송 진행 상황 확인"
         desc={`${d.kind === 'drill' ? '훈련 시각' : '현재 시각'} ${fmtHM(now)}, 전송 후 ${remainText(now - d.sentAt).replace(' 경과', '')} 경과`}
-        actions={role === 'city' ? <Button size="lg" variant="danger" onClick={() => setConfirmClose(true)}>발령 종료</Button> : null}
+        actions={role === 'city' ? (
+          <>
+            {waitingFire.length > 0 && <Button size="lg" variant="danger" leftIcon={<LifeBuoy size={16} aria-hidden="true" />} onClick={askFire}>미배정 {waitingFire.length.toLocaleString('ko-KR')}명 소방 지원 요청</Button>}
+            <Button size="lg" variant={waitingFire.length > 0 ? 'secondary' : 'danger'} onClick={() => setConfirmClose(true)}>발령 종료</Button>
+          </>
+        ) : null}
       >
         {d.kind === 'drill' && <SpeedControl value={d.speed} onChange={d.setSpeed} />}
         <p className="type-meta text-text-sec tabular-nums">{progressBasisLine(counts, Object.keys(stops).length)}</p>
@@ -474,13 +490,8 @@ function SentPanel({ now, meta }) {
             <LifeBuoy size={20} aria-hidden="true" className="text-danger-text" />
             <p className="min-w-0 flex-1 type-body-sm text-text-pri">
               <strong className="tabular-nums">미배정 {waiting.length}명</strong>
-              <span className="text-text-sec"> ({Object.entries(byReason).map(([r, n]) => `${UNSERVED_REASON[r] || r} ${n}명`).join(', ')}). 기한까지 기다리지 말고 소방 지원을 요청합니다.</span>
+              <span className="text-text-sec"> ({Object.entries(byReason).map(([r, n]) => `${UNSERVED_REASON[r] || r} ${n}명`).join(', ')}). 기한까지 기다리지 말고 위 단추로 소방 지원을 요청합니다.</span>
             </p>
-            {role === 'city' && (
-              <Button size="sm" variant="danger" onClick={() => { const q = d.requestFireSupport(); toast(q ? `소방 지원 요청: 미배정 ${q.count}명, 동해소방서` : '요청할 미배정자가 없습니다.', q ? 'primary' : 'danger') }}>
-                소방 지원 요청
-              </Button>
-            )}
           </Card>
         )
       })()}
