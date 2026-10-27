@@ -106,6 +106,12 @@ export default function RosterPage() {
     .sort((a, b) => a.code.localeCompare(b.code)),
   [persons, dong, village, grades, source, review, recheck, now]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 담당 범위(동)에서 당사자와 계획 재확인이 필요한 사람 수. 숫자 옆에 바로 거르는 단추를 둔다
+  const staleCount = useMemo(() => persons
+    .filter((p) => dong === 'all' || dongOf(p.villageCode) === dong)
+    .filter((p) => recheckMatch(p, 'stale', now)).length,
+  [persons, dong, now]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const fields = [
     { key: 'villageCode', label: '마을', kind: 'select', required: true, disabled: editing?.mode === 'edit', options: villages.filter((v) => dong === 'all' || v.dongCode === dong).map((v) => ({ value: v.code, label: v.label, secondary: v.code })) },
     { key: 'grade', label: '이송 등급', kind: 'select', required: true, options: GRADE_OPTIONS },
@@ -190,9 +196,13 @@ export default function RosterPage() {
             <MultiSelect compact label="이송 등급" values={grades} onChange={setGrades} options={GRADE_OPTIONS} placeholder="전체" />
             <Select compact label="등급 확인" value={review} onChange={setReview} options={REVIEW_OPTIONS} />
             <Select compact label="마지막 확인" value={recheck} onChange={changeRecheck} options={RECHECK_OPTIONS} />
-            {recheck === 'stale' && (
+            {recheck === 'stale' ? (
               <Chip variant="selected" onClick={() => changeRecheck('all')} aria-label="재확인 필요 필터 해제">
-                재확인 필요만 보기<X size={16} aria-hidden="true" />
+                재확인 필요 {staleCount.toLocaleString('ko-KR')}명<X size={16} aria-hidden="true" />
+              </Chip>
+            ) : staleCount > 0 && (
+              <Chip onClick={() => changeRecheck('stale')} aria-label={`재확인 필요 ${staleCount}명만 보기`}>
+                재확인 필요 {staleCount.toLocaleString('ko-KR')}명
               </Chip>
             )}
             {moreFilters && (
