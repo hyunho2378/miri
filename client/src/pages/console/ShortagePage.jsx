@@ -239,7 +239,7 @@ export default function ShortagePage() {
     none: '부족 없음'
   }[neck.limit] || BOTTLENECK_LABEL[neck.limit]
   const Row = ({ label, value, strong }) => (
-    <li className="grid min-h-12 grid-cols-[minmax(6rem,12rem)_1fr] items-baseline gap-x-6 py-2">
+    <li className="grid min-h-10 grid-cols-[minmax(6rem,12rem)_1fr] items-baseline gap-x-6 py-1">
       <span className="type-body-sm text-text-sec">{label}</span>
       <span className={`tabular-nums ${strong ? 'type-strong text-text-pri' : 'type-body-sm text-text-pri'}`}>{value}</span>
     </li>
@@ -301,7 +301,7 @@ export default function ShortagePage() {
 
         <NumberFlow items={flow} />
 
-        <div className="grid min-w-0 gap-x-12 gap-y-6 cq-xl:grid-cols-[5fr_7fr] cq-xl:items-start">
+        <div className="grid min-w-0 gap-x-8 gap-y-6 cq-lg:grid-cols-[5fr_7fr] cq-lg:items-start cq-xl:gap-x-12">
           <div className="grid min-w-0 gap-4">
             <Section id="sh-methods" title="이동 불가 인원 감소 방안">
               <ul role="listbox" aria-label="이동 불가 인원 감소 방안">
@@ -313,7 +313,7 @@ export default function ShortagePage() {
               <ul className="mt-1">{methodView.basis}</ul>
             </section>
           </div>
-          <div className="min-w-0 max-h-[max(18rem,calc(100vh-26rem))] overflow-y-auto">
+          <div className="min-w-0 max-h-[max(16rem,calc(100vh-21rem))] overflow-y-auto">
             <ShortageTable compact tone="flat" title="마을별 이동 불가 인원" basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} arrivals={result.arrivals} t0={today} pageSize={30} />
           </div>
         </div>

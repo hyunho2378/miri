@@ -24,7 +24,7 @@ export function SideNav({ collapsed = false, onNavigate, showHeader = true }) {
   const row = (m) => {
     if (m.role && m.role !== role) return null
     const active = current?.key === m.key || (m.to && !m.match && pathname === m.to)
-    const cls = clsx('relative flex min-h-9 items-center rounded-lg transition-colors duration-fast',
+    const cls = clsx('relative flex min-h-9 items-center rounded-lg [@media(min-height:800px)]:min-h-10 transition-colors duration-fast',
       collapsed ? 'justify-center px-0' : 'gap-2 px-3',
       active ? 'bg-subtle text-text-pri' : 'text-text-sec hover:bg-subtle hover:text-text-pri')
     const badgeLabel = `확인할 서류 ${pendingDocs}건, 현장 소식 ${pendingNotes}건`

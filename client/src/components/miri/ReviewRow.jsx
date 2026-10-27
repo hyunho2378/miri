@@ -62,13 +62,13 @@ export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdi
           </span>
         )}
       </div>
-      <div className="grid min-h-0 flex-1 gap-x-6 gap-y-4 overflow-y-auto pr-1 cq-sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)] cq-sm:items-start">
+      <div className="grid min-h-0 flex-1 gap-x-6 gap-y-4 overflow-y-auto pr-1 cq-sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)] cq-sm:items-start">
         <div className="order-2 min-w-0 cq-sm:order-1 cq-sm:sticky cq-sm:top-0">
           <p className="mb-2 type-caption text-text-sec">원본 서류</p>
           <div ref={imageRef} tabIndex={-1} className="rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"><DocImage src={doc.image} alt={`${doc.name} 읽기 영역`} box={result.box} /></div>
           <p className="mt-2 type-meta text-text-meta tabular-nums">{doc.name}, {doc.id}</p>
         </div>
-        <div className="order-1 min-w-0 space-y-4 cq-sm:order-2">
+        <div className="order-1 min-w-0 space-y-3 cq-sm:order-2">
           {reasons.length > 0 && (
             <div role="alert" className="rounded-md bg-warning-soft px-3 py-2 type-body-sm text-warning-text">
               <p className="type-strong">확인 필요{result.gradeUncertain ? ', 확인 전까지 휠체어로 계산' : ''}</p>
