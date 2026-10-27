@@ -16,8 +16,8 @@ import Toggle from '../../components/ui/Toggle.jsx'
 import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import { shelterLiftRows } from '../../lib/tripChecks.js'
 import useToast from '../../hooks/useToast.js'
-import { VEHICLE_NOTE, COMMITMENTS, GRADES, HELPER_ROLES, HELPER_AFFILIATIONS, affiliationLabel, OWNERS, VEHICLE_TYPES, commitmentOf, gradeOf, typeOf } from '../../lib/shortage.js'
-import { vehicleSummaryLong, vehicleSummaryShort } from '../../lib/vehicleSummary.js'
+import { COMMITMENTS, GRADES, HELPER_ROLES, HELPER_AFFILIATIONS, affiliationLabel, OWNERS, VEHICLE_TYPES, commitmentOf, gradeOf, typeOf } from '../../lib/shortage.js'
+import { vehicleChips } from '../../lib/vehicleSummary.js'
 import { fmtDate } from '../../lib/time.js'
 import { fmtKDate } from '../../components/miri/BasisLine.jsx'
 import useAuthStore from '../../store/useAuthStore.js'
@@ -164,7 +164,7 @@ export default function ResourcesPage() {
   ]
 
   return (
-    <PageShell title="차량과 도우미" desc="재난 때 쓸 수 있는 차량과 함께 갈 도우미를 평소에 등록하고, 약속이 확인됐는지 관리합니다.">
+    <PageShell title="차량과 도우미">
       <Tabs
         className="mb-4" value={tab}
         onChange={(t) => setParams(t === 'vehicles' ? {} : { tab: t })}
@@ -173,12 +173,12 @@ export default function ResourcesPage() {
       {tab === 'shelters' ? (
         <TableCard
           key="shelters" title="대피소 승강기와 진입로" count={`확인 필요 ${liftAlerts}곳 / 전체 ${shelters.length}곳`}
-          desc="휠체어와 침상 대상자가 가는 대피소는 배정 전에 승강기와 진입로를 확인합니다. 인원은 명부 등급과 마을 대피소 기준이며, 확인 결과는 배정표의 확인 표시에 바로 쓰입니다."
+         
           columns={shelterColumns} rows={shelterRows} rowKey={(r) => r.code} caption="대피소 승강기 확인 목록"
         />
       ) : tab === 'vehicles' ? (
         <TableCard
-          key="vehicles" title="차량" count={vehicleSummaryShort(vehicles)} desc={`${vehicleSummaryLong(vehicles)}. 협약 만료는 ${fmtKDate(today)} 기준으로 판정합니다. 차종별 회차당 정원은 협의 전 가정값입니다. ${VEHICLE_NOTE}`}
+          key="vehicles" title="차량" count={vehicleChips(vehicles)}
           actions={<InlineEditBar resource="vehicles" addLabel="차량 추가" onAdd={() => { setErrors({}); setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'request', baseDong: 'MS', available: true, contractUntil: '', note: '', commitment: 'unconfirmed' } }) }} />}
           columns={vehicleColumns.filter((c) => c.key !== 'edit' || canVehicle)} rows={vehicles} rowKey={(v) => v.code} caption="차량 목록"
         />

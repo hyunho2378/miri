@@ -41,7 +41,7 @@ test('계산 시각 꼬리말과 기준일 설명', () => {
 
 test('화면 연결: 네 화면이 같은 차량 표기 함수, 실제 발령은 앱 안 확인 창', () => {
   const read = (f) => readFileSync(new URL(`../src/pages/console/${f}`, import.meta.url), 'utf8')
-  for (const f of ['OverviewPage.jsx', 'ShortagePage.jsx', 'DispatchPage.jsx', 'ResourcesPage.jsx']) assert.match(read(f), /vehicleSummary(Short|Long)\(vehicles\)/, f)
+  for (const f of ['OverviewPage.jsx', 'ShortagePage.jsx', 'DispatchPage.jsx', 'ResourcesPage.jsx']) assert.match(read(f), /vehicle(Summary(Short|Long)|Chips)\(vehicles\)/, f)
   const dispatch = read('DispatchPage.jsx')
   assert.match(dispatch, /실제 발령으로 바꿀까요\?/)
   assert.doesNotMatch(dispatch, /window\.confirm/)

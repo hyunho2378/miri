@@ -25,6 +25,12 @@ export function vehicleSummaryLong(vehicles) {
   return `등록 ${c.total}대 중 가용 ${c.usable}대${offText(c)}, 약속 ${c.agreed}대, 확인 전 ${c.unconfirmed}대`
 }
 
+// 숫자 칩: 등록 42 / 출동 가능 39 / 협약 확정 31 / 미확정 11
+export function vehicleChips(vehicles) {
+  const c = vehicleCounts(vehicles)
+  return `등록 ${c.total} / 출동 가능 ${c.usable} / 협약 확정 ${c.agreed} / 미확정 ${c.unconfirmed}`
+}
+
 // 짧은 자리: 가용 39대 / 등록 42대
 export function vehicleSummaryShort(vehicles) {
   const c = vehicleCounts(vehicles)
