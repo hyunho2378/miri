@@ -77,7 +77,7 @@ export default function RosterPage() {
   const [params, setParams] = useSearchParams()
 
   const [dong, setDong] = useState(user?.role === 'dong' ? user.dong : 'all')
-  const [village, setVillage] = useState('all')
+  const [village, setVillage] = useState(params.get('village') || 'all')
   const [grades, setGrades] = useState([])
   const [source, setSource] = useState('all')
   const [review, setReview] = useState(params.get('review') || 'all')

@@ -20,7 +20,7 @@ test('재확인 필요 필터는 기록 없음과 90일 초과만 남기고 제�
 test('현황판에서 재확인 필터로 이동하고 선택 칩을 누르면 주소 필터도 해제한다', () => {
   const overview = read('../src/pages/console/OverviewPage.jsx')
   const roster = read('../src/pages/console/RosterPage.jsx')
-  assert.match(overview, /to="\/console\/roster\?recheck=1"/)
+  assert.match(overview, /\/console\/roster\?recheck=1/)
   assert.match(roster, /params\.get\('recheck'\) === '1'/)
   assert.match(roster, /재확인 필요 \{staleCount/)
   assert.match(roster, /aria-label="재확인 필요 필터 해제"/)
