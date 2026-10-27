@@ -266,8 +266,8 @@ export default function ShortagePage() {
   }[methodId]
   const flow = [
     { label: '대피 대상 인원', value: result.scopeTargets, unit: '명', note: `${result.scopeVillages}개 마을` },
-    { label: '기준 배정 시 이동 불가 인원', value: result.total, unit: '명', note: '현재 차량 기준', tone: result.total ? 'danger' : undefined },
-    { label: '추천 배정 시 이동 불가 인원', value: boardingNow in boardingRec ? boardingRec[boardingNow] : '조회 중', unit: boardingNow in boardingRec ? '명' : '', note: '현재 차량 기준' },
+    { label: '기준 배정 시 이동 불가 인원', value: result.total, unit: '명', note: '발령 전, 현재 차량 기준', tone: result.total ? 'danger' : undefined },
+    { label: '추천 배정 시 이동 불가 인원', value: boardingNow in boardingRec ? boardingRec[boardingNow] : '조회 중', unit: boardingNow in boardingRec ? '명' : '', note: '발령 전, 현재 차량 기준' },
     ...(fixLine && !unresolved ? [{ label: '협약 후 이동 불가 인원', value: 0, unit: '명', note: `현재 차량 기준, ${extraLine} 추가` }] : [])
   ]
 

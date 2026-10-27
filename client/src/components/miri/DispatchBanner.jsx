@@ -21,7 +21,7 @@ export default function DispatchBanner() {
       <Siren size={16} aria-hidden="true" />
       <span className="type-caption tabular-nums">{d.kind === 'drill' ? '훈련 발령' : '실제 발령'} 후 {remainText(elapsedMsOf(d, now)).replace(' 경과', '')} 경과</span>
       <span className="type-caption tabular-nums">가장 이른 산불 도달까지 {remainText(earliest - now)}</span>
-      {late && <span className="type-caption tabular-nums">배정표 기준 이동 불가 인원 {unserved}명</span>}
+      {late && <span className="type-caption tabular-nums">배정표 기준 이동 불가 인원 {unserved}명(발령 후)</span>}
       {d.kind === 'drill' && d.speed > 1 && <span className="type-caption">훈련 속도 {d.speed}배</span>}
       {pathname !== '/console/dispatch' && (
         <Link to="/console/dispatch" className="ml-auto type-caption underline underline-offset-2 min-h-11 md:min-h-0 inline-flex items-center">발령 운영</Link>
