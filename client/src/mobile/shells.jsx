@@ -58,12 +58,10 @@ export function MobileStart() {
       <div className="mob-screen">
         <AppBar title="미리 휴대폰 화면" large />
         <main id="main" className="mob-content no-nav">
-          <p className="mob-t-body mob-pad">누가 쓰는 화면인지 고릅니다.</p>
           <List label="화면 고르기">
             <ListRow lead={<Building2 size={22} />} title="현장 담당자용" subtitle="동 행정복지센터 재난 담당 공무원" chevron onClick={() => navigate('/m/f')} />
             <ListRow lead={<HandHeart size={22} />} title="도우미용" subtitle="문자 링크로 이송을 돕는 이웃과 봉사자" chevron onClick={() => navigate('/m/h/demo')} />
           </List>
-          <p className="mob-t-foot mob-pad">마을과 시설은 실제 공개 자료, 대상자 개인은 가상입니다.</p>
           <ExpNotice />
         </main>
       </div>
@@ -109,8 +107,8 @@ const FIELD_TABS = [
 // 현장 담당자 로그인. 차량, 도우미, 대상자 진행은 담당 공무원만 본다.
 // 데모는 콘솔 로그인과 같은 데모 계정 두 개(시 관리자, 동 담당자) 중 하나를 고른다. 실서버는 콘솔 로그인으로 보낸다.
 const LOGIN_ROLES = [
-  { role: 'city', icon: Building2, desc: '동해시 전체 마을, 차량, 도우미 진행' },
-  { role: 'dong', icon: Home, desc: '망상동 마을과 대상자 진행만' }
+  { role: 'city', icon: Building2 },
+  { role: 'dong', icon: Home }
 ]
 export function FieldLogin() {
   const setDemoUser = useAuthStore((s) => s.setDemoUser)
@@ -119,13 +117,11 @@ export function FieldLogin() {
       <div className="mob-screen">
         <AppBar title="계정 고르기" large />
         <main id="main" className="mob-content no-nav">
-          <p className="mob-t-callout mob-pad">미리 현장 담당자 화면입니다. 동 행정복지센터와 시 재난부서 공무원이 씁니다.</p>
           <List label="시연 계정 고르기">
-            {LOGIN_ROLES.map(({ role, icon: Icon, desc }) => (
-              <ListRow key={role} lead={<Icon size={22} />} title={ROLE_LABEL[role]} subtitle={`${DEMO_USERS[role].name}, ${desc}`} chevron onClick={() => setDemoUser(role)} />
+            {LOGIN_ROLES.map(({ role, icon: Icon }) => (
+              <ListRow key={role} lead={<Icon size={22} />} title={ROLE_LABEL[role]} subtitle={DEMO_USERS[role].name} chevron onClick={() => setDemoUser(role)} />
             ))}
           </List>
-          <p className="mob-t-callout mob-pad">마을과 시설은 실제 공개 자료, 대상자 개인은 가상</p>
         </main>
       </div>
     </MobileRoot>

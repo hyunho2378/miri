@@ -5,7 +5,7 @@ import { EXP_NOTICE, expSource, useExpScreen } from '../../lib/expTrack.js'
 import { helperKeyOf } from '../../lib/expSchema.js'
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Armchair, CheckCircle2, CircleX, ClipboardList, Route, Clock, CloudOff, HandHeart, Link2Off, MapPin, Phone, RefreshCw, Send, User, Users } from 'lucide-react'
+import { Armchair, CheckCircle2, CircleX, ClipboardList, Route, Clock, CloudOff, Link2Off, MapPin, Phone, RefreshCw, Send, User, Users } from 'lucide-react'
 import { AppBar, BottomAction, Button, Dialog, DisplaySettings, EmergencyButton, EmptyState, Figure, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, SelectRow, Sheet, Spinner, TwoPane, useLayout, useMobileToast } from '../ui.jsx'
 import { usePlatform } from '../usePlatform.js'
 import { fmtHM } from '../../lib/time.js'
@@ -101,7 +101,6 @@ function IdleHome({ consentKey, onStart }) {
     <>
       <AppBar title="미리 도우미" large />
       <main id="main" className="mob-content no-nav">
-        <List label="이 화면"><ListRow lead={<HandHeart size={22} />} title="이웃 대피를 돕는 화면" subtitle="혼자 대피하기 어려운 이웃을 대피소까지 함께 옮겨요" /></List>
         <List label="내 상태">
           <ListRow className="kv" title="참여 동의" trailing={<span className="mob-h-kv">{consented ? '동의함' : '아직'}</span>} onClick={consented ? () => setEditing(true) : undefined} chevron={consented} />
           {consented && <Kv label="역할" value={roleText(roles) || '-'} />}

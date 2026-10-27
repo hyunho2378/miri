@@ -73,7 +73,6 @@ export default function DeviceFrameHost() {
       <header className="dev-head">
         <div className="dev-title">
           <h1>미리 휴대폰 화면</h1>
-          <p>{device.label}, {size.width} x {size.height}, {device.platform === 'ios' ? 'iOS 모양' : 'Material 3 모양'}{scale < 1 ? `, 창에 맞춰 ${Math.round(scale * 100)}%로 줄임` : ', 실제 크기'}</p>
           {unknownDevice && <p role="status">주소의 기기 이름을 알 수 없어 오른쪽에서 기기를 골라 주세요</p>}
         </div>
         <div className="dev-pick" role="radiogroup" aria-label="기기">
