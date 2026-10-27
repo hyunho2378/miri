@@ -227,7 +227,7 @@ export default function ShortagePage() {
   const headline = result.total > 0
     ? `기한 안에 못 옮기는 사람 ${result.total}명`
     : `대피 대상 ${result.scopeTargets}명 모두 기한 안 이송 가능`
-  const fixLine = result.total > 0 && extraLine ? `${extraLine}${unresolved ? ' 이상' : ''} 추가 시 ${unresolved ? '크게 줄어듦' : '0명'}` : null
+  const fixLine = result.total > 0 && extraLine ? `지금 차량 기준, ${extraLine}${unresolved ? ' 이상' : ''} 협약 시 ${unresolved ? '크게 줄어듦' : '0명'}` : null
   const firstMinutes = Math.max(0, Math.round((draft.windowHours - (draft.completeBeforeHours ?? 0)) * 60 - draft.prepMinutes))
   // 계산 경고: 경로 정보 없는 마을, 필요 차종이 없는 등급(숫자 산식은 그대로, 까닭만 따로 보임)
   const routeMissing = result.routeMissing || []
@@ -263,15 +263,15 @@ export default function ShortagePage() {
           {fixLine && <p className="mt-3 type-body text-text-pri">{fixLine}</p>}
           {fixLine && (
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button as={Link} to="/console/resources" size="sm">협약 차량 확인</Button>
-              <Button as={Link} to="/console/workspace?kind=doc" size="sm" variant="secondary">협약 추진 기안 작성</Button>
+              <Button as={Link} to="/console/resources" size="sm">협약 차량 확인하기</Button>
+              <Button as={Link} to="/console/workspace?kind=doc&new=gian-simple" size="sm" variant="secondary">협약 추진 기안 쓰기</Button>
             </div>
           )}
             </div>
             <div className="flex min-w-0 flex-col gap-3 cq-xl:pt-8">
           {result.total > 0 && (
             <p aria-label="숫자 흐름" className="type-body-sm text-text-sec tabular-nums">
-              대상 {result.scopeTargets}명 → 기준 배정으로 못 옮기는 사람 {result.total}명 → 추천 배정 적용 {boardingNow in boardingRec ? `${boardingRec[boardingNow]}명` : '계산 중'}{fixLine ? ` → 협약 뒤 0명` : ''}
+              대상 {result.scopeTargets}명 → 기준 배정으로 못 옮기는 사람 {result.total}명 → 추천 배정 적용 {boardingNow in boardingRec ? `${boardingRec[boardingNow]}명` : '계산하는 중'}{fixLine ? ` → 협약 뒤 0명` : ''}
             </p>
           )}
           {extra.length > 0 && (
@@ -325,10 +325,10 @@ export default function ShortagePage() {
         </Card>
 
         {agreedPlan.alone > 0 && agreedPlan.total === 0 && (
-          <Card title="협약이 더 필요한 차량">
+          <Card title="약속된 차량만 쓸 때 필요한 협약">
             <p className="type-strong text-text-pri">{`약속된 차량만 쓰면 ${agreedPlan.alone}명, ${agreedPlan.need.map((n) => `${n.typeLabel} ${n.count}대`).join(', ')} 협약 시 0명`}</p>
-            <ul aria-label="하나씩 줄이면" className="mt-3 grid gap-2">
-              {agreedPlan.lessOne.map((x) => <Row key={x.type} label={`${x.label} ${x.count - 1}대로 줄이면`} value={`${x.left}명 남음`} strong />)}
+            <ul aria-label="협약을 하나씩 줄이면" className="mt-3 grid gap-2">
+              {agreedPlan.lessOne.map((x) => <Row key={x.type} label={`협약을 ${x.label} ${x.count - 1}대로 줄이면`} value={`${x.left}명 못 옮김`} strong />)}
             </ul>
           </Card>
         )}
@@ -357,7 +357,7 @@ export default function ShortagePage() {
               {boardingLead && <p className="mt-1 type-body-sm text-text-sec">{boardingLead}</p>}
               <ul className="mt-2 grid gap-2">
                 {boardingCompare.map(({ m, r }) => (
-                  <Row key={m} label={boardingLabel(m, boardingNow)} value={`${r.total}명 (추천 배정 ${m in boardingRec ? `${boardingRec[m]}명` : '계산 중'})`} strong />
+                  <Row key={m} label={boardingLabel(m, boardingNow)} value={`${r.total}명 (추천 배정 ${m in boardingRec ? `${boardingRec[m]}명` : '계산하는 중'})`} strong />
                 ))}
               </ul>
             </section>
@@ -368,7 +368,7 @@ export default function ShortagePage() {
           </div>
         </Disclosure>
 
-        <Disclosure summary={`시나리오 저장과 비교 (기본 ${scenarios.length - userScenarioCount(scenarios)}개, 저장 ${userScenarioCount(scenarios)} / ${MAX_SCENARIOS}개)`}>
+        <Disclosure summary={`계산 조건 저장과 비교 (기본 ${scenarios.length - userScenarioCount(scenarios)}개, 저장 ${userScenarioCount(scenarios)} / ${MAX_SCENARIOS}개)`}>
           <TableCard
             title="시나리오 비교" count={`저장 ${userScenarioCount(scenarios)} / ${MAX_SCENARIOS}개`}
             actions={canEdit && (

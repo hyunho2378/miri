@@ -46,5 +46,5 @@ test('화면 연결: 네 화면이 같은 차량 표기 함수, 실제 발령은
   assert.match(dispatch, /실제 발령으로 바꿀까요\?/)
   assert.doesNotMatch(dispatch, /window\.confirm/)
   assert.match(read('HandoverPage.jsx'), /handoverPreview\(/)
-  assert.match(read('ShortagePage.jsx'), /협약 추진 기안 작성/)
+  assert.match(read('ShortagePage.jsx'), /협약 추진 기안 쓰기/)
 })

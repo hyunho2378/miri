@@ -41,7 +41,7 @@ export default function ShortageTable({ title = '마을별 부족분', basis, he
     return (
       <TableCard
         title={title} headingLevel={headingLevel} className={className}
-        count={shortVillages ? `부족 ${shortVillages}곳` : '부족 없음'} desc={arrivals ? `${basis}. 산불 도달은 시나리오 가정이고 이동 취약 인원은 명부 기준이라 따로 봅니다.` : basis} actions={toggle}
+        count={shortVillages ? `부족 ${shortVillages}곳` : '부족 없음'} desc={basis} actions={toggle}
         columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={pageSize} caption={title}
       />
     )
