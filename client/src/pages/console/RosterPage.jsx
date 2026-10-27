@@ -197,7 +197,7 @@ export default function RosterPage() {
             <Select compact label="등급 확인" value={review} onChange={setReview} options={REVIEW_OPTIONS} />
             <Select compact label="마지막 확인" value={recheck} onChange={changeRecheck} options={RECHECK_OPTIONS} />
             {recheck === 'stale' ? (
-              <Chip variant="selected" onClick={() => changeRecheck('all')} aria-label="재확인 필요 필터 해제">
+              <Chip variant="selected" onClick={() => changeRecheck('all')} aria-label="재확인 필요 조건 해제">
                 재확인 필요 {staleCount.toLocaleString('ko-KR')}명<X size={16} aria-hidden="true" />
               </Chip>
             ) : staleCount > 0 && (
@@ -209,7 +209,7 @@ export default function RosterPage() {
               <Select compact label="입력 방법" value={source} onChange={setSource} options={SOURCE_OPTIONS} />
             )}
             <Button variant="ghost" size="sm" aria-expanded={moreFilters} onClick={() => setMoreFilters((v) => !v)}>
-              {moreFilters ? '필터 접기' : `필터 더보기${hiddenActive ? ` (적용 ${hiddenActive})` : ''}`}
+              {moreFilters ? '조건 접기' : `조건 더보기${hiddenActive ? ` (적용 ${hiddenActive})` : ''}`}
             </Button>
           </FilterBar>
   )
@@ -221,7 +221,7 @@ export default function RosterPage() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <SegmentControl label="보기" value={view} onChange={setView} items={VIEWS} />
         <p className="type-body-sm text-text-sec">
-          걸러진 명부 <strong className="type-strong text-text-pri tabular-nums">{countText(rows.length, '건')}</strong>, 마을 {byVillage.length}곳
+          표시 중인 명부 <strong className="type-strong text-text-pri tabular-nums">{countText(rows.length, '건')}</strong>, 마을 {byVillage.length}곳
           {grades.length > 0 && `, 등급 ${grades.map((g) => gradeOf(g)?.label).join(', ')}`}
         </p>
       </div>

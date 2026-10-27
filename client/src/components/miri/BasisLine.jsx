@@ -9,7 +9,7 @@ export function fmtKDate(ms) {
 
 export function basisText({ scenario, today, source } = {}) {
   const parts = []
-  if (scenario) parts.push(`기준 시나리오 ${scenario}`)
+  if (scenario) parts.push(`확산 조건 ${scenario}`)
   if (today != null) parts.push(`명부 ${fmtKDate(today)} 기준`)
   if (source) parts.push(`출처: ${source}`)
   return parts.join(', ')

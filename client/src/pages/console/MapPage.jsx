@@ -296,7 +296,7 @@ export default function MapPage() {
                   className="-ml-1 max-w-full" triggerClassName="bg-subtle ring-0" />
                 <p className="mt-0.5 flex items-baseline gap-1.5">
                   <span className="type-h2 text-danger-text tabular-nums">{result.total}</span>
-                  <span className="type-body-sm text-text-sec">명 미이송 예상</span>
+                  <span className="type-body-sm text-text-sec">명 기한 안에 못 옮김</span>
                 </p>
                 <p className="type-meta text-text-meta">부족 마을 {shortList.length}곳, 대피 대상 {scopeCount}곳, 필요 추가 차량 {extra.reduce((a, x) => a + x.count, 0)}대</p>
               </div>

@@ -57,7 +57,7 @@ export default function DataPanel({ vals, base, overrides = {}, setOverride, onI
   return (
     <div>
       <h3 className="type-strong text-text-pri">자료 넣기</h3>
-      <p className="mt-1 type-meta leading-5 text-text-meta">상황판과 같은 계산으로 만든 지금 값입니다(기준 시나리오 {scenarioName}). 줄을 누르면 이 문서에서 쓸 값으로 바로 고칩니다. 넣기는 + 단추입니다.</p>
+      <p className="mt-1 type-meta leading-5 text-text-meta">상황판과 같은 계산으로 만든 지금 값입니다(확산 조건 {scenarioName}). 줄을 누르면 이 문서에서 쓸 값으로 바로 고칩니다. 넣기는 + 단추입니다.</p>
 
       {[...new Set(VAR_DEFS.map((d) => d.group))].map((g) => (
         <section key={g} className="mt-3">

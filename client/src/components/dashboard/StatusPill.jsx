@@ -41,7 +41,7 @@ export const STATUS = {
   // 차량
   available: ['neutral', '가용'], unavailable: ['neutral', '응급 대기'], expiring: ['warning', '협약 만료 임박'], expired: ['danger', '협약 만료'],
   // 부족분
-  noShortage: ['success', '부족 없음'], shortage: ['critical', '부족 발생'], provisional: ['primary', '잠정'],
+  noShortage: ['success', '부족 없음'], shortage: ['critical', '부족 발생'], provisional: ['primary', '확인 대기'],
   // 기한
   onTime: ['success', '기한 내'], late: ['warning', '기한 초과 예상']
 }

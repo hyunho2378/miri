@@ -23,7 +23,7 @@ export default function BaselineCompare({ result, villageLabel = (c) => c, basis
       ) : (
         <ul className="grid gap-2 sm:grid-cols-2">
           <li className="rounded-md bg-subtle p-3">
-            <p className="type-caption text-text-sec">미이송 예상</p>
+            <p className="type-caption text-text-sec">못 옮기는 사람</p>
             <p className="mt-1 type-strong text-text-pri tabular-nums">{diff.unserved === 0 ? '차이 없음' : sign(diff.unserved, '명')}</p>
             <p className="type-meta text-text-meta tabular-nums">기본 순서 {baseline.metrics.unserved}명, 추천 배정 {metrics.unserved}명</p>
           </li>
@@ -35,7 +35,7 @@ export default function BaselineCompare({ result, villageLabel = (c) => c, basis
         </ul>
       )}
       {rows.length > 0 && (
-        <Disclosure className="mt-3" summary="마을별 미이송 예상 비교">
+        <Disclosure className="mt-3" summary="마을별 못 옮기는 사람 비교">
           <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-6 px-1 pb-2 type-caption text-text-meta" aria-hidden="true">
             <span>마을</span><span className="text-right">기본 순서</span><span className="text-right">추천 배정</span>
           </div>

@@ -63,7 +63,7 @@ export default function SummaryPanel({
     <div>
       <div className="pb-3">
         <Select
-          label="기준 시나리오" compact value={scenario.id} onChange={onScenario}
+          label="확산 조건" compact value={scenario.id} onChange={onScenario}
           options={scenarios.map((s) => ({ value: s.id, label: `${HAZARD_KINDS[s.kind]?.label || '재난'}: ${s.name}` }))}
         />
         {onWindScenario && scenario.id !== 'S-W' && (

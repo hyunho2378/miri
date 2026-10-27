@@ -13,7 +13,7 @@ export function byGradeText(byGrade) {
   return GRADES.filter((g) => byGrade?.[g.key]).map((g) => `${g.label} ${byGrade[g.key]}명`).join(', ')
 }
 
-export default function ShortageValue({ value, byGrade, provisional = 0, size = 'kpi', label = '미이송 예상', children }) {
+export default function ShortageValue({ value, byGrade, provisional = 0, size = 'kpi', label = '못 옮기는 사람', children }) {
   const big = size === 'kpi'
   return (
     <div>
