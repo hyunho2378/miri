@@ -10,7 +10,7 @@ import DispatchStatusPill from '../miri/DispatchStatusPill.jsx'
 import DispatchAction from './DispatchAction.jsx'
 import useDispatchStore from '../../store/useDispatchStore.js'
 
-const ICON_BTN = 'inline-flex h-8 w-8 items-center justify-center rounded-md text-text-meta transition-colors duration-fast hover:bg-page hover:text-text-pri'
+const ICON_BTN = 'inline-flex h-10 w-10 items-center justify-center rounded-md text-text-meta transition-colors duration-fast hover:bg-page hover:text-text-pri'
 
 export default function Topbar({ isDesktop, panelOpen, onTogglePanel }) {
   const topbar = useAdminUi((s) => s.topbar)
@@ -22,19 +22,19 @@ export default function Topbar({ isDesktop, panelOpen, onTogglePanel }) {
   const Icon = section?.Icon
   const sub = section && topbar.title && topbar.title !== section.label ? topbar.title : null
   return (
-    <header className="flex h-12 shrink-0 items-center gap-3 pr-3 md:pr-4">
+    <header className="flex h-16 shrink-0 items-center gap-4 pr-4 md:pr-4">
       {isDesktop ? (
-        <div className="flex shrink-0 items-center gap-0.5 pl-3">
-          <button type="button" aria-label="뒤로" className={ICON_BTN} onClick={() => navigate(-1)}><ArrowLeft size={16} aria-hidden="true" /></button>
-          <button type="button" aria-label="앞으로" className={ICON_BTN} onClick={() => navigate(1)}><ArrowRight size={16} aria-hidden="true" /></button>
-          <button type="button" aria-label={panelOpen ? '메뉴 칸 접기' : '메뉴 칸 펴기'} aria-pressed={panelOpen} className={ICON_BTN} onClick={onTogglePanel}><PanelLeft size={16} aria-hidden="true" /></button>
+        <div className="flex shrink-0 items-center gap-1 pl-4">
+          <button type="button" aria-label="뒤로" className={ICON_BTN} onClick={() => navigate(-1)}><ArrowLeft size={18} aria-hidden="true" /></button>
+          <button type="button" aria-label="앞으로" className={ICON_BTN} onClick={() => navigate(1)}><ArrowRight size={18} aria-hidden="true" /></button>
+          <button type="button" aria-label={panelOpen ? '메뉴 칸 접기' : '메뉴 칸 펴기'} aria-pressed={panelOpen} className={ICON_BTN} onClick={onTogglePanel}><PanelLeft size={18} aria-hidden="true" /></button>
         </div>
       ) : (
         <button type="button" aria-label="메뉴 열기" className={clsx(ICON_BTN, 'ml-2 h-11 w-11')} onClick={() => setSidebarOpen(true)}>
           <Menu size={20} aria-hidden="true" />
         </button>
       )}
-      <p className="flex min-w-0 flex-1 items-center gap-1.5 type-meta text-text-sec">
+      <p className="flex min-w-0 flex-1 items-center gap-2 type-body-sm text-text-sec">
         {Icon && <Icon size={14} aria-hidden="true" className="shrink-0 text-text-meta" />}
         <span className="truncate">{section?.label || topbar.title}</span>
         {sub && <><ChevronRight size={12} aria-hidden="true" className="shrink-0 text-text-meta" /><span className="truncate text-text-pri">{sub}</span></>}
