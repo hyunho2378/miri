@@ -189,7 +189,7 @@ function PeaceHome() {
             <Button block variant="tonal" onClick={() => setDrillOpen(true)}>훈련 발령으로 명단 확인</Button>
           </Figure>
         ) : (
-          <Figure plain label={`동해시 전체 이동 불가 인원, ${scenario?.name || '확산 조건'}`} value={sh.unserved ?? '-'} unit="명">
+          <Figure plain label="시 전체 이동 불가 인원" value={sh.unserved ?? '-'} unit="명">
             <p className="mob-t-callout tabular-nums">추천 배정 적용 시 {opt ?? '-'}명</p>
             {stamp && <p className="mob-t-callout tabular-nums">{stamp}</p>}
           </Figure>
@@ -868,7 +868,7 @@ function DrillStartDialog({ open, onClose }) {
   return (
     <Dialog
       open={open} onClose={onClose} title="훈련 발령을 시작할까요?"
-      body="지금부터 훈련 상태로 바뀌어요. 실제 발령은 아니고, 시간이 60배 빨리 흘러요."
+      body="훈련 발령 개시, 시간 60배 속도"
       actions={(<><Button variant="plain" onClick={onClose}>취소</Button><Button onClick={startDrill}>시작</Button></>)}
     />
   )

@@ -56,7 +56,7 @@ test('평시 홈 숫자: 동 담당자는 우리 동 추천 배정 기준, 시 �
   assert.match(dong, /value=\{opt \?\? '-'\}/)
   assert.match(dong, /추천 배정 기준, \{stamp\}/)
   assert.ok(!dong.includes('동해시 전체'))
-  assert.match(city, /label=\{`동해시 전체 이동 불가 인원/)
+  assert.match(city, /label="시 전체 이동 불가 인원"/)
   assert.match(city, /value=\{sh\.unserved \?\? '-'\}/)
   assert.match(city, /추천 배정 적용 시 \{opt \?\? '-'\}명/)
   assert.ok(!city.includes('우리 동'))
