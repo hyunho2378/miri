@@ -266,7 +266,7 @@ export default function MapPage() {
               <div><dt className="type-meta text-text-meta">대상자</dt><dd className="type-h3 text-text-pri tabular-nums">{fmtN(normalStats.targets)}<span className="ml-0.5 type-body-sm">명</span></dd></div>
               <div><dt className="type-meta text-text-meta">마을</dt><dd className="type-h3 text-text-pri tabular-nums">{villages.length}<span className="ml-0.5 type-body-sm">곳</span></dd></div>
               <div><dt className="type-meta text-text-meta">임시주거시설 수용</dt><dd className="type-h3 text-text-pri tabular-nums">{fmtN(normalStats.capacity)}<span className="ml-0.5 type-body-sm">명</span></dd></div>
-              <div><dt className="type-meta text-text-meta">가용 차량</dt><dd className="type-h3 text-text-pri tabular-nums">{normalStats.avail}<span className="ml-0.5 type-body-sm">/ {vehicles.length}대</span></dd></div>
+              <div><dt className="type-meta text-text-meta">출동 가능 차량</dt><dd className="type-h3 text-text-pri tabular-nums">{normalStats.avail}<span className="ml-0.5 type-body-sm">/ {vehicles.length}대</span></dd></div>
             </dl>
             <p className="mt-1 type-meta text-text-meta">{normalStats.gradeLine}</p>
             <div className="mt-3 rounded-md bg-subtle px-3 py-2">

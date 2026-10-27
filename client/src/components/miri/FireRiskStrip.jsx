@@ -75,7 +75,7 @@ export default function FireRiskStrip({ className, compact = false }) {
       {fireLevelOf(g) && <strong>산불 위험 {fireLevelOf(g)}</strong>}
       <span>동해시 산불위험지수 평균 <strong className="tabular-nums">{data.mean}</strong>, 최고 <strong className="tabular-nums">{data.max}</strong></span>
       <span className={clsx('rounded-xs px-1.5 py-0.5 type-caption', toneOf(g))}>지수 51 이상 면적 {over51}%</span>
-      <span className="type-meta text-text-meta">{compact ? `${fmtAt(data.analyzedAt)} 발표` : `산림청 국립산림과학원, ${fmtAt(data.analyzedAt)} 발표`}</span>
+      {!compact && <span className="type-meta text-text-meta">산림청 국립산림과학원</span>}
       <FreshnessNote kind="fire" state={fr} />
     </p>
   )
