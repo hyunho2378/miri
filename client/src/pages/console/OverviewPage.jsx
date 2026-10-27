@@ -6,8 +6,8 @@ import { ChevronRight, Circle, Layers, MapPin } from 'lucide-react'
 import { vehicleCounts } from '../../lib/vehicleSummary.js'
 import { Link } from 'react-router-dom'
 import Button from '../../components/ui/Button.jsx'
-import PageShell from '../../components/miri/PageShell.jsx'
-import { PageHeader, StatusBand, NumberFlow, ListDetail, DetailSection, StatusChip } from '../../components/console/index.js'
+import PageShell, { todayLabel } from '../../components/miri/PageShell.jsx'
+import { PageHeader, StatusBand, NumberFlow, ListDetail, DetailSection, StatusChip, Section, InfoRows } from '../../components/console/index.js'
 import FreshnessNote from '../../components/miri/FreshnessNote.jsx'
 import { useFireRisk, useWarning, useWind, dirName } from '../../components/miri/FireRiskStrip.jsx'
 import useAnomalies from '../../hooks/useAnomalies.js'
@@ -90,19 +90,19 @@ export default function OverviewPage() {
   const conditions = [
     {
       key: 'fire',
-      title: fire.data ? `산불위험지수 평균 ${fire.data.mean}, 최고 ${fire.data.max}` : fire.error ? `산불위험지수를 불러오지 못했습니다(${fire.error}).` : '산불위험지수를 불러오는 중입니다.',
+      label: '산불위험지수', title: fire.data ? `평균 ${fire.data.mean}, 최고 ${fire.data.max}` : fire.error ? `산불위험지수를 불러오지 못했습니다(${fire.error}).` : '산불위험지수를 불러오는 중입니다.',
       sub: fire.data ? `지수 51 이상 면적 ${over51}%, 산림청 국립산림과학원` : '산림청 국립산림과학원',
       fresh: <FreshnessNote kind="fire" state={fire} />
     },
     {
       key: 'warning',
-      title: warning.data ? (warning.data.active.length ? `동해 발효 특보 ${warning.data.active.join(', ')}` : '동해 발효 특보 없음') : warning.error ? `기상특보를 불러오지 못했습니다(${warning.error}).` : '기상특보를 불러오는 중입니다.',
+      label: '기상특보', title: warning.data ? (warning.data.active.length ? `동해 ${warning.data.active.join(', ')}` : '동해 발효 특보 없음') : warning.error ? `기상특보를 불러오지 못했습니다(${warning.error}).` : '기상특보를 불러오는 중입니다.',
       sub: '기상청 기상특보 조회서비스',
       fresh: <FreshnessNote kind="warning" state={warning} />
     },
     {
       key: 'wind',
-      title: h0 ? `바람 ${dirName(h0.fromDeg)}풍 ${h0.speed}m/s, 습도 ${h0.humidity}%` : wind.error ? `단기예보를 불러오지 못했습니다(${wind.error}).` : '단기예보를 불러오는 중입니다.',
+      label: '바람과 습도', title: h0 ? `${dirName(h0.fromDeg)}풍 ${h0.speed}m/s, 습도 ${h0.humidity}%` : wind.error ? `단기예보를 불러오지 못했습니다(${wind.error}).` : '단기예보를 불러오는 중입니다.',
       sub: '기상청 단기예보 조회서비스',
       fresh: <FreshnessNote kind="wind" state={wind} />
     }
@@ -143,7 +143,7 @@ export default function OverviewPage() {
   return (
     <PageShell title="오늘의 현황" hideHeader>
       <PageHeader
-        title="오늘의 현황"
+        title="오늘의 현황" meta={todayLabel()}
         action={<Link to="/console/map" className="inline-flex h-10 items-center gap-2 rounded-md bg-subtle px-4 type-body-sm text-text-sec hover:bg-mute"><Layers size={16} aria-hidden="true" /><span className="max-w-[16rem] truncate">{scenario.name}</span></Link>}
       />
       <div className="grid min-w-0 gap-6">
@@ -168,7 +168,7 @@ export default function OverviewPage() {
 
         {!live && <NumberFlow items={flow} />}
 
-        <ListDetail items={items} selectedId={selId} onSelect={setPicked} listLabel="부족 마을" listTitle={`${shortVillages.length ? '부족 마을' : '대피 대상 마을'} ${items.length}곳, 기한 빠른 순`}>
+        <ListDetail items={items} selectedId={selId} onSelect={setPicked} listLabel="부족 마을" listTitle={`${shortVillages.length ? '부족 마을' : '대피 대상 마을'} ${items.length}곳`}>
           {sel ? (
             <>
               <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -200,49 +200,34 @@ export default function OverviewPage() {
           ) : <p className="type-body text-text-sec">대피 대상 마을이 없습니다.</p>}
         </ListDetail>
 
-        <section aria-labelledby="ov-todo">
-          <div className="mb-1 flex items-baseline gap-2 px-3">
-            <h2 id="ov-todo" className="type-strong text-text-sec">확인할 일</h2>
-            <span className="type-h3 text-text-pri tabular-nums">{todo}</span>
-          </div>
+        <Section id="ov-todo" title="확인할 일" count={todo}>
           {todoRows.length === 0 ? (
-            <p className="px-3 type-body-sm text-text-sec">확인할 항목이 없습니다.</p>
+            <p className="type-body text-text-sec">확인할 항목이 없습니다.</p>
           ) : (
-            <ul className="grid cq-xl:grid-cols-2 cq-xl:gap-x-6">
+            <ul className="grid cq-xl:grid-cols-2 cq-xl:gap-x-10">
               {todoRows.map((t) => (
                 <li key={t.key}>
-                  <Link to={t.to} className={rowLink}>
+                  <Link to={t.to} className="flex min-h-14 items-center gap-3 rounded-2xl px-4 hover:bg-subtle">
                     <Circle size={16} aria-hidden="true" className={clsx('shrink-0', t.hot ? 'text-danger' : 'text-text-sec')} />
                     <span className="min-w-0 flex-1">
-                      <span className="block break-keep type-body-sm text-text-pri">{t.title}</span>
-                      {t.sub && <span className="block truncate type-meta text-text-sec tabular-nums" title={t.sub}>{t.sub}</span>}
+                      <span className="block break-keep type-body text-text-pri">{t.title}</span>
+                      {t.sub && <span className="block truncate type-body-sm text-text-sec tabular-nums" title={t.sub}>{t.sub}</span>}
                     </span>
-                    {t.n && <span className="type-body-sm text-text-sec tabular-nums">{t.n}</span>}
-                    <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-text-sec" />
+                    {t.n && <span className="type-body-strong text-text-pri tabular-nums">{t.n}</span>}
+                    <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-text-sec" />
                   </Link>
                 </li>
               ))}
             </ul>
           )}
-        </section>
+        </Section>
 
-        <section aria-labelledby="ov-state">
-          <h2 id="ov-state" className="mb-2 px-3 type-strong text-text-sec">오늘 상황</h2>
-          <div className="grid gap-x-6 gap-y-4 px-3 cq-md:grid-cols-2 cq-xl:grid-cols-4">
-            {conditions.map((x) => (
-              <p key={x.key} className="min-w-0">
-                <span className="block type-strong text-text-pri">{x.title}</span>
-                <span className="block type-meta text-text-sec">{x.sub}</span>
-                {x.fresh}
-              </p>
-            ))}
-            <p className="min-w-0">
-              <span className="block type-strong text-text-pri tabular-nums">출동 가능 차량 {vc.usable}대</span>
-              <span className="block type-meta text-text-sec tabular-nums">협약 확정 {vc.agreed}대, 협약 미확정 {vc.unconfirmed}대, 활동 중 도우미 {helpers.filter((h) => h.active).length}명</span>
-              <Link to="/console/resources" className="mt-1 inline-flex min-h-9 items-center gap-0.5 type-strong text-primary-text hover:underline">협약 차량 확인하기<ChevronRight size={14} aria-hidden="true" /></Link>
-            </p>
-          </div>
-        </section>
+        <Section id="ov-state" title="오늘 상황" action={<Link to="/console/resources" className="inline-flex min-h-10 items-center gap-0.5 type-strong text-primary-text hover:underline">협약 차량 확인하기<ChevronRight size={14} aria-hidden="true" /></Link>}>
+          <InfoRows columns={2} rows={[
+            ...conditions.map((x) => ({ key: x.key, label: x.label, value: x.title, note: x.sub, extra: x.fresh })),
+            { key: 'veh', label: '출동 가능 차량', value: `${vc.usable}대`, strong: true, note: `협약 확정 ${vc.agreed}대, 협약 미확정 ${vc.unconfirmed}대, 활동 중 도우미 ${helpers.filter((h) => h.active).length}명` }
+          ]} />
+        </Section>
       </div>
     </PageShell>
   )
