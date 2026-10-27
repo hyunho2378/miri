@@ -156,7 +156,7 @@ export default function OverviewPage() {
 
         {!live && <NumberFlow items={flow} />}
 
-        <div className="grid min-w-0 gap-x-12 gap-y-6 cq-xl:grid-cols-[1fr_1fr] cq-xl:items-start">
+        <div className="grid min-w-0 gap-x-12 gap-y-6 cq-lg:grid-cols-[1fr_1fr] cq-lg:items-start cq-lg:gap-x-8">
           <Section id="ov-todo" title="처리할 일" count={todo}>
             {todoRows.length === 0 ? (
               <p className="type-body text-text-sec">처리할 일 없음</p>
