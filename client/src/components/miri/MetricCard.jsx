@@ -1,25 +1,23 @@
-// 숫자 카드. 라벨 caption 600 / 값 kpi 800 (size sm 은 h2 700). 위험 값은 글자만 danger.
+// 숫자 한 칸. 상자 없이 이름 한 줄과 값 한 줄(숫자와 단위는 같은 크기와 굵기). 위험 값은 글자색만 danger.
 // sub 는 문자열 또는 노드(여러 줄 가능, div 로 감싼다).
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 
 export default function MetricCard({ label, value, unit, sub, tone = 'neutral', to, badge, size = 'md' }) {
-  const sm = size === 'sm'
   const body = (
     <>
       <div className="flex items-center justify-between gap-2">
         <p className="type-caption text-text-sec">{label}</p>
         {badge}
       </div>
-      <p className={clsx(sm ? 'mt-1 type-h2 tabular-nums' : 'mt-2 type-kpi', tone === 'danger' ? 'text-danger-text' : 'text-text-pri')}>
-        {value}
-        {unit && <span className={clsx('ml-1 text-text-meta', sm ? 'type-caption' : 'type-h3')}>{unit}</span>}
+      <p className={clsx('mt-0.5 tabular-nums', size === 'sm' ? 'type-strong' : 'type-title', tone === 'danger' ? 'text-danger-text' : 'text-text-pri')}>
+        {value}{unit}
       </p>
-      {sub && <div className="mt-2 type-meta text-text-meta">{sub}</div>}
+      {sub && <div className="mt-0.5 type-meta text-text-sec">{sub}</div>}
     </>
   )
-  const cls = clsx('block bg-page rounded-lg shadow-card min-w-0', sm ? 'p-3 lg:p-4' : 'p-5 lg:p-6')
+  const cls = 'block min-w-0 py-1'
   return to
-    ? <Link to={to} className={clsx(cls, 'hover:shadow-md transition-shadow duration-fast')}>{body}</Link>
+    ? <Link to={to} className={clsx(cls, 'hover:underline')}>{body}</Link>
     : <div className={cls}>{body}</div>
 }
