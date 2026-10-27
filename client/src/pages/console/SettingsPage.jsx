@@ -2,6 +2,7 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
+import Disclosure from '../../components/ui/Disclosure.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import { rosterBreakdown, rosterChipsText } from '../../lib/rosterCount.js'
 import { DATA_NOTES } from '../../lib/dataNotes.js'
@@ -90,12 +91,12 @@ export default function SettingsPage() {
           </div>
         </Card>
 
-        <Card title="이상 탐지 기준값">
+        <Card title="확인 알림 기준">
           <div className="divide-y divide-line-sub">
-            <NumberStepper className="pb-3" label="확인 대기 서류 장기 보류 기준" unit="일" min={1} max={60} value={settings.pendingDays} onChange={(v) => updateSettings({ pendingDays: v })} />
+            <NumberStepper className="pb-3" label="서류 확인 지연 알림" unit="일" min={1} max={60} value={settings.pendingDays} onChange={(v) => updateSettings({ pendingDays: v })} />
             <NumberStepper className="py-3" label="협약 만료 임박 기준" unit="일" step={5} min={5} max={120} value={settings.contractWarnDays} onChange={(v) => updateSettings({ contractWarnDays: v })} />
             <NumberStepper className="py-3" label="도우미 담당 대상자 상한" unit="명" step={5} min={5} max={100} value={settings.helperLoadMax} onChange={(v) => updateSettings({ helperLoadMax: v })} />
-            <NumberStepper className="pt-3" label="도우미 무응답 판정 시간" unit="분" step={5} min={5} max={60} value={settings.noAckMinutes} onChange={(v) => updateSettings({ noAckMinutes: v })} />
+            <NumberStepper className="pt-3" label="도우미 응답 대기 시간" unit="분" step={5} min={5} max={60} value={settings.noAckMinutes} onChange={(v) => updateSettings({ noAckMinutes: v })} />
           </div>
         </Card>
 
@@ -117,39 +118,44 @@ export default function SettingsPage() {
         </Card>
       </div>
 
-      <TableCard
-        className="mt-4" title="차종별 회차당 탑승 정원" count={`${VEHICLE_TYPES.length}종`}
-        columns={capacityCols} rows={VEHICLE_TYPES} rowKey={(t) => t.key} pageSize={20} caption="차종과 등급별 정원"
-      />
+      <div className="mt-4 grid gap-4 xl:grid-cols-2 xl:items-start">
+        <TableCard
+          title="차종별 회차당 탑승 정원" count={`${VEHICLE_TYPES.length}종`}
+          columns={capacityCols} rows={VEHICLE_TYPES} rowKey={(t) => t.key} pageSize={20} caption="차종과 등급별 정원"
+        />
 
-      <TableCard
-        className="mt-4" title="마을과 평시 지정 대피소" count={`${villages.length}곳`}
-       
-        columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 집결지, 대피소, 왕복 시간" pageSize={20}
-      />
+        <Card id="data-notes" className="scroll-mt-20" title="자료 안내">
+          <ul className="divide-y divide-line-sub">
+            {DATA_NOTES.map((x) => (
+              <li key={x.key} className="py-3">
+                <p className="type-strong text-text-pri">{x.title}</p>
+                <p className="mt-1 type-body-sm text-text-sec">{x.text}</p>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </div>
 
-      <TableCard
-        className="mt-4" title="이재민 임시주거시설" count={`${shelters.length}곳`}
-       
-        columns={shelterCols} rows={shelters} rowKey={(x) => x.code} caption="임시주거시설 목록" pageSize={10}
-      />
+      <Disclosure className="mt-4" summary={`마을과 평시 지정 대피소(${villages.length}곳)`}>
+        <TableCard
+          title="마을과 평시 지정 대피소" count={`${villages.length}곳`}
+          columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 집결지, 대피소, 왕복 시간" pageSize={20}
+        />
+      </Disclosure>
 
-      <Card id="data-notes" className="mt-4 scroll-mt-20" title="자료 안내">
-        <ul className="divide-y divide-line-sub">
-          {DATA_NOTES.map((x) => (
-            <li key={x.key} className="py-3">
-              <p className="type-strong text-text-pri">{x.title}</p>
-              <p className="mt-1 type-body-sm text-text-sec">{x.text}</p>
-            </li>
-          ))}
-        </ul>
-      </Card>
+      <Disclosure className="mt-2" summary={`이재민 임시주거시설(${shelters.length}곳)`}>
+        <TableCard
+          title="이재민 임시주거시설" count={`${shelters.length}곳`}
+          columns={shelterCols} rows={shelters} rowKey={(x) => x.code} caption="임시주거시설 목록" pageSize={10}
+        />
+      </Disclosure>
 
-      <TableCard
-        className="mt-4" title="데이터 출처" count={`${sourceRows.length}건`}
-       
-        columns={sourceCols} rows={sourceRows} rowKey={(x) => x.key} caption="데이터 출처와 기준 시점" pageSize={20}
-      />
+      <Disclosure className="mt-2" summary={`데이터 출처(${sourceRows.length}건)`}>
+        <TableCard
+          title="데이터 출처" count={`${sourceRows.length}건`}
+          columns={sourceCols} rows={sourceRows} rowKey={(x) => x.key} caption="데이터 출처와 기준 시점" pageSize={20}
+        />
+      </Disclosure>
     </PageShell>
   )
 }
