@@ -173,9 +173,16 @@ function PeaceHome() {
           <ListRow lead={<Camera size={22} />} title="서류 사진 올리기" chevron onClick={() => navigate('/m/f/intake')} />
           <ListRow lead={<UserCheck size={22} />} title="현장 소식 남기기" chevron onClick={() => navigate('/m/f/note')} />
         </List>
-        <Figure plain label={`${scope.isDong ? '우리 동 ' : ''}기한 안에 못 옮기는 사람, ${scenario?.name || '기준 시나리오'}`} value={opt ?? '-'} unit="명">
-          {stamp && <p className="mob-t-callout tabular-nums">추천 배정 기준, {stamp}</p>}
-        </Figure>
+        {scope.isDong ? (
+          <Figure plain label={`우리 동 기한 안에 못 옮기는 사람, ${scenario?.name || '기준 시나리오'}`} value={opt ?? '-'} unit="명">
+            {stamp && <p className="mob-t-callout tabular-nums">추천 배정 기준, {stamp}</p>}
+          </Figure>
+        ) : (
+          <Figure plain label={`동해시 전체 기한 안에 못 옮기는 사람, ${scenario?.name || '기준 시나리오'}`} value={sh.unserved ?? '-'} unit="명">
+            <p className="mob-t-callout tabular-nums">추천 배정 적용 시 {opt ?? '-'}명</p>
+            {stamp && <p className="mob-t-callout tabular-nums">{stamp}</p>}
+          </Figure>
+        )}
         <List label="오늘 산불 여건">
           <ListRow lead={<Flame size={22} />} title={fire.data ? `산불위험지수 최고 ${fire.data.max}` : fire.loading ? '산불위험지수 조회 중' : '산불위험지수 조회 실패'} subtitle={fire.data ? `평균 ${fire.data.mean}, 산림청` : undefined} />
         </List>

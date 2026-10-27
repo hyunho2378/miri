@@ -11,11 +11,8 @@ const body = (name) => { const i = f.indexOf(`function ${name}`); return f.slice
 test('동 담당자 평시 홈: 숫자 한 갈래(발령 때 보내는 추천 배정), 기준 배정 값과 문장 속 숫자 나열 없음, 할 일 먼저', () => {
   const p = body('PeaceHome')
   assert.ok(!p.includes('추천 배정 시'))
-  assert.match(p, /value=\{opt \?\? '-'\}/)
-  assert.ok(!p.includes('value={sh.unserved'))
   assert.ok(!p.includes('개 마을'))
   assert.ok(p.indexOf('label={`확인할 일') < p.indexOf('<Figure'), '할 일 목록이 숫자보다 위')
-  assert.equal((p.match(/<Figure /g) || []).length, 1)
 })
 
 test('휴대폰 화면에 시 관리자 몫 문구와 누구 화면 줄 없음', () => {
@@ -49,4 +46,30 @@ test('시작 화면, 계정 고르기, 도우미 첫 화면: 제목 아래 설�
 test('하단 탭과 로그아웃은 실제 동작 함수에 연결됨(탭은 navigate, 로그아웃은 logout)', () => {
   assert.match(sh, /onClick: \(\) => navigate\(t\.path\)/)
   assert.match(f, /<Button size="sm" variant="plain" onClick=\{account\.logout\}>로그아웃<\/Button>/)
+})
+
+test('평시 홈 숫자: 동 담당자는 우리 동 추천 배정 기준, 시 관리자는 콘솔 현황판처럼 동해시 전체 기준 배정과 추천 배정 적용 시 한 줄', () => {
+  const p = body('PeaceHome')
+  const dong = p.slice(p.indexOf('scope.isDong ? ('), p.indexOf(') : ('))
+  const city = p.slice(p.indexOf(') : ('))
+  assert.match(dong, /label=\{`우리 동 기한 안에 못 옮기는 사람/)
+  assert.match(dong, /value=\{opt \?\? '-'\}/)
+  assert.match(dong, /추천 배정 기준, \{stamp\}/)
+  assert.ok(!dong.includes('동해시 전체'))
+  assert.match(city, /label=\{`동해시 전체 기한 안에 못 옮기는 사람/)
+  assert.match(city, /value=\{sh\.unserved \?\? '-'\}/)
+  assert.match(city, /추천 배정 적용 시 \{opt \?\? '-'\}명/)
+  assert.ok(!city.includes('우리 동'))
+  assert.ok(city.indexOf('value={sh.unserved') < city.indexOf('추천 배정 적용 시'))
+})
+
+test('시 관리자 숫자는 콘솔 현황판과 같은 값: 기준 배정 291명, 추천 배정 적용 시 267명', async () => {
+  const { buildSeed } = await import('../src/mock/seed.js')
+  const { computeShortage, optimizedByVillage, optimizedUnserved } = await import('../src/lib/shortageCalc.js')
+  const { activeScenario } = await import('../src/store/useMiriStore.js')
+  const { scopedShortage, scopedOptimized } = await import('../src/mobile/field/fieldModel.js')
+  const s = buildSeed()
+  const r = computeShortage({ persons: s.persons, villages: s.villages, vehicles: s.vehicles, helpers: s.helpers, settings: s.settings, scenario: activeScenario(s), t0: s.today })
+  assert.equal(scopedShortage(r, () => true).unserved, 291)
+  assert.equal(scopedOptimized(r, () => true, optimizedByVillage(r), optimizedUnserved(r)), 267)
 })
