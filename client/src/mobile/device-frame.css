@@ -15,5 +15,5 @@
 .dev-bezel { position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; user-select: none; }
 .dev-screen { position: absolute; display: block; border: 0; background: var(--m-page); z-index: 1; }
 /* 갤럭시와 폴드: 키트 Device frame 값(모서리 18, 선 8 바깥, 선 색 outline-variant). 안쪽 화면은 모서리 18 로 자른다. */
-.dev-body.p-android { background: var(--m-device-frame); border-radius: 26px; box-shadow: var(--m-shadow-3); }
+.dev-body.p-android { background: #000; border-radius: 26px; box-shadow: var(--m-shadow-3); }
 .dev-body.p-android .dev-screen { border-radius: 18px; }

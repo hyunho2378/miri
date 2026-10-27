@@ -3,7 +3,7 @@
 // 컴퓨터 창이 아니라 고른 기기 크기로 정해진다. 창에 들어가지 않으면 틀 전체를 줄이되 틀 안 CSS 폭은 그대로다.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { DEVICES, DEFAULT_DEVICE, DEVICE_KEY, deviceById, deviceSize, fitScale, frameSrc, resolveDevice } from './devices.js'
+import { DEVICE_OPTIONS, DEFAULT_DEVICE, DEVICE_KEY, deviceById, deviceSize, fitScale, frameSrc, resolveDevice } from './devices.js'
 import './tokens.css'
 import './device-frame.css'
 
@@ -24,12 +24,22 @@ export default function DeviceFrameHost() {
   const loc = useLocation()
   const initialId = useMemo(() => {
     const q = new URLSearchParams(loc.search).get('device')
-    return resolveDevice(q) || (readStore() || DEFAULT_DEVICE)
+    return resolveDevice(q) || (DEVICE_OPTIONS.find((o) => o.key === readStore())?.id || DEFAULT_DEVICE)
   }, [])   // eslint-disable-line react-hooks/exhaustive-deps
-  const [id, setId] = useState(initialId)
+  const initialKey = useMemo(() => {
+    const q = new URLSearchParams(loc.search).get('device') || ''
+    if (!q) { const st = DEVICE_OPTIONS.find((o) => o.key === readStore()); if (st) return st.key }
+    const k = q.trim().toLowerCase()
+    const land = /(land|가로|inner|_in|-in|^fold_?in|^duo_?in)/.test(k)
+    const o = DEVICE_OPTIONS.find((x) => x.id === initialId && x.landscape === land && (x.id === 'fold' || x.id === 'duo' || !land)) || DEVICE_OPTIONS.find((x) => x.id === initialId)
+    return o.key
+  }, [])   // eslint-disable-line react-hooks/exhaustive-deps
+  const [optKey, setOptKey] = useState(initialKey)
+  const opt = DEVICE_OPTIONS.find((o) => o.key === optKey) || DEVICE_OPTIONS[0]
+  const id = opt.id
+  const landscape = opt.landscape
   // 주소의 기기 이름을 알아보지 못하면 조용히 바꾸지 않고 위 기기 고르기에서 고르게 알린다
   const unknownDevice = useMemo(() => { const q = new URLSearchParams(loc.search).get('device'); return q && !resolveDevice(q) ? q : null }, [])   // eslint-disable-line react-hooks/exhaustive-deps
-  const [landscape, setLandscape] = useState(false)
   const device = deviceById(id)
   const size = deviceSize(device, landscape)
   const [src, setSrc] = useState(() => frameSrc(loc.pathname, loc.search, deviceById(initialId)))
@@ -58,10 +68,11 @@ export default function DeviceFrameHost() {
   }, [id])
 
   // 기기를 바꿔도 iframe 을 다시 열지 않는다. 크기만 바꾸고 화면 모양(iOS, Material)은 메시지로 알려 보던 화면을 유지한다.
-  const choose = (nextId) => {
-    if (nextId === id) return
-    writeStore(nextId)
-    setId(nextId)
+  const choose = (nextKey) => {
+    if (nextKey === optKey) return
+    const nextId = DEVICE_OPTIONS.find((o) => o.key === nextKey).id
+    writeStore(nextKey)
+    setOptKey(nextKey)
     try { frameRef.current?.contentWindow?.postMessage({ type: 'miri-mobile-platform', platform: deviceById(nextId).platform }, window.location.origin) } catch { /* 틀이 아직 열리지 않았으면 다음 열기에서 적용 */ }
   }
 
@@ -91,10 +102,9 @@ export default function DeviceFrameHost() {
           {unknownDevice && <p role="status">기기 미확인, 오른쪽에서 기기 선택</p>}
         </div>
         <div className="dev-pick" role="radiogroup" aria-label="기기">
-          {DEVICES.map((d) => (
-            <button key={d.id} type="button" role="radio" aria-checked={d.id === id} className={d.id === id ? 'on' : ''} onClick={() => choose(d.id)}>{d.label}</button>
+          {DEVICE_OPTIONS.map((o) => (
+            <button key={o.key} type="button" role="radio" aria-checked={o.key === optKey} className={o.key === optKey ? 'on' : ''} onClick={() => choose(o.key)}>{o.label}</button>
           ))}
-          <button type="button" className={`dev-rotate ${landscape ? 'on' : ''}`} aria-pressed={landscape} onClick={() => setLandscape((v) => !v)}>{landscape ? '가로' : '세로'}</button>
         </div>
       </header>
       <main className="dev-stage">

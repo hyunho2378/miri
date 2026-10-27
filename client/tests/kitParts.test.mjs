@@ -111,3 +111,10 @@ test('아이콘 교체: 기한은 시계, 소방 요청은 전화 발신, 대상
   assert.match(h, /<InfoSheet lead=\{<User size=\{20\} \/>\} title="대상자 정보"/)
   assert.match(h, /<Button variant="plain" size="sm" onClick=\{\(\) => go\(\{ name: 'H7' \}\)\}>연락<\/Button>/)
 })
+
+test('기기 선택: 여섯 개, 갤럭시와 아이폰은 세로만, 폴드와 듀오는 가로와 세로', async () => {
+  const { DEVICE_OPTIONS } = await import('../src/mobile/devices.js')
+  assert.deepEqual(DEVICE_OPTIONS.map((o) => o.label), ['갤럭시', '아이폰', '갤럭시 폴드 세로', '갤럭시 폴드 가로', '아이폰 듀오 세로', '아이폰 듀오 가로'])
+  assert.ok(DEVICE_OPTIONS.filter((o) => o.landscape).every((o) => o.id === 'fold' || o.id === 'duo'))
+  assert.ok(!DEVICE_OPTIONS.some((o) => /바깥|안쪽|갤럭시 S/.test(o.label)))
+})

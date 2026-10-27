@@ -11,8 +11,17 @@
 export const DEVICES = [
   { id: 'galaxy', label: '갤럭시', platform: 'android', width: 360, height: 780 },
   { id: 'iphone', label: '아이폰', platform: 'ios', width: 402, height: 874, frame: { src: '/device/iphone.png', w: 450, h: 920, x: 24, y: 23 } },
-  { id: 'fold', label: '폴드', platform: 'android', width: 616, height: 816 },
-  { id: 'duo', label: '듀오', platform: 'ios', width: 669, height: 951, frame: { src: '/device/duo-portrait.png', w: 749, h: 1031, x: 40, y: 40 }, frameLandscape: { src: '/device/duo-landscape.png', w: 1031, h: 749, x: 40, y: 40 } }
+  { id: 'fold', label: '갤럭시 폴드', platform: 'android', width: 616, height: 816 },
+  { id: 'duo', label: '아이폰 듀오', platform: 'ios', width: 669, height: 951, frame: { src: '/device/duo-portrait.png', w: 749, h: 1031, x: 40, y: 40 }, frameLandscape: { src: '/device/duo-landscape.png', w: 1031, h: 749, x: 40, y: 40 } }
+]
+// 기기 선택 목록. 갤럭시와 아이폰은 세로만, 폴드와 듀오는 가로와 세로를 각각 고른다.
+export const DEVICE_OPTIONS = [
+  { key: 'galaxy', id: 'galaxy', landscape: false, label: '갤럭시' },
+  { key: 'iphone', id: 'iphone', landscape: false, label: '아이폰' },
+  { key: 'fold-portrait', id: 'fold', landscape: false, label: '갤럭시 폴드 세로' },
+  { key: 'fold-landscape', id: 'fold', landscape: true, label: '갤럭시 폴드 가로' },
+  { key: 'duo-portrait', id: 'duo', landscape: false, label: '아이폰 듀오 세로' },
+  { key: 'duo-landscape', id: 'duo', landscape: true, label: '아이폰 듀오 가로' }
 ]
 export const DEFAULT_DEVICE = 'galaxy'
 export const DEVICE_KEY = 'miri.mobile.device'
