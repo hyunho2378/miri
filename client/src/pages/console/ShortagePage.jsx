@@ -21,6 +21,7 @@ import { OWNERS, EXTRA_TYPE, GRADES, commitmentOf, typeOf } from '../../lib/shor
 import { BOTTLENECK_LABEL, TIME_BANDS, bandOf, bottleneck, computeShortage, optimizedUnserved, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import { vehicleSummaryLong } from '../../lib/vehicleSummary.js'
 import { BOARDING_STEPS, boardingLabel } from '../../lib/boardingSensitivity.js'
+import { agreedOnlyPlan } from '../../lib/agreedPlan.js'
 import { calcStamp } from '../../lib/basis.js'
 import useNow from '../../hooks/useNow.js'
 import { Link } from 'react-router-dom'
@@ -87,6 +88,8 @@ export default function ShortagePage() {
     const agreed = vehicles.filter((v) => commitmentOf(v) !== 'unconfirmed')
     return { all: result.total, agreed: computeShortage({ ...input, vehicles: agreed }).total, unconfirmed: vehicles.length - agreed.length }
   }, [result, persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 약속된 차량만 쓸 때 필요한 협약 구성(플랫폼 46회차, 1026 복지관 면담)
+  const agreedPlan = useMemo(() => agreedOnlyPlan(input), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
   // 병목 확인(회신 R45): 차량 1대와 도우미 1명을 각각 더해 같은 규칙으로 다시 계산
   const neck = useMemo(() => bottleneck(input), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
   const dirty = JSON.stringify(draft) !== JSON.stringify(base)
@@ -302,6 +305,16 @@ export default function ShortagePage() {
           </ul>
           <p className="mt-3 type-meta leading-5 text-text-meta">택시와 버스는 재난 때 교통 부서가 그때 요청하므로, 확정되기 전까지 확인 전 차량으로 따로 셉니다. 평소에 협약해 두면 약속된 차량으로 바뀝니다.</p>
         </Card>
+
+        {agreedPlan.alone > 0 && agreedPlan.total === 0 && (
+          <Card title="약속된 차량만 쓸 때 필요한 협약">
+            <p className="type-strong text-text-pri">{`확인 전 차량 ${agreedPlan.unconfirmed}대를 빼면 ${agreedPlan.alone}명이 남고, ${agreedPlan.need.map((n) => `${n.typeLabel} ${n.count}대`).join(', ')}를 더 협약하면 0명이 됩니다.`}</p>
+            <ul aria-label="하나씩 줄이면" className="mt-3 grid gap-2">
+              {agreedPlan.lessOne.map((x) => <Row key={x.type} label={`${x.label} ${x.count - 1}대로 줄이면`} value={`${x.left}명 남음`} strong />)}
+            </ul>
+            <p className="mt-3 type-meta leading-5 text-text-meta">요양시설과 주야간보호기관 차량은 낮에는 이용 어르신이 먼저이고 근무 시간 밖에는 쓰기 어렵습니다. 같은 규칙으로 다시 계산한 값입니다(출처: 동해시노인종합복지관 주간보호센터 면담, 2026. 10. 26.)</p>
+          </Card>
+        )}
 
         <ShortageTable basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} arrivals={result.arrivals} t0={today} />
 
