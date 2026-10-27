@@ -30,7 +30,7 @@ export function DocImage({ src, alt, box }) {
   )
 }
 
-export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdit, onConfirm, onEdit, onReject, extra }) {
+export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdit, onConfirm, onEdit, onReject, extra, footer }) {
   const [grade, setGrade] = useState(result.grade)
   const [tags, setTags] = useState(result.tags || [])
   const imageRef = useRef(null)
@@ -105,6 +105,7 @@ export default function ReviewRow({ doc, result, villageLabel, kindLabel, canEdi
       </div>
       {canEdit && (
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 pt-3">
+          {footer && <div className="mr-auto min-w-0">{footer}</div>}
           {changed && <p className="mr-auto type-meta text-primary-text">읽은 값에서 변경함. 수정을 누르면 변경한 값으로 확정</p>}
           <Button variant="ghost" size="lg" onClick={onReject}>제외</Button>
           <Button variant="secondary" size="lg" disabled={!changed} onClick={() => onEdit({ grade, tags })}>수정</Button>
