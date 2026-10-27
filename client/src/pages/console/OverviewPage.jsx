@@ -198,7 +198,7 @@ export default function OverviewPage() {
           <p className="mt-1.5 type-meta text-text-meta tabular-nums">({calcStamp({ at: now, rosterAt: today })})</p>
           <Disclosure className="mt-1" summary="계산 근거" summaryClassName="type-meta">
             <p className="type-meta text-text-meta">{peaceBasisText({ villages: inScope.length, targets: scopeTargets })}</p>
-            {scopeProvisional > 0 && <p className="mt-2 type-meta text-text-meta">대피 대상 구역 확인 대기 서류 {scopeProvisional}건 포함 잠정값</p>}
+            {scopeProvisional > 0 && <p className="mt-2 type-meta text-text-meta">대피 대상 구역 확인 대기 서류 {scopeProvisional}건 포함</p>}
             <p className="mt-2 type-meta leading-5 text-text-meta">명부 {fmt(active.length)}건: {rosterPartsText(rosterBreakdown(active))}. 재가 장기요양 수급자 추정(2025, 국민건강보험공단)에 맞춘 가상 명부이며 등록장애인은 명부 확인 뒤 포함합니다.</p>
             <p className="mt-2 type-meta text-text-meta">{rosterDateNote(today)}</p>
           </Disclosure>

@@ -19,7 +19,7 @@ import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
 import { OWNERS, EXTRA_TYPE, GRADES, commitmentOf, typeOf } from '../../lib/shortage.js'
 import { BOTTLENECK_LABEL, TIME_BANDS, bandOf, bottleneck, computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
-import { vehicleSummaryLong } from '../../lib/vehicleSummary.js'
+import { vehicleChips } from '../../lib/vehicleSummary.js'
 import { BOARDING_STEPS, boardingLabel } from '../../lib/boardingSensitivity.js'
 import { agreedOnlyPlan } from '../../lib/agreedPlan.js'
 import { calcStamp } from '../../lib/basis.js'
@@ -282,7 +282,7 @@ export default function ShortagePage() {
         <Card title="왜 이런 결과가 나오나">
           <ul className="grid gap-2">
             <Row label="대피해야 하는 사람" value={`${result.scopeVillages}개 마을 ${result.scopeTargets}명`} strong />
-            <Row label="쓸 수 있는 차량" value={vehicleSummaryLong(vehicles)} />
+            <Row label="쓸 수 있는 차량" value={vehicleChips(vehicles)} />
             <Row label="첫 마을에 산불이 닿기까지" value={`발령 후 ${fmtElapsed(draft.windowHours)}, 출발 준비 ${prepText(draft.prepMinutes)} 빼면 ${firstMinutes}분`} />
             <Row label="이송을 끝내야 하는 때" value={completeText(draft.completeBeforeHours ?? 0)} />
             <Row label="발령 시간대" value={`${bandOf(draft).label}${(draft.availability ?? 100) < 100 ? `, 차량 ${draft.availability}%만 모임` : ''}`} />

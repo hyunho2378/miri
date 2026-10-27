@@ -75,7 +75,7 @@ export default function SummaryPanel({
             <span className="ml-1 type-h3">명</span>
           </p>
           <p className="mt-1 type-body-sm text-text-sec">{gradeLine(result.byGrade)}</p>
-          {result.provisional > 0 && <p className="mt-1 type-meta text-primary-text">대피 대상 구역 확인 대기 서류 {result.provisional}건 포함 잠정값</p>}
+          {result.provisional > 0 && <p className="mt-1 type-meta text-primary-text">대피 대상 구역 확인 대기 서류 {result.provisional}건 포함</p>}
         </Metric>
 
         <Metric label="부족 마을" basis="기준: 도달 시각까지 부족분 1명 이상인 마을">
