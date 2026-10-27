@@ -253,33 +253,45 @@ export default function ShortagePage() {
 
       <div className="grid gap-4 min-w-0">
         <Card aria-live="polite" title="결론" meta={draft.name}>
-          <p className="type-h2 text-text-pri">{headline}</p>
-          {fixLine && <p className="mt-2 type-body text-text-pri">{fixLine}</p>}
+          <div className="grid gap-x-10 gap-y-4 cq-xl:grid-cols-2">
+            <div className="min-w-0">
+          {result.total > 0 ? (
+            <ShortageValue value={result.total} byGrade={result.byGrade} provisional={result.provisional} label="기한 안에 못 옮기는 사람" />
+          ) : (
+            <p className="type-h2 text-text-pri">{headline}</p>
+          )}
+          {fixLine && <p className="mt-3 type-body text-text-pri">{fixLine}</p>}
           {fixLine && (
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button as={Link} to="/console/resources" size="sm">차량과 도우미에서 협약 차량 확인</Button>
-              <Button as={Link} to="/console/workspace?kind=doc" size="sm" variant="secondary">문서함에서 협약 추진 기안 작성</Button>
+              <Button as={Link} to="/console/resources" size="sm">협약 차량 확인</Button>
+              <Button as={Link} to="/console/workspace?kind=doc" size="sm" variant="secondary">협약 추진 기안 작성</Button>
             </div>
           )}
-          <div className="mt-5 flex flex-wrap items-end gap-x-10 gap-y-4">
-            <ShortageValue value={result.total} byGrade={result.byGrade} provisional={result.provisional} label="기한 안에 못 옮기는 사람">
-              <BasisLine scenario={draft.name} />
-              <p className="type-meta text-text-meta tabular-nums">({calcStamp({ at: now, rosterAt: today })})</p>
-            </ShortageValue>
-            {extra.length > 0 && (
-              <ul aria-label="등급별 더 필요한 차량" className="flex flex-wrap gap-2">
-                {extra.map((e) => (
-                  <li key={e.grade} className="inline-flex items-center gap-2 rounded-md bg-subtle px-3 py-2">
-                    <GradeChip grade={e.grade} size="sm" />
-                    <span className="type-meta text-text-sec tabular-nums">{result.byGrade[e.grade]}명, {e.typeLabel} {e.count}대{e.resolved ? '' : ' 이상'} 더 필요</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            </div>
+            <div className="flex min-w-0 flex-col gap-3 cq-xl:pt-8">
+          {result.total > 0 && (
+            <p aria-label="숫자 흐름" className="type-body-sm text-text-sec tabular-nums">
+              대상 {result.scopeTargets}명 → 기준 배정으로 못 옮기는 사람 {result.total}명 → 추천 배정 적용 {boardingNow in boardingRec ? `${boardingRec[boardingNow]}명` : '계산 중'}{fixLine ? ` → 협약 뒤 0명` : ''}
+            </p>
+          )}
+          {extra.length > 0 && (
+            <ul aria-label="등급별 더 필요한 차량" className="flex flex-wrap gap-2">
+              {extra.map((e) => (
+                <li key={e.grade} className="inline-flex items-center gap-2 rounded-md bg-subtle px-3 py-2">
+                  <GradeChip grade={e.grade} size="sm" />
+                  <span className="type-meta text-text-sec tabular-nums">{result.byGrade[e.grade]}명, {e.typeLabel} {e.count}대{e.resolved ? '' : ' 이상'} 더 필요</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <BasisLine scenario={draft.name} />
+          <p className="type-meta text-text-meta tabular-nums">({calcStamp({ at: now, rosterAt: today })})</p>
+            </div>
           </div>
         </Card>
 
-        <Card title="왜 이런 결과가 나오나">
+        <div className="grid gap-4 min-w-0 cq-xl:grid-cols-2 cq-xl:items-start">
+        <Card title="계산에 쓴 값">
           <ul className="grid gap-2">
             <Row label="대피해야 하는 사람" value={`${result.scopeVillages}개 마을 ${result.scopeTargets}명`} strong />
             <Row label="쓸 수 있는 차량" value={vehicleChips(vehicles)} />
@@ -293,8 +305,7 @@ export default function ShortagePage() {
               <Row label="태울 차종이 없어 못 옮기는 것으로 센 사람" value={GRADES.filter((g) => noType[g.key] > 0).map((g) => `${g.label} ${noType[g.key]}명`).join(', ')} />
             )}
           </ul>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="type-meta text-text-meta">조건을 바꾸면 결과가 바로 다시 계산됩니다.</p>
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
             <Button
               variant={panelOpen ? 'primary' : 'secondary'} aria-expanded={panelOpen} aria-controls={panelId}
               leftIcon={<SlidersHorizontal size={16} aria-hidden="true" />} onClick={() => setPanelOpen((v) => !v)}
@@ -304,24 +315,26 @@ export default function ShortagePage() {
           </div>
         </Card>
 
-        <Card title="무엇을 늘리면 줄어드나">
+        <Card title="부족을 줄이는 방법">
           <p className="type-strong text-text-pri">{neckSentence}</p>
           <ul aria-label="하나씩 더했을 때" className="mt-3 grid gap-2">
             <Row label={`차량 1대 더(${typeOf(neck.vehicleType)?.label || neck.vehicleType})`} value={`${neck.vehicleGain}명 줄어 ${neck.plusVehicle}명`} strong />
             <Row label="도우미 1명 더" value={`${neck.helperGain}명 줄어 ${neck.plusHelper}명`} strong />
-            <Row label={`확인 전 차량 ${agreedCompare.unconfirmed}대가 오지 않으면`} value={`${agreedCompare.agreed}명`} strong />
+            <Row label={`확인 전 차량 ${agreedCompare.unconfirmed}대를 못 쓰면`} value={`${agreedCompare.agreed}명`} strong />
           </ul>
           
         </Card>
 
         {agreedPlan.alone > 0 && agreedPlan.total === 0 && (
-          <Card title="약속된 차량만 쓸 때 필요한 협약">
-            <p className="type-strong text-text-pri">{`확인 전 차량 ${agreedPlan.unconfirmed}대를 빼면 ${agreedPlan.alone}명이 남고, ${agreedPlan.need.map((n) => `${n.typeLabel} ${n.count}대`).join(', ')}를 더 협약하면 0명이 됩니다.`}</p>
+          <Card title="협약이 더 필요한 차량">
+            <p className="type-strong text-text-pri">{`약속된 차량만 쓰면 ${agreedPlan.alone}명, ${agreedPlan.need.map((n) => `${n.typeLabel} ${n.count}대`).join(', ')} 협약 시 0명`}</p>
             <ul aria-label="하나씩 줄이면" className="mt-3 grid gap-2">
               {agreedPlan.lessOne.map((x) => <Row key={x.type} label={`${x.label} ${x.count - 1}대로 줄이면`} value={`${x.left}명 남음`} strong />)}
             </ul>
           </Card>
         )}
+
+        </div>
 
         <ShortageTable basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} arrivals={result.arrivals} t0={today} />
 
@@ -333,7 +346,6 @@ export default function ShortagePage() {
             </section>
             <section aria-labelledby="chk-band">
               <h3 id="chk-band" className="type-h3 text-text-pri">발령 시간대에 따라</h3>
-              <p className="mt-1 type-body-sm text-text-sec">낮에는 주야간보호 이용자가 센터에 있어 센터 차량으로 대피합니다. 밤과 휴일에는 차량과 운전 인력을 다 모으기 어렵습니다.</p>
               <ul className="mt-2 grid gap-2">
                 {bandCompare.map(({ b, r }) => (
                   <Row key={b.value} label={`${b.label}${b.value === (draft.timeBand || 'home') ? ' (지금 조건)' : ''}`} value={`${r.total}명${r.dayCareAway ? `, 센터 대피 ${r.dayCareAway}명 제외` : ''}`} strong />
@@ -342,7 +354,7 @@ export default function ShortagePage() {
             </section>
             <section aria-labelledby="chk-board">
               <h3 id="chk-board" className="type-h3 text-text-pri">한 번 태우고 내리는 시간에 따라</h3>
-              <p className="mt-1 type-body-sm text-text-sec">{boardingLead ? `${boardingLead} ` : ''}휠체어 이용자는 리프트 승합차와 도우미 2명으로 옮기고, 한 번에 태우고 내리는 데 {boardingNow}분으로 계산합니다.</p>
+              {boardingLead && <p className="mt-1 type-body-sm text-text-sec">{boardingLead}</p>}
               <ul className="mt-2 grid gap-2">
                 {boardingCompare.map(({ m, r }) => (
                   <Row key={m} label={boardingLabel(m, boardingNow)} value={`${r.total}명 (추천 배정 ${m in boardingRec ? `${boardingRec[m]}명` : '계산 중'})`} strong />
