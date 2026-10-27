@@ -172,7 +172,7 @@ export default function HandoverPage() {
                   variant="danger" size="sm" disabled={!picked.length} leftIcon={<Ambulance size={16} aria-hidden="true" />}
                   onClick={() => setHandOpen(true)}
                 >
-                  {picked.length ? `선택 ${picked.length}명 소방 인계` : '소방 인계'}
+                  {picked.length ? `선택 ${picked.length}명 소방 인계` : '선택 후 소방 인계'}
                 </Button>
               </>
             )}
