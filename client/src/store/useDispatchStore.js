@@ -35,7 +35,7 @@ const EMPTY = {
   status: 'idle', kind: 'drill', speed: 60, realStart: 0, vStart: 0, issuedAt: 0, arrivals: {},
   result: null, confirmedAt: null, sentAt: null, ackPlan: {}, ackOverride: {}, failPlan: {}, events: {},
   handovers: [], manualHelper: null, smsLog: [], closedRecordId: null, scopeCodes: [], blocked: null,
-  fireRequests: [], remote: { state: 'local', dispatchId: null, rev: 0, tokens: {}, reason: null, savedAt: null, polledAt: null }
+  fireRequests: [], followUps: [], remote: { state: 'local', dispatchId: null, rev: 0, tokens: {}, reason: null, savedAt: null, polledAt: null }
 }
 
 // 서버에서 받은 값을 반영하는 동안에는 자동 저장을 걸지 않는다(복원, 주기 조회)
@@ -180,15 +180,30 @@ export const useDispatchStore = create((set, get) => ({
       if (ack.answer !== 'decline' && !(ack.answer === 'none' && now - requestedAt >= 10 * MIN)) continue
       set({ ackOverride: { ...d.ackOverride, [code]: { ...ack, answer: ack.answer === 'decline' ? 'decline' : 'noack', at: now } } })
       if (get().replaceHelper(code)) continue
-      d = get()
-      const result = structuredClone(d.result)
-      const affected = result.assignments.filter((a) => a.helperCodes.includes(code))
-      const codes = affected.flatMap((a) => a.trips.flatMap((t) => t.personCodes)).filter((c) => !['handover', 'handedToFire'].includes(d.events[c]?.step))
-      result.assignments = result.assignments.filter((a) => !a.helperCodes.includes(code))
-      for (const personCode of codes) if (!result.unassigned.some((u) => u.personCode === personCode)) result.unassigned.push({ personCode, reason: 'noHelper' })
-      set({ result })
-      get().requestFireSupport()
+      get().dropHelperToFire(code)
     }
+  },
+
+  // 도우미가 맡은 대상자를 미배정(도우미 없음)으로 옮기고 소방 지원을 요청한다. 자동 처리와 담당자의 '소방 인계 목록으로 넘기기'가 같은 길을 쓴다
+  dropHelperToFire: (code) => {
+    const d = get()
+    if (!d.result) return null
+    const result = structuredClone(d.result)
+    const affected = result.assignments.filter((a) => a.helperCodes.includes(code))
+    const codes = affected.flatMap((a) => a.trips.flatMap((t) => t.personCodes)).filter((c) => !['handover', 'handedToFire'].includes(d.events[c]?.step))
+    result.assignments = result.assignments.filter((a) => !a.helperCodes.includes(code))
+    for (const personCode of codes) if (!result.unassigned.some((u) => u.personCode === personCode)) result.unassigned.push({ personCode, reason: 'noHelper' })
+    set({ result })
+    return get().requestFireSupport()
+  },
+
+  // 도우미 응답이 없을 때 담당자가 고른 다음 할 일(45회차, lib/noAckFollowUp.js). kind: officerCall | broadcast | fire | fireAsk
+  followUp: (helper, kind, by) => {
+    const d = get()
+    if (!d.result || !helper || !kind) return false
+    set({ followUps: [...(d.followUps || []), { helper, kind, at: vnowOf(d), by: by || null }] })
+    if (kind === 'fire') get().dropHelperToFire(helper)
+    return true
   },
 
   // 도우미 링크 문자 재발송(현장 휴대폰 F3). 시연은 발송 기록만 남긴다

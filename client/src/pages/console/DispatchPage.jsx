@@ -36,6 +36,7 @@ import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { scopeSummary } from '../../lib/shortageCalc.js'
 import { speedText } from '../../lib/unitText.js'
 import { progressBasisLine } from '../../lib/progressBasis.js'
+import { FOLLOW_UPS, FOLLOW_UP_BASIS, FOLLOW_UP_DONE, FOLLOW_UP_TITLE, followUpKindFor, lastFollowUp, needsFollowUp } from '../../lib/noAckFollowUp.js'
 
 const SPEEDS = [1, 60, 240].map((v) => ({ value: v, label: speedText(v) }))
 const COUNT_ORDER = ['wait', 'depart', 'arrive', 'board', 'handover', 'fail', 'handedToFire', 'unassigned']
@@ -351,6 +352,10 @@ function SentPanel({ now, meta }) {
   const toast = useToast()
   const [filter, setFilter] = useState('all')
   const [confirmClose, setConfirmClose] = useState(false)
+  // 대체 배정까지 실패한 도우미와 다음 할 일 창(45회차, 1026 인터뷰 반영)
+  const [failedReplace, setFailedReplace] = useState(() => new Set())
+  const [followAsk, setFollowAsk] = useState(null)
+  const authUser = useAuthStore((s) => s.user)
   const pollReports = useDispatchStore((s) => s.pollReports)
   // 도우미 보고 10초 주기 조회(회신 R34)
   useEffect(() => {
@@ -403,18 +408,25 @@ function SentPanel({ now, meta }) {
     { key: 'code', label: '도우미', render: (r) => <span className="tabular-nums">{r.code}{r.manual && <span className="ml-1 type-meta text-primary-text">화면 보고</span>}</span> },
     { key: 'vehicle', label: '차량', render: (r) => <span className="tabular-nums">{r.vehicle} {r.persons}명</span> },
     { key: 'answer', label: '응답', render: (r) => <StatusPill status={r.answer} /> },
-    { key: 'reason', label: '사유', render: (r) => (r.replaced ? `${r.replaced} 대체` : DECLINE_REASONS[r.reason] || '-'), hideBelow: 'md' },
+    { key: 'reason', label: '사유', render: (r) => { const f = lastFollowUp(d.followUps, r.code); return f ? FOLLOW_UP_DONE[f.kind] : r.replaced ? `${r.replaced} 대체` : DECLINE_REASONS[r.reason] || '-' }, hideBelow: 'md' },
     {
       key: 'act', label: '조치',
       render: (r) => (['decline', 'noack'].includes(r.answer)
         ? (
-          <Button size="sm" variant="secondary" onClick={() => {
-            const next = d.replaceHelper(r.code)
-            toast(next ? `대체 배정: ${r.code} 대신 ${next}. 대체 문자를 발송했습니다.` : '대체 배정이 가능한 도우미가 없습니다.', next ? 'primary' : 'danger')
-          }}
-          >
-            대체 배정
-          </Button>
+          <span className="flex flex-wrap gap-2">
+            {needsFollowUp(r, failedReplace)
+              ? <Button size="sm" variant="primary" onClick={() => setFollowAsk(r.code)}>다음 할 일</Button>
+              : (
+                <Button size="sm" variant="secondary" onClick={() => {
+                  const next = d.replaceHelper(r.code)
+                  if (!next) { setFailedReplace((s0) => new Set(s0).add(r.code)); setFollowAsk(r.code) }
+                  toast(next ? `대체 배정: ${r.code} 대신 ${next}. 대체 문자를 발송했습니다.` : '대체 배정이 가능한 도우미가 없습니다. 다음 할 일을 골라 주세요.', next ? 'primary' : 'danger')
+                }}
+                >
+                  대체 배정
+                </Button>
+              )}
+          </span>
         )
         : <span className="type-meta text-text-meta">-</span>)
     }
@@ -534,6 +546,34 @@ function SentPanel({ now, meta }) {
           </Disclosure>
         </Card>
       )}
+
+      <Modal
+        open={!!followAsk} onClose={() => setFollowAsk(null)} title={`${followAsk || ''} ${FOLLOW_UP_TITLE}`}
+        footer={<Button variant="ghost" onClick={() => setFollowAsk(null)}>닫기</Button>}
+      >
+        <p className="type-body-sm text-text-sec">{FOLLOW_UP_BASIS}</p>
+        <ul className="mt-4 space-y-3">
+          {FOLLOW_UPS.map((f) => (
+            <li key={f.key} className="flex items-center gap-3 rounded-md bg-subtle p-3">
+              <div className="min-w-0 flex-1">
+                <p className="type-strong text-text-pri">{f.label}</p>
+                <p className="type-meta text-text-sec">{f.desc}</p>
+              </div>
+              <Button
+                size="sm" variant={f.key === 'fire' ? 'danger' : 'secondary'}
+                onClick={() => {
+                  const kind = followUpKindFor(f.key, authUser?.role)
+                  d.followUp(followAsk, kind, authUser ? { role: authUser.role, name: authUser.name } : null)
+                  toast(`${followAsk}: ${FOLLOW_UP_DONE[kind]}`, f.key === 'fire' ? 'danger' : 'primary')
+                  setFollowAsk(null)
+                }}
+              >
+                {f.key === 'fire' ? '넘기기' : '기록'}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </Modal>
 
       <Modal
         open={confirmClose} onClose={() => setConfirmClose(false)} title="발령 종료"

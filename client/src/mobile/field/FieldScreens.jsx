@@ -19,6 +19,7 @@ import { personCare, ROUTE_NOTE } from '../../lib/tripChecks.js'
 import { readDocument, verifyResult } from '../../lib/intake.js'
 import { readNote, sourceLabel } from '../../lib/notes.js'
 import { unreadNote, canSaveTextOnly, prefillCode } from '../../lib/noteDraft.js'
+import { FOLLOW_UPS, FOLLOW_UP_BASIS, FOLLOW_UP_DONE, FOLLOW_UP_TITLE, followUpKindFor, lastFollowUp } from '../../lib/noAckFollowUp.js'
 import { AI_CARD, NOT_ENTERED, placeLine, reviewReasons } from '../../lib/aiCard.js'
 import { aiErrorMessage } from '../../lib/aiErrors.js'
 import { REAL_READ_SOURCE } from '../../mock/realReadings.js'
@@ -432,6 +433,11 @@ export function FieldHelpersPage() {
   const [tab, setTab] = useState('none')
   const [open, setOpen] = useState(null)
   const [confirm, setConfirm] = useState(null)
+  // 응답 없는 도우미의 다음 할 일(45회차, 1026 인터뷰 반영). follow: 도우미, pick: 고른 할 일
+  const [follow, setFollow] = useState(null)
+  const [pick, setPick] = useState(null)
+  const followUp = useDispatchStore((s) => s.followUp)
+  const authUser = useAuthStore((s) => s.user)
   const tokens = d.remote?.tokens || {}
   const linkFor = (h) => (tokens[h] ? `${window.location.origin}/h/${tokens[h]}` : null)
   const copy = async (h) => {
@@ -463,10 +469,23 @@ export function FieldHelpersPage() {
           <ListRow title="배정 링크 복사" subtitle="본인 배정만 보임, 12시간 뒤 만료" disabled={!open || !linkFor(open.code)} onClick={() => open && copy(open.code)} />
           <ListRow title="문자 다시 보내기" onClick={() => { const ok = resendLink?.(open.code); toast(ok ? `${open.code} 문자 다시 보냄` : '다시 보내기 실패'); setOpen(null) }} />
         </List>
+        {open && lastFollowUp(d.followUps, open.code) && <List label="남긴 조치"><ListRow title="남긴 조치" subtitle={FOLLOW_UP_DONE[lastFollowUp(d.followUps, open.code).kind]} /></List>}
         {tab !== 'accept' && <Button block variant="tonal" onClick={() => { setConfirm(open); setOpen(null) }}>다른 도우미로 바꾸기</Button>}
+        {tab !== 'accept' && <Button block variant="plain" onClick={() => { setFollow(open); setOpen(null) }}>바꿀 도우미도 없으면</Button>}
       </Sheet>
       <Dialog open={!!confirm} onClose={() => setConfirm(null)} title={`${confirm?.code} 바꾸기`} body="같은 등급을 돕는 대기 도우미에게 새 배정 문자를 보냄"
-        actions={<><Button variant="plain" onClick={() => setConfirm(null)}>취소</Button><Button onClick={() => { const r = replaceHelper?.(confirm.code); toast(r ? `${confirm.code} 바꿈` : '바꿀 도우미 없음'); setConfirm(null) }}>바꾸기</Button></>} />
+        actions={<><Button variant="plain" onClick={() => setConfirm(null)}>취소</Button><Button onClick={() => { const r = replaceHelper?.(confirm.code); if (r) toast(`${confirm.code} 바꿈`); else { toast('바꿀 도우미 없음, 다음 할 일 고르기'); setFollow(confirm) } setConfirm(null) }}>바꾸기</Button></>} />
+      <Sheet open={!!follow} onClose={() => setFollow(null)} title={FOLLOW_UP_TITLE}>
+        <p className="mob-t-callout mob-pad">{FOLLOW_UP_BASIS}</p>
+        <List label="다음 할 일">
+          {FOLLOW_UPS.map((f) => {
+            const kind = followUpKindFor(f.key, authUser?.role)
+            return <ListRow key={f.key} title={kind === 'fireAsk' ? '시 관리자에게 소방 인계 요청' : f.label} subtitle={f.desc} chevron onClick={() => setPick({ helper: follow.code, kind })} />
+          })}
+        </List>
+      </Sheet>
+      <Dialog open={!!pick} onClose={() => setPick(null)} title={pick ? FOLLOW_UP_DONE[pick.kind] : ''} body={pick ? `${pick.helper} 도우미에 대해 남김` : ''}
+        actions={<><Button variant="plain" onClick={() => setPick(null)}>취소</Button><Button onClick={() => { followUp?.(pick.helper, pick.kind, authUser ? { role: authUser.role, name: authUser.name } : null); toast(`${pick.helper} ${FOLLOW_UP_DONE[pick.kind]}`); setPick(null); setFollow(null) }}>남기기</Button></>} />
     </>
   )
 }
@@ -577,6 +596,7 @@ export function FieldPersonPage() {
           <ListRow title="평소 돌봄 담당자" subtitle={!care.known ? NOT_ENTERED : `${care.caregiverType}, ${care.reachableLabel}${care.companionCall ? ', 동행 연락' : ''}`} />
           <ListRow title="의사소통" subtitle={care.comm.length ? care.comm.join(', ') : care.known ? '특이 없음' : NOT_ENTERED} />
           <ListRow title="보조기구" subtitle={care.aids.length ? care.aids.join(', ') : care.known ? '없음' : NOT_ENTERED} />
+          <ListRow title="탑승 메모" subtitle={care.boardingNote || '없음'} />
           <InfoSheet title="경로 확인 기준" sheetTitle="경로 확인 기준"><p className="mob-t-body mob-pad">{ROUTE_NOTE}</p></InfoSheet>
         </List>
         <List label="현장 소식">
