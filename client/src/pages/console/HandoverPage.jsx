@@ -5,10 +5,9 @@
 import { useMemo, useState } from 'react'
 import { Ambulance, Printer } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import Card from '../../components/ui/Card.jsx'
 import PublicFactsCard from '../../components/miri/PublicFactsCard.jsx'
 import GradeChip from '../../components/miri/GradeChip.jsx'
-import MetricCard from '../../components/miri/MetricCard.jsx'
+import Section from '../../components/console/Section.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import HandoverPrint from '../../components/miri/HandoverPrint.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
@@ -16,7 +15,6 @@ import StatusPill from '../../components/dashboard/StatusPill.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Checkbox from '../../components/ui/Checkbox.jsx'
 import Modal from '../../components/ui/Modal.jsx'
-import EmptyState from '../../components/ui/EmptyState.jsx'
 import ExportButton from '../../components/ui/ExportButton.jsx'
 import useNow from '../../hooks/useNow.js'
 import useToast from '../../hooks/useToast.js'
@@ -132,35 +130,41 @@ export default function HandoverPage() {
 
   const live = ['assigned', 'sent'].includes(d.status) && d.result
 
+  const handAction = (
+    <Button
+      variant="danger" disabled={!picked.length} leftIcon={<Ambulance size={16} aria-hidden="true" />}
+      onClick={() => setHandOpen(true)}
+    >
+      {picked.length ? `선택 ${picked.length}명 소방 인계` : '선택 후 소방 인계'}
+    </Button>
+  )
+
   return (
-    <PageShell title="소방 인계">
+    <PageShell title="소방 인계" actions={live ? handAction : null}>
       {!live ? (
-        <div className="space-y-4">
+        <div className="space-y-6">
         {preview && (
-          <Card title="평시 예상" meta={`기준 시나리오 ${scenario.name}`}>
-            <p className="type-h3 text-text-pri tabular-nums">{preview.line1}</p>
-            {preview.line2 && <p className="mt-1.5 type-body-sm text-text-sec tabular-nums">{preview.line2}</p>}
-          </Card>
+          <Section title="발령 전 예상" count={`확산 조건 ${scenario.name}`}>
+            <p className="type-body text-text-pri tabular-nums">{preview.line1}</p>
+            {preview.line2 && <p className="mt-1 type-body-sm text-text-sec tabular-nums">{preview.line2}</p>}
+          </Section>
         )}
-        <Card as="div" padding="none">
-          <EmptyState
-            title="진행 중인 발령이 없습니다"
-            desc={d.status === 'standby' ? '추천 배정을 계산하면 목록이 생성됩니다.' : '발령을 개시하면 목록이 생성됩니다.'}
-            action={<Button as={Link} to="/console/dispatch">발령 운영</Button>}
-          />
-        </Card>
+        <Section title="진행 중인 발령 없음" action={<Button as={Link} to="/console/dispatch">발령 운영</Button>}>
+          <p className="type-body-sm text-text-sec">{d.status === 'standby' ? '추천 배정 계산 후 목록 생성' : '발령 개시 후 목록 생성'}</p>
+        </Section>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
-            <MetricCard label="소방 인계 대상" value={waiting.length} unit="명" tone={waiting.length ? 'danger' : 'neutral'} sub={`${fmtHM(baseAt)} 기준`} />
-            <MetricCard label="인계 완료" value={handed} unit="명" />
-            <MetricCard label="전달 횟수" value={d.handovers.length} unit="회" sub={d.status === 'assigned' ? '배정표 보내기 전 예상' : undefined} />
-          </div>
+        <div className="space-y-3">
+          <dl className="flex flex-wrap items-baseline gap-x-8 gap-y-1 type-body text-text-pri tabular-nums">
+            <div className="flex items-baseline gap-2"><dt className="text-text-sec">소방 인계 대상</dt><dd className={waiting.length ? 'type-strong text-danger-text' : 'type-strong'}>{waiting.length}명</dd><dd className="type-meta text-text-sec">{fmtHM(baseAt)} 기준</dd></div>
+            <div className="flex items-baseline gap-2"><dt className="text-text-sec">인계 완료</dt><dd className="type-strong">{handed}명</dd></div>
+            <div className="flex items-baseline gap-2"><dt className="text-text-sec">전달 횟수</dt><dd className="type-strong">{d.handovers.length}회</dd>{d.status === 'assigned' && <dd className="type-meta text-text-sec">배정표 보내기 전 예상</dd>}</div>
+          </dl>
 
+          <div className="max-h-[calc(100vh-13rem)] min-h-64 overflow-y-auto [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-10">
           <TableCard
+            tone="flat"
             title="소방 인계 대상" count={`${rows.length}명`}
-            desc={`${fmtHM(baseAt)} 기준, 급한 순`}
             actions={(
               <>
                 <Button variant="ghost" size="sm" disabled={!waiting.length} onClick={() => setSelected(allOn ? new Set() : new Set(waiting.map((r) => r.code)))}>
@@ -168,18 +172,13 @@ export default function HandoverPage() {
                 </Button>
                 <ExportButton size="sm" columns={csvCols} rows={rows} filename={`${orgName}_소방인계_${fmtDateTime(now).replace(/[ .:]/g, '')}`} />
                 <Button variant="secondary" size="sm" leftIcon={<Printer size={16} aria-hidden="true" />} onClick={() => window.print()}>인쇄</Button>
-                <Button
-                  variant="danger" size="sm" disabled={!picked.length} leftIcon={<Ambulance size={16} aria-hidden="true" />}
-                  onClick={() => setHandOpen(true)}
-                >
-                  {picked.length ? `선택 ${picked.length}명 소방 인계` : '선택 후 소방 인계'}
-                </Button>
               </>
             )}
-            columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={20} caption="소방 인계 대상 목록"
+            columns={columns} rows={rows} rowKey={(r) => r.code} pageSize={50} caption="소방 인계 대상 목록"
             onRowClick={(r) => setDetail(r)}
-            emptyTitle="소방 인계 대상이 없습니다" emptyDesc="전원 기한 안에 이송 중입니다."
+            emptyTitle="소방 인계 대상 없음" emptyDesc="전원 기한 내 이송 중"
           />
+          </div>
 
           <Drawer open={!!detail} onClose={() => setDetail(null)} title={detail ? `${detail.code} 상세` : ''}>
             {detail && (
@@ -225,7 +224,7 @@ export default function HandoverPage() {
 
           <PublicFactsCard only="er" />
 
-          <Card title="전달 기록" meta={`${d.handovers.length}회`}>
+          <Section title="전달 기록" count={`${d.handovers.length}회`}>
             {d.handovers.length ? (
               <ul className="divide-y divide-line-sub">
                 {d.handovers.map((h, i) => (
@@ -237,8 +236,8 @@ export default function HandoverPage() {
                   </li>
                 ))}
               </ul>
-            ) : <p className="type-body-sm text-text-meta">전달 기록이 없습니다.</p>}
-          </Card>
+            ) : <p className="type-body-sm text-text-meta">전달 기록 없음</p>}
+          </Section>
         </div>
       )}
     </PageShell>
