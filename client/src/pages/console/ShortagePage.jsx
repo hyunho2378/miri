@@ -18,8 +18,9 @@ import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import Select from '../../components/ui/Select.jsx'
 import useToast from '../../hooks/useToast.js'
 import { OWNERS, EXTRA_TYPE, GRADES, commitmentOf, typeOf } from '../../lib/shortage.js'
-import { BOTTLENECK_LABEL, TIME_BANDS, bandOf, bottleneck, computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
+import { BOTTLENECK_LABEL, TIME_BANDS, bandOf, bottleneck, computeShortage, optimizedUnserved, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import { vehicleSummaryLong } from '../../lib/vehicleSummary.js'
+import { BOARDING_STEPS, boardingLabel } from '../../lib/boardingSensitivity.js'
 import { calcStamp } from '../../lib/basis.js'
 import useNow from '../../hooks/useNow.js'
 import { Link } from 'react-router-dom'
@@ -36,7 +37,6 @@ const MAX_SCENARIOS = 5
 // 기본 시나리오(시드)는 저장 한도에서 빼고 사용자가 저장한 것만 센다
 export const userScenarioCount = (list) => list.filter((x) => !x.builtin).length
 // 탑승과 하차 시간 민감도. 현재 가정값(설정)을 가운데에 두고 앞뒤로 본다
-const BOARDING_STEPS = [10, 15, 20, 25, 30]
 const EXTRA_TYPES = [...new Set(Object.values(EXTRA_TYPE))]
 
 const offsetText = (h) => `+${fmtElapsed(h)}`
@@ -76,6 +76,12 @@ export default function ShortagePage() {
   const bandCompare = useMemo(() => TIME_BANDS.map((b) => ({ b, r: computeShortage({ ...input, scenario: { ...draft, timeBand: b.value } }) })), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
   const boardingNow = settings.boardingMinutes ?? 20
   const boardingCompare = useMemo(() => [...new Set([...BOARDING_STEPS, boardingNow])].sort((a, b) => a - b).map((m) => ({ m, r: computeShortage({ ...input, settings: { ...settings, boardingMinutes: m } }) })), [persons, villages, vehicles, helpers, settings, draft, today]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 결론 먼저: 지금 조건의 1.5배가 걸리면 몇 명이 더 못 옮기는지
+  const boardingLead = (() => {
+    const now1 = boardingCompare.find((x) => x.m === boardingNow)
+    const slow = boardingCompare.find((x) => x.m === Math.round(boardingNow * 1.5))
+    return now1 && slow && slow.m !== now1.m ? `태우고 내리는 시간이 ${slow.m}분으로 1.5배가 되면 못 옮기는 사람이 ${now1.r.total}명에서 ${slow.r.total}명으로 늘어납니다.` : ''
+  })()
   // 차량 가용 확실성(회신 R01): 약속된 차량만 쓸 때의 결과를 나란히 본다
   const agreedCompare = useMemo(() => {
     const agreed = vehicles.filter((v) => commitmentOf(v) !== 'unconfirmed')
@@ -318,10 +324,10 @@ export default function ShortagePage() {
             </section>
             <section aria-labelledby="chk-board">
               <h3 id="chk-board" className="type-h3 text-text-pri">한 번 태우고 내리는 시간에 따라</h3>
-              <p className="mt-1 type-body-sm text-text-sec">휠체어 이용자는 리프트 승합차와 도우미 2명으로 옮기고, 한 번에 태우고 내리는 데 {boardingNow}분으로 계산합니다. 숙련된 운전자는 5분 안에 태운다는 의견이 있어 시간을 바꿨을 때도 함께 보여 드립니다.</p>
+              <p className="mt-1 type-body-sm text-text-sec">{boardingLead ? `${boardingLead} ` : ''}휠체어 이용자는 리프트 승합차와 도우미 2명으로 옮기고, 한 번에 태우고 내리는 데 {boardingNow}분으로 계산합니다. 숙련된 운전자는 5분 안에 태운다는 의견이 있고, 요구조자가 몰리면 더 걸린다는 의견도 있어 시간을 바꿨을 때를 함께 보여 드립니다.</p>
               <ul className="mt-2 grid gap-2">
                 {boardingCompare.map(({ m, r }) => (
-                  <Row key={m} label={`${m}분${m === boardingNow ? ' (지금 조건)' : ''}`} value={`${r.total}명`} strong />
+                  <Row key={m} label={boardingLabel(m, boardingNow)} value={`${r.total}명 (추천 배정 ${optimizedUnserved(r)}명)`} strong />
                 ))}
               </ul>
               <p className="mt-2 type-meta text-text-meta">장애인 단체 자문을 근거로 했습니다. 함께 탈 도우미가 모자라면 그 사람도 못 옮기는 사람에 들어가고, 발령 때 배정도 같은 조건을 씁니다.</p>
