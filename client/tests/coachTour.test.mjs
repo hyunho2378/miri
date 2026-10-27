@@ -3,11 +3,12 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { TOURS, tourEnabled } from '../src/components/onboarding/tours.js'
 
-test('코치마크: 화면마다 영역 단위 2~5단계가 있고 ?tour=off 로 꺼진다', () => {
-  const need = ['/console', '/console/dispatch', '/console/shortage', '/console/intake', '/console/roster', '/console/resources', '/console/map', '/console/notes', '/console/records', '/console/settings', '/console/workspace', '/console/handover']
+test('코치마크: 현황판, 발령 운영, 부족분 계산, 서류 읽기 4곳만 3~4단계이고 ?tour=off 로 꺼진다', () => {
+  const need = ['/console', '/console/dispatch', '/console/shortage', '/console/intake']
+  assert.deepEqual(Object.keys(TOURS).sort(), need.slice().sort())
   for (const p of need) {
     const steps = TOURS[p]
-    assert.ok(steps && steps.length >= 2 && steps.length <= 5, p)
+    assert.ok(steps && steps.length >= 3 && steps.length <= 4, p)
     for (const s of steps) {
       assert.ok(s.title && s.body, p)
       assert.ok(Array.isArray(s.targets) && s.targets.length >= 1, p + ' ' + s.title)
