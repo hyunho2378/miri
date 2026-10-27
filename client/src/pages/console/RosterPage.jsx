@@ -174,8 +174,8 @@ export default function RosterPage() {
     { key: 'code', label: '대상자 코드', sortable: true, render: (p) => <span className="type-strong tabular-nums">{p.code}</span> },
     { key: 'village', label: '마을', sortable: true, sortValue: (p) => p.villageCode, render: (p) => vlabel(p.villageCode) },
     { key: 'grade', label: '이송 등급', sortable: true, sortValue: (p) => GRADE_RANK[p.grade], render: (p) => <GradeChip grade={p.grade} size="sm" /> },
-    { key: 'review', label: '등급 확인', sortable: true, render: (p) => <StatusPill status={p.review} size="sm" /> },
-    { key: 'planCheckedAt', label: '마지막 확인', title: '90일이 지나면 빨간 글자로 표시, 다시 확인합니다', sortable: true, sortValue: (p) => p.planCheckedAt || 0, render: (p) => { const c = checkedOf(p, now); return <span className={`whitespace-nowrap ${c.stale ? 'type-strong text-danger-text' : 'text-text-sec'}`}>{c.text}</span> } }
+    { key: 'review', label: '등급 확인', sortable: true, render: (p) => <StatusPill status={p.review === 'confirmed' && !p.planCheckedAt ? 'pending' : p.review} size="sm" /> },
+    { key: 'planCheckedAt', label: '마지막 확인', title: '90일 경과 또는 기록 없음은 재확인 대상, 빨간 글자로 표시', sortable: true, sortValue: (p) => p.planCheckedAt || 0, render: (p) => { const c = checkedOf(p, now); return <span className={`whitespace-nowrap ${c.stale ? 'type-strong text-danger-text' : 'text-text-sec'}`}>{c.text}</span> } }
   ]
   const listGrid = 'minmax(6.5rem,1.1fr) minmax(4.5rem,0.9fr) minmax(5.5rem,1fr) minmax(5.5rem,1fr) minmax(5rem,0.9fr)'
 
