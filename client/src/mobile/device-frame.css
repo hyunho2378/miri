@@ -10,9 +10,10 @@
 .dev-pick .dev-rotate { margin-left: 8px; }
 .dev-stage { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 24px 24px; }
 .dev-outer { position: relative; flex: 0 0 auto; }
-.dev-body { position: absolute; left: 0; top: 0; transform-origin: top left; box-sizing: border-box; padding: 12px; background: var(--m-ink); box-shadow: var(--m-shadow-3); }
-.dev-body.p-ios { border-radius: 56px; }
-.dev-body.p-android { border-radius: 36px; }
-.dev-body iframe { display: block; border: 0; background: var(--m-page); }
-.dev-body.p-ios iframe { border-radius: 44px; }
-.dev-body.p-android iframe { border-radius: 24px; }
+.dev-body { position: absolute; left: 0; top: 0; transform-origin: top left; box-sizing: border-box; }
+.dev-body.kit { background: transparent; }
+.dev-bezel { position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; user-select: none; }
+.dev-screen { position: absolute; display: block; border: 0; background: var(--m-page); z-index: 1; }
+/* 갤럭시와 폴드: 키트 Device frame 값(모서리 18, 선 8 바깥, 선 색 outline-variant). 안쪽 화면은 모서리 18 로 자른다. */
+.dev-body.p-android { background: var(--m-device-frame); border-radius: 26px; box-shadow: var(--m-shadow-3); }
+.dev-body.p-android .dev-screen { border-radius: 18px; }

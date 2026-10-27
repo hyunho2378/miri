@@ -7,7 +7,7 @@ import { DEVICES, DEFAULT_DEVICE, DEVICE_KEY, deviceById, deviceSize, fitScale, 
 import './tokens.css'
 import './device-frame.css'
 
-const BEZEL = 24
+const FRAME_PAD = 8   // M3 Utilities Device frame 50770:11451 선 두께 8
 const HEADER = 132
 
 function readStore() {
@@ -57,16 +57,31 @@ export default function DeviceFrameHost() {
     return () => window.removeEventListener('message', on)
   }, [id])
 
+  // 기기를 바꿔도 iframe 을 다시 열지 않는다. 크기만 바꾸고 화면 모양(iOS, Material)은 메시지로 알려 보던 화면을 유지한다.
   const choose = (nextId) => {
     if (nextId === id) return
     writeStore(nextId)
     setId(nextId)
-    setSrc(frameSrc(innerPath.current.pathname, innerPath.current.search, deviceById(nextId)))
+    try { frameRef.current?.contentWindow?.postMessage({ type: 'miri-mobile-platform', platform: deviceById(nextId).platform }, window.location.origin) } catch { /* 틀이 아직 열리지 않았으면 다음 열기에서 적용 */ }
   }
 
-  const scale = fitScale(size, avail, BEZEL)
-  const outerW = Math.round((size.width + BEZEL) * scale)
-  const outerH = Math.round((size.height + BEZEL) * scale)
+  // 기기 틀: 키트 기기 그림이 있으면 그림의 화면 구멍에 맞춰 iframe 을 놓고, 없으면(갤럭시, 폴드) 키트 Device frame 값으로 그린다.
+  const kit = landscape ? (device.frameLandscape || device.frame) : device.frame
+  const rotated = !!(landscape && device.frame && !device.frameLandscape)
+  let box, hole
+  if (kit) {
+    const fw = kit.w, fh = kit.h
+    box = rotated ? { w: fh, h: fw } : { w: fw, h: fh }
+    hole = rotated
+      ? { x: kit.y, y: fw - (kit.x + device.width), w: device.height, h: device.width }
+      : { x: kit.x, y: kit.y, w: size.width, h: size.height }
+  } else {
+    box = { w: size.width + FRAME_PAD * 2, h: size.height + FRAME_PAD * 2 }
+    hole = { x: FRAME_PAD, y: FRAME_PAD, w: size.width, h: size.height }
+  }
+  const scale = fitScale({ width: box.w, height: box.h }, avail, 0)
+  const outerW = Math.round(box.w * scale)
+  const outerH = Math.round(box.h * scale)
 
   return (
     <div className="dev-host">
@@ -79,13 +94,18 @@ export default function DeviceFrameHost() {
           {DEVICES.map((d) => (
             <button key={d.id} type="button" role="radio" aria-checked={d.id === id} className={d.id === id ? 'on' : ''} onClick={() => choose(d.id)}>{d.label}</button>
           ))}
-          <button type="button" className={`dev-rotate ${landscape ? 'on' : ''}`} aria-pressed={landscape} onClick={() => setLandscape((v) => !v)}>가로로 보기</button>
+          <button type="button" className={`dev-rotate ${landscape ? 'on' : ''}`} aria-pressed={landscape} onClick={() => setLandscape((v) => !v)}>{landscape ? '가로' : '세로'}</button>
         </div>
       </header>
       <main className="dev-stage">
         <div className="dev-outer" style={{ width: outerW, height: outerH }}>
-          <div className={`dev-body p-${device.platform}`} style={{ width: size.width + BEZEL, height: size.height + BEZEL, transform: `scale(${scale})` }}>
-            <iframe ref={frameRef} key={`${id}-${src}`} title={`${device.label} 화면`} src={src} width={size.width} height={size.height} />
+          <div className={`dev-body ${kit ? 'kit' : 'p-android'}`} style={{ width: box.w, height: box.h, transform: `scale(${scale})` }}>
+            {kit && (
+              <img className="dev-bezel" alt="" aria-hidden="true" src={kit.src} width={kit.w} height={kit.h}
+                style={rotated ? { transformOrigin: 'top left', transform: `translateY(${kit.w}px) rotate(-90deg)` } : undefined} />
+            )}
+            <iframe ref={frameRef} title={`${device.label} 화면`} src={src} className="dev-screen"
+              style={{ left: hole.x, top: hole.y, width: hole.w, height: hole.h }} />
           </div>
         </div>
       </main>

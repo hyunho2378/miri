@@ -38,22 +38,20 @@ test('화면 파일은 부품표에 있는 ui.jsx 부품만 가져온다', () =>
 
 test('기기 목록: 갤럭시 기본, 갤럭시는 M3, 아이폰은 iOS, 폴드와 듀오 안팎', () => {
   assert.equal(DEFAULT_DEVICE, 'galaxy')
-  assert.deepEqual(DEVICES.map((d) => d.id), ['galaxy', 'iphone', 'fold-cover', 'fold-inner', 'duo-cover', 'duo-inner'])
-  for (const d of DEVICES) assert.equal(d.platform, d.id.startsWith('galaxy') || d.id.startsWith('fold') ? 'android' : 'ios', d.id)
-  assert.deepEqual(deviceSize(deviceById('duo-inner'), true), { width: 951, height: 669 })
+  assert.deepEqual(DEVICES.map((d) => d.id), ['galaxy', 'iphone', 'fold', 'duo'])
+  for (const d of DEVICES) assert.equal(d.platform, d.id === 'galaxy' || d.id === 'fold' ? 'android' : 'ios', d.id)
+  assert.deepEqual(deviceSize(deviceById('duo'), true), { width: 951, height: 669 })
   assert.equal(deviceById('없음').id, 'galaxy')
 })
 
 test('틀 안 배치는 기기 크기로 정한다(창 크기가 아님)', () => {
   const at = (id, land = false) => { const d = deviceById(id); const s = deviceSize(d, land); return layoutFor({ platform: d.platform, ...s }) }
   assert.equal(at('galaxy').bar, 'bottom'); assert.equal(at('galaxy').twoPane, false)
-  assert.equal(at('fold-cover').bar, 'bottom')
-  assert.equal(at('fold-inner').bar, 'rail'); assert.equal(at('fold-inner').twoPane, false)
-  assert.equal(at('fold-inner', true).bar, 'rail')
+  assert.equal(at('fold').bar, 'rail'); assert.equal(at('fold').twoPane, false)
+  assert.equal(at('fold', true).bar, 'rail')
   assert.equal(at('iphone').bar, 'bottom')
-  assert.equal(at('duo-cover').bar, 'side')
-  assert.equal(at('duo-inner').bar, 'bottom'); assert.equal(at('duo-inner').twoPane, true)
-  assert.equal(at('duo-inner', true).bar, 'side')
+  assert.equal(at('duo').bar, 'bottom'); assert.equal(at('duo').twoPane, true)
+  assert.equal(at('duo', true).bar, 'side')
 })
 
 test('틀을 쓰는 때: 컴퓨터 창만. 휴대폰, 틀 안, frame=0 은 틀 없음', () => {
@@ -63,7 +61,7 @@ test('틀을 쓰는 때: 컴퓨터 창만. 휴대폰, 틀 안, frame=0 은 틀 �
   assert.equal(shouldUseFrame({ width: 412, coarse: true }), false)
   assert.equal(shouldUseFrame({ width: 1440, search: '?frame=0' }), false)
   assert.equal(shouldUseFrame({ width: 500, search: '?frame=1' }), true)
-  assert.equal(frameSrc('/m/f', '?device=iphone&x=1', deviceById('fold-inner')), '/m/f?x=1&platform=android&frame=0')
+  assert.equal(frameSrc('/m/f', '?device=iphone&x=1', deviceById('fold')), '/m/f?x=1&platform=android&frame=0')
   assert.equal(fitScale({ width: 402, height: 874 }, { availWidth: 1400, availHeight: 1200 }), 1)
   assert.ok(fitScale({ width: 669, height: 951 }, { availWidth: 1400, availHeight: 700 }) < 1)
 })

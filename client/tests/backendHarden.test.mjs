@@ -140,8 +140,8 @@ test('시나리오 저장 한도: 기본 시나리오는 세지 않음', async (
 
 test('기기 이름: 별칭은 정식 이름으로, 모르는 이름은 null', async () => {
   const { resolveDevice } = await import('../src/mobile/devices.js')
-  assert.equal(resolveDevice('fold_in'), 'fold-inner')
-  assert.equal(resolveDevice('duo_out'), 'duo-cover')
+  assert.equal(resolveDevice('fold_in'), 'fold')
+  assert.equal(resolveDevice('duo_out'), 'duo')
   assert.equal(resolveDevice('iphone18'), 'iphone')
   assert.equal(resolveDevice('galaxy'), 'galaxy')
   assert.equal(resolveDevice('nokia'), null)

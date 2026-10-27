@@ -3,13 +3,16 @@
 // - 아이폰 18 402x874, 아이폰 듀오 바깥 466x678, 안쪽 669x951: iOS 27 키트 기기 틀과 Safe Areas and Margins 12892:62092
 // - 갤럭시 S 360x780, 갤럭시 Z 폴드8 바깥 416x657, 안쪽 616x816: 삼성 공식 물리 해상도를 기본 배율로 나눈 추정값(layout.js GALAXY_SIZES, 규격서 7장)
 // 화면 모양은 기기에서 정한다. 갤럭시는 Material 3, 아이폰은 iOS.
+// frame: 키트 기기 그림(public/device, 2배 그림)과 화면 구멍 위치. 그림 크기와 위치는 키트 노드 값(1배, CSS px).
+// - 아이폰: Product Bezels iPhone 17 Black 6316:14199, 그림 450x920 안 화면 402x874 위치 (24, 23)
+// - 듀오 세로: iPhone Duo Display=Inner, Star White 12887:20885, 그림 749x1031 안 화면 669x951 위치 (40, 40)
+// - 듀오 가로: 같은 변형 Orientation=Landscape 12887:20886, 그림 1031x749 안 화면 951x669 위치 (40, 40)
+// - 갤럭시와 폴드: 키트에 기기 그림이 없어 M3 Utilities 'Device frame' 50770:11451(모서리 18, 선 8 바깥)의 값으로 그린다.
 export const DEVICES = [
-  { id: 'galaxy', label: '갤럭시 S', platform: 'android', width: 360, height: 780 },
-  { id: 'iphone', label: '아이폰', platform: 'ios', width: 402, height: 874 },
-  { id: 'fold-cover', label: '갤럭시 Z 폴드 바깥', platform: 'android', width: 416, height: 657 },
-  { id: 'fold-inner', label: '갤럭시 Z 폴드 안쪽', platform: 'android', width: 616, height: 816 },
-  { id: 'duo-cover', label: '아이폰 듀오 바깥', platform: 'ios', width: 466, height: 678 },
-  { id: 'duo-inner', label: '아이폰 듀오 안쪽', platform: 'ios', width: 669, height: 951 }
+  { id: 'galaxy', label: '갤럭시', platform: 'android', width: 360, height: 780 },
+  { id: 'iphone', label: '아이폰', platform: 'ios', width: 402, height: 874, frame: { src: '/device/iphone.png', w: 450, h: 920, x: 24, y: 23 } },
+  { id: 'fold', label: '폴드', platform: 'android', width: 616, height: 816 },
+  { id: 'duo', label: '듀오', platform: 'ios', width: 669, height: 951, frame: { src: '/device/duo-portrait.png', w: 749, h: 1031, x: 40, y: 40 }, frameLandscape: { src: '/device/duo-landscape.png', w: 1031, h: 749, x: 40, y: 40 } }
 ]
 export const DEFAULT_DEVICE = 'galaxy'
 export const DEVICE_KEY = 'miri.mobile.device'
@@ -18,10 +21,10 @@ export const DEVICE_KEY = 'miri.mobile.device'
 const ALIASES = {
   galaxys: 'galaxy', 'galaxy-s': 'galaxy', galaxy_s: 'galaxy', android: 'galaxy',
   iphone18: 'iphone', 'iphone-18': 'iphone', ios: 'iphone',
-  fold_out: 'fold-cover', foldout: 'fold-cover', 'fold-out': 'fold-cover', fold_cover: 'fold-cover',
-  fold_in: 'fold-inner', foldin: 'fold-inner', 'fold-in': 'fold-inner', fold_inner: 'fold-inner', fold: 'fold-inner',
-  duo_out: 'duo-cover', duoout: 'duo-cover', 'duo-out': 'duo-cover', duo_cover: 'duo-cover',
-  duo_in: 'duo-inner', duoin: 'duo-inner', 'duo-in': 'duo-inner', duo_inner: 'duo-inner', duo: 'duo-inner'
+  fold_out: 'fold', foldout: 'fold', 'fold-out': 'fold', fold_cover: 'fold', 'fold-cover': 'fold',
+  fold_in: 'fold', foldin: 'fold', 'fold-in': 'fold', fold_inner: 'fold', 'fold-inner': 'fold',
+  duo_out: 'duo', duoout: 'duo', 'duo-out': 'duo', duo_cover: 'duo', 'duo-cover': 'duo',
+  duo_in: 'duo', duoin: 'duo', 'duo-in': 'duo', duo_inner: 'duo', 'duo-inner': 'duo'
 }
 export function resolveDevice(q) {
   if (!q) return null

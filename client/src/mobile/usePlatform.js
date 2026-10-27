@@ -38,6 +38,15 @@ export function PlatformProvider({ children }) {
     setPlatformState(p)
     setSource('manual')
   }, [])
+  // 컴퓨터 틀에서 기기를 바꾸면 화면을 다시 열지 않고 화면 모양만 바꾼다(보던 화면과 입력 상태 유지)
+  useEffect(() => {
+    const on = (e) => {
+      if (e.origin !== window.location.origin || e.data?.type !== 'miri-mobile-platform') return
+      setPlatform(e.data.platform)
+    }
+    window.addEventListener('message', on)
+    return () => window.removeEventListener('message', on)
+  }, [setPlatform])
   const setLargeText = useCallback((on) => {
     writeStore(LARGE_TEXT_KEY, on ? '1' : '0')
     setLargeTextState(!!on)
