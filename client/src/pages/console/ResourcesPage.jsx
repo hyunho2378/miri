@@ -151,16 +151,24 @@ export default function ResourcesPage() {
   // 오른쪽 상세 공통 틀: 머리(이름과 상태), 본문(내부 스크롤), 아래 고정 단추
   const pane = (label, head, body, foot) => (
     <section aria-label={label} className="flex min-h-0 min-w-0 flex-col">
-      <div className="flex shrink-0 flex-wrap items-baseline gap-x-3 gap-y-1 pb-3">{head}</div>
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-4">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">{head}</div>
+        {foot && <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">{foot}</div>}
+      </div>
       <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">{body}</div>
-      {foot && <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 pt-3">{foot}</div>}
     </section>
   )
   const listHead = (title, count, sub) => (
-    <h2 className="shrink-0 pb-2 type-title text-text-pri">
-      {title} <span className="font-normal tabular-nums text-text-sec">{count}</span>
-      {sub && <span className="font-normal text-text-sec tabular-nums">, {sub}</span>}
-    </h2>
+    <div className="shrink-0 pb-3">
+      <h2 className="flex items-baseline gap-2 type-title text-text-pri">{title}<span className="font-normal tabular-nums text-text-sec">{count}</span></h2>
+      {sub && (
+        <dl className="mt-2 flex flex-wrap items-baseline gap-x-6 gap-y-1 type-body-sm tabular-nums">
+          {String(sub).split(' / ').map((t) => { const i = t.lastIndexOf(' '); return (
+            <div key={t} className="flex items-baseline gap-1.5"><dt className="text-text-sec">{t.slice(0, i)}</dt><dd className="text-text-pri">{t.slice(i + 1)}</dd></div>
+          ) })}
+        </dl>
+      )}
+    </div>
   )
 
   const vehicleDetail = vehicle ? pane('선택한 차량',
@@ -253,8 +261,8 @@ export default function ResourcesPage() {
       ) : tab === 'vehicles' ? (
         <>
           {unconfirmedCount > 0 && (
-            <div className="mb-3 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2">
-              <p className="type-body text-text-pri tabular-nums">협약 미확정 차량 <strong className="type-strong">{unconfirmedCount}대</strong>({unconfirmedByType})</p>
+            <div className="mb-6 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2">
+              <p className="type-body text-text-pri tabular-nums">협약 미확정 차량 {unconfirmedCount}대 <span className="text-text-sec">({unconfirmedByType})</span></p>
               <Button variant={onlyUnconfirmed ? 'secondary' : 'primary'} size="sm" onClick={() => setOnlyUnconfirmed((v) => !v)}>
                 {onlyUnconfirmed ? '전체 차량 보기' : '미확정 차량만 보기'}
               </Button>
