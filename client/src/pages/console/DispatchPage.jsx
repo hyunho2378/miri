@@ -73,8 +73,8 @@ function deadlinesOf(arrival, settings, scenario) {
 function SpeedControl({ value, onChange }) {
   return (
     <div>
-      <p className="mb-1.5 type-caption text-text-sec">시연 속도</p>
-      <SegmentControl label="시연 속도" items={SPEEDS} value={value} onChange={onChange} />
+      <p className="mb-1.5 type-caption text-text-sec">훈련 속도</p>
+      <SegmentControl label="훈련 속도" items={SPEEDS} value={value} onChange={onChange} />
     </div>
   )
 }
@@ -118,9 +118,9 @@ function StartPanel() {
           <Link to={`/console/records/${closedRecordId}`} className="mt-1 inline-flex min-h-11 md:min-h-0 items-center type-body-sm text-primary-text underline underline-offset-2">방금 저장한 기록 보기</Link>
         </div>
       )}
+      <div className="grid gap-4 xl:grid-cols-2 xl:items-start">
       <TaskCard
         step={status === 'closed' ? '종료' : '평시'} title="발령 개시"
-       
         actions={role === 'city' ? (
           <Button size="lg" disabled={kind !== 'drill'} leftIcon={<Siren size={16} aria-hidden="true" />} onClick={() => start({ kind, speed })}>
             {kind === 'drill' ? '훈련 발령 개시' : '실제 발령 개시'}
@@ -156,12 +156,13 @@ function StartPanel() {
           { label: '시나리오', value: scenario?.name, strong: true },
           { label: '이송 대상(대피 대상 구역)', value: <>{sum.villages}개 마을 {sum.targets.toLocaleString('ko-KR')}명{sum.pending > 0 && <span className="text-primary-text">, 확인 대기 서류 {sum.pending}건 포함</span>}</> },
           { label: '명부 전체', value: `${sum.roster.toLocaleString('ko-KR')}건(확인 대기 ${sum.rosterPending}건 포함)` },
-          { label: '가용 차량', value: vehicleSummaryShort(vehicles) },
+          { label: '차량', value: vehicleSummaryShort(vehicles) },
           { label: '도우미', value: `${helpers.filter((h) => h.active !== false).length}명` }
         ]} />
         <BasisLine className="mt-3" today={today} />
         <Link to="/console/shortage" className="mt-3 inline-flex min-h-11 md:min-h-0 items-center type-body-sm text-primary-text underline underline-offset-2">시나리오 변경</Link>
       </Card>
+      </div>
     </div>
   )
 }
