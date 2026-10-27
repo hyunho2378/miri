@@ -1,5 +1,5 @@
 // 문서함 첫 화면. 문서, 시트, 설문지 전환 → 새로 만들기 양식 → 최근 항목.
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
 import { ChevronRight, FileText, FileUp, ListChecks, MoreVertical, Pin, Plus, Search, Sheet } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -122,6 +122,18 @@ export default function WorkspaceHome() {
     const id = create(kind.key, t.key)
     navigate(`/console/workspace/${kind.key}/${id}`)
   }
+
+  // 다른 화면의 '기안 쓰기' 단추: ?new=서식키 로 들어오면 목록을 거치지 않고 그 서식을 채워 바로 연다
+  const newKey = params.get('new')
+  const openedNew = useRef(false)
+  useEffect(() => {
+    if (!ready || !newKey || openedNew.current) return
+    const t = listedTemplates(kind).find((x) => x.key === newKey)
+    openedNew.current = true
+    if (!t) return
+    const id = create(kind.key, t.key)
+    navigate(`/console/workspace/${kind.key}/${id}`, { replace: true })
+  }, [ready, newKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const listed = listedTemplates(kind)
   const cats = kind.key === 'doc'

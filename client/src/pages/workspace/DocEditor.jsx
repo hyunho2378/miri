@@ -722,7 +722,7 @@ export default function DocEditor() {
                     <h3 className="type-strong text-text-pri">문단 모양</h3>
                     <dl className="mt-2 grid grid-cols-[4.5rem_1fr] items-center gap-y-2 type-meta text-text-sec">
                       <dt>스타일</dt><dd><Pick label="스타일" value={cur.style} onChange={setStyle} options={STYLES.map((s) => ({ value: s.key, label: s.label }))} className="w-full" /></dd>
-                      <dt>정렬</dt><dd className="flex gap-1">{[['left', AlignLeft], ['center', AlignCenter], ['right', AlignRight], ['justify', AlignJustify]].map(([k, Ic]) => <Tool key={k} label={k} active={cur.align === k} onClick={() => align(k)}><Ic size={15} /></Tool>)}</dd>
+                      <dt>정렬</dt><dd className="flex gap-1">{[['left', AlignLeft, '왼쪽 정렬'], ['center', AlignCenter, '가운데 정렬'], ['right', AlignRight, '오른쪽 정렬'], ['justify', AlignJustify, '양쪽 정렬']].map(([k, Ic, nm]) => <Tool key={k} label={nm} active={cur.align === k} onClick={() => align(k)}><Ic size={15} /></Tool>)}</dd>
                       <dt>줄 간격</dt><dd><Pick label="줄 간격" value={LINE_SPACINGS.includes(cur.lh) ? cur.lh : ''} onChange={(v) => v && setLineHeight(Number(v))} options={[{ value: '', label: `${cur.lh}%` }, ...LINE_SPACINGS.map((s) => ({ value: s, label: `${s}%` }))]} className="w-full" /></dd>
                       <dt>개요 단계</dt><dd className="flex gap-1"><Tool label="한 수준 감소" onClick={() => shiftLevel(-1)}><IndentDecrease size={15} /></Tool><Tool label="한 수준 증가" onClick={() => shiftLevel(1)}><IndentIncrease size={15} /></Tool></dd>
                     </dl>
@@ -730,7 +730,7 @@ export default function DocEditor() {
                   <section className="rounded-md bg-subtle p-3 type-meta leading-5 text-text-sec">
                     <p className="type-caption text-text-pri">이 양식의 항목 부호</p>
                     <p className="mt-1">{metrics.levels.map((l, i) => `${i + 1}단계 ${l?.marker || ''}`).join(', ')}</p>
-                    <p className="mt-1 text-text-meta">값 출처: kordoc {METRICS_INFO.kordoc} 공문서 엔진 산출 HWPX 실측({METRICS_INFO.generatedAt}). Tab 으로 한 단계 내립니다.</p>
+                    <p className="mt-1 text-text-meta">Tab 키로 한 단계 내립니다.</p>
                   </section>
                 </div>
               )}
@@ -870,7 +870,7 @@ function DocInfo({ meta, setMeta }) {
       <section className="space-y-2">
         <h3 className="type-strong text-text-pri">문서 양식</h3>
         <Pick label="양식" value={meta.preset} onChange={(v) => setMeta({ preset: v, head: v === '기안문' && !meta.head ? { org: '동해시', to: '', via: '', title: '' } : meta.head, foot: v === '기안문' && !meta.foot ? { sender: '동해시장' } : meta.foot })} options={PRESETS.map((p) => ({ value: p.key, label: p.label }))} className="w-full" />
-        <p className="type-meta leading-5 text-text-meta">A4, 여백 위 {m.page.top} 아래 {m.page.bottom} 왼쪽 {m.page.left} 오른쪽 {m.page.right}mm. 본문 {m.body.font} {m.body.pt}pt, 줄 간격 {m.body.lineSpacing}%. 한글로 저장하면 kordoc 공문서 엔진이 이 값으로 파일을 만듭니다.</p>
+        <p className="type-meta leading-5 text-text-meta">A4, 여백 위 {m.page.top} 아래 {m.page.bottom} 왼쪽 {m.page.left} 오른쪽 {m.page.right}mm. 본문 {m.body.font} {m.body.pt}pt, 줄 간격 {m.body.lineSpacing}%. 한글 파일로 저장하면 이 값이 그대로 적용됩니다.</p>
       </section>
       {meta.preset === '기안문' && (
         <>

@@ -52,7 +52,7 @@ export const DOC_TEMPLATES = [
     html: join(
       L(1, `관련: 「재난 및 안전관리 기본법」 제40조(대피명령)`),
       L(1, `우리 시는 ${V('hazard')} 발생에 대비하여 스스로 대피하기 어려운 주민의 사전 대피 이송 계획을 수립하고 있습니다.`),
-      L(1, `「${V('scenario')}」 가정에서 대피 대상 마을 ${V('scopeVillages')}의 대상자 ${V('scopeTargets')} 가운데 ${V('unserved')}이 이송 기한 안에 옮겨지지 못하는 것으로 계산되어 아래와 같이 협조를 요청합니다.`),
+      L(1, `「${V('scenario')}」 기준으로 대피 대상 마을 ${V('scopeVillages')}의 대상자 ${V('scopeTargets')} 가운데 ${V('unserved')}이 이송 기한 안에 옮겨지지 못하는 것으로 계산되어 아래와 같이 협조를 요청합니다.`),
       L(2, '요청 내용: 침상 이송 가능 차량 지원 가능 대수와 출동 소요 시간 회신'),
       L(2, `필요 추가 차량(계산값): ${V('extraVehicles')}`),
       L(2, '회신 기한: ○○○○. ○. ○.(○)까지'),
@@ -79,10 +79,10 @@ export const DOC_TEMPLATES = [
     html: join(
       '<h1>거동불편자 이송 차량 민간 협약 추진</h1>',
       L(1, '추진 배경'),
-      L(2, `「${V('scenario')}」 가정에서 미이송 예상 ${V('unserved')}, 부족 마을 ${V('shortVillages')}`),
+      L(2, `「${V('scenario')}」 기준으로 미이송 예상 ${V('unserved')}, 부족 마을 ${V('shortVillages')}`),
       L(2, `차량 ${V('vehicleSummaryLong')}, 이 차량으로는 기한 안 이송이 어려움`),
       L(1, '추진 내용'),
-      L(2, `민간 승합차와 요양시설 차량 협약 ${V('extraVehicles')} 확보`),
+      L(2, `차량 협약 ${V('extraVehiclesDetail')} 확보(지금 차량 기준)`),
       L(2, '협약 기간: ○○○○. ○. ○.∼○○○○. ○○. ○○.'),
       L(1, '소요 예산: ○○○천원(재난관리기금)'),
       L(1, '향후 계획'),
@@ -118,7 +118,7 @@ export const DOC_TEMPLATES = [
     preset: '개조식', numbering: 'report',
     html: join(
       '<h1>거동불편자 이송 부족분 검토 보고</h1>',
-      `<blockquote>「${V('scenario')}」 가정에서 미이송 예상 ${V('unserved')}, 필요 추가 차량 ${V('extraVehicles')}</blockquote>`,
+      `<blockquote>「${V('scenario')}」 기준으로 미이송 예상 ${V('unserved')}, 필요 추가 차량 ${V('extraVehicles')}</blockquote>`,
       '<h2>현황</h2>',
       L(1, `동해시 주민등록인구 ${V('population')} 중 65세 이상 ${V('age65')}(고령화율 ${V('agingRate')})`),
       L(1, `${V('rosterSummary')}, 마을 ${V('villages')}`),
