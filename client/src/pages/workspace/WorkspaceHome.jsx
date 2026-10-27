@@ -45,7 +45,7 @@ function TemplateThumb({ kind, t }) {
         <div className="grid grid-cols-4 border-l border-t border-line-sub">
           {Array.from({ length: 20 }).map((_, i) => <span key={i} className={clsx('h-3.5 border-b border-r border-line-sub', i < 4 && 'bg-mute')} />)}
         </div>
-        <p className="mt-2 line-clamp-3 text-[11px] leading-4 text-text-meta">{t.columns.map((c) => c.label).join(', ')}</p>
+        <p className="mt-2 line-clamp-4 text-[13px] leading-5 text-text-meta">{t.columns.map((c) => c.label).join(', ')}</p>
       </>
     )
   } else if (kind === 'form') {
@@ -53,23 +53,23 @@ function TemplateThumb({ kind, t }) {
       <>
         <div className="h-1 rounded-xs bg-kind-form" />
         <div className="mt-2 space-y-1.5">
-          {t.questions.slice(0, 4).map((q, i) => <p key={i} className="truncate rounded-xs bg-subtle px-1.5 py-1 text-[11px] leading-4 text-text-sec">{q.title}</p>)}
+          {t.questions.slice(0, 4).map((q, i) => <p key={i} className="truncate rounded-lg bg-subtle px-2 py-1.5 text-[13px] leading-5 text-text-sec">{q.title}</p>)}
         </div>
       </>
     )
   } else {
-    const text = t.html.replace(/<div class="dv dv-block"[^>]*><\/div>/g, '[표]\n').replace(/<span class="dv" data-var="(\w+)"[^>]*><\/span>/g, (_, k) => `[${VAR_BY_KEY[k]?.label || '자료'}]`).replace(/<span class="dv" data-calc[^>]*><\/span>/g, '[계산]').replace(/<\/(h1|h2|p|li)>/g, '\n').replace(/<[^>]+>/g, '').split('\n').filter(Boolean).slice(0, 8)
-    inner = text.map((l, i) => <p key={i} className={clsx('truncate', i === 0 ? 'mb-1 text-center text-[11px] font-bold leading-4 text-text-pri' : 'text-[10px] leading-4 text-text-meta')}>{l}</p>)
+    const text = t.html.replace(/<div class="dv dv-block"[^>]*><\/div>/g, '[표]\n').replace(/<span class="dv" data-var="(\w+)"[^>]*><\/span>/g, (_, k) => `[${VAR_BY_KEY[k]?.label || '자료'}]`).replace(/<span class="dv" data-calc[^>]*><\/span>/g, '[계산]').replace(/<\/(h1|h2|p|li)>/g, '\n').replace(/<[^>]+>/g, '').split('\n').filter(Boolean).slice(0, 7)
+    inner = text.map((l, i) => <p key={i} className={clsx('truncate', i === 0 ? 'mb-1 text-center text-[14px] font-bold leading-5 text-text-pri' : 'text-[13px] leading-5 text-text-meta')}>{l}</p>)
   }
   const K = KINDS.find((k) => k.key === kind) || KINDS[0]
   return (
-    <span className="relative block aspect-[3/4] overflow-hidden rounded-md bg-page shadow-md transition-[box-shadow,transform] duration-fast group-hover:-translate-y-0.5 group-hover:shadow-lg">
+    <span className="relative block aspect-[3/4] overflow-hidden rounded-2xl bg-page shadow-md transition-[box-shadow,transform] duration-fast group-hover:-translate-y-0.5 group-hover:shadow-lg">
       {/* 종류 색 머리: 문서 파랑, 시트 초록, 설문지 보라. 머리에 '종류 (서식 이름)'을 적는다. 긴 이름은 두 줄까지 */}
-      <span className={clsx('flex h-10 items-center gap-1.5 px-3 text-[11px] font-bold leading-4 text-text-inverse', K.bg)}>
-        <K.Icon size={13} aria-hidden="true" className="shrink-0" />
+      <span className={clsx('flex h-14 items-center gap-2 bg-mute px-4 text-[15px] font-bold leading-5 text-text-pri')}>
+        <K.Icon size={18} aria-hidden="true" className={clsx('shrink-0', K.text)} />
         <span className="line-clamp-2 min-w-0">{thumbHeadLabel(kind, t.title)}</span>
       </span>
-      <span className="block h-[calc(100%-2.5rem)] overflow-hidden p-3">{inner}</span>
+      <span className="block h-[calc(100%-3.5rem)] overflow-hidden p-4">{inner}</span>
     </span>
   )
 }
@@ -161,7 +161,7 @@ export default function WorkspaceHome() {
           )}
         </div>
         <ChoiceChips label="서식 종류" size="sm" value={cat} onChange={setCat} options={cats} className="mt-3" />
-        <ul className="mt-4 grid grid-cols-2 gap-3 cq-sm:grid-cols-4 cq-lg:grid-cols-6 cq-xl:grid-cols-8">
+        <ul className="mt-4 grid grid-cols-2 gap-3 cq-sm:grid-cols-4 cq-lg:grid-cols-6 cq-xl:grid-cols-6">
           {listed.filter((t) => kind.key !== 'doc' || cat === 'all' || t.key === 'blank' || t.cat === cat).map((t) => (
             <li key={t.key} className="min-w-0">
               <button type="button" onClick={() => make(t)} className="group block w-full text-left">

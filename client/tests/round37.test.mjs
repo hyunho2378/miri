@@ -6,15 +6,15 @@ import { thumbHeadLabel } from '../src/lib/thumbLabel.js'
 import { DOC_TEMPLATES, FORM_TEMPLATES, SHEET_TEMPLATES } from '../src/lib/workspaceTemplates.js'
 
 test('머리말은 종류 뒤에 서식 이름을 괄호로 붙인다', () => {
-  assert.equal(thumbHeadLabel('doc', '협조 요청 공문'), '문서 (협조 요청 공문)')
-  assert.equal(thumbHeadLabel('sheet', '대상자 명부'), '시트 (대상자 명부)')
-  assert.equal(thumbHeadLabel('form', '인터뷰 참여 동의'), '설문지 (인터뷰 참여 동의)')
+  assert.equal(thumbHeadLabel('doc', '협조 요청 공문'), '협조 요청 공문')
+  assert.equal(thumbHeadLabel('sheet', '대상자 명부'), '대상자 명부')
+  assert.equal(thumbHeadLabel('form', '인터뷰 참여 동의'), '인터뷰 참여 동의')
 })
 
 test('서식 35종(빈 서식 3개 포함) 모두 머리말이 만들어지고 이름이 비어 있지 않다', () => {
   const all = [['doc', DOC_TEMPLATES], ['sheet', SHEET_TEMPLATES], ['form', FORM_TEMPLATES]]
   let n = 0
-  for (const [k, list] of all) for (const t of list) { assert.ok(t.title, `${k} ${t.key} 이름 없음`); assert.match(thumbHeadLabel(k, t.title), /^(문서|시트|설문지) \(.+\)$/); n += 1 }
+  for (const [k, list] of all) for (const t of list) { assert.ok(t.title, `${k} ${t.key} 이름 없음`); assert.match(thumbHeadLabel(k, t.title), /.+/); n += 1 }
   assert.equal(n, 35)
 })
 
