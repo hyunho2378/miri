@@ -14,6 +14,7 @@ import { personCare, tripChecks } from '../../lib/tripChecks.js'
 import BaselineCompare from '../../components/miri/BaselineCompare.jsx'
 import { dispatchBasisText } from '../../lib/basis.js'
 import StepIndicator from '../../components/miri/StepIndicator.jsx'
+import DispatchGuide from '../../components/onboarding/DispatchGuide.jsx'
 import TransportStatusTable from '../../components/miri/TransportStatusTable.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import StatusPill from '../../components/dashboard/StatusPill.jsx'
@@ -662,6 +663,7 @@ export default function DispatchPage() {
         <div className="min-w-0 flex-1"><StepIndicator status={status} /></div>
         {status !== 'sent' && <CloseControl status={status} />}
       </div>
+      <DispatchGuide status={status} />
       {(status === 'idle' || status === 'closed') && <StartPanel />}
       {status === 'standby' && <StandbyPanel now={now} meta={meta} />}
       {status === 'assigned' && hasResult && <AssignedPanel meta={meta} />}
