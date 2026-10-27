@@ -131,8 +131,8 @@ export default function ResourcesPage() {
   const LIFT_LABEL = { yes: '있음', no: '없음', unchecked: '승강기 확인 필요' }
   const shelterColumns = [
     { key: 'name', label: '대피소', render: (r) => <span className="type-strong">{r.name}</span> },
-    { key: 'capacity', label: '수용', sortValue: (r) => r.capacity || 0, sortable: true, render: (r) => <span className="tabular-nums text-text-sec">{(r.capacity || 0).toLocaleString('ko-KR')}명</span> },
-    { key: 'liftNeed', label: '휠체어와 침상', sortValue: (r) => r.liftNeed || 0, sortable: true, render: (r) => <span className="tabular-nums text-text-sec">{r.liftNeed ? `${r.liftNeed.toLocaleString('ko-KR')}명` : '없음'}</span> },
+    { key: 'capacity', label: '수용', sortValue: (r) => r.capacity || 0, sortable: true, render: (r) => <span className="font-normal tabular-nums text-text-sec">{(r.capacity || 0).toLocaleString('ko-KR')}명</span> },
+    { key: 'liftNeed', label: '휠체어와 침상', sortValue: (r) => r.liftNeed || 0, sortable: true, render: (r) => <span className="font-normal tabular-nums text-text-sec">{r.liftNeed ? `${r.liftNeed.toLocaleString('ko-KR')}명` : '없음'}</span> },
     { key: 'lift', label: '승강기와 진입로', render: (r) => <span className={r.liftAlert ? 'type-strong text-danger-text' : 'text-text-sec'}>{LIFT_LABEL[r.liftStatus]}</span> }
   ]
   const shelterGrid = 'minmax(8rem,1.6fr) minmax(5rem,0.8fr) minmax(6.5rem,1fr) minmax(8rem,1.3fr)'
@@ -158,8 +158,8 @@ export default function ResourcesPage() {
   )
   const listHead = (title, count, sub) => (
     <h2 className="shrink-0 pb-2 type-title text-text-pri">
-      {title} <span className="tabular-nums text-text-sec">{count}</span>
-      {sub && <span className="type-body-sm font-normal text-text-sec tabular-nums">, {sub}</span>}
+      {title} <span className="font-normal tabular-nums text-text-sec">{count}</span>
+      {sub && <span className="font-normal text-text-sec tabular-nums">, {sub}</span>}
     </h2>
   )
 

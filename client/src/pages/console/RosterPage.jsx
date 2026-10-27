@@ -288,8 +288,8 @@ export default function RosterPage() {
         <div className="grid min-h-0 flex-1 gap-x-10 gap-y-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(400px,1fr)]">
           <section aria-label="대상자 목록" className="flex min-h-0 flex-col max-lg:max-h-[50vh]">
             <h2 className="shrink-0 pb-2 type-title text-text-pri">
-              표시 중인 명부 <span className="tabular-nums text-text-sec">{countText(rows.length, '건')}</span>
-              <span className="type-body-sm font-normal text-text-sec tabular-nums">, 마을 {byVillage.length}곳{grades.length > 0 && `, 등급 ${grades.map((g) => gradeOf(g)?.label).join(', ')}`}</span>
+              표시 중인 명부 <span className="font-normal tabular-nums text-text-sec">{countText(rows.length, '건')}</span>
+              <span className="font-normal text-text-sec tabular-nums">, 마을 {byVillage.length}곳{grades.length > 0 && `, 등급 ${grades.map((g) => gradeOf(g)?.label).join(', ')}`}</span>
             </h2>
             <DataList
               label="대상자 명부" columns={columns} grid={listGrid} rows={rows} rowKey={(p) => p.code} selectedKey={open?.code}

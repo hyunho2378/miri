@@ -9,7 +9,7 @@ export default function PageHeader({ title, meta, action, className }) {
     <div className={clsx('mb-4 flex min-h-10 flex-wrap items-center justify-between gap-x-4 gap-y-2', className)}>
       <h1 className="flex min-w-0 items-baseline gap-2 type-h2 text-text-pri">
         <span className="shrink-0">{title}</span>
-        {shown && <span className="min-w-0 truncate type-body font-normal text-text-sec">({shown})</span>}
+        {shown && <span className="min-w-0 truncate font-normal text-text-sec">({shown})</span>}
       </h1>
       {action && <div className="flex flex-wrap items-center gap-2">{action}</div>}
     </div>

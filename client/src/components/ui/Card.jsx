@@ -27,7 +27,7 @@ export default function Card({
               {title && (tone === 'flat'
                 ? <H className="type-title text-text-pri">{title}</H>
                 : <H className="type-strong text-text-pri">{title}</H>)}
-              {meta != null && meta !== false && <span className="type-body-sm text-text-meta tabular-nums">{meta}</span>}
+              {meta != null && meta !== false && <span className={clsx(tone === 'flat' ? 'type-title' : 'type-strong', 'font-normal text-text-sec tabular-nums')}>{meta}</span>}
             </div>
             {desc && <p className={clsx('mt-1 type-meta text-text-meta', tone !== 'flat' && 'pl-4')}>{desc}</p>}
           </div>

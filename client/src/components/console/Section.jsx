@@ -7,7 +7,7 @@ export default function Section({ title, count, action, id, children, className 
       <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <h2 id={id} className="flex items-baseline gap-2 type-title text-text-pri">
           {title}
-          {count != null && <span className="type-title tabular-nums text-text-sec">{count}</span>}
+          {count != null && <span className="type-title font-normal tabular-nums text-text-sec">{count}</span>}
         </h2>
         {action}
       </div>
