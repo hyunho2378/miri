@@ -8,7 +8,7 @@ import useDispatchStore from '../../store/useDispatchStore.js'
 import Button from '../ui/Button.jsx'
 import Modal from '../ui/Modal.jsx'
 
-export default function DispatchAction() {
+export default function DispatchAction({ size = 'md' }) {
   const role = useAuthStore((s) => s.user?.role)
   const status = useDispatchStore((s) => s.status)
   const start = useDispatchStore((s) => s.start)
@@ -19,12 +19,12 @@ export default function DispatchAction() {
 
   if (live) {
     if (pathname === '/console/dispatch') return null
-    return <Button as={Link} to="/console/dispatch" size="md" leftIcon={<Siren size={16} aria-hidden="true" />}>발령 운영</Button>
+    return <Button as={Link} to="/console/dispatch" size={size} leftIcon={<Siren size={16} aria-hidden="true" />}>발령 운영</Button>
   }
   if (role !== 'city') return null
   return (
     <>
-      <Button size="md" leftIcon={<Siren size={16} aria-hidden="true" />} onClick={() => setOpen(true)}>발령 개시</Button>
+      <Button size={size} leftIcon={<Siren size={16} aria-hidden="true" />} onClick={() => setOpen(true)}>발령 개시</Button>
       <Modal
         open={open} onClose={() => setOpen(false)} title="훈련 발령 개시"
         footer={(

@@ -10,6 +10,7 @@ import PageShell, { todayLabel } from '../../components/miri/PageShell.jsx'
 import { ConditionMenu, PageHeader, StatusBand, NumberFlow, DetailSection, Section, InfoRows, LinkRow, SummaryRows } from '../../components/console/index.js'
 import VillageBars from '../../components/dashboard/VillageBars.jsx'
 import Modal from '../../components/ui/Modal.jsx'
+import DispatchAction from '../../components/layout/DispatchAction.jsx'
 import FreshnessNote from '../../components/miri/FreshnessNote.jsx'
 import { useFireRisk, useWarning, useWind, dirName } from '../../components/miri/FireRiskStrip.jsx'
 import useAnomalies from '../../hooks/useAnomalies.js'
@@ -224,7 +225,7 @@ export default function OverviewPage() {
           </div>
 
           <div className="grid min-w-0 content-start gap-5 [grid-area:todo]">
-            <Section id="ov-todo" title="처리할 일" count={todo}>
+            <Section id="ov-todo" title="처리할 일" count={todo} action={<DispatchAction size="sm" />}>
               {todoRows.length === 0 ? (
                 <p className="type-body text-text-sec">처리할 일 없음</p>
               ) : (
