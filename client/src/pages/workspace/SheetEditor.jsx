@@ -94,7 +94,7 @@ export default function SheetEditor() {
     return list
   }, [rows, q, sort])
 
-  if (!ready) return <div className="flex min-h-dvh items-center justify-center bg-canvas type-body-sm text-text-meta">시트를 불러오는 중입니다.</div>
+  if (!ready) return <div className="flex min-h-dvh items-center justify-center bg-canvas type-body-sm text-text-meta">시트 조회 중</div>
   if (!sheet) return <Navigate to="/console/workspace?kind=sheet" replace />
 
   const setCell = (ri, ci, value) => {
@@ -217,7 +217,7 @@ export default function SheetEditor() {
   const note = sheet.source === 'roster'
     ? <>대상자 명부와 연결된 시트입니다. 이송 등급과 특이사항을 고치면 명부와 부족분 계산에 바로 반영됩니다. <Link to="/console/roster" className="text-primary-text underline">명부 화면</Link></>
     : sheet.source === 'form'
-      ? <>설문지 <Link to={`/console/workspace/form/${sheet.formId}`} className="text-primary-text underline">{form?.title}</Link> 응답이 자동으로 쌓입니다. 응답은 고칠 수 없습니다.</>
+      ? <>설문지 <Link to={`/console/workspace/form/${sheet.formId}`} className="text-primary-text underline">{form?.title}</Link> 응답 자동 누적, 수정 불가</>
       : null
 
   return (
@@ -283,7 +283,7 @@ export default function SheetEditor() {
             ))}
           </tbody>
         </table>
-        {view.length === 0 && <p className="px-6 py-8 type-body-sm text-text-meta">{q ? '찾는 내용이 없습니다.' : '아직 행이 없습니다.'}</p>}
+        {view.length === 0 && <p className="px-6 py-8 type-body-sm text-text-meta">{q ? '검색 결과 없음' : '행 없음'}</p>}
         {view.length > limit && (
           <div className="px-4 py-3 md:px-6">
             <Button variant="secondary" size="sm" onClick={() => setLimit((n) => n + 200)}>다음 200행 보기</Button>

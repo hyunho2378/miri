@@ -88,7 +88,7 @@ export default function DeviceFrameHost() {
       <header className="dev-head">
         <div className="dev-title">
           <h1>미리 휴대폰 화면</h1>
-          {unknownDevice && <p role="status">주소의 기기 이름을 알 수 없어 오른쪽에서 기기를 골라 주세요</p>}
+          {unknownDevice && <p role="status">기기 미확인, 오른쪽에서 기기 선택</p>}
         </div>
         <div className="dev-pick" role="radiogroup" aria-label="기기">
           {DEVICES.map((d) => (

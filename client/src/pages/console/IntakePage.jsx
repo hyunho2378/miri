@@ -280,8 +280,8 @@ export default function IntakePage() {
                 </div>
               )}
               footer={canEdit && <Checkbox checked={checkOnConfirm} onChange={setCheckOnConfirm} label="확인 시 당사자와 계획 확인 함께 기록" />}
-              onConfirm={() => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'confirm', boardingPatch(current.result.personCode), ck); toast(`${current.result.personCode} 읽기 결과를 확인했습니다.${ck ? ' 당사자와 계획 확인도 기록했습니다.' : ''}`, 'primary') }}
-              onEdit={(patch) => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'edit', { ...patch, ...boardingPatch(current.result.personCode) }, ck); toast(`${current.result.personCode} 수정한 값으로 확인했습니다.${ck ? ' 당사자와 계획 확인도 기록했습니다.' : ''}`, 'primary') }}
+              onConfirm={() => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'confirm', boardingPatch(current.result.personCode), ck); toast(`${current.result.personCode} 읽기 결과를 확인했습니다.${ck ? ' 당사자와 계획 확인 기록 완료' : ''}`, 'primary') }}
+              onEdit={(patch) => { const ck = planCheckFor(current); reviewResult(current.doc.id, current.result.personCode, 'edit', { ...patch, ...boardingPatch(current.result.personCode) }, ck); toast(`${current.result.personCode} 수정한 값으로 확인했습니다.${ck ? ' 당사자와 계획 확인 기록 완료' : ''}`, 'primary') }}
               onReject={() => { reviewResult(current.doc.id, current.result.personCode, 'reject'); toast(`${current.result.personCode} 제외. 서류 재촬영 요청 필요`) }}
             />
           </section>

@@ -476,7 +476,7 @@ export function TimePicker({ value = '', onChange, disabled, label = '시각', .
   const result = timeValue(hour, minute)
   const ok = validTime(result)
   const commit = () => { onChange?.({ target: { value: result } }); setOpen(false) }
-  const hint = !ok && <p role="alert" className="mob-t-sub">시는 00부터 23, 분은 00부터 59까지 입력해 주세요.</p>
+  const hint = !ok && <p role="alert" className="mob-t-sub">시 00-23, 분 00-59 입력</p>
   if (platform === 'android') {
     return (
       <span className="mob-time-control">

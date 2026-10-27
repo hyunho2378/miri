@@ -31,13 +31,13 @@ export default function FormFillPage() {
       <header className="flex h-14 items-center justify-center bg-page border-b border-line-sub"><Logo linked={false} /></header>
       <main className="mx-auto w-full max-w-[640px] px-4 py-6">
         {remote === undefined && !local ? (
-          <p className="py-10 text-center type-body-sm text-text-meta">설문지를 불러오는 중입니다.</p>
+          <p className="py-10 text-center type-body-sm text-text-meta">설문지 조회 중</p>
         ) : form ? (
           <FormRenderer form={{ ...form, responses: form.responses || [] }} onSubmit={onSubmit} />
         ) : (
           <div className="rounded-lg bg-page p-6 shadow-card">
-            <h1 className="type-h2 text-text-pri">설문지를 찾을 수 없습니다</h1>
-            <p className="mt-2 type-body text-text-sec">링크가 바르지 않거나 삭제된 설문지입니다.</p>
+            <h1 className="type-h2 text-text-pri">설문지 없음</h1>
+            <p className="mt-2 type-body text-text-sec">링크 오류 또는 삭제된 설문지</p>
           </div>
         )}
       </main>

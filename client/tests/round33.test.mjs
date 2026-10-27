@@ -57,7 +57,7 @@ test('현장 소식: 대상자 화면에서 ?p= 로 들어오면 대상자를 �
   assert.equal(prefillCode(''), '')
   const src = readFileSync(new URL('../src/mobile/field/FieldScreens.jsx', import.meta.url), 'utf8')
   assert.ok(src.includes('/m/f/note?p='))
-  assert.ok(src.includes('글만 저장했어요'))
+  assert.ok(src.includes('글 저장 완료'))
 })
 
 test('나중에 읽기: setNoteRead 는 읽은 결과를 붙이고 명부는 바꾸지 않음', async () => {

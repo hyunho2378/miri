@@ -155,7 +155,7 @@ function StartPanel() {
             </>
           )}
         >
-          <p className="type-body text-text-pri">실제 발령은 도우미 휴대폰으로 실제 배정표가 나가고, 소방 인계 목록이 실제 대상자로 만들어집니다. 훈련이라면 취소를 누르세요.</p>
+          <p className="type-body text-text-pri">실제 발령 시 도우미 휴대폰으로 배정표 전송, 실제 대상자로 소방 인계 목록 생성. 훈련은 취소 선택</p>
         </Modal>
         {kind === 'drill' && <SpeedControl value={speed} onChange={setSpeed} />}
       </TaskCard>
@@ -291,7 +291,7 @@ function AssignedPanel({ meta }) {
       {result.warnings?.length > 0 && (
         <Card as="div" role="alert" tone="danger" padding="sm">
           <p className="type-body-sm text-danger-text">
-            <span className="type-strong">도우미가 부족한 차량: {result.warnings.map((w) => `${w.vehicleCode} (${w.got}/${w.need}명)`).join(', ')}.</span> 차량과 도우미 화면에서 도우미를 추가해 주십시오.
+            <span className="type-strong">도우미가 부족한 차량: {result.warnings.map((w) => `${w.vehicleCode} (${w.got}/${w.need}명)`).join(', ')}.</span> 차량과 도우미 화면에서 도우미 추가 필요
           </p>
         </Card>
       )}
@@ -434,7 +434,7 @@ function SentPanel({ now, meta }) {
                 <Button size="sm" variant="secondary" onClick={() => {
                   const next = d.replaceHelper(r.code)
                   if (!next) { setFailedReplace((s0) => new Set(s0).add(r.code)); setFollowAsk(r.code) }
-                  toast(next ? `대체 배정: ${r.code} 대신 ${next}. 대체 문자를 발송했습니다.` : '대체 배정이 가능한 도우미가 없습니다. 다음 할 일을 골라 주세요.', next ? 'primary' : 'danger')
+                  toast(next ? `대체 배정: ${r.code} 대신 ${next}. 대체 문자 발송 완료` : '대체 배정 가능 도우미 없음, 다음 조치 선택', next ? 'primary' : 'danger')
                 }}
                 >
                   대체 배정
@@ -454,7 +454,7 @@ function SentPanel({ now, meta }) {
 
   // 확인 필요(미배정)가 남아 있으면 소방 지원 요청을 먼저, 발령 종료는 그 뒤에 둔다(공무원 시점 점검 2026. 10. 27.)
   const waitingFire = d.result.unassigned.filter((u) => d.events[u.personCode]?.step !== 'handedToFire')
-  const askFire = () => { const q = d.requestFireSupport(); toast(q ? `소방 지원 요청: 미배정 ${q.count}명, 동해소방서` : '요청할 미배정자가 없습니다.', q ? 'primary' : 'danger') }
+  const askFire = () => { const q = d.requestFireSupport(); toast(q ? `소방 지원 요청: 미배정 ${q.count}명, 동해소방서` : '요청 대상 미배정자 없음', q ? 'primary' : 'danger') }
 
   return (
     <div className="space-y-4">
@@ -521,7 +521,7 @@ function SentPanel({ now, meta }) {
       {d.manualHelper && helpers.includes(d.manualHelper) && (
         <Card as="div" tone="primary" padding="sm" bodyClassName="flex flex-wrap items-center gap-3">
           <UserRoundCheck size={20} aria-hidden="true" className="text-text-sec" />
-          <p className="min-w-0 flex-1 type-body-sm text-primary-text">도우미 {d.manualHelper}의 배정은 도우미 화면에서 보고한 내용으로만 진행됩니다.</p>
+          <p className="min-w-0 flex-1 type-body-sm text-primary-text">도우미 {d.manualHelper}의 배정은 도우미 화면 보고 내용 기준</p>
           <a href="/h/demo" target="_blank" rel="noreferrer" className="inline-flex min-h-11 md:min-h-0 items-center gap-1 type-strong text-primary-text underline underline-offset-2">
             도우미 화면 열기<ExternalLink size={14} aria-hidden="true" />
           </a>
@@ -601,11 +601,11 @@ function SentPanel({ now, meta }) {
         footer={(
           <>
             <Button variant="ghost" onClick={() => setConfirmClose(false)}>취소</Button>
-            <Button variant="danger" onClick={() => { setConfirmClose(false); d.close(); toast('발령을 종료했습니다. 도우미 화면의 배정 정보를 삭제했습니다.', 'primary') }}>발령 종료</Button>
+            <Button variant="danger" onClick={() => { setConfirmClose(false); d.close(); toast('발령 종료, 도우미 화면 배정 정보 삭제', 'primary') }}>발령 종료</Button>
           </>
         )}
       >
-        <p className="type-body-sm text-text-sec">발령을 종료하면 도우미 화면의 배정 정보가 삭제되고, 결과는 이송 기록에 저장됩니다.</p>
+        <p className="type-body-sm text-text-sec">종료 시 도우미 화면 배정 정보 삭제, 결과는 이송 기록에 저장</p>
         <dl className="mt-4 grid grid-cols-2 gap-2 tabular-nums">
           {['handover', 'handedToFire', 'fail', 'unassigned'].map((k) => (
             <div key={k} className="rounded-md bg-subtle p-3">
@@ -614,7 +614,7 @@ function SentPanel({ now, meta }) {
             </div>
           ))}
         </dl>
-        {counts.fail + counts.unassigned > 0 && <p className="mt-3 type-body-sm text-danger-text">실패와 미배정 {counts.fail + counts.unassigned}명은 소방 인계 여부를 확인해 주십시오.</p>}
+        {counts.fail + counts.unassigned > 0 && <p className="mt-3 type-body-sm text-danger-text">실패와 미배정 {counts.fail + counts.unassigned}명 소방 인계 여부 확인 필요</p>}
       </Modal>
     </div>
   )
@@ -641,7 +641,7 @@ function CloseControl({ status }) {
           </>
         )}
       >
-        <p className="type-body-sm text-text-sec">{status === 'standby' ? '배정 계산 전' : '도우미 전송 전'} 종료하면 이번 발령은 끝나고 기록에 남습니다.</p>
+        <p className="type-body-sm text-text-sec">{status === 'standby' ? '배정 계산 전' : '도우미 전송 전'} 종료 시 이번 발령 기록 저장</p>
       </Modal>
     </>
   )

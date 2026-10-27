@@ -73,7 +73,7 @@ export function ConsentScreen({ initialRoles = ['ride'], onBack, onDone }) {
     <>
       <AppBar title="참여 동의" large={!onBack} onBack={onBack} />
       <main id="main" className="mob-content no-nav">
-        <p className="mob-t-body mob-h-lead">재난 때 이웃의 대피를 도울 수 있나요? 할 수 있는 일을 골라 주세요.</p>
+        <p className="mob-t-body mob-h-lead">가능한 도움 선택</p>
         <List label="할 수 있는 일">
           {Object.entries(ROLE_OPTIONS).map(([k, v]) => <SelectRow key={k} multiple title={v} subtitle={k === 'ride' ? '차량 배정 후보가 돼요' : undefined} selected={roles.includes(k)} onSelect={() => toggle(k)} />)}
         </List>
@@ -109,7 +109,7 @@ function IdleHome({ consentKey, onStart }) {
         <p className="mob-t-callout mob-h-lead">배정이 오면 문자로 링크를 보내 드려요.</p>
         {expSource() && <p className="mob-t-foot mob-pad">{EXP_NOTICE}</p>}
       </main>
-      <BottomAction primary={consented ? null : { label: '참여 동의하기', onClick: () => setEditing(true) }} secondary={{ label: busy ? '배정을 받는 중이에요' : '시연 배정 받기', onClick: begin, disabled: busy }} />
+      <BottomAction primary={consented ? null : { label: '참여 동의하기', onClick: () => setEditing(true) }} secondary={{ label: busy ? '배정 조회 중' : '훈련 배정 받기', onClick: begin, disabled: busy }} />
     </>
   )
 }
@@ -188,10 +188,10 @@ function EmergencySheet({ open, onClose, m, onFail }) {
     <Sheet open={open} onClose={onClose} title={title}>
       {page === 'main' && (
         <div className="mob-h-sheet-body">
-          <p className="mob-t-body mob-h-lead">안전한 곳에서 이동을 멈추고 119에 알려 주세요.</p>
+          <p className="mob-t-body mob-h-lead">안전한 곳에서 정지 후 119 신고</p>
           <Button block variant="danger" onClick={() => { window.location.href = 'tel:119' }}><Phone size={20} aria-hidden="true" />119에 전화</Button>
           <List label="다음 할 일">
-            {onFail && <ListRow title="이송할 수 없어요" subtitle="실패로 보고하면 담당자가 소방 지원을 요청해요" chevron onClick={() => { onClose(); onFail() }} />}
+            {onFail && <ListRow title="이송할 수 없어요" subtitle="실패 보고 시 담당자가 소방 지원 요청" chevron onClick={() => { onClose(); onFail() }} />}
             <ListRow title="담당자 전화" subtitle={m.officerContact} href={officerTel || undefined} chevron={!!officerTel} />
             <ListRow title="응급 대응 안내" subtitle="의식과 호흡 확인, 하지 말아야 할 것" chevron onClick={() => setPage('guide')} />
             <ListRow title="말할 때 쓰는 문구" subtitle={`권장 문구 ${HELPER_PHRASES.length}개와 피할 표현`} chevron onClick={() => setPage('phrases')} />
@@ -205,7 +205,7 @@ function EmergencySheet({ open, onClose, m, onFail }) {
         <List label="말할 때 쓰는 문구">
           {HELPER_PHRASES.map(([t, s]) => <ListRow key={t} title={t} subtitle={s} />)}
           <ListRow title="피할 표현" subtitle={AVOID_PHRASES.join(', ')} />
-          <ListRow title="전달 방법" subtitle="천천히 말하고 한 번에 한 가지 정보만 전달해 주세요." />
+          <ListRow title="전달 방법" subtitle="천천히, 한 번에 한 가지 정보만 전달" />
         </List>
       )}
       <Button block variant="plain" onClick={page === 'main' ? onClose : () => setPage('main')}>{page === 'main' ? '닫기' : '뒤로'}</Button>
@@ -345,7 +345,7 @@ function ContactScreen({ m, onBack }) {
         <List label="참여"><ListRow title="참여 그만두기" subtitle="다음 배정부터 빠짐, 불이익 없음" chevron onClick={() => setAsk(true)} /></List>
         <List label="화면 설정"><DisplaySettings /></List>
       </main>
-      <Dialog open={ask} onClose={() => setAsk(false)} title="참여를 그만둘까요?" body="지금 배정은 담당자에게 연락해 조정해 주세요." actions={
+      <Dialog open={ask} onClose={() => setAsk(false)} title="참여를 그만둘까요?" body="현재 배정은 담당자 연락 후 조정" actions={
         <>
           <Button variant="plain" onClick={() => setAsk(false)}>취소</Button>
           <Button variant="plain" className="mob-h-danger-text" onClick={() => { m.preference(false, []); setAsk(false); toast('그만두기 요청을 보냈어요') }}>그만두기</Button>
@@ -388,7 +388,7 @@ function EndScreen({ m, steps, declined }) {
       <>
         <AppBar title="불가 응답" large />
         <main id="main" className="mob-content no-nav">
-          <EmptyState icon={<CircleX size={28} />} title="불가 응답을 보냈어요" body={`사유: ${DECLINE_REASONS_M[ackR?.reason] || '기타'}. 담당자가 다른 도우미를 배정해요.`} />
+          <EmptyState icon={<CircleX size={28} />} title="불가 응답을 보냈어요" body={`사유: ${DECLINE_REASONS_M[ackR?.reason] || '기타'}. 담당자가 다른 도우미 배정`} />
           {pending}
         </main>
       </>
@@ -398,7 +398,7 @@ function EndScreen({ m, steps, declined }) {
     <>
       <AppBar title="이송 끝" large />
       <main id="main" className="mob-content no-nav">
-        <Figure value={`완료 ${p.done}명`} caption={`실패 ${p.failed}명, 대피소에서 담당자 안내를 기다려 주세요`} />
+        <Figure value={`완료 ${p.done}명`} caption={`실패 ${p.failed}명, 대피소에서 담당자 안내 대기`} />
         <List label="기록">{done.map((r) => <ListRow key={`${r.personCode}${r.step}`} className="kv" title={houseOf(m.trips, r.personCode)} trailing={<span className="mob-h-kv">{STEP_LABEL[r.step]} {r.at ? fmtHM(r.at) : ''}</span>} />)}</List>
         {pending}
       </main>
@@ -454,12 +454,12 @@ function Flow({ m, consentKey }) {
 
   if (base === 'H0') return <ConsentScreen initialRoles={readRoles(consentKey)} onDone={(roles) => { m.preference(true, roles); writeConsent(consentKey, roles); setConsented(true) }} />
   if (base === 'H1') return <AlertScreen m={m} onDecline={() => setDeclining(true)} />
-  if (base === 'H2') return <ReasonScreen title="불가 사유" lead="사유를 고르면 담당자가 다른 도우미를 배정해요." reasons={DECLINE_REASONS_M} label="불가 보내기" onBack={() => setDeclining(false)} onSend={(reason, memo) => m.ack('decline', reason, memo)} />
+  if (base === 'H2') return <ReasonScreen title="불가 사유" lead="사유를 고르면 담당자가 다른 도우미 배정" reasons={DECLINE_REASONS_M} label="불가 보내기" onBack={() => setDeclining(false)} onSend={(reason, memo) => m.ack('decline', reason, memo)} />
   if (base === 'H9') return <EndScreen m={m} steps={steps} declined={ackR?.answer === 'decline'} />
   const detailOf = (v, goTo, onBackTo, inPane) => {
     if (v?.name === 'list') return <PeopleList m={m} steps={steps} go={goTo} onBack={onBackTo} />
     if (v?.name === 'H5' || v?.name === 'H4') return <TransportScreen m={m} code={v.code} steps={steps} go={goTo} onBack={onBackTo} report={report} predepKey={predepKey} inPane={inPane} />
-    if (v?.name === 'H6') return <ReasonScreen title="이송할 수 없어요" lead={`${houseOf(m.trips, v.code)}, 이유를 골라 주세요. 담당자가 소방 지원을 요청해요.`} reasons={FAIL_REASONS_M} label="실패로 보고" danger onBack={onBackTo} onSend={(reason, memo) => { report(v.code, 'fail', { reason, memo }); setStack((s) => s.filter((x) => x.code !== v.code)) }} />
+    if (v?.name === 'H6') return <ReasonScreen title="이송할 수 없어요" lead={`${houseOf(m.trips, v.code)}, 사유 선택 시 담당자가 소방 지원 요청`} reasons={FAIL_REASONS_M} label="실패로 보고" danger onBack={onBackTo} onSend={(reason, memo) => { report(v.code, 'fail', { reason, memo }); setStack((s) => s.filter((x) => x.code !== v.code)) }} />
     if (v?.name === 'H7') return <ContactScreen m={m} onBack={onBackTo} />
     if (v?.name === 'H8') return <QueueScreen m={m} onBack={onBackTo} />
     return null
@@ -496,7 +496,7 @@ function DemoHelper() {
   if (m.phase === 'idle') return <IdleHome consentKey="demo" onStart={startDemoDispatch} />
   if (m.phase === 'preparing') return <Notice icon={<Spinner />} title="배정 준비 중" body="배정이 전송되면 이 화면에 표시돼요." />
   if (m.phase === 'closed') return <Notice icon={<CheckCircle2 size={28} />} title="발령이 끝났어요" body="배정 정보와 연락처를 지웠어요." action={start} />
-  if (m.phase === 'none') return <Notice icon={<CircleX size={28} />} title="이번 발령에 배정 없음" body="담당자 연락을 기다려 주세요." />
+  if (m.phase === 'none') return <Notice icon={<CircleX size={28} />} title="이번 발령에 배정 없음" body="담당자 연락 대기" />
   return <Flow m={m} consentKey="demo" />
 }
 
@@ -509,8 +509,8 @@ function RemoteHelperM({ token }) {
   if (m.phase === 'error') {
     const s = screenOf({ error: m.error })
     if (s === 'closed') return <Notice icon={<CheckCircle2 size={28} />} title="발령이 끝났어요" body="배정 정보와 연락처를 지웠어요." />
-    if (s === 'expired') return <Notice icon={<Link2Off size={28} />} title="열 수 없는 링크" body="링크가 만료되었거나 다른 도우미로 바뀌었어요. 담당자에게 새 링크를 요청해 주세요." />
-    return <Notice icon={<CloudOff size={28} />} title="연결할 수 없음" body="잠시 뒤 다시 시도해 주세요." action={<Button block onClick={() => window.location.reload()}><RefreshCw size={18} aria-hidden="true" />다시 시도</Button>} />
+    if (s === 'expired') return <Notice icon={<Link2Off size={28} />} title="열 수 없는 링크" body="링크 만료 또는 도우미 변경, 담당자에게 새 링크 요청" />
+    return <Notice icon={<CloudOff size={28} />} title="연결할 수 없음" body="잠시 뒤 재시도" action={<Button block onClick={() => window.location.reload()}><RefreshCw size={18} aria-hidden="true" />다시 시도</Button>} />
   }
   return <Flow m={m} consentKey={String(token).split('.').slice(0, 2).join('.')} />
 }
@@ -530,7 +530,7 @@ function LocationRows({ m, code }) {
   if (!rows) {
     return (
       <List label="찾아가는 곳">
-        <ListRow lead={<MapPin size={20} />} title="담당자에게 위치를 물어보세요" subtitle="이 분은 위치 정보 제공에 동의하지 않았습니다" href={telOf(m.officerContact) || undefined} chevron={!!telOf(m.officerContact)} />
+        <ListRow lead={<MapPin size={20} />} title="담당자에게 위치 문의" subtitle="위치 정보 제공 미동의" href={telOf(m.officerContact) || undefined} chevron={!!telOf(m.officerContact)} />
       </List>
     )
   }

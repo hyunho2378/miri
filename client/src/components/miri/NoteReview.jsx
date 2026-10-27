@@ -47,7 +47,7 @@ export default function NoteReview({ note, villageLabel, canEdit, onApply, onEdi
           </div>
           {note.mode === 'voice' && (
             <p className="mb-2 inline-flex items-center gap-1.5 rounded-md bg-mute px-3 py-2 type-meta text-text-sec">
-              <FileAudio size={16} aria-hidden="true" />{note.fileName || '음성 파일'}, 아래는 AI가 받아 적은 글입니다.
+              <FileAudio size={16} aria-hidden="true" />{note.fileName || '음성 파일'}, AI가 받아 적은 글
             </p>
           )}
           <p className="rounded-md bg-subtle p-4 type-body-sm leading-relaxed text-text-pri">

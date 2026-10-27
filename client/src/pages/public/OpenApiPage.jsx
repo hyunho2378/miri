@@ -51,9 +51,9 @@ export default function OpenApiPage() {
         rows={ENDPOINTS} rowKey={(x) => x.path} pageSize={10} caption="개방 API 주소"
       />
 
-      <Card title="응답" desc={out ? `HTTP ${out.status}, ${sel}` : '위 표에서 호출을 누르면 응답을 보입니다.'}>
+      <Card title="응답" desc={out ? `HTTP ${out.status}, ${sel}` : '표에서 호출 선택 시 응답 표시'}>
         <pre className="max-h-[480px] overflow-auto rounded-md bg-mute p-4 type-meta leading-5 text-text-pri" aria-live="polite" aria-busy={busy}>
-          {busy ? '불러오는 중입니다.' : out ? out.body.slice(0, 20000) : '아직 호출하지 않았습니다.'}
+          {busy ? '불러오는 중입니다.' : out ? out.body.slice(0, 20000) : '호출 전'}
         </pre>
       </Card>
 

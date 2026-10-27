@@ -121,7 +121,7 @@ export default function RosterPage() {
     { key: 'grade', label: '이송 등급', kind: 'select', required: true, options: GRADE_OPTIONS },
     { key: 'tags', label: '특이사항', kind: 'multiselect', options: TAG_OPTIONS },
     // 1026 복지관 면담: 편마비 쪽과 체격으로 앉을 자리를 정하고 지팡이는 따로 보관. 이름은 적지 않음
-    { key: 'boardingNote', label: '탑승 메모', kind: 'text', placeholder: '예: 왼쪽 편마비, 운전석 뒤 왼쪽 자리, 지팡이는 도우미가 보관', hint: '수락한 도우미에게만 보입니다. 이름과 주소는 적지 않습니다.' }
+    { key: 'boardingNote', label: '탑승 메모', kind: 'text', placeholder: '예: 왼쪽 편마비, 운전석 뒤 왼쪽 자리, 지팡이는 도우미가 보관', hint: '수락한 도우미에게만 표시, 이름과 주소 입력 금지' }
   ]
 
   const openPerson = (code) => setParams((p) => { const n = new URLSearchParams(p); n.set('person', code); return n })

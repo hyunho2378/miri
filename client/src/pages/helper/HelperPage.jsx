@@ -68,8 +68,8 @@ function DemoHelperPage() {
 
   if (token !== 'demo') {
     return (
-      <Notice icon={LinkIcon} title="유효하지 않은 링크입니다">
-        담당자에게 새 링크를 요청해 주십시오.
+      <Notice icon={LinkIcon} title="유효하지 않은 링크">
+        담당자에게 새 링크 요청
       </Notice>
     )
   }
@@ -80,15 +80,15 @@ function DemoHelperPage() {
 
   if (d.status === 'closed') {
     return (
-      <Notice icon={CircleCheck} title="발령이 종료되었습니다" action={demoButton}>
-        배정 정보와 주소, 연락처를 삭제했습니다.
+      <Notice icon={CircleCheck} title="발령 종료" action={demoButton}>
+        배정 정보, 주소, 연락처 삭제 완료
       </Notice>
     )
   }
   if (d.status === 'idle') {
     return (
       <Notice image="/images/illustrations/empty.svg" title="배정 대기 중" action={demoButton}>
-        혼자 대피하기 어려운 이웃을 돕는 배정입니다. 발령이 내려지면 이 화면에 표시됩니다.
+        발령 시 배정 표시
       </Notice>
     )
   }
@@ -100,7 +100,7 @@ function DemoHelperPage() {
     )
   }
   if (!me || !mine) {
-    return <Notice icon={CircleX} title="이번 발령에 배정된 대상자가 없습니다">대기 상태를 유지하고, 담당자가 연락하면 응답해 주십시오.</Notice>
+    return <Notice icon={CircleX} title="배정 대상자 없음">대기, 담당자 연락 시 응답</Notice>
   }
 
   const ack = ackOf(d, me, vnow)
@@ -157,7 +157,7 @@ function DemoHelperPage() {
     return (
       <div className="flex flex-1 flex-col gap-4 p-4">
         {summary}
-        <Notice icon={CircleX} title="불가 응답을 전달했습니다">
+        <Notice icon={CircleX} title="불가 응답 전달 완료">
           사유는 {DECLINE_REASONS[ack.reason] || '기타'}입니다. 담당자가 대체 배정을 진행합니다.
         </Notice>
       </div>
@@ -213,7 +213,7 @@ function DemoHelperPage() {
         </div>
         {!current && (
           <p role="status" className="rounded-lg bg-mute px-4 py-3 type-body text-text-pri">
-            배정된 대상자 전원의 처리가 끝났습니다. 대피소에서 대기하며 담당자 안내를 확인해 주십시오.
+            배정 대상자 전원 처리 완료, 대피소에서 담당자 안내 대기
           </p>
         )}
         <ol className="space-y-3">

@@ -28,7 +28,7 @@ export default function FailReportSheet({ open, personCode, onClose, onSubmit })
           options={Object.entries(FAIL_REASONS).map(([value, label]) => ({ value, label }))}
         />
       </fieldset>
-      <Textarea className="mt-4" label="메모(선택)" rows={3} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="현장 상황을 입력해 주십시오" />
+      <Textarea className="mt-4" label="메모(선택)" rows={3} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="현장 상황 입력" />
     </Modal>
   )
 }

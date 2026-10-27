@@ -101,10 +101,10 @@ export default function WorkspaceHome() {
       const r = await api.parseFile(f)
       const title = (r.title || f.name.replace(/\.[^.]+$/, '')).slice(0, 80)
       const id = createFromHtml(title, markdownToHtml(r.markdown))
-      toast(`${f.name} 파일을 문서로 가져왔습니다`, 'primary')
+      toast(`${f.name} 파일 가져오기 완료`, 'primary')
       navigate(`/console/workspace/doc/${id}`)
     } catch (err) {
-      toast(err.message || '파일을 읽지 못했습니다', 'danger')
+      toast(err.message || '파일 읽기 실패', 'danger')
     } finally {
       setImporting(false)
     }
@@ -197,7 +197,7 @@ export default function WorkspaceHome() {
                 </button>
                 {menu === x.id && (
                   <div className="absolute right-4 top-12 z-dropdown w-40 rounded-md bg-page py-1 shadow-float ring-1 ring-line-sub">
-                    <button type="button" className="block w-full px-3 py-2 text-left type-body-sm hover:bg-mute" onClick={() => { const id = duplicate(x.id); setMenu(null); toast('사본을 만들었습니다', 'primary'); if (id) navigate(`/console/workspace/${x.kind}/${id}`) }}>사본 만들기</button>
+                    <button type="button" className="block w-full px-3 py-2 text-left type-body-sm hover:bg-mute" onClick={() => { const id = duplicate(x.id); setMenu(null); toast('사본 생성 완료', 'primary'); if (id) navigate(`/console/workspace/${x.kind}/${id}`) }}>사본 만들기</button>
                     <button type="button" className="block w-full px-3 py-2 text-left type-body-sm text-danger-text hover:bg-mute" onClick={() => { remove(x.id); setMenu(null); toast('삭제했습니다') }}>삭제</button>
                   </div>
                 )}

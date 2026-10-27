@@ -186,7 +186,7 @@ export default function ShortagePage() {
         </div>
         <div>
           <NumberStepper label="차량 가용률" value={draft.availability ?? 100} min={30} max={100} step={10} unit="%" format={(v) => `${v}%`} onChange={(v) => set({ availability: v })}
-            hint="야간·휴일 동원 가능 차량 비율" />
+            hint="야간과 휴일 동원 가능 차량 비율" />
         </div>
         <div>
           <p className="mb-1.5 type-caption text-text-sec">출발 준비 시간</p>

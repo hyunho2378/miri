@@ -78,10 +78,10 @@ export default function ResourcesPage() {
   const helperFields = [
     { key: 'code', label: '도우미 코드', kind: 'text', required: true, disabled: form?.mode === 'edit', placeholder: 'H-029' },
     { key: 'villages', label: '담당 마을', kind: 'multiselect', required: true, options: villages.map((v) => ({ value: v.code, label: v.label })) },
-    { key: 'affiliation', label: '소속', kind: 'select', options: Object.entries(HELPER_AFFILIATIONS).map(([value, label]) => ({ value, label })), hint: '시가 1대1로 짝을 지정한 소속입니다. 지정 짝도 수락해야 배정됩니다.' },
+    { key: 'affiliation', label: '소속', kind: 'select', options: Object.entries(HELPER_AFFILIATIONS).map(([value, label]) => ({ value, label })), hint: '시 1대1 지정 소속, 지정 짝 수락 시 배정' },
     { key: 'grades', label: '지원 가능 등급', kind: 'multiselect', required: true, options: GRADE_OPTIONS.filter((g) => g.value !== 'bed') },
-    { key: 'roles', label: '역할', kind: 'multiselect', options: Object.entries(HELPER_ROLES).map(([value, label]) => ({ value, label })), hint: '차량 동행을 고른 사람만 차량 배정 후보입니다.' },
-    { key: 'consent', label: '사전 동의', kind: 'toggle', hint: '동의를 철회하면 배정 후보에서 빠집니다. 배정 알림에서 불가를 눌러도 불이익은 없습니다.' },
+    { key: 'roles', label: '역할', kind: 'multiselect', options: Object.entries(HELPER_ROLES).map(([value, label]) => ({ value, label })), hint: '차량 동행 선택자만 차량 배정 후보' },
+    { key: 'consent', label: '사전 동의', kind: 'toggle', hint: '동의 철회 시 배정 후보 제외, 배정 알림에서 불가 선택 시 불이익 없음' },
     { key: 'bls', label: '기본소생술 교육 이수', kind: 'toggle' },
     { key: 'insured', label: '봉사 상해보험 적용 확인', kind: 'toggle' },
     { key: 'active', label: '활동 중', kind: 'toggle' }
@@ -91,7 +91,7 @@ export default function ResourcesPage() {
   const save = () => {
     const errs = validate(fields, form.value)
     const list = form.kind === 'helper' ? helpers : vehicles
-    if (form.mode === 'add' && list.some((x) => x.code === form.value.code)) errs.code = '이미 등록된 코드입니다.'
+    if (form.mode === 'add' && list.some((x) => x.code === form.value.code)) errs.code = '등록된 코드'
     setErrors(errs)
     if (Object.keys(errs).length) return
     if (form.kind === 'helper') upsertHelper({ channel: 'sms', ...form.value })

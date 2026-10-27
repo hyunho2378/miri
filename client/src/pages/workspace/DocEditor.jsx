@@ -225,7 +225,7 @@ export default function DocEditor() {
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  if (!ready) return <div className="flex min-h-dvh items-center justify-center bg-canvas type-body-sm text-text-meta">문서를 불러오는 중입니다.</div>
+  if (!ready) return <div className="flex min-h-dvh items-center justify-center bg-canvas type-body-sm text-text-meta">문서 조회 중</div>
   if (!doc) return <Navigate to="/console/workspace?kind=doc" replace />
 
   const onInput = () => {
@@ -355,7 +355,7 @@ export default function DocEditor() {
     const nodes = textNodes()
     const hits = []
     nodes.forEach((n) => { let i = n.nodeValue.indexOf(find.q); while (i >= 0) { hits.push([n, i]); i = n.nodeValue.indexOf(find.q, i + 1) } })
-    if (!hits.length) { toast('찾는 글이 없습니다'); return }
+    if (!hits.length) { toast('검색 결과 없음'); return }
     const k = find.n % hits.length
     const [n, i] = hits[k]
     const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + find.q.length)
@@ -367,7 +367,7 @@ export default function DocEditor() {
     if (!find.q) return
     let count = 0
     textNodes().forEach((n) => { const parts = n.nodeValue.split(find.q); if (parts.length > 1) { count += parts.length - 1; n.nodeValue = parts.join(find.r) } })
-    onInput(); toast(count ? `${count}곳을 바꿨습니다` : '찾는 글이 없습니다', count ? 'primary' : undefined)
+    onInput(); toast(count ? `${count}곳을 바꿨습니다` : '검색 결과 없음', count ? 'primary' : undefined)
   }
 
   const name = doc.title.replace(/[\\/:*?"<>|]/g, '')
@@ -381,7 +381,7 @@ export default function DocEditor() {
       setPreview(r)
       return r
     } catch (e) {
-      const msg = e.code === 'UNAVAILABLE' ? '한글 미리보기는 서버에서 만듭니다. 연결을 확인하세요' : e.message
+      const msg = e.code === 'UNAVAILABLE' ? '한글 미리보기 서버 연결 확인 필요' : e.message
       setPreview({ state: 'error', message: msg })
       throw new Error(msg)
     }
@@ -400,7 +400,7 @@ export default function DocEditor() {
     // 인쇄와 PDF 저장: 편집 화면과 같은 양식 CSS 로 A4 쪽을 나눠 만든다(표는 쪽을 넘기지 않음)
     const pagesNow = () => paginateHtml({ pageCss: docCss(presetKey), bodyHtml: body, headHtml: headHtml({ ...meta, preset: presetKey }), footHtml: footHtml({ ...meta, preset: presetKey }), page })
     if (type === 'print') {
-      if (!printHtmlPages(pagesNow(), { pageCss: docCss(presetKey), title: doc.title })) toast('팝업이 막혀 인쇄 창을 열지 못했습니다', 'danger')
+      if (!printHtmlPages(pagesNow(), { pageCss: docCss(presetKey), title: doc.title })) toast('팝업 차단, 인쇄 창 열기 실패', 'danger')
     }
     if (type === 'pdf') {
       try {
@@ -434,14 +434,14 @@ export default function DocEditor() {
       const v = { state: 'ok', results: r.results || [] }
       lawCache.set(key, v); setLaw(v)
     } catch {
-      setLaw({ state: 'ok', results: citations.map((c) => ({ citation: c, status: 'unknown', detail: '법령 서버에 연결하지 못했습니다' })) })
+      setLaw({ state: 'ok', results: citations.map((c) => ({ citation: c, status: 'unknown', detail: '법령 서버 연결 실패' })) })
     }
   }
   const restore = (v) => {
     bodyRef.current.innerHTML = v.html
     refreshVars(bodyRef.current, vals)
     update(id, { html: v.html }); saveVersion(id, '이전 버전 복원'); measure()
-    toast('이전 버전으로 되돌렸습니다', 'primary')
+    toast('이전 버전 복원 완료', 'primary')
   }
   const newDoc = () => { const nid = create('doc', 'blank'); navigate(`/console/workspace/doc/${nid}`) }
   const openPanel = (k) => { setPanelOpen(true); setPanel(k); if (k === 'lint') runLint(); if (k === 'law') checkLaw() }
@@ -626,7 +626,7 @@ export default function DocEditor() {
       {locked && (
         <div className="flex flex-wrap items-center gap-2 bg-text-pri px-3 py-1.5 type-meta text-text-inverse">
           <Lock size={14} aria-hidden="true" />
-          <span className="min-w-0 flex-1">읽기 전용 고정 문서. 작업할 때마다 코드에서 갱신(판 {meta.version}). 고쳐 쓰려면 사본을 만드세요.</span>
+          <span className="min-w-0 flex-1">읽기 전용 고정 문서. 작업할 때마다 코드에서 갱신(판 {meta.version}). 수정은 사본 생성 후 가능</span>
           <Button size="sm" variant="secondary" onClick={() => { const nid = duplicate(id); if (nid) navigate(`/console/workspace/doc/${nid}`) }}>사본 만들기</Button>
         </div>
       )}
@@ -744,7 +744,7 @@ export default function DocEditor() {
                   {lint?.state === 'error' && <p className="mt-3 type-body-sm text-danger-text">{lint.message}</p>}
                   {lint?.state === 'ok' && (
                     <>
-                      {!lint.gongmun.length && !lint.munche.length && <p className="mt-3 type-body-sm text-text-sec">걸린 항목이 없습니다.</p>}
+                      {!lint.gongmun.length && !lint.munche.length && <p className="mt-3 type-body-sm text-text-sec">점검 항목 없음</p>}
                       <ul className="mt-3 space-y-2">
                         {[...lint.gongmun, ...lint.munche].map((f, i) => (
                           <li key={i} className="rounded-md bg-subtle p-3">
@@ -764,8 +764,8 @@ export default function DocEditor() {
                   <p className="mt-1 type-meta text-text-meta">본문의 「법령명」 제N조를 법제처 국가법령정보로 확인합니다.</p>
                   <div className="mt-3">
                     {law?.state === 'loading' && <p className="type-body-sm text-text-meta">확인하는 중입니다.</p>}
-                    {law?.state === 'empty' && <p className="type-body-sm text-text-meta">본문에서 조문 인용을 찾지 못했습니다.</p>}
-                    {law?.state === 'limited' && <p className="type-body-sm text-danger-text">요청 한도에 도달했습니다. 잠시 뒤 다시 시도하세요.</p>}
+                    {law?.state === 'empty' && <p className="type-body-sm text-text-meta">조문 인용 없음</p>}
+                    {law?.state === 'limited' && <p className="type-body-sm text-danger-text">요청 한도 도달, 잠시 뒤 재시도</p>}
                     {law?.state === 'ok' && (
                       <ul className="space-y-2">
                         {law.results.map((r, i) => {
@@ -835,7 +835,7 @@ function PreviewPane({ preview, zoom, onBack, onRetry, onSave, onPrint, onPdf })
     <div className="min-h-0 flex-1 overflow-auto bg-[#D1D1D6]">
       <div className="sticky left-0 top-0 z-raised flex items-center gap-2 border-b border-line-def bg-page px-3 py-1.5 type-meta text-text-sec">
         <Eye size={14} className="shrink-0" aria-hidden="true" />
-        <span className="min-w-0 flex-1 truncate" title="내보낼 HWPX 파일을 서버에서 실제로 만들어 kordoc 조판 엔진으로 그린 모양입니다">
+        <span className="min-w-0 flex-1 truncate" title="한글 파일 저장 시 모양 미리보기">
           <span className="font-bold text-text-pri">한글 미리보기</span>
           <span className="hidden md:inline">{preview?.state === 'ok' ? `, ${preview.pageCount}쪽, 구조 검사를 통과했습니다. 표가 쪽을 넘는 자리는 미리보기에서 겹쳐 보일 수 있지만 한글에서 열면 다시 맞춰집니다` : ''}</span>
         </span>
@@ -847,7 +847,7 @@ function PreviewPane({ preview, zoom, onBack, onRetry, onSave, onPrint, onPdf })
           <Button variant="secondary" size="sm" collapse="lg" leftIcon={<FileText size={16} aria-hidden="true" />} onClick={onBack}>편집으로</Button>
         </span>
       </div>
-      {preview?.state === 'loading' && <p className="p-10 text-center type-body-sm text-text-meta">한글 문서를 만들고 쪽을 그리는 중입니다.</p>}
+      {preview?.state === 'loading' && <p className="p-10 text-center type-body-sm text-text-meta">한글 문서 생성 중</p>}
       {preview?.state === 'error' && <p className="p-10 text-center type-body-sm text-danger-text">{preview.message}</p>}
       <style>{'.hwp-preview svg text{white-space:pre}'}</style>
       <div ref={ref} className="hwp-preview w-max min-w-full px-3 py-6 [&_svg]:shadow-[0_1px_4px_rgba(0,0,0,0.18)]" />

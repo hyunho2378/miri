@@ -16,7 +16,7 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
     return (
       <div className="rounded-lg bg-page p-6 shadow-card">
         <h1 className="type-h2 text-text-pri">{form.title}</h1>
-        <p className="mt-2 type-body text-text-sec">응답을 받지 않는 설문지입니다.</p>
+        <p className="mt-2 type-body text-text-sec">응답 마감 설문지</p>
       </div>
     )
   }
@@ -25,7 +25,7 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
       <div className="rounded-lg bg-page p-6 shadow-card">
         <CircleCheck size={32} aria-hidden="true" className="text-success" />
         <h1 className="mt-3 type-h2 text-text-pri">응답을 보냈습니다</h1>
-        <p className="mt-2 type-body text-text-sec">참여해 주셔서 고맙습니다.</p>
+        <p className="mt-2 type-body text-text-sec">참여 감사</p>
         <Button className="mt-4" variant="secondary" onClick={() => { setAnswers({}); setDone(false) }}>다른 응답 쓰기</Button>
       </div>
     )
@@ -42,7 +42,7 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
     setSending(true); setSendError('')
     try {
       const r = await onSubmit?.(answers)
-      if (r && r.ok === false) { setSendError(r.message || '응답을 보내지 못했습니다'); return }
+      if (r && r.ok === false) { setSendError(r.message || '응답 전송 실패'); return }
       setDone(true)
     } finally {
       setSending(false)
@@ -56,8 +56,8 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
         <div className="p-5 md:p-6">
           <h1 className="type-h2 text-text-pri">{form.title}</h1>
           {form.desc && <p className="mt-2 whitespace-pre-line type-body text-text-sec">{form.desc}</p>}
-          <p className="mt-3 type-meta text-danger-text">* 표시는 꼭 답해야 하는 질문입니다</p>
-          <p className="mt-2 rounded-md bg-subtle px-3 py-2 type-meta text-text-sec">이 설문에는 주민등록번호, 상세 주소, 병력 같은 주민 정보를 입력하지 마세요. 시연용 설문입니다.</p>
+          <p className="mt-3 type-meta text-danger-text">* 표시는 필수 질문</p>
+          <p className="mt-2 rounded-md bg-subtle px-3 py-2 type-meta text-text-sec">주민등록번호, 상세 주소, 병력 등 주민 정보 입력 금지</p>
         </div>
       </div>
       {form.questions.map((q) => (
@@ -101,7 +101,7 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
               </div>
             )}
           </div>
-          {errors[q.id] && <p className="mt-2 type-caption text-danger-text">답해야 하는 질문입니다</p>}
+          {errors[q.id] && <p className="mt-2 type-caption text-danger-text">필수 질문</p>}
         </fieldset>
       ))}
       <div className="flex items-center justify-between pt-2">

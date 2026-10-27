@@ -125,11 +125,11 @@ function CloseDispatch({ isDong, left }) {
       </List>
       <Dialog
         open={open} onClose={() => setOpen(false)} title="발령을 종료할까요?"
-        body={`도우미 화면의 배정이 지워지고 결과는 이송 기록에 남습니다.${left ? ` 아직 옮기지 못한 ${left}명은 소방 인계 여부를 먼저 확인해 주세요.` : ''}`}
+        body={`도우미 화면의 배정이 지워지고 결과는 이송 기록에 남습니다.${left ? ` 아직 옮기지 못한 ${left}명 소방 인계 여부 확인 필요` : ''}`}
         actions={(
           <>
             <Button variant="plain" onClick={() => setOpen(false)}>취소</Button>
-            <Button variant="danger" onClick={() => { setOpen(false); close(); toast('발령을 종료했습니다.') }}>종료</Button>
+            <Button variant="danger" onClick={() => { setOpen(false); close(); toast('발령 종료') }}>종료</Button>
           </>
         )}
       />
@@ -177,7 +177,7 @@ function PeaceHome() {
         <List label={`확인할 일 ${[docs.length, notes.length, stale].filter((n) => n > 0).length}건`}>
           <ListRow lead={<FileText size={22} />} title={`서류 확인 ${docs.length}건`} subtitle={docs.length ? undefined : '모두 확인함'} chevron onClick={() => navigate('/m/f/docs')} />
           <ListRow lead={<MessageSquare size={22} />} title={`현장 소식 확인 ${notes.length}건`} subtitle={notes.length ? undefined : '모두 확인함'} chevron onClick={() => navigate('/m/f/notes')} />
-          <ListRow lead={<Users size={22} />} title={`명부 재확인 ${stale.toLocaleString('ko-KR')}명`} subtitle={stale ? '컴퓨터에서 명부를 확인해 주세요' : '모두 최근 확인함'} />
+          <ListRow lead={<Users size={22} />} title={`명부 재확인 ${stale.toLocaleString('ko-KR')}명`} subtitle={stale ? '컴퓨터에서 명부 확인 필요' : '모두 최근 확인함'} />
         </List>
         <List label="보내기">
           <ListRow lead={<Camera size={22} />} title="서류 사진 올리기" chevron onClick={() => navigate('/m/f/intake')} />
@@ -343,7 +343,7 @@ export function FieldNoteReviewPage() {
         </List>
         {n.unread && !n.read && (
           <List label="읽기 전">
-            <ListRow title="아직 AI가 읽지 않은 소식" subtitle="연결이 끊겨 글만 저장했어요. 연결되면 AI가 읽고 담당자가 확인해요" />
+            <ListRow title="아직 AI가 읽지 않은 소식" subtitle="연결 끊김, 글 저장 완료, 연결 후 AI 읽기와 담당자 확인" />
           </List>
         )}
         <div className="mob-stack-8">
@@ -648,7 +648,7 @@ function VillagePicker({ villages, value, onChange }) {
 // AI 판독 오류 문구. 휴대폰 로그인에는 시연 코드 칸이 없으므로 콘솔 로그인으로 안내한다(막다른 안내 제거)
 const fieldAiError = (e, kind) => {
   const m = aiErrorMessage(e, kind)
-  if (e?.code === 'STORED_ONLY') return { title: '지금은 예시 서류만 읽어요', desc: '준비된 예시 서류로 AI가 읽은 결과를 확인해 주세요' }
+  if (e?.code === 'STORED_ONLY') return { title: '지금은 예시 서류만 읽어요', desc: '예시 서류의 AI 읽기 결과 확인' }
   if (e?.code === 'NEED_SESSION' || e?.code === 401) return { title: 'AI 서류 읽기는 접속 코드 필요', desc: '콘솔 로그인에서 접속 코드 입력 후 재시도' }
   return m
 }
@@ -759,7 +759,7 @@ export function FieldNotePage() {
     addFieldNote(read
       ? { id: nextNoteId(), personCode: req.personCode, villageCode: req.villageCode, source: 'dong', status: 'pending', receivedAt: Date.now(), current: req.current, mode: req.mode, fileName: '', text: read.transcript || req.text, read, mock: false }
       : unreadNote({ id: nextNoteId(), req, now: Date.now() }))
-    toast(read ? `${req.personCode} 소식을 저장했어요. 담당자가 확인해요` : `${req.personCode} 소식을 저장했어요. 연결되면 시청에 전달돼요`)
+    toast(read ? `${req.personCode} 소식 저장 완료, 담당자 확인 대기` : `${req.personCode} 소식을 저장했어요. 연결되면 시청에 전달돼요`)
     setText(''); setState({ phase: 'idle' })
   }
   const send = async (file) => {

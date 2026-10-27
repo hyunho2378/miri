@@ -172,7 +172,7 @@ export default function NotesPage() {
             <SegmentControl label="소식 입력 방법" items={MODES} value={mode} onChange={(v) => { setMode(v); setError(null) }} />
             {mode === 'text' ? (
               <Textarea label="전해 들은 말" rows={4} value={text} onChange={(e) => setText(e.target.value)} maxLength={4000}
-                placeholder="예) 지난주 넘어지신 뒤로 휠체어를 타고 이동하세요." hint="실제 주민의 이름, 주소, 전화번호는 적지 않습니다. 남아 있으면 읽기를 멈춥니다." />
+                placeholder="예: 지난주 낙상 뒤 휠체어 이동" hint="실제 주민의 이름, 주소, 전화번호는 적지 않습니다. 남아 있으면 읽기를 멈춥니다." />
             ) : (
               <div className="rounded-lg border-2 border-dashed border-line-def bg-subtle p-6 text-center">
                 <FileAudio size={32} aria-hidden="true" className="mx-auto text-text-meta" />

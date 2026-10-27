@@ -17,7 +17,7 @@ const TABS = [{ v: 'q', l: '질문' }, { v: 'r', l: '응답' }, { v: 's', l: '�
 let qseq = 0
 
 function Summary({ form }) {
-  if (!form.responses.length) return <p className="type-body-sm text-text-meta">아직 응답이 없습니다. 링크를 보내거나 미리 보기에서 시험 제출해 보세요.</p>
+  if (!form.responses.length) return <p className="type-body-sm text-text-meta">응답 없음</p>
   return (
     <div className="space-y-3">
       {form.questions.map((q) => {
@@ -73,7 +73,7 @@ export default function FormEditor() {
   const flush = useWorkspaceStore((s) => s.flush)
   const { refresh, loading } = useFormResponsePolling(id, ready && tab === 'r')
 
-  if (!ready) return <div className="flex min-h-dvh items-center justify-center bg-canvas type-body-sm text-text-meta">설문지를 불러오는 중입니다.</div>
+  if (!ready) return <div className="flex min-h-dvh items-center justify-center bg-canvas type-body-sm text-text-meta">설문지 조회 중</div>
   if (!form) return <Navigate to="/console/workspace?kind=form" replace />
 
   const setQ = (qid, patch) => update(id, { questions: form.questions.map((q) => (q.id === qid ? { ...q, ...patch } : q)) })
@@ -91,7 +91,7 @@ export default function FormEditor() {
   const link = `${window.location.origin}/f/${form.id}`
   const copyLink = async () => {
     await flush()
-    try { await navigator.clipboard.writeText(link); toast('응답 링크를 복사했습니다', 'primary') } catch { toast('복사하지 못했습니다', 'danger') }
+    try { await navigator.clipboard.writeText(link); toast('응답 링크 복사 완료', 'primary') } catch { toast('복사 실패', 'danger') }
   }
   const openSheet = () => { const sid = linkSheet(id); if (sid) navigate(`/console/workspace/sheet/${sid}`) }
 
@@ -183,7 +183,7 @@ export default function FormEditor() {
           <div className="space-y-3">
             <section className="rounded-lg bg-page p-5 shadow-card">
               <div className="flex items-center justify-between gap-3">
-                <div><p className="type-strong text-text-pri">응답 받기</p><p className="type-meta text-text-meta">끄면 링크로 들어와도 응답할 수 없습니다</p></div>
+                <div><p className="type-strong text-text-pri">응답 받기</p><p className="type-meta text-text-meta">끄면 링크로 응답 불가</p></div>
                 <Toggle checked={form.open} onChange={(v) => update(id, { open: v })} />
               </div>
             </section>
@@ -201,7 +201,7 @@ export default function FormEditor() {
       </div>
       <Modal open={preview} onClose={() => setPreview(false)} title="미리 보기" className="max-w-[720px] bg-canvas">
         <div>
-          <FormRenderer form={form} preview onSubmit={async (a) => { const r = await submit(id, a); if (!r.ok) { toast(r.message, 'danger'); return r } linkSheet(id); toast('시험 응답을 저장했습니다', 'primary'); return r }} />
+          <FormRenderer form={form} preview onSubmit={async (a) => { const r = await submit(id, a); if (!r.ok) { toast(r.message, 'danger'); return r } linkSheet(id); toast('테스트 응답 저장 완료', 'primary'); return r }} />
         </div>
       </Modal>
     </EditorFrame>

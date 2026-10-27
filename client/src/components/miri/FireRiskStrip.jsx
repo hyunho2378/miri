@@ -65,7 +65,7 @@ export function WeatherLine({ className }) {
 export default function FireRiskStrip({ className, compact = false }) {
   const fr = useFireRisk()
   const { loading, data, error } = fr
-  if (loading) return <p className={clsx('type-meta text-text-meta', className)}>산불위험지수를 불러오는 중입니다.</p>
+  if (loading) return <p className={clsx('type-meta text-text-meta', className)}>산불위험지수 조회 중</p>
   if (error) return <p className={clsx('type-meta text-text-meta', className)}>산불위험지수 조회 실패({error}).<FreshnessNote kind="fire" state={fr} /></p>
   const g = data.grades || {}
   const over51 = (g.d2 || 0) + (g.d3 || 0) + (g.d4 || 0)
