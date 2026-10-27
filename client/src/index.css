@@ -72,13 +72,15 @@
   /* tokens.typography 와 1:1. 굵기 사다리 400 / 600 / 700 / 800. 500 은 쓰지 않는다(UI_PLAYBOOK 2.2) */
   /* KRDS 글자 스케일 전사(style_03 타이포그래피). 굵기 400, 700 두 가지. 줄 간격 150% 이상.
      display small 36/28, heading large 32/24, medium 24/22, small 19, xsmall 17, body medium 17, small 15, xsmall 13 */
-  .type-display { font-size: clamp(28px, 1.6vw + 19px, 36px); font-weight: 700; letter-spacing: -0.01em; line-height: 1.4; }
+  .type-display { font-size: 22px; font-weight: 700; letter-spacing: 0; line-height: 28px; }
   .type-h1      { font-size: clamp(24px, 1.1vw + 18px, 32px); font-weight: 700; letter-spacing: -0.01em; line-height: 1.4; }
   .type-h2      { font-size: clamp(22px, 0.3vw + 20px, 24px); font-weight: 700; letter-spacing: -0.005em; line-height: 1.5; }
   /* M3 title/large 22/28 (키트 M3/title/large). 섹션 제목 */
   .type-title   { font-size: 22px; font-weight: 700; line-height: 28px; letter-spacing: 0; }
   .type-h3      { font-size: 19px; font-weight: 700; line-height: 1.5; }
-  .type-kpi     { font-size: clamp(32px, 1.1vw + 26px, 40px); font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  /* 숫자 강조 없음: 숫자와 단위는 같은 크기와 굵기. 제목급(22/28) 이하 */
+  .type-kpi     { font-size: 22px; font-weight: 700; letter-spacing: 0; line-height: 28px; font-variant-numeric: tabular-nums; }
+  .type-kpi > span, .type-display > span { font-size: inherit; font-weight: inherit; line-height: inherit; }
   .type-body    { font-size: 17px; font-weight: 400; line-height: 1.5; }
   .type-body-sm { font-size: 15px; font-weight: 400; line-height: 1.5; }
   .type-caption { font-size: 13px; font-weight: 700; line-height: 1.5; }
