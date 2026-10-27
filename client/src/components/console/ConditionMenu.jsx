@@ -30,7 +30,7 @@ export default function ConditionMenu({ scenarios = [], value, onPick, items = [
         <ChevronDown size={16} aria-hidden="true" className="shrink-0" />
       </button>
       {open && (
-        <div role="menu" className="absolute right-0 top-12 z-30 w-[22rem] max-w-[90vw] rounded-2xl bg-surface p-2 shadow-lg">
+        <div role="menu" className="absolute right-0 top-12 z-dropdown w-[22rem] max-w-[90vw] rounded-2xl bg-page p-2 shadow-md">
           <p className="px-3 pb-1 pt-2 type-caption text-text-sec">조건 선택</p>
           {scenarios.map((s) => (
             <button key={s.id} type="button" role="menuitemradio" aria-checked={s.id === current?.id}
