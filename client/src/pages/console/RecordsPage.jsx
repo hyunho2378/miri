@@ -60,8 +60,8 @@ export default function RecordsPage() {
       {!records.length ? (
         <Card as="div" padding="none">
           <EmptyState
-            title="이송 기록이 없습니다"
-            desc="발령을 종료하면 이송 기록이 자동으로 저장됩니다."
+            title="아직 기록이 없습니다"
+            desc="발령을 종료하면 여기에 남습니다."
             action={<Button as={Link} to="/console/dispatch">발령 운영</Button>}
           />
         </Card>
