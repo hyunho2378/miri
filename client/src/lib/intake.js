@@ -51,13 +51,13 @@ export async function readDocument(file) {
   })
   const body = await res.json().catch(() => null)
   if (!res.ok) {
-    const err = new Error(body?.error?.message || '판독 서버 오류')
+    const err = new Error(body?.error?.message || '읽기 서버 오류')
     err.code = body?.error?.code || res.status
     throw err
   }
   // 성공 응답이어도 형식이 틀리면 빈 결과로 넘기지 않는다
   if (!body || typeof body.transcript !== 'string' || !Array.isArray(body.persons)) {
-    throw Object.assign(new Error('판독 결과 형식 오류'), { code: 'BAD_RESPONSE' })
+    throw Object.assign(new Error('읽기 결과 형식 오류'), { code: 'BAD_RESPONSE' })
   }
   // 대상자가 한 명도 없으면 빈 성공으로 보이지 않게 확인 요청으로 바꾼다
   if (!body.transcript.trim() || !body.persons.length) {

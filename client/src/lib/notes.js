@@ -55,12 +55,12 @@ export async function readNote({ text, file, current, source }) {
   const res = await fetch('/api/note', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
   const body = await res.json().catch(() => null)
   if (!res.ok) {
-    const err = new Error(body?.error?.message || '판독 서버 오류')
+    const err = new Error(body?.error?.message || '읽기 서버 오류')
     err.code = body?.error?.code || res.status
     throw err
   }
   if (!body || typeof body.changed !== 'boolean' || typeof body.transcript !== 'string') {
-    throw Object.assign(new Error('판독 결과 형식 오류'), { code: 'BAD_RESPONSE' })
+    throw Object.assign(new Error('읽기 결과 형식 오류'), { code: 'BAD_RESPONSE' })
   }
   // 글 소식은 담당자가 입력한 원문 자체를 대조 기준으로 쓴다. AI가 돌려준 전사문은 음성일 때만 쓴다
   return verifyNote(file ? (body.transcript || '') : (text || ''), body, current)

@@ -36,5 +36,5 @@ test('AI 정보 창에 시연 방식 한 줄, 80자 이하', async () => {
   const live = rows.find((r) => r.k === '실시간 호출')
   const demo = rows.find((r) => r.k === '시연 결과')
   assert.ok(live && /멈춤/.test(live.v) && live.v.length <= 80)
-  assert.ok(demo && /실제 판독/.test(demo.v) && /예시/.test(demo.v) && demo.v.length <= 80)
+  assert.ok(demo && /읽기 4장 저장본/.test(demo.v) && /예시/.test(demo.v) && demo.v.length <= 80)
 })

@@ -26,7 +26,7 @@ export const TONE_FILL = {
 // 상태 → [톤, 한국어 라벨]. 톤은 neutral primary success warning danger critical
 export const STATUS = {
   // 판독 확인
-  reading: ['primary', '판독 중'], pending: ['primary', '확인 대기'], confirmed: ['success', '확인 완료'],
+  reading: ['primary', '읽는 중'], pending: ['primary', '확인 대기'], confirmed: ['success', '확인 완료'],
   edited: ['neutral', '담당자 수정'], rejected: ['danger', '제외'],
   // 판독 일치도(원문 대조 결과)
   high: ['neutral', '일치도 높음'], mid: ['neutral', '일치도 보통'], low: ['warning', '확인 필요'],

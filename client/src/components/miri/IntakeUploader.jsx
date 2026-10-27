@@ -47,7 +47,7 @@ export default function IntakeUploader({ villages, onFile, onSample, onReal, rea
       </div>
       <div role="note" className="rounded-md bg-danger-soft p-4 text-danger-text">
         <p className="type-strong">가상 자료만 올립니다</p>
-        <p className="mt-1 type-meta">이 시안은 공모전 시연용입니다. 실제 주민의 이름, 연락처, 주소, 주민번호가 담긴 서류는 올리지 마십시오. 가린 뒤에도 개인정보로 보이는 글자가 남으면 AI 판독을 멈춥니다.</p>
+        <p className="mt-1 type-meta">실제 주민의 이름, 연락처, 주소, 주민번호가 담긴 서류는 올리지 마십시오. 개인정보로 보이는 글자가 남으면 읽기를 멈춥니다.</p>
         <Checkbox className="mt-2" checked={virtualOk} onChange={setVirtualOk} label="실제 개인정보가 없는 가상 자료임을 확인했습니다" />
       </div>
       <div
@@ -70,11 +70,11 @@ export default function IntakeUploader({ villages, onFile, onSample, onReal, rea
       </div>
       {realCases.length > 0 && (
         <div className="mt-4">
-          <p className="type-strong text-text-pri">실제 판독 사례</p>
-          <p className="mt-1 type-meta text-text-meta">2026. 10. 22. HyperCLOVA X HCX-005가 가상 서류를 실제로 읽은 결과입니다. 개인정보는 가렸습니다.</p>
+          <p className="type-strong text-text-pri">읽기 예시</p>
+          <p className="mt-1 type-meta text-text-meta">2026. 10. 22. HyperCLOVA X HCX-005가 읽은 결과, 개인정보는 가림</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {realCases.map((c) => (
-              <Button key={c.id} variant="primary" onClick={() => onReal?.(c)} disabled={busy}>{c.name.replace('실제 판독 사례 ', '')}</Button>
+              <Button key={c.id} variant="primary" onClick={() => onReal?.(c)} disabled={busy}>{c.name.replace(/^(실제 판독 사례|읽기 예시) /, '')}</Button>
             ))}
           </div>
         </div>

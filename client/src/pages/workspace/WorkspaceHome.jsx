@@ -215,7 +215,7 @@ export default function WorkspaceHome() {
             ))}
           </ul>
         )}
-        <p className="mt-3 type-meta text-text-meta">{mode === 'server' ? '문서함은 서버에 저장됩니다. 실제 주민 정보는 넣지 마세요.' : '문서함은 시연용으로 이 창에만 저장됩니다. 새로고침하면 처음 상태로 돌아가니 필요한 문서는 내보내기로 받아 두세요. 실제 주민 정보는 넣지 마세요.'}</p>
+        <p className="mt-3 type-meta text-text-meta">{mode === 'server' ? '서버에 저장됩니다.' : '이 기기에만 저장됩니다. 필요한 문서는 내보내기로 받아 두십시오.'}</p>
       </section>
     </PageShell>
   )

@@ -150,7 +150,7 @@ export default function IntakePage() {
       const page = await progress(file.name, readDocument(file))
       if (!page.persons?.length) {
         setReading(null)
-        setError({ title: '판독 결과가 없습니다', desc: '문서에서 대상자 표기를 찾지 못했습니다. 다시 촬영해 올려 주십시오.' })
+        setError({ title: '읽기 결과가 없습니다', desc: '문서에서 대상자 표기를 찾지 못했습니다. 다시 촬영해 올려 주십시오.' })
         return
       }
       const codes = uniqueCodes(villageCode, page.persons.length)

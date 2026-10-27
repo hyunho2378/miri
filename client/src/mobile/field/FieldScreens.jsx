@@ -242,7 +242,7 @@ export function FieldDocPage() {
         </Figure>
         <List label="근거">
           <ListRow title={v.quote ? `“${v.quote}”` : '근거 문구 없음'} subtitle={v.quoteMatched ? '서류 원문에 있는 문구' : '원문에서 찾지 못함, 원본 사진 확인'} />
-          <ListRow title={q.doc.source === REAL_READ_SOURCE ? '10. 22. HCX-005 실제 판독 저장본' : '예시 결과'} subtitle={q.doc.source === REAL_READ_SOURCE ? '실시간 호출 없이 저장된 결과를 보여 줌' : '시연용으로 미리 써 둔 결과'} />
+          <ListRow title={q.doc.source === REAL_READ_SOURCE ? '10. 22. HCX-005 읽기 저장본' : '예시 결과'} subtitle={q.doc.source === REAL_READ_SOURCE ? '저장된 결과' : '미리 써 둔 결과'} />
           {q.doc.image && <ListRow title="원본 사진 보기" chevron href={q.doc.image} target="_blank" rel="noreferrer" />}
         </List>
         {(() => { const rs = reviewReasons(v); return rs.length ? (
@@ -628,8 +628,8 @@ function VillagePicker({ villages, value, onChange }) {
 // AI 판독 오류 문구. 휴대폰 로그인에는 시연 코드 칸이 없으므로 콘솔 로그인으로 안내한다(막다른 안내 제거)
 const fieldAiError = (e, kind) => {
   const m = aiErrorMessage(e, kind)
-  if (e?.code === 'STORED_ONLY') return { title: '시연은 저장된 결과로 보여 드려요', desc: '실시간 AI 호출은 멈춰 두었어요. 확인할 서류의 저장된 판독을 봐 주세요' }
-  if (e?.code === 'NEED_SESSION' || e?.code === 401) return { title: 'AI 판독은 시연 코드가 필요해요', desc: '같은 브라우저의 콘솔 로그인에서 시연 코드를 넣은 뒤 다시 시도' }
+  if (e?.code === 'STORED_ONLY') return { title: '시연은 저장된 결과로 보여 드려요', desc: '실시간 AI 호출은 멈춰 두었어요. 확인할 서류의 저장된 결과를 봐 주세요' }
+  if (e?.code === 'NEED_SESSION' || e?.code === 401) return { title: 'AI 서류 읽기는 시연 코드가 필요해요', desc: '같은 브라우저의 콘솔 로그인에서 시연 코드를 넣은 뒤 다시 시도' }
   return m
 }
 

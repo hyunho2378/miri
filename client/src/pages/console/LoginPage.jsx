@@ -32,12 +32,12 @@ function DemoCode() {
   if (!state.checked) return null
   return (
     <form onSubmit={submit} className="mt-6 rounded-md bg-subtle p-4">
-      <p className="type-strong text-text-pri">AI 판독과 서버 저장</p>
+      <p className="type-strong text-text-pri">AI 서류 읽기와 서버 저장</p>
       {state.active ? (
         <p className="mt-1 type-body-sm text-text-sec" role="status">시연 코드가 확인되었습니다. 12시간 동안 AI 서류 읽기, 현장 소식 읽기, 문서함 서버 저장을 쓸 수 있습니다.</p>
       ) : (
         <>
-          <p className="mt-1 type-meta text-text-meta">AI 판독과 문서함 서버 저장은 시연 코드를 받은 분만 씁니다. 코드 없이도 샘플 읽기로 모든 화면을 볼 수 있습니다.</p>
+          <p className="mt-1 type-meta text-text-meta">AI 서류 읽기와 문서함 서버 저장은 시연 코드를 받은 분만 씁니다. 코드 없이도 샘플 읽기로 모든 화면을 볼 수 있습니다.</p>
           <div className="mt-3 flex items-end gap-2">
             <Input className="flex-1" label="시연 코드" type="password" autoComplete="off" value={code} onChange={(e) => setCode(e.target.value)} error={state.error || undefined} />
             <Button type="submit" disabled={!code}>확인</Button>
