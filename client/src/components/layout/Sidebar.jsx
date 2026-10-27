@@ -36,6 +36,7 @@ export function SideNav({ collapsed = false, onNavigate, showHeader = true }) {
       <>
         <m.Icon size={20} aria-hidden="true" className={clsx('shrink-0', active ? 'text-text-pri' : 'text-text-meta')} />
         {!collapsed && <span className={clsx('min-w-0 flex-1 truncate type-body-sm', active && 'font-bold')}>{m.label}</span>}
+        {!collapsed && m.key === 'intake' && <span aria-label="AI 읽기" className="shrink-0 rounded-md bg-mute px-1.5 type-count text-text-pri">AI</span>}
         {m.queue && pending > 0 && (
           <span
             title={badgeLabel} aria-label={badgeLabel}

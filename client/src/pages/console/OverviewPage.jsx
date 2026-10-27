@@ -124,7 +124,7 @@ export default function OverviewPage() {
 
   const todoRows = [
     ...anomalies.slice(0, 5).map((a) => ({ key: a.id, to: a.to, title: ANOMALY_RULES[a.rule], sub: a.target })),
-    ...(pending > 0 ? [{ key: 'docs', to: '/console/intake', title: '서류 확인 대기', n: `${pending}건` }] : []),
+    ...(pending > 0 ? [{ key: 'docs', to: '/console/intake', title: '서류 확인 대기', sub: 'AI 읽기 결과 확인', n: `${pending}건` }] : []),
     ...(pc.notes > 0 ? [{ key: 'notes', to: '/console/notes', title: '현장 소식 확인 대기', n: `${pc.notes}건` }] : []),
     ...(staleRoster > 0 ? [{ key: 'stale', to: '/console/roster?recheck=1', title: '명부 재확인 대상', n: `${staleRoster}명` }] : [])
   ]
