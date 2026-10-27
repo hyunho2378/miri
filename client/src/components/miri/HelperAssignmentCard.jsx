@@ -1,6 +1,7 @@
 // 도우미 면 대상자 카드(COMPONENTS 3절). 현재 카드만 펼침, 완료 카드는 접힘 + 완료 시각.
 // 주소와 보호자 연락처는 발령 기간에만 표시(SOURCE B 개인정보 설계).
 import clsx from 'clsx'
+import { addressText } from '../../lib/addressText.js'
 import { ChevronDown, MapPin, Phone } from 'lucide-react'
 import { STEP_LABEL, FAIL_REASONS } from '../../lib/dispatchSim.js'
 import { TAGS } from '../../lib/intake.js'
@@ -56,7 +57,7 @@ export default function HelperAssignmentCard({
           <div className="flex items-start gap-2">
             <MapPin size={20} aria-hidden="true" className="mt-1 shrink-0 text-text-meta" />
             <div className="min-w-0">
-              <p className="type-body text-text-pri">{info?.address || '주소 정보가 없습니다.'}</p>
+              <p className="type-body text-text-pri">{addressText(info?.address) || '주소 정보가 없습니다.'}</p>
               <p className="type-body-sm text-text-sec">출발 {villageLabel}, 도착 {shelterName}</p>
             </div>
           </div>

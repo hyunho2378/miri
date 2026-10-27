@@ -143,12 +143,15 @@ export function FieldShell() {
 }
 
 function FieldShellBody() {
-  const { pathname } = useLocation()
+  const { pathname, state } = useLocation()
   const navigate = useNavigate()
   // 더보기 아래 업무 화면(소방 요청, 대상자, 서류, 소식)은 더보기 탭으로 표시
+  // 마을 화면에서 대상자로 들어오면(state.tab) 들어온 탭을 그대로 표시
   const MORE_SUB = ['/m/f/fire', '/m/f/people']
-  const current = MORE_SUB.some((x) => pathname.startsWith(x)) ? FIELD_TABS[3]
+  const fromTab = state?.tab ? FIELD_TABS.find((t) => t.key === state.tab) : null
+  const byPath = MORE_SUB.some((x) => pathname.startsWith(x)) ? FIELD_TABS[3]
     : FIELD_TABS.slice(1).find((t) => pathname === t.path || pathname.startsWith(`${t.path}/`)) || FIELD_TABS[0]
+  const current = fromTab || byPath
   return (
     <MobileRoot>
       <div className="mob-screen">

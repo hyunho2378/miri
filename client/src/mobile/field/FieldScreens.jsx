@@ -412,7 +412,7 @@ export function FieldVillageDetailPage() {
             <List label="대상자 진행">
               {v.people.map((r) => (
                 <ListRow key={r.person.code} title={r.person.code} subtitle={gradeOf(r.person.grade)?.label || '등급 확인'}
-                  trailing={<Tag tone={['fail', 'unassigned'].includes(r.step) ? 'red' : undefined}>{stepLabel(r.step)}</Tag>} onClick={() => navigate(`/m/f/people/${r.person.code}`)} chevron />
+                  trailing={<Tag tone={['fail', 'unassigned'].includes(r.step) ? 'red' : undefined}>{stepLabel(r.step)}</Tag>} onClick={() => navigate(`/m/f/people/${r.person.code}`, { state: { tab: 'villages' } })} chevron />
               ))}
             </List>
           </>
