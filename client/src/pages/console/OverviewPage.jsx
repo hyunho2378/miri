@@ -1,12 +1,12 @@
 // 현황판. 상태 띠 한 줄, 숫자 흐름, 부족 마을 목록과 선택한 마을 상세(목록과 상세 구조), 확인할 일 한 줄 목록, 작은 상태 줄.
 // 문장은 사실만 서술한다(PRD v2 4절).
 import { useMemo, useState } from 'react'
-import { Layers } from 'lucide-react'
+
 import { vehicleCounts } from '../../lib/vehicleSummary.js'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Button from '../../components/ui/Button.jsx'
 import PageShell, { todayLabel } from '../../components/miri/PageShell.jsx'
-import { PageHeader, StatusBand, NumberFlow, DetailSection, Section, InfoRows, LinkRow } from '../../components/console/index.js'
+import { ConditionMenu, PageHeader, StatusBand, NumberFlow, DetailSection, Section, InfoRows, LinkRow } from '../../components/console/index.js'
 import Modal from '../../components/ui/Modal.jsx'
 import FreshnessNote from '../../components/miri/FreshnessNote.jsx'
 import { useFireRisk, useWarning, useWind, dirName } from '../../components/miri/FireRiskStrip.jsx'
@@ -35,6 +35,9 @@ export default function OverviewPage() {
   const today = useMiriStore((s) => s.today)
   const fieldNotes = useMiriStore((s) => s.fieldNotes)
   const scenario = useMiriStore(activeScenario)
+  const scenarios = useMiriStore((s) => s.scenarios)
+  const setActiveScenario = useMiriStore((s) => s.setActiveScenario)
+  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const now = useNow(5000)
   const anomalies = useAnomalies(now)
@@ -133,7 +136,12 @@ export default function OverviewPage() {
     <PageShell title="오늘의 현황" hideHeader>
       <PageHeader
         title="오늘의 현황" meta={todayLabel()}
-        action={<Link to="/console/map" className="inline-flex h-10 items-center gap-2 rounded-md bg-subtle px-4 type-body-sm text-text-sec hover:bg-mute"><Layers size={16} aria-hidden="true" /><span className="max-w-[16rem] truncate">{scenario.name}</span></Link>}
+        action={(
+          <ConditionMenu
+            scenarios={scenarios} value={scenario.id} onPick={setActiveScenario}
+            items={[{ key: 'cond', label: '계산 조건 변경', onClick: () => navigate('/console/shortage') }, { key: 'map', label: '상황판에서 보기', onClick: () => navigate('/console/map') }]}
+          />
+        )}
       />
       <div className="grid min-w-0 gap-6">
         {live ? (

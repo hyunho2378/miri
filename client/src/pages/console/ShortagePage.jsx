@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Save, SlidersHorizontal, Star } from 'lucide-react'
 import Modal from '../../components/ui/Modal.jsx'
-import { PageHeader, StatusBand, NumberFlow, ListItem, Section, InfoRows } from '../../components/console/index.js'
+import { PageHeader, StatusBand, NumberFlow, ListItem, Section, InfoRows, ConditionMenu } from '../../components/console/index.js'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import { basisText } from '../../components/miri/BasisLine.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
@@ -277,9 +277,16 @@ export default function ShortagePage() {
         title="부족분 계산" className="mb-3"
         action={(
           <>
-            <Button variant="secondary" onClick={() => setModal('basis')}>계산 근거</Button>
-            <Button variant="secondary" onClick={() => setModal('compare')}>저장과 비교</Button>
-            <Button variant="primary" leftIcon={<SlidersHorizontal size={16} aria-hidden="true" />} onClick={() => setModal('cond')}>계산 조건 변경</Button>
+            <ConditionMenu
+              scenarios={scenarios} value={selectedId} onPick={setSelectedId}
+              items={[
+                { key: 'cond', label: '계산 조건 변경', onClick: () => setModal('cond') },
+                { key: 'basis', label: '계산 근거', onClick: () => setModal('basis') },
+                { key: 'compare', label: '저장과 비교', onClick: () => setModal('compare') }
+              ]}
+            />
+            {fixLine && <Button as={Link} to="/console/resources" variant="secondary">협약 차량 확인</Button>}
+            {fixLine && <Button as={Link} to="/console/workspace?kind=doc&new=gian-simple" variant="primary">협약 추진 기안</Button>}
           </>
         )}
       />
@@ -288,9 +295,8 @@ export default function ShortagePage() {
         <StatusBand
           aria-live="polite"
           tag={result.total > 0 ? '기한 초과 우려' : '이상 없음'} tone={result.total > 0 ? 'danger' : 'primary'}
-          action={fixLine ? <>{goResources}{goDraft}</> : null}
         >
-          {result.total > 0 ? `${draft.name} 기준 배정 시 이동 불가 인원 ${result.total}명${result.provisional > 0 ? ` (확인 대기 서류 ${result.provisional}건 포함)` : ''}` : headline}
+          {result.total > 0 ? `기준 배정 시 이동 불가 인원 ${result.total}명${result.provisional > 0 ? ` (확인 대기 서류 ${result.provisional}건 포함)` : ''}` : headline}
         </StatusBand>
 
         <NumberFlow items={flow} />
@@ -307,7 +313,7 @@ export default function ShortagePage() {
               <ul className="mt-1">{methodView.basis}</ul>
             </section>
           </div>
-          <div className="min-w-0 max-h-[26rem] overflow-y-auto">
+          <div className="min-w-0 max-h-[max(18rem,calc(100vh-26rem))] overflow-y-auto">
             <ShortageTable compact tone="flat" title="마을별 이동 불가 인원" basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} arrivals={result.arrivals} t0={today} pageSize={30} />
           </div>
         </div>
