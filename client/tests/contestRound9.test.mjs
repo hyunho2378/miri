@@ -22,8 +22,8 @@ test('현황판에서 재확인 필터로 이동하고 선택 칩을 누르면 �
   const roster = read('../src/pages/console/RosterPage.jsx')
   assert.match(overview, /\/console\/roster\?recheck=1/)
   assert.match(roster, /params\.get\('recheck'\) === '1'/)
-  assert.match(roster, /재확인 필요 \{staleCount/)
-  assert.match(roster, /aria-label="재확인 필요 조건 해제"/)
+  assert.match(roster, /재확인 대상 \{staleCount/)
+  assert.match(roster, /aria-label="재확인 대상 조건 해제"/)
   assert.match(roster, /n\.delete\('recheck'\)/)
 })
 
