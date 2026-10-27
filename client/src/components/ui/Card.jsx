@@ -26,7 +26,7 @@ export default function Card({
             <div className="flex flex-wrap items-baseline gap-x-2">
               {title && (tone === 'flat'
                 ? <H className="type-title text-text-pri">{title}</H>
-                : <H className="flex items-center gap-2 type-strong text-text-pri"><span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-primary" />{title}</H>)}
+                : <H className="type-strong text-text-pri">{title}</H>)}
               {meta != null && meta !== false && <span className="type-body-sm text-text-meta tabular-nums">{meta}</span>}
             </div>
             {desc && <p className={clsx('mt-1 type-meta text-text-meta', tone !== 'flat' && 'pl-4')}>{desc}</p>}
