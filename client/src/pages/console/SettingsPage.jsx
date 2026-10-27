@@ -18,8 +18,9 @@ import { DATA_SOURCES, DONG_STATS, LTC } from '../../mock/donghaeData.js'
 
 export default function SettingsPage() {
   const settings = useMiriStore((s) => s.settings)
-  const [tab, setTab] = useState('village')
+  const [tab, setTab] = useState('base')
   const { hash } = useLocation()
+  useEffect(() => { if (hash === '#data-notes') setTab('notes') }, [hash])
   useEffect(() => {
     if (!hash) return undefined
     let n = 0
@@ -68,20 +69,24 @@ export default function SettingsPage() {
 
   return (
     <PageShell title="운영 기준">
-      <div className="grid gap-x-12 gap-y-8 cq-xl:grid-cols-2 cq-xl:items-start">
-        <Card tone="flat" title="기관 정보">
-          <KeyValue items={[
-            { label: '기관명', value: ORG_NAME, strong: true },
-            { label: '행정동', value: `${dongs.length}개 (${dongs.map((d) => d.name).join(', ')})` },
-            { label: '마을', value: `법정동 ${villages.length}곳(동호동은 행정동 일대 1곳)` },
-            { label: '임시주거시설', value: `${shelters.length}곳, 수용 가능 ${shelterCap.toLocaleString('ko-KR')}명` },
-            { label: '재가 장기요양 수급자 추정', value: `${LTC.homeTotal.toLocaleString('ko-KR')}명(${LTC.period}년 급여이용 ${LTC.users['계'].toLocaleString('ko-KR')}명 중 시설급여 ${LTC.facilityUsers['계']}명 제외)` },
-            { label: '명부 건수', value: rosterChipsText(rosterBreakdown(persons)) },
-            { label: '주민등록인구', value: `${dongRows.reduce((t, d) => t + d.total, 0).toLocaleString('ko-KR')}명, 65세 이상 ${dongRows.reduce((t, d) => t + d.age65, 0).toLocaleString('ko-KR')}명(${DATA_SOURCES.population.period})` }
-          ]} />
-        </Card>
-
-        <Card tone="flat" title="계산 기준">
+      <SegmentControl
+        label="운영 기준 구분"
+        value={tab}
+        onChange={setTab}
+        items={[
+          { value: 'base', label: '계산과 알림 기준' },
+          { value: 'org', label: '기관과 사용자' },
+          { value: 'cap', label: '차종별 한 번에 태우는 수' },
+          { value: 'village', label: `마을과 지정 대피소 ${villages.length}` },
+          { value: 'shelter', label: `임시주거시설 ${shelters.length}` },
+          { value: 'source', label: `데이터 출처 ${sourceRows.length}` },
+          { value: 'notes', label: '자료 안내' },
+        ]}
+      />
+      <div className="mt-6">
+        {tab === 'base' && (
+          <div className="grid gap-x-12 gap-y-8 cq-xl:grid-cols-2 cq-xl:items-start">
+            <Card tone="flat" title="계산 기준">
           <div className="divide-y divide-line-sub">
             <NumberStepper className="pb-3" label="준비 시간" unit="분" step={15} min={0} max={180} value={settings.prepMinutes} onChange={(v) => updateSettings({ prepMinutes: v })} hint="발령 후 첫 차량 출발까지 시간" />
             <NumberStepper className="py-3" label="탑승과 하차 시간" unit="분" step={5} min={5} max={60} value={settings.boardingMinutes ?? 20} onChange={(v) => updateSettings({ boardingMinutes: v })} hint="왕복 시간 = 편도 주행 시간 x 2 + 이 값. 주행 시간은 도로 경로 기준" />
@@ -96,8 +101,7 @@ export default function SettingsPage() {
             </div>
           </div>
         </Card>
-
-        <Card tone="flat" title="확인 알림 기준">
+            <Card tone="flat" title="확인 알림 기준">
           <div className="divide-y divide-line-sub">
             <NumberStepper className="pb-3" label="서류 확인 지연 알림" unit="일" min={1} max={60} value={settings.pendingDays} onChange={(v) => updateSettings({ pendingDays: v })} />
             <NumberStepper className="py-3" label="협약 만료 임박 기준" unit="일" step={5} min={5} max={120} value={settings.contractWarnDays} onChange={(v) => updateSettings({ contractWarnDays: v })} />
@@ -105,8 +109,22 @@ export default function SettingsPage() {
             <NumberStepper className="pt-3" label="도우미 응답 대기 시간" unit="분" step={5} min={5} max={60} value={settings.noAckMinutes} onChange={(v) => updateSettings({ noAckMinutes: v })} />
           </div>
         </Card>
-
-        <Card tone="flat" title="사용자와 역할">
+          </div>
+        )}
+        {tab === 'org' && (
+          <div className="grid gap-x-12 gap-y-8 cq-xl:grid-cols-2 cq-xl:items-start">
+            <Card tone="flat" title="기관 정보">
+          <KeyValue items={[
+            { label: '기관명', value: ORG_NAME, strong: true },
+            { label: '행정동', value: `${dongs.length}개 (${dongs.map((d) => d.name).join(', ')})` },
+            { label: '마을', value: `법정동 ${villages.length}곳(동호동은 행정동 일대 1곳)` },
+            { label: '임시주거시설', value: `${shelters.length}곳, 수용 가능 ${shelterCap.toLocaleString('ko-KR')}명` },
+            { label: '재가 장기요양 수급자 추정', value: `${LTC.homeTotal.toLocaleString('ko-KR')}명(${LTC.period}년 급여이용 ${LTC.users['계'].toLocaleString('ko-KR')}명 중 시설급여 ${LTC.facilityUsers['계']}명 제외)` },
+            { label: '명부 건수', value: rosterChipsText(rosterBreakdown(persons)) },
+            { label: '주민등록인구', value: `${dongRows.reduce((t, d) => t + d.total, 0).toLocaleString('ko-KR')}명, 65세 이상 ${dongRows.reduce((t, d) => t + d.age65, 0).toLocaleString('ko-KR')}명(${DATA_SOURCES.population.period})` }
+          ]} />
+        </Card>
+            <Card tone="flat" title="사용자와 역할">
           <ul className="divide-y divide-line-sub">
             {Object.values(DEMO_USERS).map((u) => (
               <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
@@ -122,16 +140,20 @@ export default function SettingsPage() {
             ))}
           </ul>
         </Card>
-      </div>
-
-      <div className="mt-8 grid gap-x-12 gap-y-8 cq-xl:grid-cols-2 cq-xl:items-start">
-        <TableCard
+          </div>
+        )}
+        {tab === 'cap' && (
+          <TableCard
           tone="flat"
           title="차종별 한 번에 태우는 수" count={`${VEHICLE_TYPES.length}종`}
           columns={capacityCols} rows={VEHICLE_TYPES} rowKey={(t) => t.key} pageSize={20} caption="차종과 등급별 정원"
         />
-
-        <Card id="data-notes" tone="flat" className="scroll-mt-20" title="자료 안내">
+        )}
+        {tab === 'village' && <TableCard tone="flat" title="마을과 지정 대피소" count={`${villages.length}곳`} columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 집결지, 대피소, 왕복 시간" pageSize={10} />}
+        {tab === 'shelter' && <TableCard tone="flat" title="이재민 임시주거시설" count={`${shelters.length}곳`} columns={shelterCols} rows={shelters} rowKey={(x) => x.code} caption="임시주거시설 목록" pageSize={10} />}
+        {tab === 'source' && <TableCard tone="flat" title="데이터 출처" count={`${sourceRows.length}건`} columns={sourceCols} rows={sourceRows} rowKey={(x) => x.key} caption="데이터 출처와 기준 시점" pageSize={10} />}
+        {tab === 'notes' && (
+          <Card id="data-notes" tone="flat" className="scroll-mt-20" title="자료 안내">
           <ul className="divide-y divide-line-sub">
             {DATA_NOTES.map((x) => (
               <li key={x.key} className="py-3">
@@ -141,24 +163,7 @@ export default function SettingsPage() {
             ))}
           </ul>
         </Card>
-      </div>
-
-      <div className="mt-10">
-        <SegmentControl
-          label="기준 자료"
-          value={tab}
-          onChange={setTab}
-          items={[
-            { value: 'village', label: `마을과 지정 대피소 ${villages.length}` },
-            { value: 'shelter', label: `이재민 임시주거시설 ${shelters.length}` },
-            { value: 'source', label: `데이터 출처 ${sourceRows.length}` },
-          ]}
-        />
-        <div className="mt-4">
-          {tab === 'village' && <TableCard tone="flat" title="마을과 지정 대피소" count={`${villages.length}곳`} columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 집결지, 대피소, 왕복 시간" pageSize={10} />}
-          {tab === 'shelter' && <TableCard tone="flat" title="이재민 임시주거시설" count={`${shelters.length}곳`} columns={shelterCols} rows={shelters} rowKey={(x) => x.code} caption="임시주거시설 목록" pageSize={10} />}
-          {tab === 'source' && <TableCard tone="flat" title="데이터 출처" count={`${sourceRows.length}건`} columns={sourceCols} rows={sourceRows} rowKey={(x) => x.key} caption="데이터 출처와 기준 시점" pageSize={10} />}
-        </div>
+        )}
       </div>
     </PageShell>
   )
