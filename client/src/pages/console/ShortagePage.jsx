@@ -1,8 +1,9 @@
 // 부족분 계산(IA 4.5). 위에서 아래 한 흐름: 결론 문장, 왜 그런지, 무엇을 늘리면 줄어드는지, 마을별 표, 접힌 계산 방법과 근거.
 // 마을별 값은 배정 규칙으로 시뮬레이션한 미이송 수. 조건을 바꾸면 결과가 바로 다시 계산된다.
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { Save, SlidersHorizontal, Star } from 'lucide-react'
+import { Save, SlidersHorizontal, Star, Car, UserRound, CircleHelp, Handshake, FileCheck } from 'lucide-react'
 import Card from '../../components/ui/Card.jsx'
+import { PageHeader, StatusBand, NumberFlow, ListDetail, DetailSection, StatusChip } from '../../components/console/index.js'
 import TableCard from '../../components/dashboard/TableCard.jsx'
 import { basisText } from '../../components/miri/BasisLine.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
@@ -241,57 +242,75 @@ export default function ShortagePage() {
     none: '부족 없음'
   }[neck.limit] || BOTTLENECK_LABEL[neck.limit]
   const Row = ({ label, value, strong }) => (
-    <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-page px-4 py-3">
+    <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 px-1 py-2">
       <span className="type-body-sm text-text-sec">{label}</span>
       <span className={`tabular-nums ${strong ? 'type-strong text-text-pri' : 'type-body-sm text-text-pri'}`}>{value}</span>
     </li>
   )
+  // 줄이는 방법 목록(목록과 상세). 값은 위 계산 결과에서만 읽는다
+  const [method, setMethod] = useState(null)
+  const methods = [
+    ...(fixLine ? [{ id: 'extra', icon: <Handshake size={20} />, title: '지금 차량 기준 협약', sub: extraLine, trailing: unresolved ? '' : '0명', chip: null }] : []),
+    { id: 'vehicle', icon: <Car size={20} />, title: `차량 1대 더(${typeOf(neck.vehicleType)?.label || neck.vehicleType})`, sub: `${neck.vehicleGain}명 줄어듦`, trailing: `${neck.plusVehicle}명` },
+    { id: 'helper', icon: <UserRound size={20} />, title: '도우미 1명 더', sub: `${neck.helperGain}명 줄어듦`, trailing: `${neck.plusHelper}명` },
+    { id: 'unconfirmed', icon: <CircleHelp size={20} />, title: `확인 전 차량 ${agreedCompare.unconfirmed}대를 못 쓰면`, sub: '못 옮기는 사람', trailing: `${agreedCompare.agreed}명` },
+    ...(agreedPlan.alone > 0 && agreedPlan.total === 0 ? [{ id: 'agreed', icon: <FileCheck size={20} />, title: '약속된 차량만 쓸 때 필요한 협약', sub: agreedPlan.need.map((n) => `${n.typeLabel} ${n.count}대`).join(', '), trailing: '0명' }] : [])
+  ]
+  const methodId = methods.some((m) => m.id === method) ? method : methods[0].id
+  const goResources = <Button as={Link} to="/console/resources">협약 차량 확인하기</Button>
+  const goDraft = <Button as={Link} to="/console/workspace?kind=doc&new=gian-simple" variant="secondary">협약 추진 기안 쓰기</Button>
+  const methodView = {
+    extra: fixLine && { head: fixLine, todo: <>{goResources}{goDraft}</>, basis: extra.map((e) => <Row key={e.grade} label={<GradeChip grade={e.grade} size="sm" />} value={`${result.byGrade[e.grade]}명, ${e.typeLabel} ${e.count}대${e.resolved ? '' : ' 이상'} 더 필요`} />) },
+    vehicle: { head: `${typeOf(neck.vehicleType)?.label || neck.vehicleType} 1대를 더하면 ${neck.vehicleGain}명 줄어 ${neck.plusVehicle}명이 됩니다.`, todo: goResources, basis: [<Row key="n" label="지금 부족 원인" value={neckSentence.replace('부족 원인: ', '')} strong />] },
+    helper: { head: `도우미 1명을 더하면 ${neck.helperGain}명 줄어 ${neck.plusHelper}명이 됩니다.`, todo: <Button as={Link} to="/console/resources">차량과 도우미 보기</Button>, basis: [<Row key="n" label="지금 부족 원인" value={neckSentence.replace('부족 원인: ', '')} strong />] },
+    unconfirmed: { head: `확인 전 차량 ${agreedCompare.unconfirmed}대를 못 쓰면 못 옮기는 사람이 ${agreedCompare.agreed}명입니다.`, todo: goResources, basis: [<Row key="a" label="모든 차량을 쓸 때" value={`${agreedCompare.all}명`} />, <Row key="b" label="약속된 차량만 쓸 때" value={`${agreedCompare.agreed}명`} strong />] },
+    agreed: { head: `약속된 차량만 쓰면 ${agreedPlan.alone}명, ${agreedPlan.need.map((n) => `${n.typeLabel} ${n.count}대`).join(', ')} 협약 시 0명입니다.`, todo: <>{goResources}{goDraft}</>, basis: agreedPlan.lessOne.map((x) => <Row key={x.type} label={`협약을 ${x.label} ${x.count - 1}대로 줄이면`} value={`${x.left}명 못 옮김`} strong />) }
+  }[methodId]
+  const flow = [
+    { label: '대피 대상', value: result.scopeTargets, unit: '명', note: `${result.scopeVillages}개 마을` },
+    { label: '기준 배정으로 못 옮기는 사람', value: result.total, unit: '명', note: '지금 차량 기준', tone: result.total ? 'danger' : undefined },
+    { label: '추천 배정 적용', value: boardingNow in boardingRec ? boardingRec[boardingNow] : '계산하는 중', unit: boardingNow in boardingRec ? '명' : '', note: '지금 차량 기준' },
+    ...(fixLine && !unresolved ? [{ label: '협약 뒤', value: 0, unit: '명', note: `${extraLine} 협약 시` }] : [])
+  ]
 
   return (
-    <PageShell title="부족분 계산">
+    <PageShell title="부족분 계산" hideHeader>
+      <PageHeader
+        title="부족분 계산"
+        action={(
+          <Button
+            variant={panelOpen ? 'primary' : 'secondary'} aria-expanded={panelOpen} aria-controls={panelId}
+            leftIcon={<SlidersHorizontal size={16} aria-hidden="true" />} onClick={() => setPanelOpen((v) => !v)}
+          >
+            계산 조건 바꾸기
+          </Button>
+        )}
+      />
       {panelOpen && <div className="mb-4">{conditions}</div>}
 
-      <div className="grid gap-4 min-w-0">
-        <Card aria-live="polite" title="결론" meta={draft.name}>
-          <div className="grid gap-x-10 gap-y-4 cq-xl:grid-cols-2">
-            <div className="min-w-0">
-          {result.total > 0 ? (
-            <ShortageValue value={result.total} byGrade={result.byGrade} provisional={result.provisional} label="기한 안에 못 옮기는 사람" />
-          ) : (
-            <p className="type-h2 text-text-pri">{headline}</p>
-          )}
-          {fixLine && <p className="mt-3 type-body text-text-pri">{fixLine}</p>}
-          {fixLine && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button as={Link} to="/console/resources" size="sm">협약 차량 확인하기</Button>
-              <Button as={Link} to="/console/workspace?kind=doc&new=gian-simple" size="sm" variant="secondary">협약 추진 기안 쓰기</Button>
-            </div>
-          )}
-            </div>
-            <div className="flex min-w-0 flex-col gap-3 cq-xl:pt-8">
-          {result.total > 0 && (
-            <p aria-label="숫자 흐름" className="type-body-sm text-text-sec tabular-nums">
-              대상 {result.scopeTargets}명 → 기준 배정으로 못 옮기는 사람 {result.total}명 → 추천 배정 적용 {boardingNow in boardingRec ? `${boardingRec[boardingNow]}명` : '계산하는 중'}{fixLine ? ` → 협약 뒤 0명` : ''}
-            </p>
-          )}
-          {extra.length > 0 && (
-            <ul aria-label="등급별 더 필요한 차량" className="flex flex-wrap gap-2">
-              {extra.map((e) => (
-                <li key={e.grade} className="inline-flex items-center gap-2 rounded-md bg-subtle px-3 py-2">
-                  <GradeChip grade={e.grade} size="sm" />
-                  <span className="type-meta text-text-sec tabular-nums">{result.byGrade[e.grade]}명, {e.typeLabel} {e.count}대{e.resolved ? '' : ' 이상'} 더 필요</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className="type-meta text-text-meta tabular-nums">({calcStamp({ at: now, rosterAt: today })})</p>
-            </div>
-          </div>
-        </Card>
+      <div className="grid gap-6 min-w-0">
+        <StatusBand
+          aria-live="polite"
+          tag={result.total > 0 ? '기한 초과 우려' : '이상 없음'} tone={result.total > 0 ? 'danger' : 'primary'}
+          action={fixLine ? <>{goResources}{goDraft}</> : null}
+        >
+          {result.total > 0 ? `${draft.name}에서 기한 안에 못 옮기는 사람이 ${result.total}명입니다` : headline}
+          {fixLine && <span className="mt-1 block type-body text-text-sec">{fixLine}</span>}
+          {result.provisional > 0 && <span className="mt-1 block type-body-sm text-text-sec">확인 대기 서류 {result.provisional}건 포함</span>}
+        </StatusBand>
 
-        <div className="grid gap-4 min-w-0 cq-xl:grid-cols-2 cq-xl:items-start">
-        <Card title="계산에 쓴 값">
-          <ul className="grid gap-2">
+        <NumberFlow items={flow} />
+
+        <ListDetail items={methods} selectedId={methodId} onSelect={setMethod} listLabel="부족을 줄이는 방법" listTitle="부족을 줄이는 방법, 오른쪽은 쓴 뒤 못 옮기는 사람">
+          <h2 className="type-h2 text-text-pri">{methods.find((m) => m.id === methodId)?.title}</h2>
+          <DetailSection title="결론" className="mt-4"><p className="type-body text-text-pri tabular-nums">{methodView.head}</p></DetailSection>
+          <DetailSection title="할 일"><div className="flex flex-wrap gap-2">{methodView.todo}</div></DetailSection>
+          <DetailSection title="근거"><ul>{methodView.basis}</ul></DetailSection>
+        </ListDetail>
+
+        <section aria-labelledby="sh-used">
+          <h2 id="sh-used" className="mb-1 px-1 type-strong text-text-sec">계산에 쓴 값</h2>
+          <ul className="grid cq-xl:grid-cols-2 cq-xl:gap-x-8">
             <Row label="대피해야 하는 사람" value={`${result.scopeVillages}개 마을 ${result.scopeTargets}명`} strong />
             <Row label="쓸 수 있는 차량" value={vehicleChips(vehicles)} />
             <Row label="첫 마을에 산불이 닿기까지" value={`발령 후 ${fmtElapsed(draft.windowHours)}, 출발 준비 ${prepText(draft.prepMinutes)} 빼면 ${firstMinutes}분`} />
@@ -304,37 +323,8 @@ export default function ShortagePage() {
               <Row label="태울 차종이 없어 못 옮기는 것으로 센 사람" value={GRADES.filter((g) => noType[g.key] > 0).map((g) => `${g.label} ${noType[g.key]}명`).join(', ')} />
             )}
           </ul>
-          <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
-            <Button
-              variant={panelOpen ? 'primary' : 'secondary'} aria-expanded={panelOpen} aria-controls={panelId}
-              leftIcon={<SlidersHorizontal size={16} aria-hidden="true" />} onClick={() => setPanelOpen((v) => !v)}
-            >
-              계산 조건 바꾸기
-            </Button>
-          </div>
-        </Card>
-
-        <div className="grid gap-4 min-w-0">
-        <Card title="부족을 줄이는 방법">
-          <p className="type-strong text-text-pri">{neckSentence}</p>
-          <ul aria-label="하나씩 더했을 때" className="mt-3 grid gap-2">
-            <Row label={`차량 1대 더(${typeOf(neck.vehicleType)?.label || neck.vehicleType})`} value={`${neck.vehicleGain}명 줄어 ${neck.plusVehicle}명`} strong />
-            <Row label="도우미 1명 더" value={`${neck.helperGain}명 줄어 ${neck.plusHelper}명`} strong />
-            <Row label={`확인 전 차량 ${agreedCompare.unconfirmed}대를 못 쓰면`} value={`${agreedCompare.agreed}명`} strong />
-          </ul>
-        </Card>
-
-        {agreedPlan.alone > 0 && agreedPlan.total === 0 && (
-          <Card title="약속된 차량만 쓸 때 필요한 협약">
-            <p className="type-strong text-text-pri">{`약속된 차량만 쓰면 ${agreedPlan.alone}명, ${agreedPlan.need.map((n) => `${n.typeLabel} ${n.count}대`).join(', ')} 협약 시 0명`}</p>
-            <ul aria-label="협약을 하나씩 줄이면" className="mt-3 grid gap-2">
-              {agreedPlan.lessOne.map((x) => <Row key={x.type} label={`협약을 ${x.label} ${x.count - 1}대로 줄이면`} value={`${x.left}명 못 옮김`} strong />)}
-            </ul>
-          </Card>
-        )}
-        </div>
-
-        </div>
+          <p className="mt-2 px-1 type-meta text-text-sec tabular-nums">({calcStamp({ at: now, rosterAt: today })})</p>
+        </section>
 
         <ShortageTable basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} arrivals={result.arrivals} t0={today} />
 

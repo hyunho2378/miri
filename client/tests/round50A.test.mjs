@@ -21,7 +21,8 @@ test('현황판: 발령 중에는 발령 진행 값과 발령 운영 단추를 �
 
 test('부족분 계산: 숫자 흐름 한 줄과 숫자 아래 행동 단추, 개발자 말투 제목 없음', () => {
   const s = read('pages/console/ShortagePage.jsx')
-  assert.match(s, /aria-label="숫자 흐름"/)
+  assert.match(s, /<NumberFlow items=\{flow\}/)
+  assert.match(read('components/console/NumberFlow.jsx'), /aria-label=\{label\}/)
   assert.match(s, /협약 차량 확인/)
   assert.ok(!s.includes('왜 이런 결과가 나오나'))
   assert.ok(!s.includes('조건을 바꾸면 결과가 바로 다시 계산됩니다'))
