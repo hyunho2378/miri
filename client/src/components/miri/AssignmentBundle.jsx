@@ -26,10 +26,23 @@ export function moveOptions(assignments, vehicles, code, fromTrip) {
 // 회차 확인 표시 문구. checks 는 tripChecks() 결과
 export { tripCheckNotes }
 
+// 차량 안 회차들의 대피소 확인 이름을 한 번씩만 모은다
+export function vehicleShelterChecks(checks) {
+  return [...new Set(checks.flatMap((c) => c?.liftUnchecked || []))]
+}
+
+// 회차 줄에서는 대피소 확인을 뺀다(차량 머리에 한 번)
+export function withoutShelter(c) {
+  return { ...c, liftUnchecked: [] }
+}
+
 export default function AssignmentBundle({ assignment, vehicle, villageLabel = (c) => c, assignments, vehicles, onMove, editable = false, checkTrip, careOf }) {
   const type = typeOf(vehicle?.type)
   const last = assignment.trips[assignment.trips.length - 1]
   const persons = assignment.trips.reduce((s, t) => s + t.personCodes.length, 0)
+  // 같은 대피소 확인은 차량마다 한 번만 보인다(공무원 시점 검수 2026. 10. 27.). 회차 줄에는 대피소 확인을 빼고 나머지만
+  const checks = checkTrip ? assignment.trips.map((t) => checkTrip(t)) : []
+  const vehicleShelters = vehicleShelterChecks(checks)
   return (
     <Card padding="none" className="animate-flow-down">
       <header className="flex flex-wrap items-center gap-x-3 gap-y-1 p-4 lg:p-5 border-b border-line-sub">
@@ -41,9 +54,12 @@ export default function AssignmentBundle({ assignment, vehicle, villageLabel = (
           <Users size={14} aria-hidden="true" />
           {assignment.helperCodes.length ? `도우미 ${assignment.helperCodes.join(', ')}` : '도우미 없음, 구급대원 탑승'}
         </p>
+        {vehicleShelters.length > 0 && (
+          <p className="basis-full rounded-md bg-warning-soft px-2 py-0.5 type-meta text-warning-text" aria-label="이 차량 대피소 확인">대피소 확인: {vehicleShelters.join(', ')}(승강기, 진입로)</p>
+        )}
       </header>
       <ol className="divide-y divide-line-sub">
-        {assignment.trips.map((t) => (
+        {assignment.trips.map((t, ti) => (
           <li key={`${t.index}-${t.departAt}`} className="px-4 lg:px-5 py-3">
             <p className="flex flex-wrap items-center gap-2 type-caption text-text-sec tabular-nums">
               <span className="type-strong text-text-pri">{t.index}회차</span>
@@ -51,9 +67,9 @@ export default function AssignmentBundle({ assignment, vehicle, villageLabel = (
               <span className="text-text-meta">출발 {fmtHM(t.departAt)}, 이송 완료 {fmtHM(t.finishAt)}</span>
               {t.added && <span className="text-primary-text">재배정으로 추가</span>}
             </p>
-            {checkTrip && tripCheckNotes(checkTrip(t)).length > 0 && (
+            {checkTrip && tripCheckNotes(withoutShelter(checks[ti])).length > 0 && (
               <ul className="mt-1.5 flex flex-wrap gap-1.5" aria-label={`${t.index}회차 확인할 점`}>
-                {tripCheckNotes(checkTrip(t)).map((n) => (
+                {tripCheckNotes(withoutShelter(checks[ti])).map((n) => (
                   <li key={n.text} className={n.tone === 'warning' ? 'rounded-md bg-warning-soft px-2 py-0.5 type-meta text-warning-text' : 'rounded-md bg-primary-soft px-2 py-0.5 type-meta text-primary-text'}>{n.text}</li>
                 ))}
               </ul>
