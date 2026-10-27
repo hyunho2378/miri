@@ -277,8 +277,8 @@ function intakeDocs() {
   const at = TODAY - 2 * DAY
   return [
     {
-      id: 'DOC-0001', kind: 'plan', name: '망상동 심곡동 대피계획서', villageCode: 'MS-02',
-      image: '/images/intake/plan-ms02.svg', uploadedAt: at, status: 'pending',
+      id: 'DOC-0001', kind: 'plan', name: '심곡동 대피계획서', villageCode: 'MS-02',
+      image: '/images/intake/plan-ms02.jpg', uploadedAt: at, status: 'pending',
       transcript: '망상동 심곡동 재난취약자 대피계획서 순번 1 거동 상태 누워서만 생활함 산소발생기 사용 보호자 동행 필요 순번 2 거동 상태 휠체어 사용 혼자 이동 어려움 순번 3 거동 상태 지팡이 짚고 부축 받으면 이동 가능 순번 4 거동 상태 혼자 걸을 수 있음 청력 약함',
       results: [
         { personCode: 'MS-02-901', grade: 'bed', tags: ['bedridden', 'oxygen', 'guardian'], quote: '누워서만 생활함 산소발생기 사용', confidence: 'high', box: [6, 30, 88, 12] },
@@ -288,21 +288,21 @@ function intakeDocs() {
       ]
     },
     {
-      id: 'DOC-0002', kind: 'card', name: '북삼동 지흥동 대피카드', villageCode: 'BS-01',
-      image: '/images/intake/card-bs01.svg', uploadedAt: at, status: 'pending',
+      id: 'DOC-0002', kind: 'card', name: '지흥동 대피카드', villageCode: 'BS-01',
+      image: '/images/intake/card-bs01.jpg', uploadedAt: at, status: 'pending',
       transcript: '대피카드 북삼동 지흥동 거동 상태 침대에서 거의 못 일어나심 기저귀 사용 딸 연락 필요',
       results: [
-        { personCode: 'BS-01-901', grade: 'bed', tags: ['bedridden', 'guardian'], quote: '침대에서 거의 못 일어나심', confidence: 'mid', box: [8, 40, 84, 22] }
+        { personCode: 'BS-01-901', grade: 'bed', tags: ['bedridden', 'guardian'], quote: '침대에서 거의 못 일어나심', confidence: 'low', box: [8, 40, 84, 22] }
       ]
     },
     {
-      id: 'DOC-0003', kind: 'plan', name: '삼화동 이로동 대피계획서 (흐린 사본)', villageCode: 'SH-03',
-      image: '/images/intake/plan-sh03.svg', uploadedAt: at - 20 * DAY, status: 'pending',
+      id: 'DOC-0003', kind: 'plan', name: '이로동 대피계획서', villageCode: 'SH-03',
+      image: '/images/intake/plan-sh03.jpg', uploadedAt: at - 20 * DAY, status: 'pending',
       transcript: '삼화동 이로동 대피계획서 순번 1 거동 상태 보행기 이용 천천히 이동 순번 2 거동 상태 판독 불가',
       results: [
         { personCode: 'SH-03-901', grade: 'assist', tags: [], quote: '보행기 이용 천천히 이동', confidence: 'mid', box: [6, 36, 88, 14] },
         // 근거 문구가 전사문에 없는 결과. 원문 대조에서 신뢰도 하로 떨어지는 사례
-        { personCode: 'SH-03-902', grade: 'wheelchair', tags: [], quote: '휠체어로 이동', confidence: 'high', box: [6, 54, 88, 14] }
+        { personCode: 'SH-03-902', grade: 'wheelchair', tags: [], quote: '휠체어로 이동', confidence: 'high', box: [6, 50, 88, 14] }
       ]
     }
   ]
@@ -310,7 +310,7 @@ function intakeDocs() {
 
 // 샘플 업로드용 서류. 판독 실행 시 이 응답을 모의 AI 결과로 사용
 export const SAMPLE_UPLOAD = {
-  kind: 'card', name: '묵호동 어달동 대피카드', villageCode: 'MH-02', image: '/images/intake/card-mh02.svg',
+  kind: 'card', name: '어달동 대피카드', villageCode: 'MH-02', image: '/images/intake/card-mh02.jpg',
   transcript: '대피카드 묵호동 어달동 거동 상태 휠체어 타고 계심 계단 있음 혼자 사심 거동 상태 걸을 수 있으나 치매 증상 있음 인솔 필요',
   results: [
     { personCode: 'MH-02-911', grade: 'wheelchair', tags: [], quote: '휠체어 타고 계심 계단 있음', confidence: 'high', box: [8, 34, 84, 18] },
