@@ -135,12 +135,12 @@ export default function NotesPage() {
   }
 
   return (
-    <PageShell title="현장 소식" desc="돌봄 담당자, 이장, 가족이 전한 상태 변화를 확인하고, 승인한 것만 명부에 반영합니다.">
+    <PageShell title="현장 소식">
       <section aria-label="현장 소식 단계" className="mb-4 flex flex-col gap-3 lg:flex-row">
-        <StepCard n={1} Icon={MessageSquareText} title="소식 받기" desc="요양보호사, 생활지원사, 이장, 가족이 전한 말을 글로 붙여 넣거나 음성 녹음을 올립니다." count={`${notes.length}건`}
+        <StepCard n={1} Icon={MessageSquareText} title="소식 받기" count={`${notes.length}건`}
           active={inputOpen} onClick={canEdit ? () => setShowInput((v) => !v) : undefined} />
-        <StepCard n={2} Icon={ScanText} title="AI가 읽기" desc="글이나 음성을 AI에 보내 대상자의 거동이 달라졌는지 찾고 근거 문구를 붙입니다. 이름, 주소, 연락처는 결과에 남기지 않습니다." count={`${notes.filter((n) => n.read.diff.changed).length}건 변경 후보`} />
-        <StepCard n={3} Icon={UserCheck} title="사회복지 담당자 승인" desc="동 맞춤형복지 담당이 근거와 현재 명부를 견주어 반영, 수정 후 반영, 반영 안 함을 고릅니다. 반영해야 명부와 부족분 계산이 바뀝니다." count={`대기 ${queue.length}건`} active={!inputOpen && queue.length > 0} />
+        <StepCard n={2} Icon={ScanText} title="AI가 읽기" count={`${notes.filter((n) => n.read.diff.changed).length}건 변경 후보`} />
+        <StepCard n={3} Icon={UserCheck} title="사회복지 담당자 승인" count={`대기 ${queue.length}건`} active={!inputOpen && queue.length > 0} />
       </section>
 
       {inputOpen && (
@@ -157,7 +157,7 @@ export default function NotesPage() {
               <SegmentControl label="소식 입력 방법" items={MODES} value={mode} onChange={(v) => { setMode(v); setError(null) }} />
               {mode === 'text' ? (
                 <Textarea label="전해 들은 말" rows={4} value={text} onChange={(e) => setText(e.target.value)} maxLength={4000}
-                  placeholder="예) 지난주 넘어지신 뒤로 휠체어를 타고 이동하세요." hint="시안에서는 가상 소식만 적습니다. 실제 주민의 이름, 주소, 전화번호는 적지 않습니다. 가린 뒤에도 남으면 AI 판독을 멈춥니다." />
+                  placeholder="예) 지난주 넘어지신 뒤로 휠체어를 타고 이동하세요." hint="실제 주민의 이름, 주소, 전화번호는 적지 않습니다. 가린 뒤에도 남으면 AI 판독을 멈춥니다." />
               ) : (
                 <div className="rounded-lg border-2 border-dashed border-line-def bg-subtle p-6 text-center">
                   <FileAudio size={32} aria-hidden="true" className="mx-auto text-text-meta" />

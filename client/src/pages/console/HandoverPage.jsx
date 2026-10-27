@@ -140,7 +140,7 @@ export default function HandoverPage() {
   const live = ['assigned', 'sent'].includes(d.status) && d.result
 
   return (
-    <PageShell title="소방 인계" desc="기한 안에 옮기지 못한 구조 대상(거동불편자)을 동해소방서에 넘기고, 넘긴 기록을 남깁니다.">
+    <PageShell title="소방 인계">
       {!live ? (
         <div className="space-y-4">
         {preview && (
@@ -168,7 +168,7 @@ export default function HandoverPage() {
 
           <TableCard
             title="구조 대상(기한 안 미이송)" count={`${rows.length}명`}
-            desc={`${fmtHM(baseAt)} 기준. 가장 급한 사람 먼저: 산불 도달이 빠른 마을, 등급이 무거운 순(소방 인계 완료는 아래). 명부 마지막 확인이 ${STALE_DAYS}일을 넘으면 빨간 글자`}
+            desc={`${fmtHM(baseAt)} 기준, 급한 순`}
             actions={(
               <>
                 <Button variant="ghost" size="sm" disabled={!waiting.length} onClick={() => setSelected(allOn ? new Set() : new Set(waiting.map((r) => r.code)))}>
