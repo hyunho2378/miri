@@ -189,7 +189,6 @@ export default function ResourcesPage() {
       { label: '비고', value: vehicle.note || '없음' }
     ]} />,
     <>
-      {commitmentOf(vehicle) === 'unconfirmed' && <Button as={Link} to="/console/shortage" variant="secondary">필요한 협약 대수 보기</Button>}
       {canVehicle && <Button variant="primary" onClick={() => openVehicle(vehicle)}>수정</Button>}
     </>
   ) : <EmptyState compact title="표시할 차량 없음" />
