@@ -2,7 +2,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
-import Disclosure from '../../components/ui/Disclosure.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
 import { rosterBreakdown, rosterChipsText } from '../../lib/rosterCount.js'
 import { DATA_NOTES } from '../../lib/dataNotes.js'
@@ -81,7 +80,7 @@ export default function SettingsPage() {
           ]} />
         </Card>
 
-        <Card tone="flat" title="계산 기본값">
+        <Card tone="flat" title="계산 기준">
           <div className="divide-y divide-line-sub">
             <NumberStepper className="pb-3" label="준비 시간" unit="분" step={15} min={0} max={180} value={settings.prepMinutes} onChange={(v) => updateSettings({ prepMinutes: v })} hint="발령 후 첫 차량 출발까지 시간" />
             <NumberStepper className="py-3" label="탑승과 하차 시간" unit="분" step={5} min={5} max={60} value={settings.boardingMinutes ?? 20} onChange={(v) => updateSettings({ boardingMinutes: v })} hint="왕복 시간 = 편도 주행 시간 x 2 + 이 값. 주행 시간은 도로 경로 기준" />
@@ -143,29 +142,29 @@ export default function SettingsPage() {
         </Card>
       </div>
 
-      <Disclosure className="mt-4" summary={`마을과 지정 대피소(${villages.length}곳)`}>
+      <div className="mt-10">
         <TableCard
           tone="flat"
           title="마을과 지정 대피소" count={`${villages.length}곳`}
-          columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 집결지, 대피소, 왕복 시간" pageSize={20}
+          columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 집결지, 대피소, 왕복 시간" pageSize={10}
         />
-      </Disclosure>
+      </div>
 
-      <Disclosure className="mt-2" summary={`이재민 임시주거시설(${shelters.length}곳)`}>
+      <div className="mt-10">
         <TableCard
           tone="flat"
           title="이재민 임시주거시설" count={`${shelters.length}곳`}
           columns={shelterCols} rows={shelters} rowKey={(x) => x.code} caption="임시주거시설 목록" pageSize={10}
         />
-      </Disclosure>
+      </div>
 
-      <Disclosure className="mt-2" summary={`데이터 출처(${sourceRows.length}건)`}>
+      <div className="mt-10">
         <TableCard
           tone="flat"
           title="데이터 출처" count={`${sourceRows.length}건`}
           columns={sourceCols} rows={sourceRows} rowKey={(x) => x.key} caption="데이터 출처와 기준 시점" pageSize={20}
         />
-      </Disclosure>
+      </div>
     </PageShell>
   )
 }
