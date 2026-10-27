@@ -6,9 +6,30 @@ import clsx from 'clsx'
 import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react'
 import EmptyState from '../ui/EmptyState.jsx'
 
-export default function DataList({ columns, rows, rowKey, selectedKey, onSelect, label, grid, pageStep = 100, emptyTitle, emptyDesc, footer, className }) {
+function Pager({ page, pages, total, step, onPage }) {
+  // 번호는 현재 쪽 앞뒤 2개와 처음, 끝만 보인다
+  const nums = []
+  for (let i = 0; i < pages; i++) if (i === 0 || i === pages - 1 || Math.abs(i - page) <= 2) nums.push(i)
+  const items = []
+  nums.forEach((n, i) => { if (i && n - nums[i - 1] > 1) items.push('gap' + n); items.push(n) })
+  const btn = 'inline-flex h-10 min-w-10 items-center justify-center rounded-lg px-2 type-body-sm tabular-nums transition-colors duration-fast'
+  return (
+    <nav aria-label="쪽 이동" className="mt-3 flex shrink-0 flex-wrap items-center justify-between gap-2 px-1">
+      <span className="type-body-sm text-text-sec tabular-nums">{page * step + 1}-{Math.min(total, (page + 1) * step)} / {total.toLocaleString('ko-KR')}</span>
+      <div className="flex items-center gap-1">
+        <button type="button" disabled={page === 0} onClick={() => onPage(page - 1)} className={clsx(btn, 'text-text-pri hover:bg-subtle disabled:text-text-ter disabled:hover:bg-transparent')}>이전</button>
+        {items.map((n) => typeof n === 'string'
+          ? <span key={n} aria-hidden="true" className="px-1 text-text-sec">...</span>
+          : <button key={n} type="button" aria-current={n === page ? 'page' : undefined} onClick={() => onPage(n)} className={clsx(btn, n === page ? 'bg-mute font-bold text-text-pri' : 'text-text-sec hover:bg-subtle')}>{n + 1}</button>)}
+        <button type="button" disabled={page === pages - 1} onClick={() => onPage(page + 1)} className={clsx(btn, 'text-text-pri hover:bg-subtle disabled:text-text-ter disabled:hover:bg-transparent')}>다음</button>
+      </div>
+    </nav>
+  )
+}
+
+export default function DataList({ columns, rows, rowKey, selectedKey, onSelect, label, grid, pageStep = 10, emptyTitle, emptyDesc, footer, className }) {
   const [sort, setSort] = useState(null)   // { key, dir }
-  const [limit, setLimit] = useState(pageStep)
+  const [page, setPage] = useState(0)
   const refs = useRef({})
 
   const sorted = useMemo(() => {
@@ -24,8 +45,9 @@ export default function DataList({ columns, rows, rowKey, selectedKey, onSelect,
     })
   }, [rows, sort, columns])
 
-  const shown = sorted.slice(0, limit)
-  const rest = sorted.length - shown.length
+  const pages = Math.max(1, Math.ceil(sorted.length / pageStep))
+  const cur = Math.min(page, pages - 1)
+  const shown = sorted.slice(cur * pageStep, (cur + 1) * pageStep)
   const activeKey = shown.some((r) => rowKey(r) === selectedKey) ? selectedKey : (shown[0] ? rowKey(shown[0]) : null)
 
   const toggleSort = (key) => setSort((s) => (s?.key === key ? (s.dir === 'asc' ? { key, dir: 'desc' } : null) : { key, dir: 'asc' }))
@@ -61,7 +83,7 @@ export default function DataList({ columns, rows, rowKey, selectedKey, onSelect,
           )
         })}
       </div>
-      <ul role="listbox" aria-label={label} className="min-h-0 flex-1 space-y-0.5 overflow-y-auto pr-1">
+      <ul role="listbox" aria-label={label} className="min-h-0 flex-1 space-y-0.5 pr-1">
         {shown.map((r, i) => {
           const k = rowKey(r)
           const on = k === selectedKey
@@ -77,14 +99,8 @@ export default function DataList({ columns, rows, rowKey, selectedKey, onSelect,
             </li>
           )
         })}
-        {rest > 0 && (
-          <li role="presentation">
-            <button type="button" onClick={() => setLimit((n) => n + pageStep)} className="min-h-11 w-full rounded-xl px-4 text-left type-body-sm font-bold text-primary-text hover:bg-subtle">
-              다음 {Math.min(pageStep, rest).toLocaleString('ko-KR')}건 보기, 남은 {rest.toLocaleString('ko-KR')}건
-            </button>
-          </li>
-        )}
       </ul>
+      {pages > 1 && <Pager page={cur} pages={pages} total={sorted.length} step={pageStep} onPage={setPage} />}
       {footer}
     </div>
   )
