@@ -1,5 +1,5 @@
 // 설정(IA 4.9). 시 관리자 전용. 계산 기본값, 이상 탐지 임계값, 마을과 대피소, 임시주거시설, 차종 정원, 사용자, 데이터 출처.
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import Card from '../../components/ui/Card.jsx'
 import PageShell from '../../components/miri/PageShell.jsx'
@@ -18,6 +18,7 @@ import { DATA_SOURCES, DONG_STATS, LTC } from '../../mock/donghaeData.js'
 
 export default function SettingsPage() {
   const settings = useMiriStore((s) => s.settings)
+  const [tab, setTab] = useState('village')
   const { hash } = useLocation()
   useEffect(() => {
     if (!hash) return undefined
@@ -143,27 +144,21 @@ export default function SettingsPage() {
       </div>
 
       <div className="mt-10">
-        <TableCard
-          tone="flat"
-          title="마을과 지정 대피소" count={`${villages.length}곳`}
-          columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 집결지, 대피소, 왕복 시간" pageSize={10}
+        <SegmentControl
+          label="기준 자료"
+          value={tab}
+          onChange={setTab}
+          items={[
+            { value: 'village', label: `마을과 지정 대피소 ${villages.length}` },
+            { value: 'shelter', label: `이재민 임시주거시설 ${shelters.length}` },
+            { value: 'source', label: `데이터 출처 ${sourceRows.length}` },
+          ]}
         />
-      </div>
-
-      <div className="mt-10">
-        <TableCard
-          tone="flat"
-          title="이재민 임시주거시설" count={`${shelters.length}곳`}
-          columns={shelterCols} rows={shelters} rowKey={(x) => x.code} caption="임시주거시설 목록" pageSize={10}
-        />
-      </div>
-
-      <div className="mt-10">
-        <TableCard
-          tone="flat"
-          title="데이터 출처" count={`${sourceRows.length}건`}
-          columns={sourceCols} rows={sourceRows} rowKey={(x) => x.key} caption="데이터 출처와 기준 시점" pageSize={20}
-        />
+        <div className="mt-4">
+          {tab === 'village' && <TableCard tone="flat" title="마을과 지정 대피소" count={`${villages.length}곳`} columns={villageCols} rows={villages} rowKey={(v) => v.code} caption="마을별 집결지, 대피소, 왕복 시간" pageSize={10} />}
+          {tab === 'shelter' && <TableCard tone="flat" title="이재민 임시주거시설" count={`${shelters.length}곳`} columns={shelterCols} rows={shelters} rowKey={(x) => x.code} caption="임시주거시설 목록" pageSize={10} />}
+          {tab === 'source' && <TableCard tone="flat" title="데이터 출처" count={`${sourceRows.length}건`} columns={sourceCols} rows={sourceRows} rowKey={(x) => x.key} caption="데이터 출처와 기준 시점" pageSize={10} />}
+        </div>
       </div>
     </PageShell>
   )
