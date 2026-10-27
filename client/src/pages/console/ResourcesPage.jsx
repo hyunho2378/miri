@@ -173,8 +173,8 @@ export default function ResourcesPage() {
 
   const vehicleDetail = vehicle ? pane('선택한 차량',
     <>
-      <h2 className="type-title tabular-nums text-text-pri">{vehicle.code}</h2>
-      <span className="type-body text-text-sec">{typeOf(vehicle.type)?.label}</span>
+      <h2 className="self-baseline type-title tabular-nums text-text-pri">{vehicle.code}</h2>
+      <span className="self-baseline type-body text-text-sec">{typeOf(vehicle.type)?.label}</span>
       <StatusPill status={commitmentOf(vehicle) === 'unconfirmed' ? 'expiring' : 'available'} label={COMMITMENTS[commitmentOf(vehicle)]} />
     </>,
     <InfoRows rows={[
@@ -195,8 +195,8 @@ export default function ResourcesPage() {
 
   const helperDetail = helper ? pane('선택한 도우미',
     <>
-      <h2 className="type-title tabular-nums text-text-pri">{helper.code}</h2>
-      <span className="type-body text-text-sec">{affiliationLabel(helper)}</span>
+      <h2 className="self-baseline type-title tabular-nums text-text-pri">{helper.code}</h2>
+      <span className="self-baseline type-body text-text-sec">{affiliationLabel(helper)}</span>
       <StatusPill status={helper.active !== false ? 'accept' : 'unavailable'} label={helper.active !== false ? '활동 중' : '휴면'} />
     </>,
     <InfoRows rows={[
