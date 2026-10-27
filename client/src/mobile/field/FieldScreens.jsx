@@ -252,7 +252,7 @@ export function FieldDocPage() {
         </Figure>
         <List label="근거">
           <ListRow title={v.quote ? `“${v.quote}”` : '근거 문구 없음'} subtitle={v.quoteMatched ? '서류 원문에 있는 문구' : '원문에서 찾지 못함, 원본 사진 확인'} />
-          <ListRow title={q.doc.source === REAL_READ_SOURCE ? '10. 22. HCX-005 읽기 저장본' : '예시 결과'} subtitle={q.doc.source === REAL_READ_SOURCE ? '저장된 결과' : '미리 써 둔 결과'} />
+          <ListRow title={q.doc.source === REAL_READ_SOURCE ? '10. 22. HCX-005 읽기 저장본' : 'AI가 읽은 결과'} subtitle={q.doc.source === REAL_READ_SOURCE ? '저장된 결과' : '예시 서류로 읽은 결과'} />
           {q.doc.image && <ListRow title="원본 사진 보기" chevron href={q.doc.image} target="_blank" rel="noreferrer" />}
         </List>
         {(() => { const rs = reviewReasons(v); return rs.length ? (

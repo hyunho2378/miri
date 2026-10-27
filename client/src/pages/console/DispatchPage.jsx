@@ -75,6 +75,7 @@ function SpeedControl({ value, onChange }) {
     <div>
       <p className="mb-1.5 type-caption text-text-sec">훈련 속도</p>
       <SegmentControl label="훈련 속도" items={SPEEDS} value={value} onChange={onChange} />
+      {value > 1 && <p className="mt-1.5 type-body-sm text-text-sec">훈련은 시간이 빨리 흘러서 숫자가 계속 바뀌어요</p>}
     </div>
   )
 }
@@ -260,7 +261,7 @@ function AssignedPanel({ meta }) {
       <div className="grid gap-4 xl:grid-cols-2 xl:items-start">
       <TaskCard
         step="배정 검토" title="배정표 확인"
-        metric={{ label: '이 배정표로 기한 안에 못 옮기는 사람', value: result.unassigned.length.toLocaleString('ko-KR'), unit: '명' }}
+        metric={{ label: `${result.basis?.elapsedMin > 0 ? `발령 ${result.basis.elapsedMin}분 뒤 기준` : '발령 직후 기준'}, 이 배정표로 기한 안에 못 옮기는 사람`, value: result.unassigned.length.toLocaleString('ko-KR'), unit: '명' }}
         desc={`배정 차량 ${result.assignments.length}대, 마지막 이송 완료 ${fmtHMFrom(result.metrics.lastFinishAt, firstDepart)}`}
         actions={(
           <>
@@ -332,7 +333,7 @@ function RemoteStatus() {
         <p className="min-w-0 flex-1 type-body-sm text-text-sec">
           {saved
             ? <>{remote.polledAt ? `도우미 보고 ${fmtHM(remote.polledAt)} 확인` : `발령 저장 ${remote.savedAt ? fmtHM(remote.savedAt) : ''}`}</>
-            : <>이 기기에서만 진행 중</>}
+            : <>이 기기에만 저장돼요. 연결되면 시청에 전달돼요</>}
         </p>
       </div>
       {tokens.length > 0 && (
