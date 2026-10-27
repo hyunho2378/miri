@@ -47,7 +47,7 @@ test('마무리: 업무 화면 문구에 공모전, 시연용, 실제 판독 사
   const up = fs.readFileSync(new URL('../src/components/miri/IntakeUploader.jsx', import.meta.url), 'utf8')
   assert.ok(!/공모전 시연용/.test(up) && !/>실제 판독 사례</.test(up) && /읽기 예시/.test(up))
   const ws = fs.readFileSync(new URL('../src/pages/workspace/WorkspaceHome.jsx', import.meta.url), 'utf8')
-  assert.ok(/이 기기에만 저장됩니다/.test(ws) && !/시연용으로 이 창에만/.test(ws))
+  assert.ok(!/시연용으로 이 창에만/.test(ws) && !/이 기기에만 저장됩니다/.test(ws) && !/고정 문서/.test(ws))
   const fsx = fs.readFileSync(new URL('../src/mobile/field/FieldScreens.jsx', import.meta.url), 'utf8')
   assert.ok(!/시연용으로 미리 써 둔 결과/.test(fsx))
   const hd = fs.readFileSync(new URL('../src/lib/handoverDoc.js', import.meta.url), 'utf8')

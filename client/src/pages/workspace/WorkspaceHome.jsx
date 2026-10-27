@@ -1,7 +1,7 @@
 // 문서함 첫 화면. 문서, 시트, 설문지 전환 → 새로 만들기 양식 → 최근 항목.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
-import { ChevronRight, FileText, FileUp, ListChecks, MoreVertical, Pin, Plus, Search, Sheet } from 'lucide-react'
+import { FileText, FileUp, ListChecks, MoreVertical, Plus, Search, Sheet } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import PageShell from '../../components/miri/PageShell.jsx'
 import Button from '../../components/ui/Button.jsx'
@@ -87,7 +87,6 @@ export default function WorkspaceHome() {
   const [q, setQ] = useState('')
   const [menu, setMenu] = useState(null)
   const ready = useWorkspaceInit()
-  const mode = useWorkspaceStore((s) => s.mode)
   const createFromHtml = useWorkspaceStore((s) => s.createFromHtml)
   const fileRef = useRef(null)
   const [importing, setImporting] = useState(false)
@@ -111,7 +110,6 @@ export default function WorkspaceHome() {
     }
   }
 
-  const pinned = useMemo(() => items.filter((x) => x.meta?.pinned && (!q || x.title.includes(q))), [items, q])
   const list = useMemo(() => items
     .filter((x) => !x.meta?.pinned)
     .filter((x) => x.kind === kind.key)
@@ -174,32 +172,12 @@ export default function WorkspaceHome() {
         </ul>
       </section>
 
-      {kind.key === 'doc' && pinned.length > 0 && (
-        <section className="mt-8" aria-labelledby="pin-title">
-          <h2 id="pin-title" className="type-h3 text-text-pri">고정 문서</h2>
-          <ul className="mt-3 grid gap-3 cq-lg:grid-cols-2">
-            {pinned.map((x) => (
-              <li key={x.id}>
-                <Link to={editorPath(x)} className="flex items-center gap-3 rounded-lg bg-page p-4 shadow-md transition-shadow duration-fast hover:shadow-lg">
-                  <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-text-pri text-text-inverse"><Pin size={18} aria-hidden="true" /></span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate type-strong text-text-pri">{x.title}</span>
-                    <span className="block truncate type-meta text-text-meta">판 {x.meta?.version}, 작업할 때마다 갱신, 한글과 PDF로 저장 가능</span>
-                  </span>
-                  <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-text-meta" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       <section className="mt-8" aria-labelledby="recent-title">
         <h2 id="recent-title" className="type-h3 text-text-pri">최근 {kind.label} <span className="ml-1 type-body-sm text-text-meta tabular-nums">{list.length}개</span></h2>
         {!ready ? (
           <p className="mt-3 type-body-sm text-text-meta">문서함을 불러오는 중입니다.</p>
         ) : list.length === 0 ? (
-          <p className="mt-3 type-body-sm text-text-meta">아직 만든 {kind.label}가 없습니다. 위 양식에서 시작하세요.</p>
+          <p className="mt-3 type-body-sm text-text-meta">{kind.label} 없음</p>
         ) : (
           <ul className="mt-3 divide-y divide-line-sub overflow-hidden rounded-lg bg-page shadow-md">
             {list.map((x) => (
@@ -227,7 +205,6 @@ export default function WorkspaceHome() {
             ))}
           </ul>
         )}
-        <p className="mt-3 type-meta text-text-meta">{mode === 'server' ? '서버에 저장됩니다.' : '이 기기에만 저장됩니다. 필요한 문서는 내보내기로 받아 두십시오.'}</p>
       </section>
     </PageShell>
   )

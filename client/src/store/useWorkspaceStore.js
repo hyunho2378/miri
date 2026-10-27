@@ -6,11 +6,13 @@ import { useCallback, useEffect, useState } from 'react'
 import { create } from 'zustand'
 import * as api from '../lib/workspaceApi.js'
 import { DOC_TEMPLATES, FORM_TEMPLATES, SHEET_TEMPLATES } from '../lib/workspaceTemplates.js'
-import { HANDOVER_ITEM } from '../lib/handoverDoc.js'
 
 // 서버 id 규칙(^[A-Za-z][A-Za-z0-9_-]{1,63}$)에 맞는 추측하기 어려운 id
 const nid = (p) => `${p}${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36).slice(-4)}`
 const now = () => new Date().toISOString()
+// 서버에 예전 시연 문서나 인수인계서가 남아 있어도 목록에 올리지 않는다. 담당자가 고친 문서는 그대로 보인다
+const SEED_TITLES = new Set(['대피 훈련 계획', '재난 상황보고', '거동불편자 사전 대피 이송 차량 지원 협조 요청', '동해시 안전과 협조 요청서', '망상동 담당자 인터뷰 기록', '서류 읽기 정확도 검증표'])
+const visible = (x) => x.id !== 'handover' && !(x.kind === 'doc' && SEED_TITLES.has(x.title) && x.createdAt === x.updatedAt) && !(x.kind === 'doc' && x.meta?.pinned) && !(x.kind === 'sheet' && x.title === '서류 읽기 정확도 검증표')
 
 // 공문 정보(meta): 양식(preset), 항목 체계, 기안문 두문과 결문, 결재란, 공고 머리, 보도자료 머리. 한글 내보내기에 그대로 쓴다
 const metaOf = (t) => ({
@@ -34,15 +36,10 @@ const fromFormTemplate = (t, title) => ({
 })
 
 function buildSeed() {
-  const docs = [
-    fromDocTemplate(DOC_TEMPLATES.find((t) => t.key === 'situation')),
-    fromDocTemplate(DOC_TEMPLATES.find((t) => t.key === 'gian-request')),
-    fromDocTemplate(DOC_TEMPLATES.find((t) => t.key === 'request'), '동해시 안전과 협조 요청서'),
-    fromDocTemplate(DOC_TEMPLATES.find((t) => t.key === 'interview'), '망상동 담당자 인터뷰 기록')
-  ]
+  // 문서는 담당자가 만든 것만 쌓인다(미리 만든 시연 문서 없음)
+  const docs = []
   const sheets = [
-    fromSheetTemplate(SHEET_TEMPLATES.find((t) => t.key === 'roster'), '대상자 명부'),
-    fromSheetTemplate(SHEET_TEMPLATES.find((t) => t.key === 'accuracy'), '서류 읽기 정확도 검증표')
+    fromSheetTemplate(SHEET_TEMPLATES.find((t) => t.key === 'roster'), '대상자 명부')
   ]
   const form = fromFormTemplate(FORM_TEMPLATES.find((t) => t.key === 'helper'), '망상동 대피 도우미 모집')
   const formSheet = {
@@ -85,8 +82,8 @@ export const useWorkspaceStore = create((set, get) => {
   }
 
   return {
-    // 인수인계서는 코드(handoverDoc.js)가 원본이라 서버에 저장하지 않고 늘 맨 앞에 끼운다
-    items: [HANDOVER_ITEM(), ...buildSeed()],
+    // 인수인계서(handoverDoc.js)는 화면에 올리지 않는다(비공개)
+    items: [...buildSeed()],
     mode: 'loading',   // loading | server | memory
     ready: false,
     sync: 'idle',      // idle | saving | error
@@ -98,13 +95,13 @@ export const useWorkspaceStore = create((set, get) => {
       if (initPromise) return initPromise
       initPromise = (async () => {
         try {
-          let items = (await api.list()).filter((x) => x.id !== 'handover')
+          let items = (await api.list()).filter(visible)
           if (!items.length) {
             const r = await api.seed(get().items.filter((x) => x.id !== 'handover'))
-            items = r.seeded ? get().items.filter((x) => x.id !== 'handover') : await api.list()
+            items = r.seeded ? get().items.filter((x) => x.id !== 'handover') : (await api.list()).filter(visible)
             if (!items.length) items = get().items.filter((x) => x.id !== 'handover')
           }
-          set({ items: [HANDOVER_ITEM(), ...items], mode: 'server', ready: true })
+          set({ items, mode: 'server', ready: true })
           window.addEventListener('pagehide', () => {
             for (const id of [...timers.keys()]) {
               const item = get().items.find((x) => x.id === id)

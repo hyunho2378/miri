@@ -40,13 +40,13 @@ const GIAN_FOOT = {
 
 export const DOC_TEMPLATES = [
   {
-    key: 'blank', cat: null, title: '빈 문서', desc: '처음부터 쓰기', preset: '보고서', numbering: 'report',
+    key: 'blank', cat: null, title: '빈 문서', preset: '보고서', numbering: 'report',
     html: '<h1>제목</h1><p></p>'
   },
 
   // ---------- 공문 ----------
   {
-    key: 'gian-request', cat: 'gongmun', title: '협조 요청 공문', desc: '소방서, 요양시설 등에 차량과 인력 협조를 요청하는 일반기안문(별지 제1호서식)',
+    key: 'gian-request', cat: 'gongmun', title: '협조 요청 공문',
     preset: '기안문', numbering: 'standard',
     head: { org: '동해시', to: '동해소방서장', via: '', title: '거동불편자 사전 대피 이송 차량 지원 협조 요청' }, foot: GIAN_FOOT,
     html: join(
@@ -60,7 +60,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'gian-data', cat: 'gongmun', title: '자료 제출 요청 공문', desc: '동 행정복지센터에 명부 갱신 자료를 요청하는 일반기안문',
+    key: 'gian-data', cat: 'gongmun', title: '자료 제출 요청 공문',
     preset: '기안문', numbering: 'standard',
     head: { org: '동해시', to: '수신자 참조', via: '', title: '거동불편자 명부 정기 갱신 자료 제출 요청' }, foot: { ...GIAN_FOOT, recipients: '천곡동장, 송정동장, 북삼동장, 부곡동장, 동호동장, 발한동장, 묵호동장, 북평동장, 망상동장, 삼화동장' },
     html: join(
@@ -74,7 +74,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'gian-simple', cat: 'gongmun', title: '내부결재 기안(간이)', desc: '결재란이 있는 내부 보고와 방침 결정용 간이기안문(별지 제2호서식)',
+    key: 'gian-simple', cat: 'gongmun', title: '내부결재 기안(간이)',
     preset: '보고서', numbering: 'report', approval: ['담당', '팀장', '과장'],
     html: join(
       '<h1>거동불편자 이송 차량 민간 협약 추진</h1>',
@@ -92,7 +92,7 @@ export const DOC_TEMPLATES = [
 
   // ---------- 보고서 ----------
   {
-    key: 'situation', cat: 'report', title: '재난 상황보고', desc: '일시, 상황, 조치, 향후 계획을 개조식으로 적는 제○보',
+    key: 'situation', cat: 'report', title: '재난 상황보고',
     preset: '보고서', numbering: 'report',
     html: join(
       `<h1>${V('hazard')} 대비 거동불편자 대피 상황보고(제○보)</h1>`,
@@ -114,7 +114,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'shortage-review', cat: 'report', title: '부족분 검토 보고', desc: '차량과 인력 부족분 검토와 대책을 담은 개조식 보고서',
+    key: 'shortage-review', cat: 'report', title: '부족분 검토 보고',
     preset: '개조식', numbering: 'report',
     html: join(
       '<h1>거동불편자 이송 부족분 검토 보고</h1>',
@@ -135,7 +135,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'drill-result', cat: 'report', title: '대피 훈련 결과 보고', desc: '훈련 개요, 결과, 개선 사항을 담은 보고서',
+    key: 'drill-result', cat: 'report', title: '대피 훈련 결과 보고',
     preset: '보고서', numbering: 'report',
     html: join(
       '<h1>거동불편자 사전 대피 훈련 결과 보고</h1>',
@@ -154,7 +154,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'work-report', cat: 'report', title: '업무보고(표지와 목차)', desc: '표지, 목차, 장 띠 제목을 갖춘 부처와 시정 업무보고 형식',
+    key: 'work-report', cat: 'report', title: '업무보고(표지와 목차)',
     preset: '업무보고', numbering: 'report',
     html: join(
       '<h1>거동불편자 사전 대피 이송 체계 구축</h1>',
@@ -171,7 +171,7 @@ export const DOC_TEMPLATES = [
 
   // ---------- 계획서 ----------
   {
-    key: 'evac-plan', cat: 'plan', title: '거동불편자 사전 대피 지원 계획', desc: '목적, 대상, 추진 체계, 일정을 담은 계획서',
+    key: 'evac-plan', cat: 'plan', title: '거동불편자 사전 대피 지원 계획',
     preset: '계획서', numbering: 'report',
     html: join(
       '<h1>거동불편자 사전 대피 지원 계획</h1>',
@@ -189,7 +189,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'drill-plan', cat: 'plan', title: '대피 훈련 계획', desc: '훈련 상황, 일정, 참여 기관을 담은 계획서',
+    key: 'drill-plan', cat: 'plan', title: '대피 훈련 계획',
     preset: '계획서', numbering: 'report',
     html: join(
       '<h1>거동불편자 사전 대피 합동 훈련 계획</h1>',
@@ -207,7 +207,7 @@ export const DOC_TEMPLATES = [
 
   // ---------- 공고, 안내 ----------
   {
-    key: 'helper-notice', cat: 'notice', title: '대피 도우미 모집 공고', desc: '공고번호, 모집 내용, 발신명의를 갖춘 공고문',
+    key: 'helper-notice', cat: 'notice', title: '대피 도우미 모집 공고',
     preset: '알림', numbering: 'standard',
     noticeHead: { no: '동해시 공고 제○○○○-○○○호', date: '', sender: '동해시장' },
     html: join(
@@ -222,7 +222,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'resident-guide', cat: 'notice', title: '주민 대피 안내문', desc: '큰 글씨와 짧은 문장, 연락처로 만든 안내문',
+    key: 'resident-guide', cat: 'notice', title: '주민 대피 안내문',
     preset: '통지', numbering: 'standard',
     html: join(
       '<h1>재난이 나면 이렇게 대피합니다</h1>',
@@ -233,7 +233,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'sms', cat: 'notice', title: '재난문자 문안', desc: '90자 안 발령, 해제 문안',
+    key: 'sms', cat: 'notice', title: '재난문자 문안',
     preset: '통지', numbering: 'standard',
     html: join(
       '<h1>재난문자 문안</h1>',
@@ -247,7 +247,7 @@ export const DOC_TEMPLATES = [
 
   // ---------- 회의 ----------
   {
-    key: 'minutes', cat: 'meeting', title: '회의록', desc: '일시, 참석, 안건, 결정, 조치를 적는 회의록',
+    key: 'minutes', cat: 'meeting', title: '회의록',
     preset: '회의록', numbering: 'standard',
     html: join(
       '<h1>거동불편자 이송 대책 회의록</h1>',
@@ -263,7 +263,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'council', cat: 'meeting', title: '재난안전대책본부 회의 자료', desc: '상황, 이송 현황, 협조 사항을 개조식으로 정리한 자료',
+    key: 'council', cat: 'meeting', title: '재난안전대책본부 회의 자료',
     preset: '개조식', numbering: 'report',
     html: join(
       '<h1>거동불편자 대피 이송 현황(대책본부 회의 자료)</h1>',
@@ -280,7 +280,7 @@ export const DOC_TEMPLATES = [
 
   // ---------- 대외, 협약 ----------
   {
-    key: 'press', cat: 'external', title: '보도자료', desc: '보도시점, 부제, 담당을 갖춘 보도자료',
+    key: 'press', cat: 'external', title: '보도자료',
     preset: '보도자료', numbering: 'report',
     press: { release: '○○○○. ○. ○.(○) ○○:○○ 이후', sub: ['거동 불편 주민 사전 대피 합동 훈련'], contact: { dept: '안전과', manager: '○○○', phone: '033-530-○○○○' } },
     html: join(
@@ -291,7 +291,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'agreement', cat: 'external', title: '차량 지원 협약서', desc: '목적, 협약 내용, 기간, 서명란을 갖춘 협약서',
+    key: 'agreement', cat: 'external', title: '차량 지원 협약서',
     preset: '통지', numbering: 'standard',
     html: join(
       '<h1>거동불편자 대피 이송 차량 지원 협약서</h1>',
@@ -306,7 +306,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'consent', cat: 'external', title: '재난 때 이동 지원 사전 확인 동의서', desc: '수집과 이용, 민감정보, 제3자 제공 동의를 따로 받는 서식(「개인정보 보호법」 제15조, 제23조, 제17조)',
+    key: 'consent', cat: 'external', title: '재난 때 이동 지원 사전 확인 동의서',
     preset: '통지', numbering: 'standard',
     html: join(
       '<h1>재난 때 이동 지원 사전 확인 동의서</h1>',
@@ -330,7 +330,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'request', cat: 'external', title: '기관 협조 요청서(연구)', desc: '인터뷰, 자료, 사용성 평가 요청',
+    key: 'request', cat: 'external', title: '기관 협조 요청서(연구)',
     preset: '통지', numbering: 'standard',
     html: join(
       '<h1>거동불편자 대피 지원 서비스 연구 협조 요청</h1>',
@@ -349,7 +349,7 @@ export const DOC_TEMPLATES = [
 
   // ---------- 현장, 인계 ----------
   {
-    key: 'handover', cat: 'field', title: '구조 대상 소방 인계서', desc: '옮기지 못한 주민 명단 인계',
+    key: 'handover', cat: 'field', title: '구조 대상 소방 인계서',
     preset: '통지', numbering: 'standard',
     html: join(
       '<h1>구조 대상(기한 안 미이송) 소방 인계서</h1>',
@@ -362,7 +362,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'assignment', cat: 'field', title: '이송 배정표', desc: '차량, 도우미, 대상자 묶음 표',
+    key: 'assignment', cat: 'field', title: '이송 배정표',
     preset: '통지', numbering: 'standard',
     html: join(
       '<h1>거동불편자 이송 배정표</h1>',
@@ -372,7 +372,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'helper-rules', cat: 'plan', title: '도우미 운영 기준', desc: '역할 범위, 응급 보고체계, 개인정보, 보험 확인 5가지(자문 반영)',
+    key: 'helper-rules', cat: 'plan', title: '도우미 운영 기준',
     preset: '계획서', numbering: 'report',
     html: join(
       '<h1>거동불편자 이송 도우미 운영 기준</h1>',
@@ -399,7 +399,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'helper-training', cat: 'plan', title: '도우미 교육 시나리오', desc: '대피 거부 설득, 이동 중 상태 악화, 낙상 3개 상황',
+    key: 'helper-training', cat: 'plan', title: '도우미 교육 시나리오',
     preset: '계획서', numbering: 'report',
     html: join(
       '<h1>이송 도우미 교육 시나리오</h1>',
@@ -423,7 +423,7 @@ export const DOC_TEMPLATES = [
     )
   },
   {
-    key: 'family-notice', cat: 'notice', title: '가족 안내 문자', desc: '차량 출발과 도착 안내, 가족에게 가는 정보 범위',
+    key: 'family-notice', cat: 'notice', title: '가족 안내 문자',
     preset: '통지', numbering: 'standard',
     html: join(
       '<h1>가족 안내 문자 문안</h1>',
@@ -440,7 +440,7 @@ export const DOC_TEMPLATES = [
 
   // ---------- 조사 ----------
   {
-    key: 'interview', cat: 'research', title: '인터뷰 기록지', desc: '6단계 진행, 발화 그대로 기록',
+    key: 'interview', cat: 'research', title: '인터뷰 기록지',
     preset: '회의록', numbering: 'standard',
     html: join(
       '<h1>인터뷰 기록</h1>',
