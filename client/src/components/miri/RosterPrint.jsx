@@ -10,7 +10,7 @@ import { fmtKDate } from './BasisLine.jsx'
 export default function RosterPrint({ groups, dongs, today }) {
   const dongName = (c) => dongs.find((d) => d.code === c)?.name || c
   const shelter = (c) => TEMP_SHELTERS.find((s) => s.code === c)
-  if (!groups.length) return <p className="type-body-sm text-text-sec">출력할 대상자가 없습니다. 필터를 바꿔 주십시오.</p>
+  if (!groups.length) return <p className="type-body-sm text-text-sec">출력 대상 없음, 조건 변경 필요</p>
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">

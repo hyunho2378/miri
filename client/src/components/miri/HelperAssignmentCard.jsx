@@ -57,7 +57,7 @@ export default function HelperAssignmentCard({
           <div className="flex items-start gap-2">
             <MapPin size={20} aria-hidden="true" className="mt-1 shrink-0 text-text-meta" />
             <div className="min-w-0">
-              <p className="type-body text-text-pri">{addressText(info?.address) || '주소 정보가 없습니다.'}</p>
+              <p className="type-body text-text-pri">{addressText(info?.address) || '주소 정보 없음'}</p>
               <p className="type-body-sm text-text-sec">출발 {villageLabel}, 도착 {shelterName}</p>
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function HelperAssignmentCard({
             <ul className="mt-1 space-y-1 type-body text-text-pri">
               <li>평소 돌봄 담당자: {care.caregiverType}{care.caregiverType !== '없음' && care.caregiverType !== '확인 필요' ? `, ${care.reachableLabel}` : ''}</li>
               {care.companionCall && <li className="text-primary-text">동행 연락 필요. 출발 전 돌봄 담당자에게 연락</li>}
-              {care.caregiverUnreachable && <li className="text-warning-text">돌봄 담당자와 연락이 닿지 않습니다. 담당자에게 알려 주세요</li>}
+              {care.caregiverUnreachable && <li className="text-warning-text">돌봄 담당자 연락 불가, 담당자에게 전달</li>}
               <li>의사소통 특성: {!care.known ? '확인 필요' : care.comm.length ? `${care.comm.join(', ')}, 천천히 짧게 설명` : '없음'}</li>
               <li>보조기구: {!care.known ? '확인 필요' : care.aids.length ? care.aids.join(', ') : '없음'}</li>
             </ul>
@@ -91,7 +91,7 @@ export default function HelperAssignmentCard({
             <p className="type-caption text-text-sec">주의사항</p>
             {tags.length
               ? <ul className="mt-1 flex flex-wrap gap-2">{tags.map((t) => <li key={t} className="inline-flex items-center h-8 px-3 rounded-sm bg-mute type-body-sm text-text-pri">{t}</li>)}</ul>
-              : <p className="mt-0.5 type-body text-text-meta">특이사항이 없습니다.</p>}
+              : <p className="mt-0.5 type-body text-text-meta">특이사항 없음</p>}
           </div>
         </div>
       )}

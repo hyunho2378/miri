@@ -32,7 +32,7 @@ test('소방 인계: 한 이름(소방 인계 대상), 기준 시각 카드와 �
 
 test('이송 기록 빈 상태는 기록이 어디 남는지 한 줄로', () => {
   const r = src('pages/console/RecordsPage.jsx')
-  assert.ok(r.includes('title="아직 기록이 없습니다"') && r.includes('발령을 종료하면 여기에 남습니다.'))
+  assert.ok(r.includes('title="기록 없음"') && r.includes('발령 종료 시 기록 저장'))
 })
 
 test('서류 읽기와 현장 소식: 개발 용어 대신 서류와 같음, 다름, 확인 필요', () => {

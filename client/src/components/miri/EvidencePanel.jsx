@@ -52,7 +52,7 @@ export default function EvidencePanel({ quote, matched, confidence, conflict, tr
           &ldquo;{quote}&rdquo;
         </button>
       ) : (
-        <p className="mt-1 type-body-sm text-text-pri">{quote ? `"${quote}"` : '근거 문구가 없습니다.'}</p>
+        <p className="mt-1 type-body-sm text-text-pri">{quote ? `"${quote}"` : '근거 문구 없음'}</p>
       )}
       <p className={clsx('mt-2 inline-flex items-center gap-1 type-caption', matched ? 'text-text-sec' : 'text-danger-text')}>
         {matched ? <CircleCheck size={16} aria-hidden="true" /> : <CircleAlert size={16} aria-hidden="true" />}
@@ -60,7 +60,7 @@ export default function EvidencePanel({ quote, matched, confidence, conflict, tr
       </p>
       {conflict && (
         <p className="mt-2 flex items-start gap-1 type-caption text-danger-text">
-          <CircleAlert size={16} aria-hidden="true" />등급과 특이사항이 일치하지 않아 확인 필요로 분류했습니다.
+          <CircleAlert size={16} aria-hidden="true" />등급과 특이사항 불일치, 확인 필요
         </p>
       )}
       {transcript && (

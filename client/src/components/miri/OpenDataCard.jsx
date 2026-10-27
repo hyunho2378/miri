@@ -7,7 +7,7 @@ import useOpenData from '../../hooks/useOpenData.js'
 export default function OpenDataCard() {
   const fire = useOpenData('fire')
   const shelters = useOpenData('shelters')
-  const none = (s) => (s.loading ? '조회 중입니다.' : '응답을 받지 못했습니다.')
+  const none = (s) => (s.loading ? '조회 중' : '응답 없음')
 
   return (
     <Card title="공공데이터 연계" desc="출처: 공공데이터포털(산림청, 행정안전부)">

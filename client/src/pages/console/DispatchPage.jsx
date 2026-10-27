@@ -266,11 +266,11 @@ function AssignedPanel({ meta }) {
         actions={(
           <>
             <Button size="lg" leftIcon={<MessageSquareText size={16} aria-hidden="true" />} onClick={() => setSendOpen(true)}>배정표 보내기</Button>
-            <Button size="lg" variant="secondary" onClick={() => { runAssign(); toast('배정을 다시 계산했습니다.') }}>배정 다시 계산</Button>
+            <Button size="lg" variant="secondary" onClick={() => { runAssign(); toast('배정 재계산 완료') }}>배정 다시 계산</Button>
           </>
         )}
       >
-        {result.manualEdits ? <p role="status" className="type-body-sm text-text-sec">수동 조정 {result.manualEdits}건을 반영했습니다.</p> : null}
+        {result.manualEdits ? <p role="status" className="type-body-sm text-text-sec">수동 조정 {result.manualEdits}건 반영</p> : null}
         {kind === 'drill' && <SpeedControl value={speed} onChange={setSpeed} />}
       </TaskCard>
       <BaselineCompare result={result} villageLabel={meta.label} basisText={dispatchBasisText(result.basis)} />
@@ -280,7 +280,7 @@ function AssignedPanel({ meta }) {
         footer={(
           <>
             <Button variant="ghost" onClick={() => setSendOpen(false)}>취소</Button>
-            <Button onClick={() => { setSendOpen(false); confirmAndSend(); toast('배정을 확정하고 도우미 배정표를 전송했습니다.', 'primary') }}>전송</Button>
+            <Button onClick={() => { setSendOpen(false); confirmAndSend(); toast('배정 확정, 도우미 배정표 전송 완료', 'primary') }}>전송</Button>
           </>
         )}
       >
@@ -311,7 +311,7 @@ function AssignedPanel({ meta }) {
       <TableCard
         title="미배정" count={`${result.unassigned.length}명`}
         columns={unassignedCols} rows={unassignedRows} rowKey={(r) => r.code} pageSize={10} caption="미배정 대상자"
-        emptyCompact emptyTitle="미배정 없음" emptyDesc="전원 기한 내 배정되었습니다."
+        emptyCompact emptyTitle="미배정 없음" emptyDesc="전원 기한 내 배정"
       />
     </div>
   )
@@ -637,11 +637,11 @@ function CloseControl({ status }) {
         footer={(
           <>
             <Button variant="ghost" onClick={() => setOpen(false)}>취소</Button>
-            <Button variant="danger" onClick={() => { setOpen(false); close(); toast('발령을 종료했습니다. 이송 기록에 저장했습니다.', 'primary') }}>발령 종료</Button>
+            <Button variant="danger" onClick={() => { setOpen(false); close(); toast('발령 종료, 이송 기록 저장 완료', 'primary') }}>발령 종료</Button>
           </>
         )}
       >
-        <p className="type-body-sm text-text-sec">{status === 'standby' ? '배정을 계산하기 전입니다.' : '배정을 도우미에게 보내기 전입니다.'} 종료하면 이번 발령은 끝나고 기록에 남습니다.</p>
+        <p className="type-body-sm text-text-sec">{status === 'standby' ? '배정 계산 전' : '도우미 전송 전'} 종료하면 이번 발령은 끝나고 기록에 남습니다.</p>
       </Modal>
     </>
   )

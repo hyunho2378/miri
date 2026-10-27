@@ -50,7 +50,7 @@ export default function SummaryPanel({
       scopeLine,
       `${scopeCount}곳 중 ${shortCount}곳에서 부족분이 발생합니다.`,
       top ? `부족분이 가장 큰 마을은 ${top.label}이며 ${top.shortage}명입니다.` : null,
-      result.timeTotal ? `${result.timeTotal}명은 준비 시간 뒤 첫 왕복도 도달 전에 끝나지 않아 차량을 늘려도 해소되지 않습니다.` : null
+      result.timeTotal ? `${result.timeTotal}명, 준비 시간 후 첫 왕복이 도달 전에 끝나지 않아 차량 추가로 해소 불가` : null
     ].filter(Boolean)
     : [scopeLine, `${scopeCount}곳 모두 도달 시각 전에 이송이 끝나는 것으로 계산됩니다.`]
 

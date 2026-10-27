@@ -9,7 +9,7 @@ import { FOREST_FIRE_ROWS, FOREST_FIRE_SOURCE } from '../../data/forestFireHisto
 const fmtHvidate = (s) => (/^\d{14}$/.test(String(s || '')) ? `${s.slice(0, 4)}. ${s.slice(4, 6)}. ${s.slice(6, 8)}. ${s.slice(8, 10)}:${s.slice(10, 12)}` : s || '시각 없음')
 
 function Status({ s }) {
-  return <p className="type-body-sm text-text-meta">{s.loading ? '조회 중입니다.' : `응답을 받지 못했습니다(${s.error || '사유 없음'}).`}</p>
+  return <p className="type-body-sm text-text-meta">{s.loading ? '조회 중' : `응답 없음(${s.error || '사유 없음'}).`}</p>
 }
 
 export default function PublicFactsCard({ only = null, className = '' }) {
@@ -30,7 +30,7 @@ export default function PublicFactsCard({ only = null, className = '' }) {
                   </li>
                 ))}
               </ul>
-            ) : <p className="type-body-sm text-text-meta">동해시로 등록된 응급실 정보가 없습니다.</p>
+            ) : <p className="type-body-sm text-text-meta">동해시 응급실 정보 없음</p>
           ) : <Status s={er} />}
           <FreshnessNote kind="er" state={er} className="mt-1.5" />
         </section>}

@@ -18,7 +18,7 @@ export default function DisasterAlertsCard({ className = '' }) {
       <div className="space-y-2">
         <p className="inline-flex items-center gap-1.5 type-caption text-text-sec"><MessageSquareWarning size={16} aria-hidden="true" />공식 송출 단계 그대로 표시, 위험도 자체 판단 없음</p>
         {s.loading ? <p className="type-body-sm text-text-meta">조회 중입니다.</p>
-          : s.error ? <p className="type-body-sm text-text-meta">응답을 받지 못했습니다({s.error}).</p>
+          : s.error ? <p className="type-body-sm text-text-meta">응답 없음({s.error}).</p>
           : d?.status === 'pending' ? <p className="type-body-sm text-text-pri">활용 승인 대기(신청 {d.appliedAt}). 승인 뒤 동해시 수신 문자를 이 자리에 표시</p>
           : d?.list?.length ? (
             <ul className="space-y-2">

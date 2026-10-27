@@ -101,7 +101,7 @@ export default function NotesPage() {
     setText('')
     setFile(null)
     setIdx(0)
-    toast(`${note.personCode} 소식 읽기를 마쳤습니다. ${note.read.diff.changed ? '명부 변경 후보 1건' : '달라진 점 없음'}`, 'primary')
+    toast(`${note.personCode} 소식 읽기 완료, ${note.read.diff.changed ? '명부 변경 후보 1건' : '달라진 점 없음'}`, 'primary')
   }
 
   const base = () => ({ id: nextNoteId(), personCode: target.code, villageCode: target.villageCode, source, status: 'pending', receivedAt: Date.now(), current: { grade: target.grade, tags: [...(target.tags || [])] } })
@@ -109,7 +109,7 @@ export default function NotesPage() {
   const onRead = async () => {
     if (!target) return
     const hasInput = mode === 'voice' ? !!file : !!text.trim()
-    if (!hasInput) { setError({ title: mode === 'voice' ? '음성 파일을 골라 주십시오' : '소식을 적어 주십시오', desc: '전달받은 말을 그대로 적거나 녹음 파일을 올립니다.' }); return }
+    if (!hasInput) { setError({ title: mode === 'voice' ? '음성 파일 선택 필요' : '소식 입력 필요', desc: '전달받은 말을 그대로 적거나 녹음 파일을 올립니다.' }); return }
     try {
       const b = base()
       const read = await progress(mode === 'voice' ? file.name : '붙여 넣은 소식', readNote({ text: mode === 'text' ? text.trim() : undefined, file: mode === 'voice' ? file : undefined, current: b.current, source }))
@@ -130,7 +130,7 @@ export default function NotesPage() {
 
   const apply = (n, action, patch) => {
     reviewFieldNote(n.id, action, patch)
-    toast(action === 'reject' ? `${n.personCode} 명부는 그대로 둡니다.` : `${n.personCode} 명부에 반영했습니다. 부족분 계산에 바로 쓰입니다.`, 'primary')
+    toast(action === 'reject' ? `${n.personCode} 명부 유지` : `${n.personCode} 명부 반영 완료, 부족분 계산에 적용`, 'primary')
   }
 
   const [doneOpen, setDoneOpen] = useState(false)
@@ -196,7 +196,7 @@ export default function NotesPage() {
               </div>
             </div>
           </div>
-        ) : <p className="type-body-sm text-text-meta">현장 소식을 올릴 권한이 없습니다.</p>}
+        ) : <p className="type-body-sm text-text-meta">현장 소식 등록 권한 없음</p>}
         {reading && <div className="mt-4"><ReadTimeline name={reading.name} step={reading.step} failed={reading.failed} steps={NOTE_STEPS} title="현장 소식 읽기 진행 중" /></div>}
         {error && (
           <div role="alert" className="mt-4 flex items-start gap-2 rounded-md bg-danger-soft p-4 text-danger-text">

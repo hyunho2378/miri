@@ -59,8 +59,8 @@ export default function RecordsPage() {
       {!records.length ? (
         <Card as="div" padding="none">
           <EmptyState
-            title="아직 기록이 없습니다"
-            desc="발령을 종료하면 여기에 남습니다."
+            title="기록 없음"
+            desc="발령 종료 시 기록 저장"
             action={<Button as={Link} to="/console/dispatch">발령 운영</Button>}
           />
         </Card>

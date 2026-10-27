@@ -28,7 +28,7 @@ export default function RecordDetailPage() {
     return (
       <PageShell title="이송 기록 상세">
         <Card as="div" padding="none">
-          <EmptyState title="기록을 찾을 수 없습니다" action={<Button as={Link} to="/console/records">이송 기록 목록</Button>} />
+          <EmptyState title="해당 기록 없음" action={<Button as={Link} to="/console/records">이송 기록 목록</Button>} />
         </Card>
       </PageShell>
     )

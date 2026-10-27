@@ -307,7 +307,7 @@ export default function ShortagePage() {
               <ul className="mt-1">{methodView.basis}</ul>
             </section>
           </div>
-          <div className="min-w-0 max-h-[34rem] overflow-y-auto">
+          <div className="min-w-0 max-h-[26rem] overflow-y-auto">
             <ShortageTable compact tone="flat" title="마을별 이동 불가 인원" basis={basisText({ scenario: draft.name, today })} villages={result.villages.filter((v) => v.inScope)} dongs={dongs} byVillage={result.byVillage} arrivals={result.arrivals} t0={today} pageSize={30} />
           </div>
         </div>

@@ -42,7 +42,7 @@ export default function AdminLayout() {
         <Topbar isDesktop={isDesktop} panelOpen={panelOpen} onTogglePanel={() => setPanelOpen((o) => !o)} />
         {!isDesktop && !bannerDismissed && (
           <div className="flex items-center gap-2 px-4 pb-2 text-text-sec">
-            <p className="min-w-0 flex-1 type-caption">담당자 화면은 컴퓨터에서 쓰기 좋습니다. 휴대폰에서는 확인 위주로 써 주세요.</p>
+            <p className="min-w-0 flex-1 type-caption">담당자 화면은 컴퓨터 사용 권장, 휴대폰은 조회 위주</p>
             <IconButton size="sm" aria-label="안내 닫기" onClick={dismissBanner} className="text-text-sec">
               <X size={16} aria-hidden="true" />
             </IconButton>

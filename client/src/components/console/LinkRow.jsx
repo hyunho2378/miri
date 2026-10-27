@@ -14,6 +14,6 @@ export default function LinkRow({ to, onClick, title, sub, value, tone, classNam
       <ChevronRight size={18} aria-hidden="true" className="shrink-0 text-text-sec" />
     </>
   )
-  const cls = clsx('flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-1 text-left hover:bg-subtle', className)
+  const cls = clsx('flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-1 text-left hover:bg-subtle', className)
   return to ? <Link to={to} className={cls}>{body}</Link> : <button type="button" onClick={onClick} className={cls}>{body}</button>
 }

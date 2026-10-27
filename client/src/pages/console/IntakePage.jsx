@@ -199,7 +199,7 @@ export default function IntakePage() {
       <Modal open={uploadOpen} onClose={() => { setShowUpload(false); setError(null) }} title="서류 올리기" className="max-w-[720px]">
         {canEdit ? (
           <IntakeUploader villages={villages} onFile={onFile} onSample={onSample} onReal={onReal} realCases={REAL_READINGS} busy={!!reading && !reading.failed} />
-        ) : <p className="type-body-sm text-text-meta">서류 읽기 권한이 없습니다.</p>}
+        ) : <p className="type-body-sm text-text-meta">서류 읽기 권한 없음</p>}
         {reading && <div className="mt-4"><ReadTimeline name={reading.name} step={reading.step} failed={reading.failed} /></div>}
         {error && (
           <div role="alert" className="mt-4 flex items-start gap-2 rounded-md bg-danger-soft p-4 text-danger-text">
@@ -232,7 +232,7 @@ export default function IntakePage() {
               </li>
             ))}
           </ul>
-        ) : <p className="type-body-sm text-text-meta">처리 완료 문서가 없습니다.</p>}
+        ) : <p className="type-body-sm text-text-meta">처리 완료 서류 없음</p>}
       </Modal>
 
       {current ? (

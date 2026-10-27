@@ -87,7 +87,7 @@ export default function Map3D({
       )}
       {failed && (
         <p role="alert" className="absolute inset-x-0 top-1/2 z-raised mx-auto w-72 -translate-y-1/2 rounded-md bg-page px-4 py-3 type-body-sm text-danger-text shadow-md">
-          3D 지형을 불러오지 못했습니다. 2D 지도로 전환해 계속 사용할 수 있습니다.
+          3D 지형 조회 실패, 2D 지도로 전환
         </p>
       )}
       <p className="pointer-events-none absolute bottom-1 right-2 z-raised rounded-xs bg-page/80 px-1.5 py-0.5 type-caption text-text-sec">

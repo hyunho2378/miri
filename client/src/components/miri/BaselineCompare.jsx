@@ -20,7 +20,7 @@ export default function BaselineCompare({ result, villageLabel = (c) => c, basis
       <h2 className="type-title text-text-pri">기준 배정 대비 추천 배정</h2>
       {basisText && <p className="mt-1 type-body-sm text-text-sec">{basisText}</p>}
       {same ? (
-        <p className="type-body-sm text-text-sec">기준 배정와 추천 배정의 결과가 같습니다.</p>
+        <p className="type-body-sm text-text-sec">기준 배정과 추천 배정 결과 동일</p>
       ) : (
         <ul className="mt-3 grid">
           <li className="py-2">
