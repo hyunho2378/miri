@@ -115,7 +115,7 @@ function StartPanel() {
       )}
       <TaskCard
         step={status === 'closed' ? '종료' : '평시'} title="발령 개시"
-        desc={`기준 시나리오 ${scenario?.name}에 따라 배정을 계산합니다.`}
+       
         actions={role === 'city' ? (
           <Button size="lg" disabled={kind !== 'drill'} leftIcon={<Siren size={16} aria-hidden="true" />} onClick={() => start({ kind, speed })}>
             {kind === 'drill' ? '훈련 발령 개시' : '실제 발령 개시'}
@@ -146,7 +146,7 @@ function StartPanel() {
         </Modal>
         {kind === 'drill' && <SpeedControl value={speed} onChange={setSpeed} />}
       </TaskCard>
-      <Card title="발령 기준" desc="현황판 기준 시나리오">
+      <Card title="발령 기준">
         <KeyValue items={[
           { label: '시나리오', value: scenario?.name, strong: true },
           { label: '이송 대상(대피 대상 구역)', value: <>{sum.villages}개 마을 {sum.targets.toLocaleString('ko-KR')}명{sum.pending > 0 && <span className="text-primary-text">, 확인 대기 서류 {sum.pending}건 포함</span>}</> },
@@ -183,7 +183,7 @@ function StandbyPanel({ now, meta }) {
     <div className="space-y-4">
       <TaskCard
         step="실행대기 발령" title="추천 배정 계산"
-        desc={`준비 ${settings.prepMinutes}분, 이송 완료 기한 ${completeText(settings.completeBeforeHours)} 조건으로 차량과 도우미 배정을 계산합니다.`}
+        desc={`준비 ${settings.prepMinutes}분, 이송 완료 기한 ${completeText(settings.completeBeforeHours)} `}
         actions={<Button size="lg" loading={busy} leftIcon={<Route size={16} aria-hidden="true" />} onClick={onAssign}>추천 배정 계산</Button>}
       >
         {kind === 'drill' && <SpeedControl value={speed} onChange={setSpeed} />}
@@ -282,7 +282,6 @@ function AssignedPanel({ meta }) {
       <SectionTitle
         className="mt-2"
         title="배정표"
-        desc={<span className="inline-flex items-center gap-1"><Route size={14} aria-hidden="true" className="text-text-sec" />추천 배정에 따른 차량별 회차와 대상자 순서입니다.</span>}
       />
       <div className="grid gap-4 lg:grid-cols-2">
         {result.assignments.map((a) => (
@@ -295,7 +294,7 @@ function AssignedPanel({ meta }) {
         ))}
       </div>
       <TableCard
-        title="미배정" count={`${result.unassigned.length}명`} desc="이송 진행 단계에서 소방 인계 대상으로 분류됩니다."
+        title="미배정" count={`${result.unassigned.length}명`}
         columns={unassignedCols} rows={unassignedRows} rowKey={(r) => r.code} pageSize={10} caption="미배정 대상자"
         emptyCompact emptyTitle="미배정 없음" emptyDesc="전원 기한 내 배정되었습니다."
       />
@@ -318,7 +317,7 @@ function RemoteStatus() {
         {saved ? <CloudCheck size={20} aria-hidden="true" className="text-primary-text" /> : <CloudOff size={20} aria-hidden="true" className="text-text-meta" />}
         <p className="min-w-0 flex-1 type-body-sm text-text-sec">
           {saved
-            ? <>서버 저장 {remote.savedAt ? fmtHM(remote.savedAt) : ''}{remote.polledAt ? `, 도우미 보고 조회 ${fmtHM(remote.polledAt)}(10초 주기)` : ''}. 새로고침 뒤에도 발령 상태 유지.</>
+            ? <>서버 저장 {remote.savedAt ? fmtHM(remote.savedAt) : ''}{remote.polledAt ? `, 도우미 보고 ${fmtHM(remote.polledAt)} 확인` : ''}. 새로고침 뒤에도 발령 상태 유지.</>
             : <>이 브라우저 안에서만 진행{remote.reason ? `(${remote.reason})` : ''}. 서버 저장은 시연 코드 로그인 뒤 사용.</>}
         </p>
       </div>
@@ -636,7 +635,7 @@ export default function DispatchPage() {
   const meta = useVillageMeta()
 
   return (
-    <PageShell title="발령 운영" desc="발령을 열고, 배정을 확인해 보내고, 이송이 끝나면 발령을 종료합니다.">
+    <PageShell title="발령 운영">
       <Card as="div" className="mb-5" bodyClassName="flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
         <div className="min-w-0 flex-1"><StepIndicator status={status} /></div>
         {status !== 'sent' && <CloseControl status={status} />}
