@@ -15,7 +15,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 자동 시험 | `npm test` 하나로 `client/tests` 전체 175개를 돌립니다(계산 규칙, 회귀, 서버 권한, 체험 기록, 디자인 토큰, 화면 크기 규격). 푸시할 때마다 GitHub Actions(`.github/workflows/test.yml`)가 같은 시험을 돌립니다. |
+| 자동 시험 | `npm test` 하나로 `client/tests` 전체 266개를 돌립니다(계산 규칙, 회귀, 서버 권한, 체험 기록, 디자인 토큰, 화면 크기 규격). 푸시할 때마다 GitHub Actions(`.github/workflows/test.yml`)가 같은 시험을 돌립니다. |
 | 계산 기준 | 평일 낮 발령 기준선 216명(평시 계산과 차량 조건 통일) |
 | 한글 파일 | 저장 전 구조 검사(validateHwpx, kordoc 조판) |
 | 배포 | main 푸시 시 Vercel 자동 배포, GitHub 커밋 상태 확인 |
@@ -49,8 +49,8 @@ git clone https://github.com/hyunho2378/miri.git
 cd miri/client
 npm install
 npm run dev        # http://localhost:5173
-npm test           # 자동 시험 49개
-node --test        # 6개
+npm test           # 자동 시험 266개
+node --test        # 같은 266개
 npm run build
 ```
 
