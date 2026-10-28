@@ -70,8 +70,9 @@ await t('재난문자 파서: 동해시 수신만, 일련번호 중복 제거, �
 
 await t('재난문자: 키가 있으면 동해시로 조회하고 결과코드 오류는 502', async () => {
   process.env.SAFETYDATA_KEY = 'K'
+  const recentKst = new Date(Date.now() - 3600 * 1000 + 9 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ')
   let url = ''
-  const ok = await call('alerts', async (u) => { url = decodeURIComponent(u); return jsonRes({ header: { resultCode: '00' }, body: [{ SN: '9', CRT_DT: '2026-10-21 07:00:00', MSG_CN: 'x', RCPTN_RGN_NM: '강원특별자치도 동해시', EMRG_STEP_NM: '안전안내', DST_SE_NM: '기타' }] }) })
+  const ok = await call('alerts', async (u) => { url = decodeURIComponent(u); return jsonRes({ header: { resultCode: '00' }, body: [{ SN: '9', CRT_DT: recentKst, MSG_CN: 'x', RCPTN_RGN_NM: '강원특별자치도 동해시', EMRG_STEP_NM: '안전안내', DST_SE_NM: '기타' }] }) })
   assert.match(url, /DSSP-IF-00247/)
   assert.match(url, /rgnNm=동해시/)
   assert.equal(ok.body.status, 'ok')
