@@ -292,7 +292,7 @@ function intakeDocs() {
       image: '/images/intake/card-bs01.jpg', uploadedAt: at, status: 'pending',
       transcript: '대피카드 북삼동 지흥동 거동 상태 침대에서 거의 못 일어나심 기저귀 사용 딸 연락 필요',
       results: [
-        { personCode: 'BS-01-901', grade: 'bed', tags: ['bedridden', 'guardian'], quote: '침대에서 거의 못 일어나심', confidence: 'low', box: [8, 51, 82, 13] }
+        { personCode: 'BS-01-901', grade: 'bed', tags: ['bedridden', 'guardian'], quote: '침대에서 거의 못 일어나심', confidence: 'low', box: [9, 50, 79, 15] }
       ]
     },
     {
@@ -313,8 +313,8 @@ export const SAMPLE_UPLOAD = {
   kind: 'card', name: '어달동 대피카드', villageCode: 'MH-02', image: '/images/intake/card-mh02.jpg',
   transcript: '대피카드 묵호동 어달동 거동 상태 휠체어 타고 계심 계단 있음 혼자 사심 거동 상태 걸을 수 있으나 치매 증상 있음 인솔 필요',
   results: [
-    { personCode: 'MH-02-911', grade: 'wheelchair', tags: [], quote: '휠체어 타고 계심 계단 있음', confidence: 'high', box: [11, 42, 77, 8] },
-    { personCode: 'MH-02-912', grade: 'walk', tags: ['dementia'], quote: '걸을 수 있으나 치매 증상 있음 인솔 필요', confidence: 'mid', box: [13, 56, 78, 16] }
+    { personCode: 'MH-02-911', grade: 'wheelchair', tags: [], quote: '휠체어 타고 계심 계단 있음', confidence: 'high', box: [10, 40, 80, 10] },
+    { personCode: 'MH-02-912', grade: 'walk', tags: ['dementia'], quote: '걸을 수 있으나 치매 증상 있음 인솔 필요', confidence: 'mid', box: [12, 55.5, 81, 16.5] }
   ]
 }
 
