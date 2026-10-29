@@ -148,8 +148,11 @@ export default function OverviewPage() {
     ...(!isDong && extraLine ? [{ label: '협약 후 이동 불가 인원', value: '0', unit: '명', note: `${extraLine} 추가` }] : [])
   ]
 
+  // 점검 필요 항목은 세 건만 보이고 전체는 상단바 점검 필요 목록에서 연다
+  const openAnomalies = () => document.querySelector('button[aria-label^="점검 필요"]')?.click()
   const todoRows = [
-    ...anomalies.slice(0, 5).map((a) => ({ key: a.id, to: a.to, title: ANOMALY_RULES[a.rule], sub: a.target })),
+    ...anomalies.slice(0, 3).map((a) => ({ key: a.id, to: a.to, title: ANOMALY_RULES[a.rule], sub: a.target })),
+    ...(anomalies.length > 3 ? [{ key: 'anomaly-all', onClick: openAnomalies, title: '점검 필요 전체', n: `${anomalies.length}건` }] : []),
     ...(pending > 0 ? [{ key: 'docs', to: '/console/intake', title: '서류 확인 대기', sub: 'AI 읽기 결과 확인', n: `${pending}건` }] : []),
     ...(pc.notes > 0 ? [{ key: 'notes', to: '/console/notes', title: '현장 소식 확인 대기', n: `${pc.notes}건` }] : []),
     ...(staleRoster > 0 ? [{ key: 'stale', to: '/console/roster?recheck=1', title: '명부 재확인 대상', n: `${staleRoster}명` }] : [])
@@ -166,7 +169,7 @@ export default function OverviewPage() {
           />
         )}
       />
-      <div className="grid min-w-0 gap-5">
+      <div className="grid min-w-0 gap-6">
         {live ? (
           <StatusBand tag={d.kind === 'drill' ? '훈련 발령 중' : '발령 중'} tone="primary" action={<Button as={Link} to="/console/dispatch">발령 운영 열기</Button>}>
             현재 배정표 시 이동 불가 인원 {fmt(liveUnserved)}명
@@ -190,13 +193,13 @@ export default function OverviewPage() {
         {/* 대시보드: 한 화면에서 여러 면을 동시에 본다. 열 배치는 본문 폭 기준(공통 부품 규칙) */}
         <div
           className={clsx(
-            'grid min-w-0 gap-x-8 gap-y-6',
+            'grid min-w-0 gap-x-10 gap-y-8',
             "cq-lg:[grid-template-columns:minmax(0,1fr)_20rem] cq-lg:[grid-template-areas:'chart_todo''facts_facts']",
             "cq-xl:[grid-template-columns:17rem_minmax(0,1fr)_21rem] cq-xl:[grid-template-areas:'facts_chart_todo']",
             "cq-2xl:[grid-template-columns:19rem_minmax(0,1fr)_24rem]"
           )}
         >
-          <div className="grid min-w-0 content-start gap-6 [grid-area:chart]">
+          <div className="grid min-w-0 content-start gap-8 [grid-area:chart]">
             <Section id="ov-chart" title="마을별 이동 불가 인원" action={<Link to="/console/map" className="inline-flex min-h-7 items-center type-strong text-primary-text hover:underline">상황판에서 보기</Link>}>
               {bars.length ? <VillageBars rows={bars} /> : <p className="type-body text-text-sec">대피 대상 마을 없음</p>}
               <div role="radiogroup" aria-label="이송 등급" className="mt-3 flex flex-wrap gap-2">
@@ -214,7 +217,7 @@ export default function OverviewPage() {
               </div>
             </Section>
             <Section id="ov-village" title={`${shortVillages.length ? '이동 불가 발생 마을' : '대피 대상 마을'} ${villageRows.length}곳`}>
-              <ul className="cq-xl:grid cq-xl:grid-cols-2 cq-xl:gap-x-4 cq-2xl:grid-cols-3">
+              <ul className="cq-xl:grid cq-xl:grid-cols-2 cq-xl:gap-x-2 cq-2xl:grid-cols-3">
                 {villageRows.map(({ v, r }) => (
                   <li key={v.code}>
                     <LinkRow dense onClick={() => setPicked(v.code)} title={v.label} sub={rowSub(v)} value={r.total > 0 ? `${r.total}명` : '없음'} tone={r.total > 0 ? 'danger' : undefined} />
@@ -224,28 +227,28 @@ export default function OverviewPage() {
             </Section>
           </div>
 
-          <div className="grid min-w-0 content-start gap-5 [grid-area:todo]">
+          <div className="grid min-w-0 content-start gap-8 [grid-area:todo]">
             <Section id="ov-todo" title="처리할 일" count={todo} action={<DispatchAction size="sm" />}>
               {todoRows.length === 0 ? (
                 <p className="type-body text-text-sec">처리할 일 없음</p>
               ) : (
                 <ul>
-                  {todoRows.map((t) => <li key={t.key}><LinkRow dense to={t.to} title={t.title} sub={t.sub} value={t.n} /></li>)}
+                  {todoRows.map((t) => <li key={t.key}><LinkRow dense to={t.to} onClick={t.onClick} title={t.title} sub={t.sub} value={t.n} /></li>)}
                 </ul>
               )}
             </Section>
-            <Section tone="surface" dense id="ov-state" title="오늘 산불 여건">
+            <Section tone="surface" dense id="ov-state" title="오늘 산불 여건" className="!p-6">
               <SummaryRows rows={conditionRows} />
               <p className="mt-1 type-meta text-text-sec">산림청 국립산림과학원, 기상청 조회서비스</p>
             </Section>
           </div>
 
-          <div className="grid min-w-0 content-start gap-4 cq-lg:grid-cols-2 cq-xl:grid-cols-1 [grid-area:facts]">
-            <Section tone="surface" dense id="ov-facts" title="대피 대상 현황">
+          <div className="grid min-w-0 content-start gap-6 cq-lg:grid-cols-2 cq-xl:grid-cols-1 [grid-area:facts]">
+            <Section tone="surface" dense id="ov-facts" title="대피 대상 현황" className="!p-6">
               <SummaryRows rows={factRows} />
             </Section>
-            <div className="grid min-w-0 content-start gap-4">
-              <Section tone="surface" dense id="ov-cars" title="출동 가능 차량" action={<Link to="/console/resources" className="inline-flex min-h-8 items-center type-strong text-primary-text hover:underline">협약 차량 확인</Link>}>
+            <div className="grid min-w-0 content-start gap-6">
+              <Section tone="surface" dense id="ov-cars" className="!p-6" title="출동 가능 차량" action={<Link to="/console/resources" className="inline-flex min-h-8 items-center type-strong text-primary-text hover:underline">협약 차량 확인</Link>}>
                 <SummaryRows rows={carRows} />
               </Section>
             </div>

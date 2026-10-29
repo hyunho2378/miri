@@ -1,23 +1,14 @@
-// 코치마크 투어. 콘솔에 들어오거나 새로고침하면 화면마다 한 번 뜬다(저장 없음). ?tour=off 로 끈다.
+// 코치마크 투어. 저절로 뜨지 않는다. 상단 '화면 안내' 패널의 '화면 투어 시작'을 눌렀을 때만 돈다(startCoachTour).
 // 한 단계는 영역 하나를 밝히고, 말풍선은 영역과 겹치지 않는 쪽에 놓인다. 영역 안은 그대로 눌러 볼 수 있고, 영역 밖을 누르거나 Esc 를 누르면 안내가 끝난다.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import Button from '../ui/Button.jsx'
-import { TOURS, resolveTargets, tourEnabled, unionRect } from './tours.js'
+import { TOURS, resolveTargets, unionRect } from './tours.js'
 
-const seen = new Set() // 메모리에만 둔다. 새로고침하면 비워진다
+// 현재 화면의 투어를 여는 함수. 화면 안내 패널이 startCoachTour 로 부른다.
 let openRequest = null
-
-export function requestTour(setter) { openRequest = setter; for (const f of listeners) f() }
-const listeners = new Set()
-
-// 상단바 안에 놓는 '안내' 단추. 투어가 있는 화면에서만 보인다.
-export function TourHelpButton() {
-  const [, force] = useState(0)
-  useEffect(() => { const f = () => force((n) => n + 1); listeners.add(f); return () => listeners.delete(f) }, [])
-  if (!openRequest) return null
-  return <Button size="sm" variant="secondary" onClick={() => openRequest && openRequest()} className="hidden md:inline-flex">안내</Button>
-}
+export function requestTour(setter) { openRequest = setter }
+export function startCoachTour() { if (openRequest) { openRequest(); return true } return false }
 
 const PAD = 8 // 영역 둘레 여백
 const GAP = 12 // 영역과 말풍선 사이
@@ -62,12 +53,11 @@ export function clipToViewport(r) {
 }
 
 export default function CoachTour() {
-  const { pathname, search } = useLocation()
+  const { pathname } = useLocation()
   const [active, setActive] = useState(null) // { steps:[{...step, els}], i }
   const [rect, setRect] = useState(null)
   const [size, setSize] = useState({ w: BW, h: 170 })
   const bubbleRef = useRef(null)
-  const enabled = tourEnabled(search)
   const hasTour = !!TOURS[pathname]
 
   const begin = useCallback(() => {
@@ -76,14 +66,9 @@ export default function CoachTour() {
     if (steps.length) setActive({ steps, i: 0 })
   }, [pathname])
 
-  useEffect(() => {
-    setActive(null)
-    if (!enabled || !hasTour || seen.has(pathname)) return undefined
-    const t = setTimeout(() => { seen.add(pathname); begin() }, 700)
-    return () => clearTimeout(t)
-  }, [pathname, enabled, hasTour, begin])
+  useEffect(() => { setActive(null) }, [pathname])
 
-  useEffect(() => { requestTour(enabled && hasTour ? begin : null); return () => requestTour(null) }, [enabled, hasTour, begin])
+  useEffect(() => { requestTour(hasTour ? begin : null); return () => requestTour(null) }, [hasTour, begin])
 
   const step = active ? active.steps[active.i] : null
   const measure = useCallback(() => {
@@ -176,7 +161,7 @@ export default function CoachTour() {
           >
             {place?.arrow && <BubbleArrow side={dir} arrow={place.arrow} />}
             <h2 className="type-body-strong text-text-pri">{step.title}</h2>
-            <p className="mt-1 type-body-sm text-text-pri">{step.body}</p>
+            <p className="mt-1 type-body-sm text-text-sec">{step.body}</p>
             <div className="mt-4 flex items-center justify-between">
               <div className="flex items-center gap-1" aria-hidden="true">
                 {active.steps.map((_, k) => (

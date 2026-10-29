@@ -7,6 +7,8 @@ export const useAdminUi = create((set) => ({
   setRange: (range) => set({ range }),
   sidebarOpen: false,                // 768 미만 드로어
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+  guideOpen: false,                  // 화면 안내 패널(우측)
+  setGuideOpen: (guideOpen) => set({ guideOpen }),
   topbar: { title: '', actions: null },
   setTopbar: (topbar) => set({ topbar }),
   desktopBannerDismissed: false,     // 데스크톱 권장 배너. 세션 내 한 번만

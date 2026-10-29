@@ -187,31 +187,20 @@ html[lang='ja'] .break-keep, html[lang='zh'] .break-keep { word-break: normal; l
 .admin-surface .bg-page.shadow-card { background-color: var(--m-canvas); box-shadow: none; }
 .admin-surface .bg-page.shadow-card:hover { box-shadow: none; background-color: var(--m-canvas); }
 
-/* 코치마크 스포트라이트: 구멍 뚫린 딤, 두 겹 링과 글로, 영역 이동 전환(M3 standard 250ms) */
+/* 코치마크 스포트라이트: 구멍 뚫린 딤(M3 남색 한 색 58%), 흰 링 한 겹, 영역 이동 전환(M3 standard 250ms)
+   이전에는 검정 방사형 그라데이션(44%에서 70%)에 파랑 반투명 글로 세 겹을 얹어 회색이 탁해지고 파랑이 번졌다 */
 @property --coach-cx { syntax: '<length>'; inherits: false; initial-value: 0px; }
 @property --coach-cy { syntax: '<length>'; inherits: false; initial-value: 0px; }
 .coach-dim {
-  background: radial-gradient(circle at var(--coach-cx) var(--coach-cy), rgba(0, 0, 0, 0.44), rgba(0, 0, 0, 0.7) 85%);
+  background: color-mix(in srgb, #001A41 58%, transparent); /* M3 onPrimaryContainer 남색 한 색 */
   transition: clip-path 250ms cubic-bezier(0.2, 0, 0, 1), --coach-cx 250ms cubic-bezier(0.2, 0, 0, 1), --coach-cy 250ms cubic-bezier(0.2, 0, 0, 1);
 }
 .coach-ring {
-  box-shadow:
-    0 0 0 2px rgba(255, 255, 255, 0.92),
-    0 0 0 7px color-mix(in srgb, theme('colors.primary.DEFAULT') 40%, transparent),
-    0 0 36px 10px color-mix(in srgb, theme('colors.primary.DEFAULT') 24%, transparent);
+  box-shadow: 0 0 0 3px #FFFFFF;
   transition: left 250ms cubic-bezier(0.2, 0, 0, 1), top 250ms cubic-bezier(0.2, 0, 0, 1), width 250ms cubic-bezier(0.2, 0, 0, 1), height 250ms cubic-bezier(0.2, 0, 0, 1);
-  animation: coachPulse 1600ms cubic-bezier(0.2, 0, 0, 1) 1;
-}
-@keyframes coachPulse {
-  50% {
-    box-shadow:
-      0 0 0 2px rgba(255, 255, 255, 0.92),
-      0 0 0 13px color-mix(in srgb, theme('colors.primary.DEFAULT') 26%, transparent),
-      0 0 48px 18px color-mix(in srgb, theme('colors.primary.DEFAULT') 32%, transparent);
-  }
 }
 .coach-bubble {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 10px 28px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16), 0 12px 32px rgba(0, 0, 0, 0.24);
   transition: left 250ms cubic-bezier(0.2, 0, 0, 1), top 250ms cubic-bezier(0.2, 0, 0, 1);
   word-break: keep-all;
 }

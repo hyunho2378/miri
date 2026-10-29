@@ -13,6 +13,7 @@ import DispatchBanner from '../miri/DispatchBanner.jsx'
 import { NavPanel, NAV_WIDTH, NAV_WIDTH_COLLAPSED, SideNav } from './Sidebar.jsx'
 import Topbar from './Topbar.jsx'
 import CoachTour from '../onboarding/CoachTour.jsx'
+import GuidePanel from '../onboarding/GuidePanel.jsx'
 
 export default function AdminLayout() {
   const sidebarOpen = useAdminUi((s) => s.sidebarOpen)
@@ -64,6 +65,7 @@ export default function AdminLayout() {
         </div>
       </div>
       <CoachTour />
+      <GuidePanel />
       <Drawer open={sidebarOpen} side="left" onClose={() => setSidebarOpen(false)} title="담당자 메뉴">
         <NavPanel onNavigate={() => setSidebarOpen(false)} />
       </Drawer>
