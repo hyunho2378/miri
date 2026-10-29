@@ -148,11 +148,11 @@ export default function OverviewPage() {
     ...(!isDong && extraLine ? [{ label: '협약 후 이동 불가 인원', value: '0', unit: '명', note: `${extraLine} 추가` }] : [])
   ]
 
-  // 점검 필요 항목은 세 건만 보이고 전체는 상단바 점검 필요 목록에서 연다
+  // 점검 필요 항목은 두 건만 보이고 전체는 상단바 점검 필요 목록에서 연다
   const openAnomalies = () => document.querySelector('button[aria-label^="점검 필요"]')?.click()
   const todoRows = [
-    ...anomalies.slice(0, 3).map((a) => ({ key: a.id, to: a.to, title: ANOMALY_RULES[a.rule], sub: a.target })),
-    ...(anomalies.length > 3 ? [{ key: 'anomaly-all', onClick: openAnomalies, title: '점검 필요 전체', n: `${anomalies.length}건` }] : []),
+    ...anomalies.slice(0, 2).map((a) => ({ key: a.id, to: a.to, title: ANOMALY_RULES[a.rule], sub: a.target })),
+    ...(anomalies.length > 2 ? [{ key: 'anomaly-all', onClick: openAnomalies, title: '점검 필요 전체', n: `${anomalies.length}건` }] : []),
     ...(pending > 0 ? [{ key: 'docs', to: '/console/intake', title: '서류 확인 대기', sub: 'AI 읽기 결과 확인', n: `${pending}건` }] : []),
     ...(pc.notes > 0 ? [{ key: 'notes', to: '/console/notes', title: '현장 소식 확인 대기', n: `${pc.notes}건` }] : []),
     ...(staleRoster > 0 ? [{ key: 'stale', to: '/console/roster?recheck=1', title: '명부 재확인 대상', n: `${staleRoster}명` }] : [])
@@ -188,7 +188,7 @@ export default function OverviewPage() {
           </StatusBand>
         )}
 
-        {!live && <NumberFlow items={flow} />}
+        {!live && <NumberFlow items={flow} cards />}
 
         {/* 대시보드: 한 화면에서 여러 면을 동시에 본다. 열 배치는 본문 폭 기준(공통 부품 규칙) */}
         <div
@@ -199,7 +199,7 @@ export default function OverviewPage() {
             "cq-2xl:[grid-template-columns:19rem_minmax(0,1fr)_24rem]"
           )}
         >
-          <div className="grid min-w-0 content-start gap-8 [grid-area:chart] cq-xl:flex cq-xl:flex-col">
+          <div className="grid min-w-0 content-start gap-12 [grid-area:chart] cq-xl:flex cq-xl:flex-col">
             <Section id="ov-chart" className="cq-xl:flex cq-xl:flex-1 cq-xl:flex-col" title="마을별 이동 불가 인원" action={<Link to="/console/map" className="inline-flex min-h-7 items-center type-strong text-primary-text hover:underline">상황판에서 보기</Link>}>
               {bars.length ? <VillageBars rows={bars} fill /> : <p className="type-body text-text-sec">대피 대상 마을 없음</p>}
               <div role="radiogroup" aria-label="이송 등급" className="mt-3 flex flex-wrap gap-2">
