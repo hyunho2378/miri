@@ -57,7 +57,7 @@
   --t-sub: 15px; --l-sub: 20px; --ls-sub: 0px;
   --t-foot: 13px; --l-foot: 18px; --ls-foot: 0px;
   --t-label: 12px; --l-label: 16px; --w-label: 400; --ls-label: 0px;              /* Caption 1 */
-  --t-bar-title: 17px; --l-bar-title: 22px; --w-bar-title: 590; --ls-bar-title: 0px;
+  --t-bar-title: 15px; --l-bar-title: 20px; --w-bar-title: 590; --ls-bar-title: 0px;   /* _Title - iPhone - Subheadline 15/20 w590 (Style=Title 2 Line) */
   --w-strong: 590;
 }
 
@@ -407,8 +407,11 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 .mob-root.platform-ios .mob-bar-row { padding: 0 var(--m-margin); gap: 8px; }
 .mob-root.platform-ios .mob-bar-title { font-size: var(--t-bar-title); line-height: var(--l-bar-title); font-weight: var(--w-bar-title); letter-spacing: 0; }
 .mob-root.platform-android .mob-bar-title { font-size: var(--t-bar-title); line-height: var(--l-bar-title); font-weight: var(--w-bar-title); letter-spacing: 0; }
+.mob-root.platform-ios.bar-side, .mob-root.platform-ios.two-pane { --t-bar-title: 17px; --l-bar-title: 22px; }   /* Duo 제목 값은 M2 담당, 이번 아이폰 수정 전 값 유지 */
 .mob-root.platform-ios.bar-side .mob-bar-title, .mob-root.platform-ios.two-pane .mob-bar-title { text-align: left; }   /* Duo 툴바 제목 앞쪽 정렬 */
-.mob-root.platform-ios .mob-bar-large { padding: 0 var(--m-margin) 10px; }   /* Large Title 묶음 pad 0/16, 아래 10 */
+.mob-root.platform-ios:not(.bar-side):not(.two-pane) .mob-bar-large { padding: 10px var(--m-margin) 10px; }   /* Toolbar - Top - iPhone Style=Large Title 1:54472: 조절줄 44 + 간격 10 + 제목 묶음 pad 0/16, 전체 아래 10 */
+.mob-root.platform-ios:not(.bar-side):not(.two-pane) .mob-bar-row.bare { height: var(--m-bar-h); }
+.mob-root.platform-ios:not(.bar-side):not(.two-pane) .mob-bar:not(:has(.mob-bar-large)) { padding-bottom: 10px; }   /* Style=Title 2 Line 402x54 pad 0/16/10/16 */
 .mob-root.platform-android .mob-bar-row { padding: 0 4px; }
 .mob-bar-title[data-hidden='true'] { opacity: 0; }
 .mob-icon-btn { width: var(--m-touch-bar); height: var(--m-touch-bar); }
@@ -491,12 +494,17 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 .mob-nav-pill { position: relative; }
 .mob-nav-label { font-size: var(--t-label); line-height: var(--l-label); }
 
-/* iOS 아래: 떠 있는 알약(Tab Bar - iPhone 402x95, pad 16/25/25/25, 탭 72x54 pad 6/8/7/8, 글자 10/12 w590 자간 -0.1, 선택 배경 #EDEDED 원형) */
+/* iOS 아래: 떠 있는 알약(Tab Bar - iPhone 10508:1282 Minimized=False, Tabs=4, Type=Default: 402x95 pad 16/25/25/25,
+   Tab Bar Buttons 352x54 pad 0/2/0/2 gap -8, 탭 93x54 Fill pad 6/8/7/8, 선택 배경 Selection 97x54 r100(탭보다 좌우 2 넓음), 바깥 알약 BG 360x62 r1000 그림자).
+   글자는 키트 10/12 이나 앱은 11/13 으로 둔다(12 미만 글자 금지와 충돌하는 열린 결정). 선택 배경색은 키트 #EDEDED 대신 앱 --m-fill(옅은 색 금지 규칙). */
 .mob-root.platform-ios .mob-nav.nav-bottom { left: var(--m-safe-left); right: var(--m-safe-right); background: transparent; box-shadow: none; padding: 16px 25px max(25px, var(--m-safe-bottom)); pointer-events: none; }
-.mob-root.platform-ios .mob-nav.nav-bottom .mob-nav-inner { pointer-events: auto; max-width: none; height: 54px; margin: 0; background: var(--m-page); border-radius: var(--m-r-full); box-shadow: var(--m-shadow-2); justify-content: space-around; align-items: center; }
+.mob-root.platform-ios .mob-nav.nav-bottom .mob-nav-inner { pointer-events: auto; max-width: none; box-sizing: border-box; height: 62px; margin: -4px; padding: 4px 6px; isolation: isolate; background: var(--m-page); border-radius: var(--m-r-full); box-shadow: var(--m-shadow-2); justify-content: center; align-items: center; }
 .mob-root.platform-ios .mob-nav .mob-nav-item { flex: none; width: 72px; height: 54px; padding: 6px 8px 7px; gap: 0; border-radius: var(--m-r-full); color: var(--m-ink); }
 .mob-root.platform-ios .mob-nav .mob-nav-item .mob-nav-label { font-size: 11px; line-height: 13px; font-weight: 590; letter-spacing: 0; }
 .mob-root.platform-ios .mob-nav [aria-current='page'] { background: var(--m-fill); color: var(--m-blue-strong); }
+.mob-root.platform-ios .mob-nav.nav-bottom .mob-nav-item { flex: 1 1 0; width: auto; min-width: 0; height: 54px; padding: 6px 8px 7px; background: transparent; }
+.mob-root.platform-ios .mob-nav.nav-bottom .mob-nav-item + .mob-nav-item { margin-left: -8px; }
+.mob-root.platform-ios .mob-nav.nav-bottom [aria-current='page']::before { content: ''; position: absolute; top: 0; bottom: 0; left: -2px; right: -2px; z-index: -1; border-radius: 100px; background: var(--m-fill); }
 .mob-root.platform-ios .mob-nav .mob-nav-pill svg { width: 24px; height: 28px; }
 
 /* iOS 옆: iPhone Duo 세로 막대(84 폭, pad 24/24/24/12), 세로 탭 바(48 폭, pad 6/0, 탭 48x48, 사이 2, 선택 44 원) */
@@ -564,6 +572,15 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 .mob-root.platform-android { --m-toast-above: 84px; }
 /* 옆 세로 막대 자리는 이동 막대가 있는 화면에서만 비운다(도우미 화면처럼 탭이 없으면 84 를 비우지 않음) */
 .mob-root.platform-ios.bar-side:not(:has(.mob-nav)) { --m-side-bar: 0px; }
+/* iPhone Duo 키트 대조(2026. 11. 1.): 이 블록은 듀오(옆 막대 또는 두 단)에만 적용된다. 공통 iOS 규칙은 건드리지 않는다.
+   Toolbar - Top - iPhone Duo 12883:6008 Sheet=False Style=Title 84x(pad 24/24/12/20, 간격 12), 아래 막대는 Safe Areas and Margins 12892:62092 안쪽 세로의
+   Tab Bar 인스턴스 409x95(가운데, 버튼 줄 pad 0/2, 탭 사이 -8, 바탕 알약은 버튼 줄보다 사방 4 크다 Tab Bar - iPhone 10508:1282 Tabs=4 Default) */
+.mob-root.platform-ios:is(.bar-side, .two-pane) .mob-bar-row { padding: 0 24px 0 var(--m-margin); gap: 12px; }
+.mob-root.platform-ios:is(.bar-side, .two-pane) .mob-bar:not(:has(.mob-bar-large)) { padding-bottom: 12px; }
+.mob-root.platform-ios.two-pane .mob-nav.nav-bottom { left: calc(50% - 204.5px); right: auto; width: 409px; }
+.mob-root.platform-ios.two-pane .mob-nav.nav-bottom .mob-nav-inner { box-sizing: border-box; height: 62px; margin: -4px; padding: 4px 6px; }
+.mob-root.platform-ios.two-pane .mob-nav.nav-bottom .mob-nav-item { flex: 1 1 0; width: auto; min-width: 0; }
+.mob-root.platform-ios.two-pane .mob-nav.nav-bottom .mob-nav-item + .mob-nav-item { margin-left: -8px; }
 .mob-root.platform-android.bar-rail:not(:has(.mob-nav)) { --m-rail: 0px; }
 /* Android 시간 입력: M3 Keyboard picker(52949:28053)는 바닥 시트가 아닌 가운데 모달. 264 폭, 모서리 28.
    키트 면 색(surfaceContainerHigh 옅은 보라)은 옅은 색 금지 규칙에 따라 대화상자와 같은 흰 면과 그림자 */
