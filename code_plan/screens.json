@@ -1,0 +1,34 @@
+{
+  "note": "화면 번호는 그룹 글자 + 두 자리. 피그마 세트 이름 앞에 붙인다(C-01 Overview). route는 App.jsx 기준.",
+  "groups": {
+    "C": "Console 담당자 콘솔(데스크톱)",
+    "M": "Mobile 휴대폰(/m)",
+    "P": "Public 소개와 방침"
+  },
+  "screens": [
+    {"id": "C-00", "name": "Login", "route": "/console/login", "role": null, "file": "pages/console/LoginPage.jsx"},
+    {"id": "C-01", "name": "Overview", "route": "/console", "role": ["city","dong"], "file": "pages/console/OverviewPage.jsx", "menu": "현황판"},
+    {"id": "C-02", "name": "Intake", "route": "/console/intake", "role": ["city","dong"], "file": "pages/console/IntakePage.jsx", "menu": "서류 읽기"},
+    {"id": "C-03", "name": "Roster", "route": "/console/roster", "role": ["city","dong"], "file": "pages/console/RosterPage.jsx", "menu": "대상자 명부"},
+    {"id": "C-04", "name": "Map", "route": "/console/map", "role": ["city","dong"], "file": "pages/console/MapPage.jsx", "menu": "상황판"},
+    {"id": "C-05", "name": "Resources", "route": "/console/resources", "role": ["city","dong"], "file": "pages/console/ResourcesPage.jsx", "menu": "차량과 도우미"},
+    {"id": "C-06", "name": "Shortage", "route": "/console/shortage", "role": ["city","dong"], "file": "pages/console/ShortagePage.jsx", "menu": "발령 준비 > 부족분 계산"},
+    {"id": "C-07", "name": "Dispatch", "route": "/console/dispatch", "role": ["city","dong"], "file": "pages/console/DispatchPage.jsx", "menu": "발령 준비 > 발령 운영"},
+    {"id": "C-08", "name": "Handover", "route": "/console/handover", "role": ["city"], "file": "pages/console/HandoverPage.jsx", "menu": "발령 준비 > 소방 인계"},
+    {"id": "C-09", "name": "Notes", "route": "/console/notes", "role": ["city","dong"], "file": "pages/console/NotesPage.jsx", "menu": "현장 소식"},
+    {"id": "C-10", "name": "Records", "route": "/console/records", "role": ["city","dong"], "file": "pages/console/RecordsPage.jsx", "menu": "이송 기록"},
+    {"id": "C-11", "name": "RecordDetail", "route": "/console/records/:id", "role": ["city","dong"], "file": "pages/console/RecordDetailPage.jsx"},
+    {"id": "C-12", "name": "Settings", "route": "/console/settings", "role": ["city"], "file": "pages/console/SettingsPage.jsx", "menu": "운영 기준"},
+    {"id": "C-13", "name": "Workspace", "route": "/console/workspace", "role": ["city","dong"], "file": "pages/workspace (WorkspaceHome)", "menu": "문서 센터"},
+    {"id": "M-01", "name": "FieldStatus", "route": "/m/f", "file": "mobile (MobileFieldStatus)"},
+    {"id": "M-02", "name": "FieldVillages", "route": "/m/f/villages"},
+    {"id": "M-03", "name": "FieldVillage", "route": "/m/f/villages/:code"},
+    {"id": "M-04", "name": "FieldHelpers", "route": "/m/f/helpers"},
+    {"id": "M-05", "name": "FieldMore", "route": "/m/f/more"},
+    {"id": "M-06", "name": "FieldFire", "route": "/m/f/fire"},
+    {"id": "M-07", "name": "FieldPeople", "route": "/m/f/people"},
+    {"id": "M-08", "name": "Helper", "route": "/m/h/:token"},
+    {"id": "P-01", "name": "OpenApi", "route": "/open"},
+    {"id": "P-02", "name": "Privacy", "route": "/privacy"}
+  ]
+}
