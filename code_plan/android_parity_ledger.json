@@ -1,0 +1,1022 @@
+{
+ "generated": "2026-11-01",
+ "tolerance_px": 2,
+ "method": "앱을 기기 높이로 고정하고 추출, 두 열은 열 묶음으로 바꾼 뒤 추출, 글상자 위치를 같은 문구끼리 가장 가까운 것으로 짝지음",
+ "rowsChecked": 36,
+ "rows": [
+  {
+   "set": "M-01 FieldStatus",
+   "state": "Default",
+   "device": "360",
+   "id": "9:54",
+   "appSize": [
+    360,
+    780
+   ],
+   "figSize": [
+    360,
+    780
+   ],
+   "textsApp": 20,
+   "textsFig": 20,
+   "matched": 20,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-04 FieldHelpers",
+   "state": "Idle",
+   "device": "360",
+   "id": "9:61",
+   "appSize": [
+    360,
+    780
+   ],
+   "figSize": [
+    360,
+    780
+   ],
+   "textsApp": 8,
+   "textsFig": 8,
+   "matched": 8,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-05 FieldMore",
+   "state": "Default",
+   "device": "360",
+   "id": "9:63",
+   "appSize": [
+    360,
+    780
+   ],
+   "figSize": [
+    360,
+    780
+   ],
+   "textsApp": 16,
+   "textsFig": 16,
+   "matched": 16,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-06 FieldFire",
+   "state": "Idle",
+   "device": "360",
+   "id": "9:65",
+   "appSize": [
+    360,
+    780
+   ],
+   "figSize": [
+    360,
+    780
+   ],
+   "textsApp": 7,
+   "textsFig": 7,
+   "matched": 7,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-07 FieldPeople",
+   "state": "Default",
+   "device": "360",
+   "id": "9:67",
+   "appSize": [
+    360,
+    780
+   ],
+   "figSize": [
+    360,
+    780
+   ],
+   "textsApp": 15,
+   "textsFig": 15,
+   "matched": 15,
+   "missing": 0,
+   "posOver2px": 1,
+   "maxOffsetPx": 16,
+   "offs": [
+    "대상자 번호 또는  dx0 dy16 dw-91"
+   ],
+   "missL": []
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Idle",
+   "device": "360",
+   "id": "9:56",
+   "appSize": [
+    360,
+    780
+   ],
+   "figSize": [
+    360,
+    780
+   ],
+   "textsApp": 8,
+   "textsFig": 8,
+   "matched": 8,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-08 Helper",
+   "state": "Consent",
+   "device": "360",
+   "id": "9:69",
+   "appSize": [
+    360,
+    780
+   ],
+   "figSize": [
+    360,
+    780
+   ],
+   "textsApp": 8,
+   "textsFig": 8,
+   "matched": 8,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.6,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Dispatch",
+   "device": "360",
+   "id": "9:57",
+   "appSize": [
+    360,
+    780
+   ],
+   "figSize": [
+    360,
+    780
+   ],
+   "textsApp": 15,
+   "textsFig": 15,
+   "matched": 10,
+   "missing": 5,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": [
+    "0 / 18명 도착, 04:07까지",
+    "0 / 27명 도착, 04:16까지",
+    "0 / 27명 도착, 04:44까지"
+   ]
+  },
+  {
+   "set": "M-03 FieldVillage",
+   "state": "Dispatch",
+   "device": "360",
+   "id": "9:59",
+   "appSize": [
+    360,
+    780
+   ],
+   "figSize": [
+    360,
+    780
+   ],
+   "textsApp": 65,
+   "textsFig": 65,
+   "matched": 64,
+   "missing": 1,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.6,
+   "offs": [],
+   "missL": [
+    "대피소 도착, 04:07까지"
+   ]
+  },
+  {
+   "set": "M-01 FieldStatus",
+   "state": "Default",
+   "device": "Fold 616",
+   "id": "25:29",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "textsApp": 20,
+   "textsFig": 20,
+   "matched": 18,
+   "missing": 2,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": [
+    "산불위험지수 최고 68",
+    "평균 21, 산림청"
+   ]
+  },
+  {
+   "set": "M-04 FieldHelpers",
+   "state": "Idle",
+   "device": "Fold 616",
+   "id": "25:30",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "textsApp": 8,
+   "textsFig": 8,
+   "matched": 8,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-05 FieldMore",
+   "state": "Default",
+   "device": "Fold 616",
+   "id": "25:31",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "textsApp": 16,
+   "textsFig": 16,
+   "matched": 16,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-06 FieldFire",
+   "state": "Idle",
+   "device": "Fold 616",
+   "id": "25:32",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "textsApp": 7,
+   "textsFig": 7,
+   "matched": 7,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-07 FieldPeople",
+   "state": "Default",
+   "device": "Fold 616",
+   "id": "25:33",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "textsApp": 15,
+   "textsFig": 15,
+   "matched": 15,
+   "missing": 0,
+   "posOver2px": 1,
+   "maxOffsetPx": 16,
+   "offs": [
+    "대상자 번호 또는  dx0 dy16 dw-219"
+   ],
+   "missL": []
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Idle",
+   "device": "Fold 616",
+   "id": "25:34",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "textsApp": 8,
+   "textsFig": 8,
+   "matched": 8,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-08 Helper",
+   "state": "Consent",
+   "device": "Fold 616",
+   "id": "25:35",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "textsApp": 8,
+   "textsFig": 8,
+   "matched": 8,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Dispatch",
+   "device": "Fold 616",
+   "id": "25:36",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "textsApp": 15,
+   "textsFig": 15,
+   "matched": 10,
+   "missing": 5,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": [
+    "0 / 18명 도착, 04:08까지",
+    "0 / 27명 도착, 04:17까지",
+    "0 / 27명 도착, 04:45까지"
+   ]
+  },
+  {
+   "set": "M-03 FieldVillage",
+   "state": "Dispatch",
+   "device": "Fold 616",
+   "id": "25:37",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "textsApp": 65,
+   "textsFig": 65,
+   "matched": 64,
+   "missing": 1,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.6,
+   "offs": [],
+   "missL": [
+    "대피소 도착, 04:08까지"
+   ]
+  },
+  {
+   "set": "M-01 FieldStatus",
+   "state": "Default",
+   "device": "Fold 816 Landscape",
+   "id": "25:38",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "textsApp": 20,
+   "textsFig": 20,
+   "matched": 20,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-04 FieldHelpers",
+   "state": "Idle",
+   "device": "Fold 816 Landscape",
+   "id": "25:39",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "textsApp": 8,
+   "textsFig": 8,
+   "matched": 8,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-05 FieldMore",
+   "state": "Default",
+   "device": "Fold 816 Landscape",
+   "id": "25:40",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "textsApp": 16,
+   "textsFig": 16,
+   "matched": 16,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-06 FieldFire",
+   "state": "Idle",
+   "device": "Fold 816 Landscape",
+   "id": "25:41",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "textsApp": 7,
+   "textsFig": 7,
+   "matched": 7,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-07 FieldPeople",
+   "state": "Default",
+   "device": "Fold 816 Landscape",
+   "id": "25:42",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "textsApp": 15,
+   "textsFig": 15,
+   "matched": 15,
+   "missing": 0,
+   "posOver2px": 1,
+   "maxOffsetPx": 16,
+   "offs": [
+    "대상자 번호 또는  dx0 dy16 dw-419"
+   ],
+   "missL": []
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Idle",
+   "device": "Fold 816 Landscape",
+   "id": "25:43",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "textsApp": 8,
+   "textsFig": 8,
+   "matched": 8,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-08 Helper",
+   "state": "Consent",
+   "device": "Fold 816 Landscape",
+   "id": "25:44",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "textsApp": 8,
+   "textsFig": 8,
+   "matched": 8,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Dispatch",
+   "device": "Fold 816 Landscape",
+   "id": "25:45",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "textsApp": 15,
+   "textsFig": 15,
+   "matched": 10,
+   "missing": 5,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": [
+    "0 / 18명 도착, 04:09까지",
+    "0 / 27명 도착, 04:18까지",
+    "0 / 27명 도착, 04:45까지"
+   ]
+  },
+  {
+   "set": "M-03 FieldVillage",
+   "state": "Dispatch",
+   "device": "Fold 816 Landscape",
+   "id": "25:46",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "textsApp": 65,
+   "textsFig": 65,
+   "matched": 64,
+   "missing": 1,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": [
+    "대피소 도착, 04:09까지"
+   ]
+  },
+  {
+   "set": "M-01 FieldStatus",
+   "state": "Default",
+   "device": "Fold Cover 416",
+   "id": "25:47",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "textsApp": 20,
+   "textsFig": 20,
+   "matched": 18,
+   "missing": 2,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": [
+    "산불위험지수 최고 68",
+    "평균 21, 산림청"
+   ]
+  },
+  {
+   "set": "M-04 FieldHelpers",
+   "state": "Idle",
+   "device": "Fold Cover 416",
+   "id": "25:48",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "textsApp": 8,
+   "textsFig": 8,
+   "matched": 8,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-05 FieldMore",
+   "state": "Default",
+   "device": "Fold Cover 416",
+   "id": "25:49",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "textsApp": 16,
+   "textsFig": 16,
+   "matched": 16,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-06 FieldFire",
+   "state": "Idle",
+   "device": "Fold Cover 416",
+   "id": "25:50",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "textsApp": 7,
+   "textsFig": 7,
+   "matched": 7,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-07 FieldPeople",
+   "state": "Default",
+   "device": "Fold Cover 416",
+   "id": "25:51",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "textsApp": 15,
+   "textsFig": 15,
+   "matched": 15,
+   "missing": 0,
+   "posOver2px": 1,
+   "maxOffsetPx": 16,
+   "offs": [
+    "대상자 번호 또는  dx0 dy16 dw-147"
+   ],
+   "missL": []
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Idle",
+   "device": "Fold Cover 416",
+   "id": "25:52",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "textsApp": 8,
+   "textsFig": 8,
+   "matched": 8,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-08 Helper",
+   "state": "Consent",
+   "device": "Fold Cover 416",
+   "id": "25:53",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "textsApp": 8,
+   "textsFig": 8,
+   "matched": 8,
+   "missing": 0,
+   "posOver2px": 0,
+   "maxOffsetPx": 1,
+   "offs": [],
+   "missL": []
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Dispatch",
+   "device": "Fold Cover 416",
+   "id": "25:54",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "textsApp": 15,
+   "textsFig": 15,
+   "matched": 10,
+   "missing": 5,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.5,
+   "offs": [],
+   "missL": [
+    "0 / 18명 도착, 04:10까지",
+    "0 / 27명 도착, 04:19까지",
+    "0 / 27명 도착, 04:46까지"
+   ]
+  },
+  {
+   "set": "M-03 FieldVillage",
+   "state": "Dispatch",
+   "device": "Fold Cover 416",
+   "id": "25:55",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "textsApp": 65,
+   "textsFig": 65,
+   "matched": 64,
+   "missing": 1,
+   "posOver2px": 0,
+   "maxOffsetPx": 0.6,
+   "offs": [],
+   "missL": [
+    "대피소 도착, 04:10까지"
+   ]
+  }
+ ],
+ "newVariants": {
+  "M-04 FieldHelpers|Dispatch|360": {
+   "id": "34:1929",
+   "set": "9:62",
+   "mode": "append",
+   "w": 360,
+   "h": 780,
+   "cm": "ok22/22 miss0 pos>2:1 max9.8"
+  },
+  "M-06 FieldFire|Dispatch|360": {
+   "id": "34:2006",
+   "set": "9:66",
+   "mode": "append",
+   "w": 360,
+   "h": 780,
+   "cm": "ok12/12 miss0 pos>2:0 max0.5"
+  },
+  "M-04 FieldHelpers|Dispatch|Fold 616": {
+   "id": "34:2119",
+   "set": "9:62",
+   "mode": "append",
+   "w": 616,
+   "h": 816,
+   "cm": "ok22/22 miss0 pos>2:1 max9.8"
+  },
+  "M-06 FieldFire|Dispatch|Fold 616": {
+   "id": "34:2196",
+   "set": "9:66",
+   "mode": "append",
+   "w": 616,
+   "h": 816,
+   "cm": "ok12/12 miss0 pos>2:0 max0.5"
+  },
+  "M-04 FieldHelpers|Dispatch|Fold 816 Landscape": {
+   "id": "34:2309",
+   "set": "9:62",
+   "mode": "append",
+   "w": 816,
+   "h": 616,
+   "cm": "ok22/22 miss0 pos>2:1 max9.8"
+  },
+  "M-06 FieldFire|Dispatch|Fold 816 Landscape": {
+   "id": "34:2389",
+   "set": "9:66",
+   "mode": "append",
+   "w": 816,
+   "h": 616,
+   "cm": "ok12/12 miss0 pos>2:0 max0.5"
+  },
+  "M-04 FieldHelpers|Dispatch|Fold Cover 416": {
+   "id": "34:2502",
+   "set": "9:62",
+   "mode": "append",
+   "w": 416,
+   "h": 657,
+   "cm": "ok22/22 miss0 pos>2:1 max9.8"
+  },
+  "M-06 FieldFire|Dispatch|Fold Cover 416": {
+   "id": "34:2579",
+   "set": "9:66",
+   "mode": "append",
+   "w": 416,
+   "h": 657,
+   "cm": "ok12/12 miss0 pos>2:0 max0.5"
+  }
+ },
+ "pickerVariants": {
+  "360": "34:2716",
+  "Fold 616": "34:2845",
+  "Fold 816 Landscape": "34:2977",
+  "Fold Cover 416": "34:3106"
+ },
+ "fillCensus": {
+  "variants": 48,
+  "fillsTotal": 1176,
+  "fillsBound": 1172,
+  "fillsUnbound": 4,
+  "strokesTotal": 932,
+  "strokesBound": 932,
+  "strokesUnbound": 0,
+  "unboundHexF": {
+   "9CA3AF": 4
+  },
+  "texts": 812,
+  "textStyled": 0,
+  "small": 0,
+  "fontFamilies": {
+   "Noto Sans KR": 696,
+   "Roboto": 444
+  },
+  "tallVariants": []
+ },
+ "kit_vs_app": [
+  [
+   "창 크기 등급",
+   "compact 0~599, medium 600~839, expanded 840 이상(Layout grid 56384:120)",
+   "layout.js 같은 값. 616, 816은 medium, 360과 416은 compact",
+   "변형 이름과 폭 360, 416, 616, 816"
+  ],
+  [
+   "레이아웃 여백",
+   "compact 16, medium 32, expanded 24",
+   "360과 416 카드 왼쪽 16, 616 카드 왼쪽 128(레일 96 + 32), 오른쪽 32",
+   "리스트 x 16(360), 16(416), 128(616), 폭 328, 384, 456"
+  ],
+  [
+   "내비게이션 바(compact)",
+   "높이 64(Vertical items 58016:37259, 412x64), 항목 높이 64, 위아래 6, 간격 4, 알약 56x32 모서리 16, 라벨 Medium 12/16 w500",
+   "바 높이 64, 항목 90(360)과 104(416) x 64, 알약 56x32 r16, 라벨 12/16 w500",
+   "Bottom Nav 360x64과 416x64, 항목 90x64와 104x64"
+  ],
+  [
+   "내비게이션 레일(medium 이상)",
+   "폭 96(58016:36879, 96x800), 항목 96x64, 위 여백 44, 아래 56, 항목 간격 4, 알약 56x32. 메뉴와 FAB 칸은 선택 사항(116 높이, 간격 40)",
+   "레일 96 x 기기 높이, 위 여백 44, 아래 56, 항목 96x64, 간격 4(항목 y 44, 112, 180, 248). 메뉴와 FAB 칸은 없음",
+   "Bottom Nav 96x816, Stack y 44, 항목 96x64. 부모가 말한 80은 키트 값이 아님"
+  ],
+  [
+   "상단 앱 바(Small)",
+   "높이 64, 안쪽 8/4/8/4, 제목 Title Large 22/28 w400",
+   "높이 64, 가로 4, 제목 22/28 w400",
+   "제목 22/28"
+  ],
+  [
+   "목록 항목",
+   "안쪽 10/16/10/16, 간격 12, 모서리 12(State layer), 최소 높이 48",
+   "안쪽 10/16, 간격 12, 목록 모서리 12, 두 줄 행 68",
+   "목록 모서리 12"
+  ],
+  [
+   "버튼(채움, 보임면)",
+   "높이 40, 누름 영역 48, 모서리 전체, 라벨 Label Large 14/20 w500",
+   "보임면 40(누름 48, 위아래 투명 4), r 9999, 14/20 w500",
+   "Touch Target 48 안 Button 40으로 분리(이번 작업)"
+  ],
+  [
+   "스위치",
+   "트랙 52x32 모서리 100, 손잡이 꺼짐 16, 켜짐 24",
+   "52x32, 손잡이 꺼짐 16 위치 8,8",
+   "Toggle 52x32 + Thumb 16x16(이번 작업에 추가, 앞서 전사에는 손잡이가 빠져 있었음)"
+  ],
+  [
+   "검색 막대",
+   "높이 56, 모서리 전체",
+   "56, r 9999, 안쪽 0/16",
+   "Filled Input 396x56(616)"
+  ],
+  [
+   "대화상자",
+   "폭 312, 모서리 28, 내용 안쪽 24/24/0/24 간격 16, 제목 Headline Small 24/32, 동작 줄 안쪽 20/24/20/8",
+   "폭 312, r28, 안쪽 24/24/0, 제목 24/32, 동작 줄 16/24/16/8(80 높이)",
+   "앱을 20/24/20/8(88 높이)로 고침(커밋). 피그마에는 대화상자 변형이 없음"
+  ],
+  [
+   "아래 시트",
+   "위 모서리 28, 손잡이 32x4(위에서 16, 아래 16)",
+   "r28, 손잡이 32x4 위 16 아래 16",
+   "피그마에 시트 변형 없음"
+  ],
+  [
+   "스낵바",
+   "폭 344, 모서리 4, 본문 Body Medium 14/20",
+   "344, r4, 14/20",
+   "피그마에 변형 없음"
+  ],
+  [
+   "스크림",
+   "투명도 0.32(55412:16964)",
+   "0.4(앱 기본, iOS 값)",
+   "앱을 안드로이드만 0.32로 고침(커밋)"
+  ],
+  [
+   "모서리 단계",
+   "4, 8, 12, 16, 28(Shape 58548:7093)",
+   "칩 8, 목록 12, 카드 12, 시트 28, 대화상자 28, 스낵바 4",
+   "반경 변수 연결"
+  ],
+  [
+   "글꼴과 타입",
+   "Roboto. Body Large 16/24, Label Medium 12/16, Title Large 22/28",
+   "Roboto(영문, 숫자), Noto Sans KR(한글)이 실제로 그려짐. 크기는 같음, 자간 0(한국어 자간 규칙)",
+   "Roboto + Noto Sans KR(이번에 교체, 이전은 Pretendard). 글자 스타일 type/*은 Pretendard GOV라 연결 안 함"
+  ]
+ ]
+}

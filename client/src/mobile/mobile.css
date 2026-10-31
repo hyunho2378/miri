@@ -684,9 +684,11 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 .mob-root.platform-ios .mob-dialog-body p { font-size: 17px; line-height: 22px; font-weight: 400; }
 .mob-root.platform-ios .mob-dialog-actions > * { flex: 1 1 0; min-width: 0; padding-left: 16px; padding-right: 16px; }
 /* M3 Basic dialog Icon=False 50723:10948: 제목과 설명 pad 24/24/0/24 gap 16, Actions pad 20/24/20/8 gap 8.
-   글자 버튼은 누름 48 안에 보이는 면 40(위아래 투명 4)이라 바깥 여백을 4 줄여 보이는 간격 20 을 맞춤 */
+   키트 Actions 안의 버튼도 높이 48(보이는 면 40, 위아래 투명 4)이라 앱 버튼(누름 48)과 같은 기준이다. 따라서 위아래 여백은 키트 그대로 20 (2026-11-01 Android 키트 대조에서 16 을 20 으로 바로잡음, 대화상자 높이 80 → 88) */
 .mob-root.platform-android .mob-dialog-body { padding: 24px 24px 0; gap: 16px; }
-.mob-root.platform-android .mob-dialog-actions { padding: 16px 24px 16px 8px; gap: 8px; }
+.mob-root.platform-android .mob-dialog-actions { padding: 20px 24px 20px 8px; gap: 8px; }
+/* M3 Bottom sheet Modal=True 51827:5863 안 Scrim 55412:16964 투명도 0.32 (앱 기본 0.4 는 iOS 값) */
+.platform-android .mob-scrim { background: rgba(0, 0, 0, 0.32); }
 /* 화면 전수 대조(2026-10-22): iOS 바닥 시트는 내용 폭으로 줄지 않고 화면 폭에서 좌우 6을 뺀 폭(Sheet 10525:1632, iPhone 402 기준 390).
    내용이 짧은 시트(차량과 도우미)에서 폭이 160으로 줄던 문제 */
 .mob-root.platform-ios:not(.bar-side):not(.two-pane) .mob-sheet:not(.center) { width: calc(100% - 12px); flex: 0 0 auto; }
