@@ -1,4 +1,5 @@
-// 한 줄 이동 행(처리할 일, 부족 마을 등). 열: 이름, 보조 글(남는 폭), 값, 이동 표시(폭 24). to 가 있으면 이동, onClick 이 있으면 상세 열기
+// 한 줄 이동 행(처리할 일, 부족 마을 등). 열: 이름, 보조 글(남는 폭), 값, 이동 표시(폭 18). to 가 있으면 이동, onClick 이 있으면 상세 열기
+// 이동 표시는 아이콘 안쪽 여백(획 끝까지 6px)만큼 바깥으로 당겨 꺾쇠 끝이 열의 오른쪽 끝선과 만나게 한다
 // 값과 이동 표시는 붙여서 오른쪽 끝에 두고, 이름과 보조 글은 왼쪽에 모아 가운데 빈 폭이 보조 글로 채워지게 한다. dense 는 행 높이 40
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
@@ -13,7 +14,7 @@ export default function LinkRow({ to, onClick, title, sub, value, tone, dense, c
       </span>
       <span className="flex shrink-0 items-center gap-2">
         {value != null && <span className={clsx('type-body-strong tabular-nums', tone === 'danger' ? 'text-danger-text' : 'text-text-pri')}>{value}</span>}
-        <ChevronRight size={18} aria-hidden="true" className="w-6 shrink-0 text-text-sec" />
+        <ChevronRight size={18} aria-hidden="true" className="-mr-[6px] w-[18px] shrink-0 text-text-sec" />
       </span>
     </>
   )

@@ -1,7 +1,7 @@
 // 담당자 레이아웃. 회색 바탕 위에 한 겹의 왼쪽 메뉴(폭 220, 접으면 80), 맨 위 한 줄 상단 띠, 그 아래 둥근 흰 판.
 // 1024 이상은 메뉴를 펴 두고, 768~1023은 접어 둔다(상단 띠 버튼으로 편다). 768 미만은 서랍 메뉴.
 // 본문은 흰 판 안에서만 스크롤한다. 메뉴와 상단 띠는 움직이지 않는다.
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { Outlet, useLocation } from 'react-router-dom'
 import useMediaQuery from '../../hooks/useMediaQuery.js'
@@ -25,6 +25,17 @@ export default function AdminLayout() {
   const { pathname } = useLocation()
   const [panelOpen, setPanelOpen] = useState(isWide)
   const mainRef = useRef(null)
+  // 본문 스크롤바 자리(고정 확보)만큼 상단 띠 오른쪽 여백에 더해 두 오른쪽 끝선을 맞춘다
+  const [gutter, setGutter] = useState(0)
+  useLayoutEffect(() => {
+    const el = mainRef.current
+    if (!el) return undefined
+    const read = () => setGutter(Math.max(0, el.offsetWidth - el.clientWidth))
+    read()
+    const ro = new ResizeObserver(read)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [isDesktop])
 
   useEffect(() => { if (isDesktop) setSidebarOpen(false) }, [isDesktop, setSidebarOpen])
   useEffect(() => { setPanelOpen(isWide) }, [isWide])
@@ -32,7 +43,7 @@ export default function AdminLayout() {
   useEffect(() => { mainRef.current?.scrollTo(0, 0) }, [pathname])
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-mute">
+    <div className="flex h-dvh overflow-hidden bg-mute" style={{ '--admin-gutter': `${gutter}px` }}>
       {/* KWCAG 반복 영역 건너뛰기(회신 R14 지침 자체 점검) */}
       <a href="#main" onClick={(e) => { e.preventDefault(); mainRef.current?.focus() }} className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-md focus:bg-text-pri focus:px-4 focus:py-2 focus:font-bold focus:text-text-inverse">본문 바로가기</a>
       {isDesktop && (

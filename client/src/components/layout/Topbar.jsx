@@ -1,4 +1,5 @@
 // 담당자 상단 띠. 레퍼런스(IMG_1531)처럼 회색 바탕 위 한 줄로 둔다.
+// 오른쪽 안쪽 여백은 흰 판 오른쪽 바깥 여백 8과 본문 안쪽 여백 32를 더한 40(스크롤바 자리 포함)이라 본문 오른쪽 끝선과 맞는다.
 // 왼쪽은 메뉴 접기. 그 오른쪽은 현재 위치. 맨 오른쪽은 발령 중 상태와 발령 단추.
 import clsx from 'clsx'
 import { ChevronRight, Menu, PanelLeft } from 'lucide-react'
@@ -22,7 +23,7 @@ export default function Topbar({ isDesktop, panelOpen, onTogglePanel }) {
   const Icon = section?.Icon
   const sub = section && topbar.title && topbar.title !== section.label ? topbar.title : null
   return (
-    <header className="flex h-16 shrink-0 items-center gap-4 pr-4 md:pr-4">
+    <header className="flex h-16 shrink-0 items-center gap-4 pr-4 md:pr-[calc(40px+var(--admin-gutter,0px))]">
       {isDesktop ? (
         <div className="flex shrink-0 items-center gap-1 pl-4">
           <button type="button" aria-label={panelOpen ? '메뉴 접기' : '메뉴 펴기'} aria-pressed={panelOpen} className={ICON_BTN} onClick={onTogglePanel}><PanelLeft size={18} aria-hidden="true" /></button>
