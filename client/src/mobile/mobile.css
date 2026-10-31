@@ -578,9 +578,7 @@ button.mob-row:active, a.mob-row:active { background: var(--m-press); }
 .mob-root.platform-ios:is(.bar-side, .two-pane) .mob-bar-row { padding: 0 24px 0 var(--m-margin); gap: 12px; }
 .mob-root.platform-ios:is(.bar-side, .two-pane) .mob-bar:not(:has(.mob-bar-large)) { padding-bottom: 12px; }
 .mob-root.platform-ios.two-pane .mob-nav.nav-bottom { left: calc(50% - 204.5px); right: auto; width: 409px; }
-.mob-root.platform-ios.two-pane .mob-nav.nav-bottom .mob-nav-inner { box-sizing: border-box; height: 62px; margin: -4px; padding: 4px 6px; }
-.mob-root.platform-ios.two-pane .mob-nav.nav-bottom .mob-nav-item { flex: 1 1 0; width: auto; min-width: 0; }
-.mob-root.platform-ios.two-pane .mob-nav.nav-bottom .mob-nav-item + .mob-nav-item { margin-left: -8px; }
+.mob-root.platform-ios:is(.bar-side, .two-pane) .mob-bar-large { padding: 0 var(--m-margin) 10px; }   /* Large Title 묶음 아래 10: 아이폰 전용 규칙으로 좌우 위 여백이 바뀔 뒤 듀오에 다시 지정 */
 .mob-root.platform-android.bar-rail:not(:has(.mob-nav)) { --m-rail: 0px; }
 /* Android 시간 입력: M3 Keyboard picker(52949:28053)는 바닥 시트가 아닌 가운데 모달. 264 폭, 모서리 28.
    키트 면 색(surfaceContainerHigh 옅은 보라)은 옅은 색 금지 규칙에 따라 대화상자와 같은 흰 면과 그림자 */
