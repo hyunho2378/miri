@@ -35,3 +35,9 @@
 - 'Components' 부모 페이지에 목차 프레임(Components / Index) 만듦(페이지별 부품 이름과 변형 수).
 - 코드 props 와 이름 차이: Tabs 의 Variant 값은 코드가 소문자(underline, pill), 피그마는 대문자 시작. Card Padding 값 sm, md, lg 는 코드와 같음(데스크톱 값 16, 20, 24). Toast Tone 도 대문자 시작.
 - 한계: Input 오류 변형에서 Hint text 속성 기본값이 '도움말'로 덮여 오류 문구가 안 보임(사용 때 글자 바꿔야 함). Card 15 변형의 헤더(eyebrow, actions, meta, media)는 없음(제목과 본문만). EmptyState, Modal, Drawer, Select, MultiSelect, DatePicker, NumberStepper, FilterBar, ChoiceChips, ExportButton, console/ dashboard/ layout/ miri/ 도메인 부품은 못 함. 속성 표와 상태 행렬을 담은 짙은 회색 섹션 문서화도 못 함(세트 설명 Description 에 코드 경로와 값은 적음). Material 3 키트는 이번에 시도 못 함(시간).
+
+## D3 (2026. 11. 1.)
+- 새 부품 10개: Select(4), MultiSelect(2), DatePicker(3), ChoiceChips(6), NumberStepper(2), Modal(2), Drawer(2), EmptyState(4), FilterBar(1), ExportButton(2). 색, 모서리, 간격 변수 연결, 글자 type/* 스타일.
+- 모든 Components 페이지를 레퍼런스(AX.S Public GitLab Rebuild_DS) 방식으로 재편: 부품마다 짙은 회색(#1e2124) Section 하나, 안에 .page_header(남색), component(흰 배경, 세트), guide(속성과 상태 표, 사양 표) 3프레임.
+- 점검: 세트 30개(Icons 제외), 변형 262개, 직접 색 0, 변수 없는 칠 0, 숨은 노드 0, 섹션 겹침 0, 글자 스타일 연결 309/362(85%).
+- 못 한 것: Do와 Don't(코드 규칙 근거 미확인), M3 키트 접근, 열린 달력 상태, Components / Domain(작업자 D4), Components 부모 목차 갱신, 코드 props와 대소문자 차이 정리.

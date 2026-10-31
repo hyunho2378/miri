@@ -1,0 +1,853 @@
+{
+ "generated": "2026-11-01",
+ "tolerance_px": 2,
+ "note": "앱은 높이를 기기 높이로 고정(pin) 후 추출, 텍스트 문구 같고 가장 가까운 것끼리 짝지음",
+ "fill_census": {
+  "variants": 27,
+  "fillsTotal": 699,
+  "boundVar": 231,
+  "unboundSolid": 468,
+  "strokesTotal": 549,
+  "strokeBound": 201,
+  "strokeUnbound": 348,
+  "texts": 486,
+  "textStyled": 0,
+  "textSmall": 0,
+  "unboundHex": {
+   "#1B1B1F": 204,
+   "#44474F": 261,
+   "#9CA3AF": 3
+  },
+  "unboundStrokeHex": {
+   "#44474F": 330,
+   "#1B1B1F": 18
+  },
+  "bad": []
+ },
+ "kit": {
+  "rail_width_app": 96,
+  "margin_medium_app": 32,
+  "margin_compact_app": 16,
+  "measured": {
+   "Fold 616": {
+    "nav": {
+     "x": 0,
+     "w": 96,
+     "h": 816,
+     "y": 0
+    },
+    "cardX": 128,
+    "cardRight": 32,
+    "contentPadL": "32px",
+    "contentPadR": "32px",
+    "rootCls": "mob-root platform-android size-medium bar-rail in-frame "
+   },
+   "Fold Cover 416": {
+    "nav": {
+     "x": 0,
+     "w": 416,
+     "h": 64,
+     "y": 593
+    },
+    "cardX": 16,
+    "cardRight": 16,
+    "contentPadL": "16px",
+    "contentPadR": "16px",
+    "rootCls": "mob-root platform-android size-compact bar-bottom in-frame "
+   }
+  }
+ },
+ "fonts": {
+  "app": [
+   "Roboto, \"Noto Sans KR\", system-ui, \"Pretendard GOV Variable\", sans-serif | 16px",
+   "Roboto, \"Noto Sans KR\", system-ui, \"Pretendard GOV Variable\", sans-serif | 22px",
+   "Roboto, \"Noto Sans KR\", system-ui, \"Pretendard GOV Variable\", sans-serif | 14px"
+  ],
+  "figma": {
+   "Pretendard Regular 22": 1,
+   "Pretendard Regular 16": 13,
+   "Pretendard SemiBold 22": 1,
+   "Pretendard Medium 14": 1,
+   "Pretendard Medium 12": 4
+  }
+ },
+ "rows": [
+  {
+   "set": "M-01 FieldStatus",
+   "state": "Default",
+   "device": "Fold 616",
+   "id": "25:29",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "domN": 20,
+   "figN": 20,
+   "matched": 20,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 1,
+   "sizeOver3": 1,
+   "maxOff": 3.6,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "훈련 발령으로 명단 확 dx4 dy0 dw-7"
+   ]
+  },
+  {
+   "set": "M-04 FieldHelpers",
+   "state": "Idle",
+   "device": "Fold 616",
+   "id": "25:30",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "domN": 8,
+   "figN": 8,
+   "matched": 8,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 2,
+   "sizeOver3": 2,
+   "maxOff": 5.3,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "진행 중인 발령 없음 dx3 dy0 dw-7",
+    "배정 뒤 도우미 응답이 dx5 dy0 dw-11"
+   ]
+  },
+  {
+   "set": "M-05 FieldMore",
+   "state": "Default",
+   "device": "Fold 616",
+   "id": "25:31",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "domN": 16,
+   "figN": 16,
+   "matched": 16,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 1,
+   "sizeOver3": 0,
+   "maxOff": 2.5,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "로그아웃 dx3 dy0 dw-3"
+   ]
+  },
+  {
+   "set": "M-06 FieldFire",
+   "state": "Idle",
+   "device": "Fold 616",
+   "id": "25:32",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "domN": 7,
+   "figN": 7,
+   "matched": 7,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 1,
+   "sizeOver3": 1,
+   "maxOff": 3.4,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "발령 시작 후 대상자  dx3 dy0 dw-7"
+   ]
+  },
+  {
+   "set": "M-07 FieldPeople",
+   "state": "Default",
+   "device": "Fold 616",
+   "id": "25:33",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "domN": 15,
+   "figN": 15,
+   "matched": 15,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 1,
+   "sizeOver3": 5,
+   "maxOff": 16,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "대상자 번호 또는 마을 dx0 dy16 dw-227"
+   ]
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Idle",
+   "device": "Fold 616",
+   "id": "25:34",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "domN": 8,
+   "figN": 8,
+   "matched": 8,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 2,
+   "sizeOver3": 2,
+   "maxOff": 4.7,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "진행 중인 발령 없음 dx3 dy0 dw-7",
+    "발령이 나면 여기에 진 dx5 dy0 dw-9"
+   ]
+  },
+  {
+   "set": "M-08 Helper",
+   "state": "Consent",
+   "device": "Fold 616",
+   "id": "25:35",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "domN": 8,
+   "figN": 8,
+   "matched": 8,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 3,
+   "sizeOver3": 2,
+   "maxOff": 2.9,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "요청 없음 dx3 dy0 dw-3",
+    "참여 동의하기 dx3 dy0 dw-5",
+    "훈련 배정 받기 dx2 dy0 dw-4"
+   ]
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Dispatch",
+   "device": "Fold 616",
+   "id": "25:36",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "domN": 15,
+   "figN": 15,
+   "matched": 10,
+   "missing": 5,
+   "extra": 5,
+   "posOver2": 0,
+   "sizeOver3": 0,
+   "maxOff": 0.6,
+   "missL": [
+    "0 / 18명 도착, 02:56까지",
+    "0 / 27명 도착, 03:05까지",
+    "0 / 27명 도착, 03:32까지",
+    "0 / 50명 도착, 03:40까지"
+   ],
+   "extL": [
+    "0 / 18명 도착, 02:33까지",
+    "0 / 27명 도착, 02:42까지",
+    "0 / 27명 도착, 03:09까지",
+    "0 / 50명 도착, 03:16까지"
+   ],
+   "offs": []
+  },
+  {
+   "set": "M-03 FieldVillage",
+   "state": "Dispatch",
+   "device": "Fold 616",
+   "id": "25:37",
+   "appSize": [
+    616,
+    816
+   ],
+   "figSize": [
+    616,
+    816
+   ],
+   "domN": 65,
+   "figN": 65,
+   "matched": 65,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 0,
+   "sizeOver3": 18,
+   "maxOff": 1.4,
+   "missL": [],
+   "extL": [],
+   "offs": []
+  },
+  {
+   "set": "M-01 FieldStatus",
+   "state": "Default",
+   "device": "Fold 816 Landscape",
+   "id": "25:38",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "domN": 20,
+   "figN": 20,
+   "matched": 20,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 8,
+   "sizeOver3": 1,
+   "maxOff": 280.3,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "서류 사진 올리기 dx0 dy280 dw0",
+    "현장 소식 남기기 dx0 dy280 dw0",
+    "우리 동 이동 불가 인 dx0 dy280 dw0",
+    "74명 dx0 dy280 dw0",
+    "추천 배정 기준, 명부 dx0 dy280 dw0",
+    "훈련 발령으로 명단 확 dx4 dy280 dw-7"
+   ]
+  },
+  {
+   "set": "M-04 FieldHelpers",
+   "state": "Idle",
+   "device": "Fold 816 Landscape",
+   "id": "25:39",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "domN": 8,
+   "figN": 8,
+   "matched": 8,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 2,
+   "sizeOver3": 2,
+   "maxOff": 5.3,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "진행 중인 발령 없음 dx3 dy0 dw-7",
+    "배정 뒤 도우미 응답이 dx5 dy0 dw-11"
+   ]
+  },
+  {
+   "set": "M-05 FieldMore",
+   "state": "Default",
+   "device": "Fold 816 Landscape",
+   "id": "25:40",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "domN": 16,
+   "figN": 16,
+   "matched": 16,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 7,
+   "sizeOver3": 0,
+   "maxOff": 188.3,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "훈련 발령 시작 dx0 dy188 dw0",
+    "훈련 속도 60배 dx0 dy188 dw0",
+    "동 담당자 dx0 dy188 dw3",
+    "망상동 재난 담당자 dx0 dy188 dw3",
+    "로그아웃 dx3 dy188 dw-3",
+    "큰 글자 dx0 dy188 dw0"
+   ]
+  },
+  {
+   "set": "M-06 FieldFire",
+   "state": "Idle",
+   "device": "Fold 816 Landscape",
+   "id": "25:41",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "domN": 7,
+   "figN": 7,
+   "matched": 7,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 1,
+   "sizeOver3": 1,
+   "maxOff": 3.4,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "발령 시작 후 대상자  dx3 dy0 dw-7"
+   ]
+  },
+  {
+   "set": "M-07 FieldPeople",
+   "state": "Default",
+   "device": "Fold 816 Landscape",
+   "id": "25:42",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "domN": 15,
+   "figN": 15,
+   "matched": 15,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 1,
+   "sizeOver3": 5,
+   "maxOff": 16,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "대상자 번호 또는 마을 dx0 dy16 dw-427"
+   ]
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Idle",
+   "device": "Fold 816 Landscape",
+   "id": "25:43",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "domN": 8,
+   "figN": 8,
+   "matched": 8,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 2,
+   "sizeOver3": 2,
+   "maxOff": 4.7,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "진행 중인 발령 없음 dx3 dy0 dw-7",
+    "발령이 나면 여기에 진 dx5 dy0 dw-9"
+   ]
+  },
+  {
+   "set": "M-08 Helper",
+   "state": "Consent",
+   "device": "Fold 816 Landscape",
+   "id": "25:44",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "domN": 8,
+   "figN": 8,
+   "matched": 8,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 3,
+   "sizeOver3": 2,
+   "maxOff": 2.9,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "요청 없음 dx3 dy0 dw-3",
+    "참여 동의하기 dx3 dy0 dw-5",
+    "훈련 배정 받기 dx2 dy0 dw-4"
+   ]
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Dispatch",
+   "device": "Fold 816 Landscape",
+   "id": "25:45",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "domN": 15,
+   "figN": 15,
+   "matched": 10,
+   "missing": 5,
+   "extra": 5,
+   "posOver2": 0,
+   "sizeOver3": 0,
+   "maxOff": 0.6,
+   "missL": [
+    "0 / 18명 도착, 02:57까지",
+    "0 / 27명 도착, 03:06까지",
+    "0 / 27명 도착, 03:34까지",
+    "0 / 50명 도착, 03:41까지"
+   ],
+   "extL": [
+    "0 / 18명 도착, 02:33까지",
+    "0 / 27명 도착, 02:42까지",
+    "0 / 27명 도착, 03:10까지",
+    "0 / 50명 도착, 03:17까지"
+   ],
+   "offs": []
+  },
+  {
+   "set": "M-03 FieldVillage",
+   "state": "Dispatch",
+   "device": "Fold 816 Landscape",
+   "id": "25:46",
+   "appSize": [
+    816,
+    616
+   ],
+   "figSize": [
+    816,
+    616
+   ],
+   "domN": 65,
+   "figN": 65,
+   "matched": 64,
+   "missing": 1,
+   "extra": 1,
+   "posOver2": 0,
+   "sizeOver3": 18,
+   "maxOff": 1.5,
+   "missL": [
+    "대피소 도착, 02:57까지"
+   ],
+   "extL": [
+    "대피소 도착, 02:55까지"
+   ],
+   "offs": []
+  },
+  {
+   "set": "M-01 FieldStatus",
+   "state": "Default",
+   "device": "Fold Cover 416",
+   "id": "25:47",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "domN": 20,
+   "figN": 20,
+   "matched": 20,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 1,
+   "sizeOver3": 1,
+   "maxOff": 3.6,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "훈련 발령으로 명단 확 dx4 dy0 dw-7"
+   ]
+  },
+  {
+   "set": "M-04 FieldHelpers",
+   "state": "Idle",
+   "device": "Fold Cover 416",
+   "id": "25:48",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "domN": 8,
+   "figN": 8,
+   "matched": 8,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 2,
+   "sizeOver3": 2,
+   "maxOff": 5.3,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "진행 중인 발령 없음 dx3 dy0 dw-7",
+    "배정 뒤 도우미 응답이 dx5 dy0 dw-11"
+   ]
+  },
+  {
+   "set": "M-05 FieldMore",
+   "state": "Default",
+   "device": "Fold Cover 416",
+   "id": "25:49",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "domN": 16,
+   "figN": 16,
+   "matched": 16,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 1,
+   "sizeOver3": 0,
+   "maxOff": 2.5,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "로그아웃 dx3 dy0 dw-3"
+   ]
+  },
+  {
+   "set": "M-06 FieldFire",
+   "state": "Idle",
+   "device": "Fold Cover 416",
+   "id": "25:50",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "domN": 7,
+   "figN": 7,
+   "matched": 7,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 1,
+   "sizeOver3": 1,
+   "maxOff": 3.3,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "발령 시작 후 대상자  dx3 dy0 dw-7"
+   ]
+  },
+  {
+   "set": "M-07 FieldPeople",
+   "state": "Default",
+   "device": "Fold Cover 416",
+   "id": "25:51",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "domN": 15,
+   "figN": 15,
+   "matched": 15,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 1,
+   "sizeOver3": 5,
+   "maxOff": 16,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "대상자 번호 또는 마을 dx0 dy16 dw-155"
+   ]
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Idle",
+   "device": "Fold Cover 416",
+   "id": "25:52",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "domN": 8,
+   "figN": 8,
+   "matched": 8,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 2,
+   "sizeOver3": 2,
+   "maxOff": 4.7,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "진행 중인 발령 없음 dx3 dy0 dw-7",
+    "발령이 나면 여기에 진 dx5 dy0 dw-9"
+   ]
+  },
+  {
+   "set": "M-08 Helper",
+   "state": "Consent",
+   "device": "Fold Cover 416",
+   "id": "25:53",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "domN": 8,
+   "figN": 8,
+   "matched": 8,
+   "missing": 0,
+   "extra": 0,
+   "posOver2": 3,
+   "sizeOver3": 2,
+   "maxOff": 2.9,
+   "missL": [],
+   "extL": [],
+   "offs": [
+    "요청 없음 dx3 dy0 dw-3",
+    "참여 동의하기 dx3 dy-1 dw-5",
+    "훈련 배정 받기 dx2 dy-1 dw-4"
+   ]
+  },
+  {
+   "set": "M-02 FieldVillages",
+   "state": "Dispatch",
+   "device": "Fold Cover 416",
+   "id": "25:54",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "domN": 15,
+   "figN": 15,
+   "matched": 10,
+   "missing": 5,
+   "extra": 5,
+   "posOver2": 0,
+   "sizeOver3": 0,
+   "maxOff": 0.6,
+   "missL": [
+    "0 / 18명 도착, 02:58까지",
+    "0 / 27명 도착, 03:07까지",
+    "0 / 27명 도착, 03:34까지",
+    "0 / 50명 도착, 03:42까지"
+   ],
+   "extL": [
+    "0 / 18명 도착, 02:34까지",
+    "0 / 27명 도착, 02:43까지",
+    "0 / 27명 도착, 03:11까지",
+    "0 / 50명 도착, 03:18까지"
+   ],
+   "offs": []
+  },
+  {
+   "set": "M-03 FieldVillage",
+   "state": "Dispatch",
+   "device": "Fold Cover 416",
+   "id": "25:55",
+   "appSize": [
+    416,
+    657
+   ],
+   "figSize": [
+    416,
+    657
+   ],
+   "domN": 65,
+   "figN": 65,
+   "matched": 64,
+   "missing": 1,
+   "extra": 1,
+   "posOver2": 0,
+   "sizeOver3": 18,
+   "maxOff": 1.4,
+   "missL": [
+    "대피소 도착, 02:58까지"
+   ],
+   "extL": [
+    "대피소 도착, 02:55까지"
+   ],
+   "offs": []
+  }
+ ]
+}
