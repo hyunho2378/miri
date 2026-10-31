@@ -76,7 +76,7 @@ const ARTICLES = [
     },
     after: [
       '서류 사진은 국내 글자 인식(CLOVA OCR)에만 보냅니다. 문구 분류(HyperCLOVA X)에는 이름, 연락처, 주소로 보이는 값을 가린 글자만 보냅니다.',
-      '시범 운영 단계에서는 공공기관용 클라우드로 이전하며, 위탁 내용이 바뀌면 이 처리방침으로 지체 없이 공개합니다(개인정보 보호법 제26조).'
+      { red: true, text: '이후 서버 함수와 키값 저장소(현재 Vercel 서울, Upstash)를 국내 네이버 클라우드로 이전할 예정이며, 위탁 내용이 바뀌면 이 처리방침으로 지체 없이 공개합니다(개인정보 보호법 제26조).' }
     ]
   },
   {
@@ -188,7 +188,9 @@ export default function PrivacyPage() {
               <div className="grid gap-3">
                 {a.body?.map((t) => <p key={t} className="type-body-sm leading-7 text-text-pri break-keep">{t}</p>)}
                 {a.table && <Table {...a.table} />}
-                {a.after?.map((t) => <p key={t} className="type-body-sm leading-7 text-text-pri break-keep">{t}</p>)}
+                {a.after?.map((t) => (typeof t === 'string'
+                  ? <p key={t} className="type-body-sm leading-7 text-text-pri break-keep">{t}</p>
+                  : <p key={t.text} className="type-body-sm font-bold leading-7 text-danger-text break-keep">{t.text}</p>))}
               </div>
             </Section>
           ))}

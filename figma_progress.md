@@ -11,3 +11,8 @@
 - 2026. 11. 1. 폭: 콘솔 12개 화면을 1024, 1440, 1920 세 폭으로 'Screens / Console'에 올림(폭마다 같은 보정). 추가 C-00 Login, C-11 RecordDetail(1440). 소개 P-01 OpenApi, P-02 Privacy는 'Screens / Public'. 휴대폰은 'Screens / Mobile'(작업자 B, 360폭 8화면, 아이폰 402폭 미작업). 작업자 C 가 만든 중복 WIP 페이지는 삭제.
 - 2026. 11. 1. 부품: UI 부품 19개 컴포넌트 세트 + 아이콘 10개(작업자 D, D2). iOS 27 키트에서 Meta+c, Meta+v 복사 방식 확인.
 - 2026. 11. 1. 커버: 레퍼런스(AX.S Public GitLab Rebuild_DS 커버, 노드 11043:9965)를 구조까지 읽고 같은 구성으로 제작. 알파 변수 color/alpha/inverse25, inverse75 추가, 글자 스타일 cover/* 8개. 노드 3:22512.
+
+## 2026. 11. 1. 국내 이전 계획 문구와 시속 2km 근거 반영 (D-02 코드와 피그마 같은 값)
+- 코드: client/src/mock/seed.js S-1 근거 문구(같은 경로 실측 약 시속 1.2km, 2019년 고성과 속초 시속 5.1km, 시속 2km는 그 사이 가정값, 8.2km급은 S-3), client/src/pages/public/PrivacyPage.jsx 제6조 마지막 문장 빨간 굵은 글씨(text-danger-text), client/public/diagrams/system-architecture.html 하단 빨간 문장 한 줄(docs/diagrams 사본 동일)
+- 피그마: Screens / Public, P-02 Privacy, 노드 6:11517 같은 문장, Pretendard Bold, 채움 color/danger/text(VariableID:2:182) 연결, 두 줄이 되어 상위 프레임 높이 28 증가(Breakpoint=1440 3620에서 3648)
+- S-1 근거 문구는 피그마 화면에 대응 요소가 없음(지도 요약 패널 문구)
