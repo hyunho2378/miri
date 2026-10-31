@@ -148,18 +148,18 @@ export default function OverviewPage() {
     ...(!isDong && extraLine ? [{ label: '협약 후 이동 불가 인원', value: '0', unit: '명', note: `${extraLine} 추가` }] : [])
   ]
 
-  // 점검 필요 항목은 두 건만 보이고 전체는 상단바 점검 필요 목록에서 연다
+  // 점검 필요 항목은 세 건만 보이고 전체는 상단바 점검 필요 목록에서 연다
   const openAnomalies = () => document.querySelector('button[aria-label^="점검 필요"]')?.click()
   const todoRows = [
-    ...anomalies.slice(0, 2).map((a) => ({ key: a.id, to: a.to, title: ANOMALY_RULES[a.rule], sub: a.target })),
-    ...(anomalies.length > 2 ? [{ key: 'anomaly-all', onClick: openAnomalies, title: '점검 필요 전체', n: `${anomalies.length}건` }] : []),
+    ...anomalies.slice(0, 3).map((a) => ({ key: a.id, to: a.to, title: ANOMALY_RULES[a.rule], sub: a.target })),
+    ...(anomalies.length > 3 ? [{ key: 'anomaly-all', onClick: openAnomalies, title: '점검 필요 전체', n: `${anomalies.length}건` }] : []),
     ...(pending > 0 ? [{ key: 'docs', to: '/console/intake', title: '서류 확인 대기', sub: 'AI 읽기 결과 확인', n: `${pending}건` }] : []),
     ...(pc.notes > 0 ? [{ key: 'notes', to: '/console/notes', title: '현장 소식 확인 대기', n: `${pc.notes}건` }] : []),
     ...(staleRoster > 0 ? [{ key: 'stale', to: '/console/roster?recheck=1', title: '명부 재확인 대상', n: `${staleRoster}명` }] : [])
   ]
 
   return (
-    <PageShell title="오늘의 현황" hideHeader className="flex h-full min-h-fit flex-col !pb-4">
+    <PageShell title="오늘의 현황" hideHeader className="flex h-full min-h-fit flex-col !pb-6">
       <PageHeader
         title="오늘의 현황" meta={todayLabel()}
         action={(
@@ -199,7 +199,7 @@ export default function OverviewPage() {
             "cq-2xl:[grid-template-columns:19rem_minmax(0,1fr)_24rem]"
           )}
         >
-          <div className="grid min-w-0 content-start gap-12 [grid-area:chart] cq-xl:flex cq-xl:flex-col">
+          <div className="grid min-w-0 content-start gap-12 [grid-area:chart] cq-xl:flex cq-xl:flex-col cq-xl:justify-between">
             <Section id="ov-chart" className="cq-xl:flex cq-xl:flex-1 cq-xl:flex-col" title="마을별 이동 불가 인원" action={<Link to="/console/map" className="inline-flex min-h-7 items-center type-strong text-primary-text hover:underline">상황판에서 보기</Link>}>
               {bars.length ? <VillageBars rows={bars} fill /> : <p className="type-body text-text-sec">대피 대상 마을 없음</p>}
               <div role="radiogroup" aria-label="이송 등급" className="mt-3 flex flex-wrap gap-2">
@@ -217,22 +217,22 @@ export default function OverviewPage() {
               </div>
             </Section>
             <Section id="ov-village" title={`${shortVillages.length ? '이동 불가 발생 마을' : '대피 대상 마을'} ${villageRows.length}곳`}>
-              <ul className="cq-xl:grid cq-xl:grid-cols-2 cq-xl:gap-x-2 cq-2xl:grid-cols-3">
+              <ul className="-mx-3 cq-xl:grid cq-xl:grid-cols-2 cq-xl:gap-x-2 cq-2xl:grid-cols-3">
                 {villageRows.map(({ v, r }) => (
                   <li key={v.code}>
-                    <LinkRow dense onClick={() => setPicked(v.code)} title={v.label} sub={rowSub(v)} value={r.total > 0 ? `${r.total}명` : '없음'} tone={r.total > 0 ? 'danger' : undefined} />
+                    <LinkRow dense className="cq-xl:min-h-14" onClick={() => setPicked(v.code)} title={v.label} sub={rowSub(v)} value={r.total > 0 ? `${r.total}명` : '없음'} tone={r.total > 0 ? 'danger' : undefined} />
                   </li>
                 ))}
               </ul>
             </Section>
           </div>
 
-          <div className="grid min-w-0 content-start gap-8 [grid-area:todo] cq-xl:flex cq-xl:flex-col">
+          <div className="grid min-w-0 content-start gap-6 [grid-area:todo] cq-xl:flex cq-xl:flex-col">
             <Section id="ov-todo" title="처리할 일" count={todo} action={<DispatchAction size="sm" />}>
               {todoRows.length === 0 ? (
                 <p className="type-body text-text-sec">처리할 일 없음</p>
               ) : (
-                <ul>
+                <ul className="-mx-3">
                   {todoRows.map((t) => <li key={t.key}><LinkRow dense to={t.to} onClick={t.onClick} title={t.title} sub={t.sub} value={t.n} /></li>)}
                 </ul>
               )}

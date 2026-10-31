@@ -86,7 +86,7 @@ export function SideNav({ collapsed = false, onNavigate, showHeader = true }) {
           )
         })}
       </nav>
-      <div className={clsx('shrink-0 py-2', collapsed ? 'flex justify-center px-2' : 'px-3')}>
+      <div className={clsx('shrink-0 pb-6 pt-2', collapsed ? 'flex justify-center px-2' : 'px-3')}>
         <UserMenu compact={collapsed} />
       </div>
     </div>
