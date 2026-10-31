@@ -16,3 +16,7 @@
 - 코드: client/src/mock/seed.js S-1 근거 문구(같은 경로 실측 약 시속 1.2km, 2019년 고성과 속초 시속 5.1km, 시속 2km는 그 사이 가정값, 8.2km급은 S-3), client/src/pages/public/PrivacyPage.jsx 제6조 마지막 문장 빨간 굵은 글씨(text-danger-text), client/public/diagrams/system-architecture.html 하단 빨간 문장 한 줄(docs/diagrams 사본 동일)
 - 피그마: Screens / Public, P-02 Privacy, 노드 6:11517 같은 문장, Pretendard Bold, 채움 color/danger/text(VariableID:2:182) 연결, 두 줄이 되어 상위 프레임 높이 28 증가(Breakpoint=1440 3620에서 3648)
 - S-1 근거 문구는 피그마 화면에 대응 요소가 없음(지도 요약 패널 문구)
+
+## 2026. 11. 1. 소방 인계 화면 요약 줄 이름 정리
+- 코드: client/src/pages/console/HandoverPage.jsx 요약 줄 "소방 인계 대상"을 "인계 대기"로, "인계 완료"를 "소방 인계 완료"로(표 제목 "소방 인계 대상"은 전체 인원이라 그대로). 시험 tests/handoverSummaryLabels.test.mjs 추가, 전체 333개 통과
+- 피그마: Screens / Console C-08 Handover는 발령 전 상태(진행 중인 발령 없음)만 담고 있어 이 요약 줄이 없다. 바꿀 노드 없음. 발령 중 상태 변형을 추가할 때 같은 이름을 쓴다

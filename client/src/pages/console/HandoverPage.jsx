@@ -1,5 +1,6 @@
 // 소방 인계(IA 4.7). 소방 인계 대상 = 배정 결과 미배정 + 이송 실패 + 이미 소방 인계한 대상자.
 // 선택 후 일괄 인계, CSV 내보내기, 인쇄, 전달 기록.
+// 요약 줄은 인계 대기(아직 안 넘긴 인원)와 소방 인계 완료, 표 제목 소방 인계 대상은 둘을 합한 전체(2026. 11. 1. 한 화면에서 같은 이름이 다른 숫자를 가리키던 것을 나눔)
 // 현직 소방관 인터뷰(2026. 10. 24.) 반영: 기준 시각을 숫자 옆에, 가장 급한 사람 먼저, 상세 위치와 엘리베이터와 보호자 연락처,
 // 명부 마지막 확인, 소방 용어(구조 대상, 거동불편). 목록 계산은 lib/handoverRows.js
 import { useMemo, useState } from 'react'
@@ -156,8 +157,8 @@ export default function HandoverPage() {
       ) : (
         <div className="space-y-3">
           <dl className="flex flex-wrap items-baseline gap-x-8 gap-y-1 type-body text-text-pri tabular-nums">
-            <div className="flex items-baseline gap-2"><dt className="text-text-sec">소방 인계 대상</dt><dd className={waiting.length ? 'type-strong text-danger-text' : 'type-strong'}>{waiting.length}명</dd><dd className="type-meta text-text-sec">{fmtHM(baseAt)} 기준</dd></div>
-            <div className="flex items-baseline gap-2"><dt className="text-text-sec">인계 완료</dt><dd className="type-strong">{handed}명</dd></div>
+            <div className="flex items-baseline gap-2"><dt className="text-text-sec">인계 대기</dt><dd className={waiting.length ? 'type-strong text-danger-text' : 'type-strong'}>{waiting.length}명</dd><dd className="type-meta text-text-sec">{fmtHM(baseAt)} 기준</dd></div>
+            <div className="flex items-baseline gap-2"><dt className="text-text-sec">소방 인계 완료</dt><dd className="type-strong">{handed}명</dd></div>
             <div className="flex items-baseline gap-2"><dt className="text-text-sec">전달 횟수</dt><dd className="type-strong">{d.handovers.length}회</dd>{d.status === 'assigned' && <dd className="type-meta text-text-sec">배정표 보내기 전 예상</dd>}</div>
           </dl>
 
