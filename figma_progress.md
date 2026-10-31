@@ -7,3 +7,7 @@
 - 아직 안 함: C-00 Login, C-11 RecordDetail(데이터 의존), 휴대폰 M-01~M-08, 공개 P-01~P-02, 폭 1920과 1024, 변형(Breakpoint, Role) 세트 묶기, 이름표(data-figma), 컴포넌트 부품(P4), 측정과 원장(P7~P9), 반응형 점검(P10).
 - 열린 충돌: 수업 규칙 '12 미만 글자 금지'와 코드 tokens.js(count 10px, 모바일 caption 11px). 사용자 결정 필요.
 - 2026. 11. 1. 사용자 결정 D-02: 피그마를 바꾸면 코드도 같이 바꾸고, 깃허브에도 올려 세 곳을 맞춘다. 개인 파일 확정, Aside가 직접 전사 확정.
+- 2026. 11. 1. 보정: 전사 도구가 만든 보조 상자(Spacing)가 Hug 라 안의 막대 칸이 접히는 문제를 '자식 기준 높이 고정'(pinFn2)으로 해결. 홈 픽셀 차이 6.1% → 4.2%. 상황판 지도(WebGL)는 캔버스만 남기고 캡처한 이미지를 Map Page 맨 뒤 'Map / Terrain'으로 깔아 37% → 2.9%.
+- 2026. 11. 1. 폭: 콘솔 12개 화면을 1024, 1440, 1920 세 폭으로 'Screens / Console'에 올림(폭마다 같은 보정). 추가 C-00 Login, C-11 RecordDetail(1440). 소개 P-01 OpenApi, P-02 Privacy는 'Screens / Public'. 휴대폰은 'Screens / Mobile'(작업자 B, 360폭 8화면, 아이폰 402폭 미작업). 작업자 C 가 만든 중복 WIP 페이지는 삭제.
+- 2026. 11. 1. 부품: UI 부품 19개 컴포넌트 세트 + 아이콘 10개(작업자 D, D2). iOS 27 키트에서 Meta+c, Meta+v 복사 방식 확인.
+- 2026. 11. 1. 커버: 레퍼런스(AX.S Public GitLab Rebuild_DS 커버, 노드 11043:9965)를 구조까지 읽고 같은 구성으로 제작. 알파 변수 color/alpha/inverse25, inverse75 추가, 글자 스타일 cover/* 8개. 노드 3:22512.
