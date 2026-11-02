@@ -10,7 +10,7 @@ export default function NumberFlow({ items, label = '숫자 흐름', className, 
     return (
       <ol aria-label={label} className={clsx('grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(14rem,1fr))]', className)}>
         {items.map((it, i) => (
-          <li key={it.label} className="relative min-w-0 rounded-lg bg-subtle px-6 py-4">
+          <li key={it.label} className="relative min-w-0 rounded-lg bg-subtle px-6 py-4 [@media(max-height:860px)]:py-3">
             {i > 0 && <span aria-hidden="true" className="absolute -left-6 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center text-text-sec"><ChevronRight size={20} /></span>}
             <p className="type-body-sm font-bold text-text-sec">{it.label}</p>
             <div className="mt-2 flex flex-wrap items-baseline gap-x-3">

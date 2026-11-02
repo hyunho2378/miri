@@ -159,7 +159,7 @@ export default function OverviewPage() {
   ]
 
   return (
-    <PageShell title="오늘의 현황" hideHeader className="flex h-full min-h-fit flex-col !pb-6">
+    <PageShell title="오늘의 현황" hideHeader className="flex h-full min-h-fit flex-col !pb-6 [@media(max-height:860px)]:!pb-4">
       <PageHeader
         title="오늘의 현황" meta={todayLabel()}
         action={(
@@ -169,7 +169,7 @@ export default function OverviewPage() {
           />
         )}
       />
-      <div className="flex min-w-0 flex-1 flex-col gap-6">
+      <div className="flex min-w-0 flex-1 flex-col gap-6 [@media(max-height:860px)]:gap-4">
         {live ? (
           <StatusBand tag={d.kind === 'drill' ? '훈련 발령 중' : '발령 중'} tone="primary" action={<Button as={Link} to="/console/dispatch">발령 운영 열기</Button>}>
             현재 배정표 시 이동 불가 인원 {fmt(liveUnserved)}명
@@ -199,7 +199,7 @@ export default function OverviewPage() {
             "cq-2xl:[grid-template-columns:19rem_minmax(0,1fr)_24rem]"
           )}
         >
-          <div className="grid min-w-0 content-start gap-12 [grid-area:chart] cq-xl:flex cq-xl:flex-col cq-xl:justify-between">
+          <div className="grid min-w-0 content-start gap-12 [@media(max-height:860px)]:gap-6 [grid-area:chart] cq-xl:flex cq-xl:flex-col cq-xl:justify-between">
             <Section id="ov-chart" className="cq-xl:flex cq-xl:flex-1 cq-xl:flex-col" title="마을별 이동 불가 인원" action={<Link to="/console/map" className="inline-flex min-h-7 items-center type-strong text-primary-text hover:underline">상황판에서 보기</Link>}>
               {bars.length ? <VillageBars rows={bars} fill /> : <p className="type-body text-text-sec">대피 대상 마을 없음</p>}
               <div role="radiogroup" aria-label="이송 등급" className="mt-3 flex flex-wrap gap-2">
@@ -227,7 +227,7 @@ export default function OverviewPage() {
             </Section>
           </div>
 
-          <div className="grid min-w-0 content-start gap-6 [grid-area:todo] cq-xl:flex cq-xl:flex-col">
+          <div className="grid min-w-0 content-start gap-6 [@media(max-height:860px)]:gap-4 [grid-area:todo] cq-xl:flex cq-xl:flex-col">
             <Section id="ov-todo" title="처리할 일" count={todo} action={<DispatchAction size="sm" />}>
               {todoRows.length === 0 ? (
                 <p className="type-body text-text-sec">처리할 일 없음</p>
@@ -237,18 +237,18 @@ export default function OverviewPage() {
                 </ul>
               )}
             </Section>
-            <Section tone="surface" dense id="ov-state" title="오늘 산불 여건" className="!p-6 cq-xl:flex cq-xl:flex-1 cq-xl:flex-col">
+            <Section tone="surface" dense id="ov-state" title="오늘 산불 여건" className="!p-6 [@media(max-height:860px)]:!p-4 cq-xl:flex cq-xl:flex-1 cq-xl:flex-col">
               <SummaryRows rows={conditionRows} className="cq-xl:flex cq-xl:flex-1 cq-xl:flex-col cq-xl:[&>div]:max-h-14 cq-xl:[&>div]:flex-1 cq-xl:[&>div]:items-center" />
               <p className="mt-1 type-meta text-text-sec">산림청 국립산림과학원, 기상청 조회서비스</p>
             </Section>
           </div>
 
-          <div className="grid min-w-0 content-start gap-6 cq-lg:grid-cols-2 cq-xl:grid-cols-1 [grid-area:facts] cq-xl:flex cq-xl:flex-col">
-            <Section tone="surface" dense id="ov-facts" title="대피 대상 현황" className="!p-6 cq-xl:flex cq-xl:flex-1 cq-xl:flex-col">
+          <div className="grid min-w-0 content-start gap-6 [@media(max-height:860px)]:gap-4 cq-lg:grid-cols-2 cq-xl:grid-cols-1 [grid-area:facts] cq-xl:flex cq-xl:flex-col">
+            <Section tone="surface" dense id="ov-facts" title="대피 대상 현황" className="!p-6 [@media(max-height:860px)]:!p-4 cq-xl:flex cq-xl:flex-1 cq-xl:flex-col">
               <SummaryRows rows={factRows} className="cq-xl:flex cq-xl:flex-1 cq-xl:flex-col cq-xl:[&>div]:max-h-14 cq-xl:[&>div]:flex-1 cq-xl:[&>div]:items-center" />
             </Section>
             <div className="grid min-w-0 content-start gap-6 cq-lg:content-stretch cq-xl:flex cq-xl:flex-1 cq-xl:flex-col">
-              <Section tone="surface" dense id="ov-cars" className="!p-6 cq-xl:flex cq-xl:flex-1 cq-xl:flex-col" title="출동 가능 차량" action={<Link to="/console/resources" className="inline-flex min-h-8 items-center type-strong text-primary-text hover:underline">협약 차량 확인</Link>}>
+              <Section tone="surface" dense id="ov-cars" className="!p-6 [@media(max-height:860px)]:!p-4 cq-xl:flex cq-xl:flex-1 cq-xl:flex-col" title="출동 가능 차량" action={<Link to="/console/resources" className="inline-flex min-h-8 items-center type-strong text-primary-text hover:underline">협약 차량 확인</Link>}>
                 <SummaryRows rows={carRows} className="cq-xl:flex cq-xl:flex-1 cq-xl:flex-col cq-xl:[&>div]:max-h-14 cq-xl:[&>div]:flex-1 cq-xl:[&>div]:items-center" />
               </Section>
             </div>

@@ -18,6 +18,6 @@ export default function LinkRow({ to, onClick, title, sub, value, tone, dense, c
       </span>
     </>
   )
-  const cls = clsx('flex w-full items-center gap-2 rounded-lg px-3 text-left hover:bg-subtle', dense ? 'min-h-10 py-0.5' : 'min-h-11 py-1', className)
+  const cls = clsx('flex w-full items-center gap-2 rounded-lg px-3 text-left hover:bg-subtle', dense ? 'min-h-10 py-0.5 [@media(max-height:860px)]:min-h-9' : 'min-h-11 py-1', className)
   return to ? <Link to={to} className={cls}>{body}</Link> : <button type="button" onClick={onClick} className={cls}>{body}</button>
 }
