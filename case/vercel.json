@@ -1,0 +1,14 @@
+{
+  "installCommand": "npm install && npm --prefix ../client install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://miri-indol.vercel.app/api/:path*" },
+    { "source": "/console/:path*", "destination": "/screen.html" },
+    { "source": "/console", "destination": "/screen.html" },
+    { "source": "/m/:path*", "destination": "/screen.html" },
+    { "source": "/m", "destination": "/screen.html" },
+    { "source": "/h/:path*", "destination": "/screen.html" },
+    { "source": "/f/:path*", "destination": "/screen.html" }
+  ]
+}
