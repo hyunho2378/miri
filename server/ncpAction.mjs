@@ -1,7 +1,8 @@
 // 네이버 클라우드 Cloud Functions(Apache OpenWhisk 방식) 웹 액션 진입점.
 // 액션 하나가 /api/<이름> 전부를 받는다(API Gateway 에서 /api/{name} 경로를 이 액션으로 연결, raw HTTP 사용).
 // OpenWhisk 가 주는 __ow_method, __ow_headers, __ow_path, __ow_query, __ow_body 로 Vercel 모양 요청을 만들어
-// client/api/*.js 핸들러를 그대로 부른다. 묶을 때 client/api, client/src/lib, client/node_modules 를 함께 넣는다.
+// client/api/*.js 핸들러를 그대로 부른다. 묶음 zip 은 node server/build-action.mjs(--verify 로 풀어서 점검)로 만든다.
+// 경로는 /api/<이름> 과 /<이름> 둘 다 받는다(API Gateway 연결 방식에 따라 __ow_path 앞에 /api 가 없을 수 있음).
 import { adjustHeaders, decorateResponse, loadHandler, parseBody, queryOf, routeOf, runHandler } from './adapter.mjs'
 
 const TEXT_RE = /^(text\/|application\/(json|javascript|xml)|.*\+json)/i
