@@ -9,6 +9,7 @@
 //   MIRI_ALLOWED_ORIGINS    Vercel 에서 넘겨받을 때 원래 주소(예: https://miri-indol.vercel.app)
 //   MIRI_TRUST_FORWARDED_HOST=1  프록시가 붙인 X-Forwarded-Host 를 host 로 쓴다
 //   그 밖의 키(MIRI_DEMO_CODE, MIRI_SESSION_SECRET, NCP_*, REDIS_URL 등)는 Vercel 과 같은 이름
+//   Object Storage 저장소: MIRI_STORE=ncpobject, NCP_OBJECT_BUCKET, NCP_OBJECT_ACCESS_KEY, NCP_OBJECT_SECRET_KEY(선택 NCP_OBJECT_ENDPOINT, NCP_OBJECT_REGION, MIRI_OBJECT_PREFIX)
 import { createServer } from 'node:http'
 import { createReadStream, existsSync, statSync } from 'node:fs'
 import { extname, join, normalize, resolve, sep } from 'node:path'
