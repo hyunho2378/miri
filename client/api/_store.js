@@ -3,7 +3,8 @@
 // 고르는 순서
 //   1. MIRI_STORE=redis 이거나 REDIS_URL(또는 REDIS_HOST)만 있으면 표준 Redis(ioredis). 네이버 클라우드 Cloud DB for Redis 용
 //   2. MIRI_STORE=upstash 이거나 Upstash REST 주소와 토큰이 있으면 Upstash REST
-//   3. 둘 다 없으면 null(호출하는 쪽이 인스턴스 메모리나 '저장소 없음'으로 처리)
+//   3. MIRI_STORE=ncpobject 이고 Object Storage 버킷과 키가 있으면 네이버 클라우드 Object Storage(api/_objectStore.js). 강제 지정할 때만 고른다
+//   4. 모두 없으면 null(호출하는 쪽이 인스턴스 메모리나 '저장소 없음'으로 처리)
 //
 // 표준 Redis 쪽은 Upstash 클라이언트와 같은 결과 모양을 돌려준다(키 구조와 핸들러 코드는 그대로).
 //   - 값 쓰기: 문자열은 그대로, 그 밖의 값은 JSON 문자열로 저장
@@ -16,6 +17,8 @@
 //   REDIS_KEY_PREFIX     키 앞에 붙일 접두어(기본 없음. Upstash 와 같은 키를 쓰려면 비워 둔다)
 import { createRequire } from 'node:module'
 import { Redis as UpstashRedis } from '@upstash/redis'
+import { parseValue, serialize, hashOf } from './_storeShared.js'
+import { ObjectStore, objectConfig } from './_objectStore.js'
 
 const require = createRequire(import.meta.url)
 
@@ -28,6 +31,7 @@ export function storeKind(env = process.env) {
   const hasUpstash = Boolean((env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL) && (env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN))
   if (forced === 'redis') return hasRedis ? 'redis' : null
   if (forced === 'upstash') return hasUpstash ? 'upstash' : null
+  if (forced === 'ncpobject') return objectConfig(env) ? 'ncpobject' : null
   if (forced === 'none') return null
   if (hasRedis) return 'redis'
   if (hasUpstash) return 'upstash'
@@ -35,7 +39,8 @@ export function storeKind(env = process.env) {
 }
 
 const configKey = (env) => [env.MIRI_STORE, env.REDIS_URL, env.REDIS_HOST, env.REDIS_PORT, env.REDIS_PASSWORD, env.REDIS_TLS, env.REDIS_KEY_PREFIX,
-  env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL, env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN].join('|')
+  env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL, env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN,
+  env.NCP_OBJECT_BUCKET, env.NCP_OBJECT_ACCESS_KEY || env.NCP_ACCESS_KEY, env.NCP_OBJECT_SECRET_KEY || env.NCP_SECRET_KEY, env.NCP_OBJECT_ENDPOINT, env.NCP_OBJECT_REGION, env.MIRI_OBJECT_PREFIX].join('|')
 
 // 공유 저장소 하나를 돌려준다. 설정이 바뀌면 새로 만든다
 export function getStore(env = process.env) {
@@ -45,6 +50,8 @@ export function getStore(env = process.env) {
   if (cached && cachedKey === k) return cached
   if (kind === 'upstash') {
     cached = new UpstashRedis({ url: env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL, token: env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN })
+  } else if (kind === 'ncpobject') {
+    cached = new ObjectStore(env)
   } else {
     cached = new StandardStore(env)
   }
@@ -59,29 +66,7 @@ export async function closeStore() {
   cachedKey = ''
 }
 
-// Upstash 의 기본 해석 규칙과 같게 맞춘다(pkg/util.ts parseRecursive)
-export function parseValue(v) {
-  if (Array.isArray(v)) return v.map(parseValue)
-  if (typeof v !== 'string') return v
-  try {
-    const p = JSON.parse(v)
-    if (typeof p === 'number' && p.toString() !== v) return v
-    return p
-  } catch { return v }
-}
-export const serialize = (v) => (typeof v === 'string' ? v : JSON.stringify(v))
-
-function hashOf(arr) {
-  if (!arr || !arr.length) return null
-  const out = {}
-  for (let i = 0; i < arr.length; i += 2) {
-    const v = arr[i + 1]
-    const unsafe = !Number.isNaN(Number(v)) && !Number.isSafeInteger(Number(v))
-    if (unsafe) { out[arr[i]] = v; continue }
-    try { out[arr[i]] = JSON.parse(v) } catch { out[arr[i]] = v }
-  }
-  return out
-}
+export { parseValue, serialize, hashOf } from './_storeShared.js'
 
 // 표준 Redis 를 Upstash 클라이언트 모양으로 감싼다. 핸들러가 쓰는 명령만 둔다
 export class StandardStore {
@@ -115,6 +100,11 @@ export class StandardStore {
   async del(...keys) { return keys.length ? Number(await this.client.del(...keys)) : 0 }
   async rpush(key, ...vals) { return Number(await this.client.rpush(key, ...vals.map(serialize))) }
   async lrange(key, start, stop) { return (await this.client.lrange(key, start, stop)).map(parseValue) }
+  async llen(key) { return Number(await this.client.llen(key)) }
+  async sadd(key, ...members) { return Number(await this.client.sadd(key, ...members.map(serialize))) }
+  async smembers(key) { return (await this.client.smembers(key)).map(parseValue) }
+  async scard(key) { return Number(await this.client.scard(key)) }
+  async srem(key, ...members) { return members.length ? Number(await this.client.srem(key, ...members.map(serialize))) : 0 }
   async hgetall(key) {
     const obj = await this.client.hgetall(key) // ioredis 는 객체로 돌려준다
     return hashOf(Object.entries(obj || {}).flat())
