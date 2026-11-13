@@ -2,7 +2,7 @@
 // 화면에는 담당자가 할 일과 결과만 두고, 이 내용은 설정의 '자료 안내'와 상단 '시연 데이터' 표지에서 연다.
 import { rosterBreakdown, rosterSourceText, DISABLED_NOTE } from './rosterCount.js'
 import { VEHICLE_NOTE } from './shortage.js'
-import { DATA_SOURCES } from '../mock/donghaeData.js'
+import { DATA_SOURCES } from '../regions/data.js'
 
 export const DATA_NOTES = [
   { key: 'demo', title: '시연 자료', text: '마을과 대피소와 건물은 실제 위치, 대상자 개인과 차량은 가상입니다. 대상자 수는 장기요양 재가 수급자 2025년 통계, 명부는 시연용 자료입니다. 계산 규칙 1.2판(2026. 10. 20.). 훈련 발령의 수락과 이송 진행은 시연용 자동 진행입니다.' },

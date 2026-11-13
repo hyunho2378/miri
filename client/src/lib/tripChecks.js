@@ -3,7 +3,7 @@
 // - 대피소: 리프트 차량 진입, 야간과 휴일 개방 담당(재난문자 지도 서비스 개발자 자문 회신). 값이 없으면 확인 필요
 // - 경로: 카카오모빌리티 길찾기로 미리 계산한 도로 경로 선(src/data/roadRoutes.js)으로 본다. 경로가 없는 짝만 직선으로 본다
 import { distKm, spreadGeometry } from './scenario.js'
-import { ROAD_ROUTES as ROAD } from '../data/roadRoutes.js'
+import { ROAD_ROUTES as ROAD } from '../regions/data.js'
 
 export const UNKNOWN = '확인 필요'
 export const ROUTE_NOTE = '도로 경로 기준(카카오모빌리티 길찾기로 미리 계산). 도로 경로가 없는 마을은 집결지와 대피소를 잇는 직선으로 봄'

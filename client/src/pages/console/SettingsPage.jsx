@@ -14,7 +14,7 @@ import { ORG_NAME } from '../../lib/api.js'
 import { GRADES, VEHICLE_TYPES } from '../../lib/shortage.js'
 import useAuthStore, { DEMO_USERS, ROLE_LABEL } from '../../store/useAuthStore.js'
 import useMiriStore, { dongName } from '../../store/useMiriStore.js'
-import { DATA_SOURCES, DONG_STATS, LTC } from '../../mock/donghaeData.js'
+import { DATA_SOURCES, DONG_STATS, LTC } from '../../regions/data.js'
 
 export default function SettingsPage() {
   const settings = useMiriStore((s) => s.settings)

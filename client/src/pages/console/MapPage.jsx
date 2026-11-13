@@ -23,7 +23,7 @@ import { buildTimeline, fireArrow, fmtDotDate, placeVehicles, placeVillages, pro
 import { GRADES, typeOf } from '../../lib/shortage.js'
 import { HAZARD_KINDS, SHELTER_NOTE } from '../../lib/scenario.js'
 import { agingStops } from '../../components/map/mapTheme.js'
-import { DATA_SOURCES, DONG_STATS, LTC_DAYCARE, LTC_RESIDENTIAL, TEMP_SHELTERS } from '../../mock/donghaeData.js'
+import { DATA_SOURCES, DONG_STATS, LTC_DAYCARE, LTC_RESIDENTIAL, TEMP_SHELTERS } from '../../regions/data.js'
 import { computeShortage, requiredExtraVehicles } from '../../lib/shortageCalc.js'
 import { HOUR } from '../../lib/time.js'
 import { useTopbar } from '../../store/useAdminUi.js'

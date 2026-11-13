@@ -8,16 +8,17 @@ import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRe
 import { colors, krds } from '../tokens.js'
 import { BASEMAP, BUILDINGS, DEM_META, REGION_BBOX, REGION_PIECES } from '../mock/geoRegion.js'
 import { PLACES } from '../mock/geoPlaces.js'
-import { DONG_GEO } from '../mock/geoDonghae.js'
+import { REGION, REGION_DONG_GEO as DONG_GEO } from '../regions/data.js'
 import { SEVERITY_COLOR } from '../components/map/mapTheme.js'
 import { BASE_Y, makeDem, topOf } from './terrainBuild.js'
 import { EXAG, ORIGIN, toLonLat, toXZ } from './proj.js'
 import TerrainWorker from './terrain.worker.js?worker'
 import { renderLocal } from './localBasemap.js'
 
-const DONGHAE = '51170'
+// 데이터 색과 높이를 칠할 시군(현재 지역 설정의 시군구 코드). 이름은 예전 그대로 둔다
+const DONGHAE = REGION.codes.sgg
 // 조각 안쪽 점 간격(km). 가까운 동해시는 촘촘하게, 먼 곳은 성기게
-const SPACING = { 51170: 0.08, 51150: 0.16, 51230: 0.16, 51770: 0.24, 51190: 0.24 }
+const SPACING = { 51170: 0.08, 51150: 0.16, 51230: 0.16, 51770: 0.24, 51190: 0.24, [DONGHAE]: 0.08 }
 const SGG_LABEL = { 51150: '강릉시', 51230: '삼척시', 51770: '정선군', 51190: '태백시' }
 const REST_EXPLODE = 0.02      // 평소 벌어짐. 중심에서 30km 떨어진 조각이 0.6km 밀려나고, 이웃한 조각 사이는 0.1~0.3km 벌어진다
 const WIDE_EXPLODE = 0.045     // 펼치기

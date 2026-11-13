@@ -1,6 +1,7 @@
 // 공공데이터 연계 조회. /api/opendata 서버리스 함수를 부른다. 키가 없거나 실패하면 error 를 돌려준다.
 // 자료 종류별 보관 기한을 두고, 화면을 연 채로 있으면 주기적으로, 탭으로 돌아오면 기한이 지난 자료를 다시 읽는다.
 import { useCallback, useEffect, useState } from 'react'
+import { DEFAULT_REGION_ID, REGION_ID } from '../regions/index.js'
 
 const MIN = 60 * 1000
 export const TTL = { er: 5 * MIN, alerts: 5 * MIN, warning: 10 * MIN, wind: 30 * MIN, fire: 30 * MIN }
@@ -9,7 +10,8 @@ const cache = new Map() // kind -> { s, at }
 export const fresh = (kind, now = Date.now()) => { const c = cache.get(kind); return Boolean(c && now - c.at < ttlOf(kind)) }
 
 async function load(kind) {
-  const r = await fetch(`/api/opendata?kind=${kind}`)
+  // 기본 지역(동해시)이 아니면 지역 이름표를 붙여 다른 시군 자료가 섞이지 않게 한다
+  const r = await fetch(`/api/opendata?kind=${kind}${REGION_ID === DEFAULT_REGION_ID ? '' : `&region=${REGION_ID}`}`)
   const isJson = (r.headers.get('content-type') || '').includes('application/json')
   const j = isJson ? await r.json().catch(() => null) : null
   if (!r.ok || !j || j.error) throw new Error(j?.error?.code || `HTTP ${r.status}`)

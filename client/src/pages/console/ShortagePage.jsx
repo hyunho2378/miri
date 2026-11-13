@@ -31,7 +31,7 @@ import { fireScenario } from '../../lib/scenario.js'
 import { fmtElapsed } from '../../lib/geo.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
-import { LTC } from '../../mock/donghaeData.js'
+import { LTC } from '../../regions/data.js'
 
 const LTC_DAYCARE = LTC.dayCareUsers?.['계'] || 0
 

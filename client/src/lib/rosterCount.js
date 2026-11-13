@@ -1,7 +1,7 @@
 // rosterCount.js 명부 건수와 출처를 한 곳에서 센다.
 // 회신 R24(김현규): 대상자 수가 2,005명(추정)과 2,013명(가상 명부)으로 섞여 나온다는 지적에 맞춰,
 // 화면마다 같은 함수로 건수와 구성을 보여 준다.
-import { LTC } from '../mock/donghaeData.js'
+import { LTC } from '../regions/data.js'
 
 // 같은 서류 같은 위치의 두 번째 기록부터 중복 의심으로 센다(anomaly.js 중복 규칙과 같은 기준)
 export function rosterBreakdown(persons = []) {

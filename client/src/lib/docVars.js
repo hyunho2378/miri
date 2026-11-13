@@ -8,7 +8,7 @@ import { fmtDateTime } from './time.js'
 import { GRADES } from './shortage.js'
 import { computeShortage, optimizedUnserved, requiredExtraVehicles } from './shortageCalc.js'
 import { HAZARD_KINDS } from './scenario.js'
-import { DONG_STATS, TEMP_SHELTERS } from '../mock/donghaeData.js'
+import { DONG_STATS, REGION_NAME, TEMP_SHELTERS } from '../regions/data.js'
 
 const n = (x) => Number(x || 0).toLocaleString('ko-KR')
 export const dotDate = (d = new Date()) => `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`
@@ -79,8 +79,8 @@ export function computeVars(data, scenario) {
   const vals = {
     today: dotDate(new Date()),
     baseDate: dotDate(new Date(today)),
-    org: settings.orgName || '동해시',
-    population: pop, age65: a65, agingRate: Math.round((a65 / pop) * 1000) / 10,
+    org: settings.orgName || REGION_NAME,
+    population: pop, age65: a65, agingRate: pop ? Math.round((a65 / pop) * 1000) / 10 : 0,
     targets: active.length, villages: villages.length,
     bed: byGrade.bed, wheelchair: byGrade.wheelchair, assist: byGrade.assist, walk: byGrade.walk,
     pending: persons.filter((p) => p.review === 'pending').length,

@@ -1,6 +1,7 @@
 // 공공데이터 자료 지연 판정. 서버(/api/opendata)가 붙인 asOf(자료 기준 시각)와 fetchedAt(조회 시각)으로
 // 허용 지연을 넘었는지, 응답이 0건인지를 가른다. 회신(재난문자 지도 서비스 개발자) 의견: 기준 시각이 보여야
 // 담당자가 오래된 자료인지 판단할 수 있음. 허용 지연의 근거는 docs/OVERVIEW.md 데이터 출처 표와 같다.
+import { DEFAULT_REGION_ID, REGION_ID } from '../regions/index.js'
 export const MAX_LAG_MIN = {
   // 기상청 단기예보: 1일 8회(02, 05, 08, 11, 14, 17, 20, 23시) 발표(기상청 단기예보 조회서비스 활용가이드). 3시간 간격에 1시간 여유
   wind: { min: 240, basis: '기상청 단기예보 1일 8회 발표(3시간 간격) + 1시간 여유' },
@@ -50,7 +51,8 @@ export function freshness(kind, data, now = Date.now()) {
 }
 
 // 마지막 정상 수신 시각(브라우저 보관). 지연, 0건, 실패 때 함께 보인다
-const KEY = (kind) => `miri.opendata.lastgood.${kind}`
+// 기본 지역(동해시)은 예전 이름 그대로, 다른 지역은 지역 이름표를 붙여 따로 보관한다
+const KEY = (kind) => (REGION_ID === DEFAULT_REGION_ID ? `miri.opendata.lastgood.${kind}` : `miri.opendata.lastgood.${REGION_ID}.${kind}`)
 export function rememberGood(kind, data, now = Date.now()) {
   try { if (typeof localStorage !== 'undefined' && freshness(kind, data, now).state === 'ok') localStorage.setItem(KEY(kind), data.fetchedAt || new Date(now).toISOString()) } catch { /* 보관 불가 환경 */ }
 }

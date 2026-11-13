@@ -4,7 +4,7 @@ import { Printer } from 'lucide-react'
 import Button from '../ui/Button.jsx'
 import { TAGS } from '../../lib/intake.js'
 import { gradeOf } from '../../lib/shortage.js'
-import { TEMP_SHELTERS } from '../../mock/donghaeData.js'
+import { TEMP_SHELTERS } from '../../regions/data.js'
 import { fmtKDate } from './BasisLine.jsx'
 
 export default function RosterPrint({ groups, dongs, today }) {

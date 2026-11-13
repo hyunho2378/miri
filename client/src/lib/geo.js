@@ -2,11 +2,12 @@
 // 좌표는 [경도, 위도] 순서(GeoJSON 규칙).
 // 마을 위치는 실제 마을 집결지(경로당) 좌표다(donghaeData.js). 좌표가 없는 마을만 동 경계 안 결정적 위치로 둔다.
 // 차량 위치는 가정이다. 소속 동 행정복지센터 둘레에 둔다.
-import { CITY_OUTLINE, DONG_GEO, DONGHAE_BBOX } from '../mock/geoDonghae.js'
-import { DONG_CENTERS, DONG_STATS } from '../mock/donghaeData.js'
+import { DONG_CENTERS, DONG_STATS, REGION_BBOX_2D as DONGHAE_BBOX, REGION_DONG_GEO as DONG_GEO, REGION_OUTLINE as CITY_OUTLINE } from '../regions/data.js'
 import { HOUR } from './time.js'
 
+// DONGHAE_BBOX 는 예전 이름. 지금은 현재 지역 지도 범위(regions/<지역>.js map.bbox)
 export { DONGHAE_BBOX }
+export const REGION_BBOX = DONGHAE_BBOX
 
 const M_PER_DEG_LAT = 111320
 const mPerDegLng = (lat) => M_PER_DEG_LAT * Math.cos((lat * Math.PI) / 180)
