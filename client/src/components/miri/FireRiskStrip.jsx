@@ -4,6 +4,7 @@ import useOpenData from '../../hooks/useOpenData.js'
 import clsx from 'clsx'
 import { Flame } from 'lucide-react'
 import FreshnessNote from './FreshnessNote.jsx'
+import { openDataErrorText } from '../../lib/openDataError.js'
 
 // 산불위험지수 임계값 51, 66, 86. d2~d4 는 지수 51, 66, 86 이상인 면적 비율(%)이다
 // (국립산림과학원, 한국산림과학회지 114권 4호 504쪽, 2025. 12. 31.)
@@ -48,9 +49,9 @@ export function WeatherLine({ className }) {
   const h = v.data?.hours?.[0]
   const parts = []
   if (w.data) parts.push(w.data.active.length ? `동해 발효 특보: ${w.data.active.join(', ')}` : '동해 발효 특보 없음')
-  else if (w.error) parts.push(`기상특보 불러오지 못함(${w.error})`)
+  else if (w.error) parts.push(`기상특보 불러오지 못함(${openDataErrorText(w.error)})`)
   if (h) parts.push(`바람 ${dirName(h.fromDeg)}풍 ${h.speed}m/s, 습도 ${h.humidity}%`)
-  else if (v.error) parts.push(`단기예보 불러오지 못함(${v.error})`)
+  else if (v.error) parts.push(`단기예보 불러오지 못함(${openDataErrorText(v.error)})`)
   if (!parts.length) return null
   const hot = w.data?.related?.length
   return (
@@ -66,7 +67,7 @@ export default function FireRiskStrip({ className, compact = false }) {
   const fr = useFireRisk()
   const { loading, data, error } = fr
   if (loading) return <p className={clsx('type-meta text-text-meta', className)}>산불위험지수 조회 중</p>
-  if (error) return <p className={clsx('type-meta text-text-meta', className)}>산불위험지수 조회 실패({error}).<FreshnessNote kind="fire" state={fr} /></p>
+  if (error) return <p className={clsx('type-meta text-text-meta', className)}>산불위험지수 조회 실패({openDataErrorText(error)}).<FreshnessNote kind="fire" state={fr} /></p>
   const g = data.grades || {}
   const over51 = (g.d2 || 0) + (g.d3 || 0) + (g.d4 || 0)
   return (

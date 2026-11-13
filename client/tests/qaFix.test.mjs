@@ -67,3 +67,18 @@ test('Q3 저장 대기(1.5초) 중 새로고침이나 탭 닫기: 기다리지 �
     assert.equal(aligned, 1)
   } finally { globalThis.fetch = orig; setRoleAlign(null) }
 })
+
+test('Q4 공공데이터 조회 실패: NO_KEY, HTTP 502 같은 내부 코드를 화면에 그대로 보이지 않음', async () => {
+  const { openDataErrorText } = await import('../src/lib/openDataError.js')
+  assert.equal(openDataErrorText('NO_KEY'), '연계 인증키 미설정')
+  assert.equal(openDataErrorText('UPSTREAM'), '기관 서버 응답 오류')
+  assert.equal(openDataErrorText('HTTP 502'), '서버 응답 오류')
+  assert.equal(openDataErrorText('HTTP 404'), '요청 거부')
+  assert.equal(openDataErrorText('Failed to fetch'), '연결 끊김')
+  assert.equal(openDataErrorText(''), '사유 미확인')
+  for (const code of ['NO_KEY', 'UPSTREAM', 'HTTP 500', 'TypeError: x']) assert.doesNotMatch(openDataErrorText(code), /[A-Z_]{3,}|HTTP/)
+  for (const f of ['src/pages/console/OverviewPage.jsx', 'src/components/miri/FireRiskStrip.jsx', 'src/components/miri/PublicFactsCard.jsx', 'src/components/miri/DisasterAlertsCard.jsx']) {
+    const s = src(f)
+    assert.doesNotMatch(s, /\(\$\{[a-z]+\.error\}\)|\(\{s\.error\}\)|\(\{error\}\)|\$\{s\.error \|\|/, f)
+  }
+})

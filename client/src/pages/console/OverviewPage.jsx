@@ -22,6 +22,7 @@ import useBoardingRecommended from '../../hooks/useBoardingRecommended.js'
 import useDispatchStore from '../../store/useDispatchStore.js'
 import { fmtElapsed } from '../../lib/geo.js'
 import { pendingCounts } from '../../lib/basis.js'
+import { openDataErrorText } from '../../lib/openDataError.js'
 import { staleRosterCount, STALE_DAYS } from '../../lib/handoverRows.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
@@ -97,19 +98,19 @@ export default function OverviewPage() {
   const conditions = [
     {
       key: 'fire',
-      label: '산불위험지수', title: fire.data ? `평균 ${fire.data.mean}, 최고 ${fire.data.max}` : fire.error ? `조회 실패(${fire.error})` : '조회 중',
+      label: '산불위험지수', title: fire.data ? `평균 ${fire.data.mean}, 최고 ${fire.data.max}` : fire.error ? `조회 실패(${openDataErrorText(fire.error)})` : '조회 중',
       sub: fire.data ? `지수 51 이상 면적 ${over51}%, 산림청 국립산림과학원` : '산림청 국립산림과학원',
       fresh: <FreshnessNote kind="fire" state={fire} />
     },
     {
       key: 'warning',
-      label: '기상특보', title: warning.data ? (warning.data.active.length ? warning.data.active.join(', ') : '발효 특보 없음') : warning.error ? `조회 실패(${warning.error})` : '조회 중',
+      label: '기상특보', title: warning.data ? (warning.data.active.length ? warning.data.active.join(', ') : '발효 특보 없음') : warning.error ? `조회 실패(${openDataErrorText(warning.error)})` : '조회 중',
       sub: '기상청 기상특보 조회서비스',
       fresh: <FreshnessNote kind="warning" state={warning} />
     },
     {
       key: 'wind',
-      label: '바람과 습도', title: h0 ? `${dirName(h0.fromDeg)}풍 ${h0.speed}m/s, 습도 ${h0.humidity}%` : wind.error ? `조회 실패(${wind.error})` : '조회 중',
+      label: '바람과 습도', title: h0 ? `${dirName(h0.fromDeg)}풍 ${h0.speed}m/s, 습도 ${h0.humidity}%` : wind.error ? `조회 실패(${openDataErrorText(wind.error)})` : '조회 중',
       sub: '기상청 단기예보 조회서비스',
       fresh: <FreshnessNote kind="wind" state={wind} />
     }

@@ -4,12 +4,13 @@ import { Ambulance, Accessibility, Flame } from 'lucide-react'
 import Card from '../ui/Card.jsx'
 import useOpenData from '../../hooks/useOpenData.js'
 import FreshnessNote from './FreshnessNote.jsx'
+import { openDataErrorText } from '../../lib/openDataError.js'
 import { FOREST_FIRE_ROWS, FOREST_FIRE_SOURCE } from '../../data/forestFireHistory.js'
 
 const fmtHvidate = (s) => (/^\d{14}$/.test(String(s || '')) ? `${s.slice(0, 4)}. ${s.slice(4, 6)}. ${s.slice(6, 8)}. ${s.slice(8, 10)}:${s.slice(10, 12)}` : s || '시각 없음')
 
 function Status({ s }) {
-  return <p className="type-body-sm text-text-meta">{s.loading ? '조회 중' : `응답 없음(${s.error || '사유 없음'}).`}</p>
+  return <p className="type-body-sm text-text-meta">{s.loading ? '조회 중' : `응답 없음(${openDataErrorText(s.error)}).`}</p>
 }
 
 export default function PublicFactsCard({ only = null, className = '' }) {
