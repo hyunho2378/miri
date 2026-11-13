@@ -145,3 +145,10 @@ test('Q12 설문 응답: 글 칸 이름이 "내 답변"이 아니라 질문 제�
   assert.match(s, /id=\{`q-\$\{q\.id\}-err`\}/)
   assert.match(s, /first\?\.querySelector\('input, textarea, button'\)\?\.focus\(\{ preventScroll: true \}\)/)
 })
+
+test('Q13 AI 읽기 꺼짐 안내: 오류 문구가 화면 단추 이름(예시 서류 읽기)과 같은 말을 씀', async () => {
+  const { aiErrorMessage } = await import('../src/lib/aiErrors.js')
+  assert.deepEqual(aiErrorMessage({ code: 'STORED_ONLY' }), { title: '저장된 읽기 결과만 사용 가능', desc: '예시 서류 읽기 선택' })
+  assert.equal(aiErrorMessage({ code: 'NO_KEY' }, '소식').desc, '예시 소식 읽기 선택')
+  for (const code of ['STORED_ONLY', 'NO_KEY', 'NEED_SESSION', 'NO_SESSION_CONFIG', 'X']) assert.doesNotMatch(JSON.stringify(aiErrorMessage({ code, message: 'm' })), /샘플/)
+})
