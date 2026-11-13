@@ -172,7 +172,7 @@ export default function SheetEditor() {
     <>
       {!sheet.source && (
         <>
-          <input ref={fileRef} type="file" accept=".csv,text/csv" className="sr-only" onChange={importCsv} />
+          <input ref={fileRef} type="file" accept=".csv,text/csv" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={importCsv} />
           <Button variant="ghost" size="sm" collapse="xl" leftIcon={<Upload size={16} aria-hidden="true" />} onClick={() => fileRef.current?.click()}>CSV 가져오기</Button>
         </>
       )}

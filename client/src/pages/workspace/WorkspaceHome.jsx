@@ -153,7 +153,8 @@ export default function WorkspaceHome() {
           <h2 id="tpl-title" className="type-h3 text-text-pri">{kind.newLabel} 시작</h2>
           {kind.key === 'doc' && (
             <>
-              <input ref={fileRef} type="file" accept=".hwp,.hwpx,.pdf,.docx" className="sr-only" onChange={importFile} />
+              {/* 파일 선택 창은 옆 단추가 연다. 이 칸은 Tab 순서와 화면 읽기에서 빼 이름 없는 칸으로 잡히지 않게 한다 */}
+              <input ref={fileRef} type="file" accept=".hwp,.hwpx,.pdf,.docx" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={importFile} />
               <Button variant="secondary" size="sm" disabled={importing} leftIcon={<FileUp size={16} aria-hidden="true" />} onClick={() => fileRef.current?.click()}>
                 {importing ? '파일 읽는 중' : '한글 파일 가져오기'}
               </Button>

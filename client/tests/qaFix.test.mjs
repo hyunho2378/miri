@@ -128,3 +128,8 @@ test('Q9 실제 아이폰 사파리처럼 창 높이가 낮은 세로 화면(320
   assert.equal(ios(874, 402), 'side')
   assert.equal(ios(402, 874), 'bottom')
 })
+
+test('Q10 문서 센터와 시트: 단추가 여는 숨은 파일 칸은 Tab 순서와 화면 읽기에서 빠짐(이름 없는 단추로 잡히던 문제)', () => {
+  assert.match(src('src/pages/workspace/WorkspaceHome.jsx'), /accept="\.hwp,\.hwpx,\.pdf,\.docx" className="sr-only" tabIndex=\{-1\} aria-hidden="true"/)
+  assert.match(src('src/pages/workspace/SheetEditor.jsx'), /accept="\.csv,text\/csv" className="sr-only" tabIndex=\{-1\} aria-hidden="true"/)
+})
