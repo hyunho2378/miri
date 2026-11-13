@@ -146,10 +146,12 @@ test('공공데이터: 지역 인자로 시군 이름이 바뀌고 빈 인자는
   process.env.DATA_GO_KR_KEY = 'TEST'
   globalThis.fetch = async (u) => { url = decodeURIComponent(String(u)); return { ok: true, headers: { get: () => 'application/json' }, json: async () => ({ response: { body: { items: { item: [] } } } }), text: async () => '' } }
   try {
-    await call({ kind: 'shelters', region: 'samcheok' })
+    const sc = await call({ kind: 'shelters', region: 'samcheok' })
     assert.match(url, /LIKE\]=삼척시/)
-    await call({ kind: 'shelters' })
+    assert.equal(sc.body.region, 'samcheok')
+    const dh = await call({ kind: 'shelters' })
     assert.match(url, /LIKE\]=동해시/)
+    assert.equal(dh.body.region, 'donghae')
     await call({ kind: 'ltc', region: 'samcheok' })
     assert.match(url, /siGunGuCd=230/)
     url = ''

@@ -23,7 +23,7 @@
 1. 주소 인자 `?region=samcheok`. 한 번 열면 그 탭에서는 주소를 옮겨도 유지됨(탭 저장소 `miri:region`)
 2. 빌드 환경 변수 `VITE_REGION=samcheok`
 3. 서버 함수와 시험은 환경 변수 `MIRI_REGION=samcheok`
-4. 아무것도 없거나 등록되지 않은 이름이면 동해시
+4. 지정이 없거나 등록되지 않은 이름이면 동해시
 
 웹 작업자(추천 배정 계산)는 주소를 읽지 못하므로 작업자 이름에 지역을 실어 넘긴다(`useBoardingRecommended.js`). 공공데이터 조회는 기본 지역이 아니면 `/api/opendata?kind=...&region=<id>` 로 부르고, 응답의 `region` 이름표가 현재 지역과 다르면 화면에 쓰지 않는다.
 

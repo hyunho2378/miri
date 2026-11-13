@@ -257,7 +257,8 @@ export default async function handler(req, res) {
   const key = process.env.DATA_GO_KR_KEY
   if (!key && kind !== 'alerts') return fail(res, 503, 'NO_KEY', '공공데이터포털 인증키 미설정')
   try {
-    const data = stamp(kind, await fn(key, R))
+    // 응답에 지역 이름표를 붙여 화면이 다른 시군 자료를 받았는지 가릴 수 있게 한다
+    const data = { ...stamp(kind, await fn(key, R)), region: R.regionId }
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=3600')
     return res.status(200).json(data)
   } catch (e) {
