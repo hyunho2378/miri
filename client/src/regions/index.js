@@ -56,9 +56,16 @@ export function resolveRegionId({ search = '', stored = null, env = null } = {})
   return DEFAULT_REGION_ID
 }
 
+// 웹 작업자는 만든 쪽이 작업자 이름(name)에 지역을 실어 보낸다
+export const WORKER_REGION_PREFIX = 'miri-region:'
+
 function detect() {
   const env = (typeof process !== 'undefined' && process.env?.MIRI_REGION) || import.meta.env?.VITE_REGION || null
-  if (typeof window === 'undefined') return resolveRegionId({ env })
+  if (typeof window === 'undefined') {
+    const wname = typeof self !== 'undefined' && typeof self.name === 'string' ? self.name : ''
+    const fromWorker = wname.startsWith(WORKER_REGION_PREFIX) ? wname.slice(WORKER_REGION_PREFIX.length) : null
+    return resolveRegionId({ stored: fromWorker, env })
+  }
   let stored = null
   try { stored = window.sessionStorage.getItem(STORE_KEY) } catch { /* 저장 불가 브라우저 */ }
   const id = resolveRegionId({ search: window.location?.search || '', stored, env })

@@ -163,6 +163,8 @@ export default {
     bus: ['CG', 'BS', 'BP', 'MH', 'MS', 'SH']
   },
   scenarios: SCENARIOS,
+  // 운영 기준 화면 마을 칸 뒤에 붙는 설명
+  villageNote: '(동호동은 행정동 일대 1곳)',
   activeScenarioId: 'S-1',
   intakeDocs,
   sampleUpload: SAMPLE_UPLOAD,

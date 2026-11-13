@@ -2,6 +2,7 @@
 // 같은 명부, 마을, 차량, 도우미 배열과 같은 설정과 시나리오면 앞서 구한 값을 바로 쓴다.
 import { useEffect, useState } from 'react'
 import { boardingRecommended } from '../lib/boardingOpt.js'
+import { REGION_ID, WORKER_REGION_PREFIX } from '../regions/index.js'
 
 const roots = new WeakMap()
 const bucketOf = (input) => {
@@ -40,7 +41,8 @@ export default function useBoardingRecommended(input, steps) {
     }
     try {
       if (typeof Worker === 'undefined') throw new Error('no worker')
-      worker = new Worker(new URL('../lib/boardingOpt.worker.js', import.meta.url), { type: 'module' })
+      // 작업자는 주소 인자와 탭 기억값을 못 읽으므로 작업자 이름으로 현재 지역을 넘긴다(regions/index.js)
+      worker = new Worker(new URL('../lib/boardingOpt.worker.js', import.meta.url), { type: 'module', name: `${WORKER_REGION_PREFIX}${REGION_ID}` })
       worker.onmessage = (e) => put(e.data.m, e.data.recommended)
       worker.onerror = () => { worker?.terminate(); worker = null; fallback() }
       worker.postMessage({ input, steps: todo })

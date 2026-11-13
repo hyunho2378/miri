@@ -118,7 +118,7 @@ export default function SettingsPage() {
           <KeyValue items={[
             { label: '기관명', value: ORG_NAME, strong: true },
             { label: '행정동', value: `${dongs.length}개 (${dongs.map((d) => d.name).join(', ')})` },
-            { label: '마을', value: `법정동 ${villages.length}곳(동호동은 행정동 일대 1곳)` },
+            { label: '마을', value: `법정동 ${villages.length}곳${REGION.villageNote || ''}` },
             { label: '임시주거시설', value: `${shelters.length}곳, 수용 가능 ${shelterCap.toLocaleString('ko-KR')}명` },
             { label: '재가 장기요양 수급자 추정', value: `${LTC.homeTotal.toLocaleString('ko-KR')}명(${LTC.period}년 급여이용 ${LTC.users['계'].toLocaleString('ko-KR')}명 중 시설급여 ${LTC.facilityUsers['계']}명 제외)` },
             { label: '명부 건수', value: rosterChipsText(rosterBreakdown(persons)) },

@@ -15,6 +15,8 @@ async function load(kind) {
   const isJson = (r.headers.get('content-type') || '').includes('application/json')
   const j = isJson ? await r.json().catch(() => null) : null
   if (!r.ok || !j || j.error) throw new Error(j?.error?.code || `HTTP ${r.status}`)
+  // 기본 지역이 아니면 응답의 지역 이름표가 같을 때만 쓴다(이름표가 없는 예전 서버 응답은 동해시 자료라 버림)
+  if (REGION_ID !== DEFAULT_REGION_ID && j.region !== REGION_ID) throw new Error('REGION_MISMATCH')
   return j
 }
 

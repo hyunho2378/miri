@@ -85,6 +85,7 @@ export default {
   scenarios: [
     { type: 'citywide', id: 'S-4', name: '시 전체 동시 대피', windowHours: 8, basis: `모든 마을이 발령 후 8시간에 함께 위험해지는 경우입니다. ${SAMPLE}로 계산합니다.` }
   ],
+  villageNote: '(시험용 가상 마을)',
   activeScenarioId: 'S-4',
   intakeDocs: () => [],
   sampleUpload: null,
