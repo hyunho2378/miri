@@ -115,3 +115,16 @@ test('Q8 320, 390 폭: 대상자 명부, 차량과 도우미 목록은 화면 �
   assert.match(s, /const listCls = 'flex min-h-0 min-w-0 flex-col max-lg:max-h-\[50vh\] max-lg:overflow-x-auto'/)
   assert.match(src('src/components/miri/NoteReview.jsx'), /ml-auto inline-flex max-w-full flex-wrap items-center justify-end gap-2/)
 })
+
+test('Q9 실제 아이폰 사파리처럼 창 높이가 낮은 세로 화면(320x700, 390x664, 375x548)은 옆 막대가 아니라 아래 탭 바, 듀오와 가로 자세는 그대로', async () => {
+  const { layoutFor } = await import('../src/mobile/layout.js')
+  const ios = (w, h) => layoutFor({ platform: 'ios', width: w, height: h }).bar
+  assert.equal(ios(320, 700), 'bottom')
+  assert.equal(ios(390, 664), 'bottom')
+  assert.equal(ios(375, 548), 'bottom')
+  assert.equal(ios(440, 700), 'bottom')
+  assert.equal(ios(466, 678), 'side')
+  assert.equal(ios(678, 466), 'side')
+  assert.equal(ios(874, 402), 'side')
+  assert.equal(ios(402, 874), 'bottom')
+})

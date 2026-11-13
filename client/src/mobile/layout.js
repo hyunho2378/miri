@@ -7,6 +7,9 @@
 export const SIZE_MEDIUM = 600
 export const SIZE_EXPANDED = 840
 export const IOS_SIDE_BAR_MAX_H = 760
+// 아이폰 세로 폭의 최댓값(18 Pro Max 440). 실제 아이폰 사파리는 주소 막대 때문에 창 높이가 874 보다 낮아(약 550~750)
+// 높이만으로 판정하면 세로로 든 아이폰에도 옆 막대(84 폭)가 붙어 본문이 좁아진다. 그래서 폭이 440 이하인 세로 화면은 늘 아래 탭 바
+export const IOS_PHONE_MAX_W = 440
 
 export function sizeClassOf(width) {
   if (width >= SIZE_EXPANDED) return 'expanded'
@@ -51,7 +54,8 @@ export function layoutFor({ platform = 'ios', width = 402, height = 874, hSegmen
     return { size, bar, twoPane, margin, ...extra }
   }
   const twoPane = posture === 'tabletop' ? false : posture === 'book' ? true : size !== 'compact'
-  const bar = height < IOS_SIDE_BAR_MAX_H ? 'side' : 'bottom'
+  const phonePortrait = width <= IOS_PHONE_MAX_W && width < height
+  const bar = height < IOS_SIDE_BAR_MAX_H && !phonePortrait ? 'side' : 'bottom'
   const margin = bar === 'side' || twoPane ? 20 : 16
   return { size, bar, twoPane, margin, ...extra }
 }
