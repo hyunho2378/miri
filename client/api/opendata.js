@@ -1,5 +1,7 @@
-// api/opendata.js Vercel 서버리스 함수. 공공데이터포털 연계(동해시 한정).
-// GET ?kind=fire | shelters | ltc | ambulance | warning | wind | er | access | alerts
+// api/opendata.js Vercel 서버리스 함수. 공공데이터포털 연계(현재 지역 한정, 기본 동해시).
+// GET ?kind=fire | shelters | ltc | ambulance | warning | wind | er | access | alerts [&region=<지역 id>]
+// 시군 이름과 코드는 지역 설정(client/src/regions/<지역>.js 의 openData)에서 읽는다. 값이 비어 있으면 그 항목은 503 REGION.
+import { REGION, REGIONS } from '../src/regions/index.js'
 // 모든 응답에 fetchedAt(조회 시각), asOf(자료 기준 시각, ISO), empty(응답 0건 여부)를 붙인다. 지연 판정은 client/src/lib/freshness.js
 // DATA_GO_KR_KEY 는 서버 환경변수에만 두고 프론트에 노출하지 않는다. 없으면 503 NO_KEY.
 const BASE = 'https://apis.data.go.kr'
@@ -14,24 +16,24 @@ async function getJson(url) {
 }
 
 // 산림청 국립산림과학원 산불위험예보정보. 동해시는 강원특별자치도 51170.
-async function fire(key) {
+async function fire(key, R) {
   const j = await getJson(`${BASE}/1400377/forestPointV2/forestPointListSigunguSearchV2?serviceKey=${key}&_type=json&pageNo=1&numOfRows=300`)
-  const it = asList(j.response?.body?.items?.item).find((x) => x.sigucode === 51170 || (x.sigun === '동해시' && x.upplocalcd === 51))
-  if (!it) throw new Error('동해시 항목 없음')
+  const it = asList(j.response?.body?.items?.item).find((x) => x.sigucode === R.fireSigucode || (x.sigun === R.fireSigun && x.upplocalcd === R.fireUpper))
+  if (!it) throw new Error(`${R.fireSigun} 항목 없음`)
   return { source: '산림청 국립산림과학원 산불위험예보정보', analyzedAt: it.analdate, mean: it.meanavg, max: it.maxi, min: it.mini, std: it.std, grades: { d1: it.d1, d2: it.d2, d3: it.d3, d4: it.d4 } }
 }
 
 // 행정안전부 민방위대피시설 조회서비스
-async function shelters(key) {
-  const j = await getJson(`${BASE}/1741000/civil_defense_shelter_info/info?serviceKey=${key}&pageNo=1&numOfRows=300&type=json&cond%5BLCTN_WHOL_ADDR%3A%3ALIKE%5D=${encodeURIComponent('동해시')}`)
+async function shelters(key, R) {
+  const j = await getJson(`${BASE}/1741000/civil_defense_shelter_info/info?serviceKey=${key}&pageNo=1&numOfRows=300&type=json&cond%5BLCTN_WHOL_ADDR%3A%3ALIKE%5D=${encodeURIComponent(R.addressLike)}`)
   const items = asList(j.response?.body?.items?.item).filter((x) => x.OPER_STTS === '사용중')
   const list = items.map((x) => ({ name: x.FCLT_NM, address: x.ROAD_NM_WHOL_ADDR || x.LCTN_WHOL_ADDR, capacity: Number(x.MAX_ACTC_PERNE) || 0, kind: x.FCLT_SE, place: x.FCLTLOC_GRND_UDGD, lat: Number(x.LAT_EPSG4326) || null, lon: Number(x.LOT_EPST4326) || null }))
   return { source: '행정안전부 민방위대피시설', count: list.length, capacity: list.reduce((a, b) => a + b.capacity, 0), list }
 }
 
 // 국민건강보험공단 장기요양기관 검색. 강원 51, 동해 170
-async function ltc(key) {
-  const r = await fetch(`${BASE}/B550928/searchLtcInsttService02/getLtcInsttSeachList02?serviceKey=${key}&pageNo=1&numOfRows=300&siDoCd=51&siGunGuCd=170`, { signal: AbortSignal.timeout(9000) })
+async function ltc(key, R) {
+  const r = await fetch(`${BASE}/B550928/searchLtcInsttService02/getLtcInsttSeachList02?serviceKey=${key}&pageNo=1&numOfRows=300&siDoCd=${R.ltc.siDoCd}&siGunGuCd=${R.ltc.siGunGuCd}`, { signal: AbortSignal.timeout(9000) })
   const xml = await r.text()
   const list = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((m) => {
     const o = Object.fromEntries([...m[1].matchAll(/<(\w+)>([^<]*)<\/\1>/g)].map((x) => [x[1], x[2]]))
@@ -41,8 +43,8 @@ async function ltc(key) {
 }
 
 // 행정안전부 건강 응급환자이송업 조회서비스. 동해시 개방자치단체코드 4211000
-async function ambulance(key) {
-  const j = await getJson(`${BASE}/1741000/emergency_patient_transport/info?serviceKey=${key}&pageNo=1&numOfRows=100&type=json&cond%5BOPN_ATMY_GRP_CD%3A%3AEQ%5D=4211000`)
+async function ambulance(key, R) {
+  const j = await getJson(`${BASE}/1741000/emergency_patient_transport/info?serviceKey=${key}&pageNo=1&numOfRows=100&type=json&cond%5BOPN_ATMY_GRP_CD%3A%3AEQ%5D=${R.ambulanceOrg}`)
   const list = asList(j.response?.body?.items?.item).filter((x) => x.SALS_STTS_NM?.startsWith('영업')).map((x) => ({ name: x.BPLC_NM, general: Number(x.ABLNC_GNRL) || 0, special: Number(x.ABLNC_SPCL) || 0, address: x.ROAD_NM_ADDR || x.LOTNO_ADDR }))
   return { source: '행정안전부 응급환자이송업', count: list.length, list }
 }
@@ -55,12 +57,12 @@ function kst(offsetMin = 0) {
 }
 
 // 기상청 기상특보 조회서비스 특보현황(최근 7일). 동해시가 들어간 특보 줄만 고른다
-async function warning(key) {
+async function warning(key, R) {
   const j = await getJson(`${BASE}/1360000/WthrWrnInfoService/getPwnStatus?serviceKey=${key}&pageNo=1&numOfRows=10&dataType=JSON`)
   const it = asList(j.response?.body?.items?.item)[0]
   if (!it) return { source: '기상청 기상특보', issuedAt: null, active: [], text: '' }
   const text = String(it.t6 || '')
-  const active = text.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^o\s/.test(l) && l.includes('동해'))
+  const active = text.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^o\s/.test(l) && l.includes(R.warningWord))
     .map((l) => l.replace(/^o\s*/, '').split(':')[0].trim())
   return { source: '기상청 기상특보 조회서비스', issuedAt: String(it.tmFc || ''), active, related: active.filter((x) => /건조|강풍/.test(x)) }
 }
@@ -83,8 +85,8 @@ function toGrid(lat, lon) {
 }
 
 // 기상청 단기예보. 동해시청 부근 격자의 풍향, 풍속, 습도를 앞으로 12시간 받는다
-async function wind(key) {
-  const { nx, ny } = toGrid(37.5247, 129.1143)
+async function wind(key, R) {
+  const { nx, ny } = toGrid(R.weatherPoint[0], R.weatherPoint[1])
   const now = kst(-15)
   const bases = [2, 5, 8, 11, 14, 17, 20, 23]
   let baseH = [...bases].reverse().find((h) => now.hh >= h)
@@ -121,25 +123,25 @@ async function getText(url) {
 
 // 국립중앙의료원 전국 응급의료기관 정보 조회 서비스(15000563). 응급실 실시간 가용병상.
 // 시도 이름이 바뀐 뒤 두 표기가 섞여 있어 강원특별자치도와 강원도를 차례로 묻는다.
-async function er(key) {
+async function er(key, R) {
   let items = []
   for (const stage1 of ['강원특별자치도', '강원도']) {
-    const xml = await getText(`${BASE}/B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${key}&STAGE1=${encodeURIComponent(stage1)}&STAGE2=${encodeURIComponent('동해시')}&pageNo=1&numOfRows=20`)
+    const xml = await getText(`${BASE}/B552657/ErmctInfoInqireService/getEmrrmRltmUsefulSckbdInfoInqire?serviceKey=${key}&STAGE1=${encodeURIComponent(stage1)}&STAGE2=${encodeURIComponent(R.erStage2)}&pageNo=1&numOfRows=20`)
     items = xmlItems(xml)
     if (items.length) break
   }
   const list = items.map((o) => ({ name: o.dutyName, erBeds: o.hvec == null || String(o.hvec).trim() === '' || Number.isNaN(Number(o.hvec)) ? null : Number(o.hvec), tel: o.dutyTel3 || null, updatedAt: o.hvidate || null }))
-  return { source: '국립중앙의료원 전국 응급의료기관 정보 조회 서비스', area: '강원특별자치도 동해시', count: list.length, list, fetchedAt: new Date().toISOString() }
+  return { source: '국립중앙의료원 전국 응급의료기관 정보 조회 서비스', area: `${R.province} ${R.erStage2}`, count: list.length, list, fetchedAt: new Date().toISOString() }
 }
 
 // 한국사회보장정보원 장애인편의시설 현황(15092317). 동해시 시설 목록과 좌표.
-async function access(key) {
+async function access(key, R) {
   // 전체 건수는 totalCount로 읽고, 목록은 1,000건씩 최대 5쪽까지 모은다. 시도 표기가 섞여 있어 강원도도 묻는다.
   let items = [], total = null
   for (const siDo of ['강원특별자치도', '강원도']) {
     items = []; total = null
     for (let page = 1; page <= 5; page++) {
-      const xml = await getText(`${BASE}/B554287/DisabledPersonConvenientFacility/getDisConvFaclList?serviceKey=${key}&pageNo=${page}&numOfRows=1000&siDoNm=${encodeURIComponent(siDo)}&cggNm=${encodeURIComponent('동해시')}`)
+      const xml = await getText(`${BASE}/B554287/DisabledPersonConvenientFacility/getDisConvFaclList?serviceKey=${key}&pageNo=${page}&numOfRows=1000&siDoNm=${encodeURIComponent(siDo)}&cggNm=${encodeURIComponent(R.accessCgg)}`)
       if (total == null) { const m = xml.match(/<totalCount>\s*(\d+)\s*<\/totalCount>/); total = m ? Number(m[1]) : null }
       let got = xmlItems(xml, 'servList')
       if (!got.length) got = xmlItems(xml)
@@ -148,9 +150,9 @@ async function access(key) {
     }
     if (items.length) break
   }
-  if (!items.length) throw Object.assign(new Error('동해시 장애인편의시설 조회 결과가 없습니다'), { code: 'EMPTY' })
+  if (!items.length) throw Object.assign(new Error(`${R.accessCgg} 장애인편의시설 조회 결과가 없습니다`), { code: 'EMPTY' })
   const list = items.map((o) => ({ id: o.wfcltId, name: o.faclNm, kind: o.faclTyCd || o.faclInfId || null, address: o.lcMnad || null, lat: Number(o.faclLat) || null, lon: Number(o.faclLng) || null }))
-  return { source: '한국사회보장정보원 장애인편의시설 현황', area: '강원특별자치도 동해시', count: total ?? list.length, listed: list.length, list, fetchedAt: new Date().toISOString() }
+  return { source: '한국사회보장정보원 장애인편의시설 현황', area: `${R.province} ${R.accessCgg}`, count: total ?? list.length, listed: list.length, list, fetchedAt: new Date().toISOString() }
 }
 
 // 'YYYYMMDDHHmm(ss)', 'YYYY-MM-DD HH(:mm)', 'YYYY/MM/DD HH:mm:ss' 를 한국 시간 ISO 로 바꾼다. 못 읽으면 null
@@ -216,7 +218,7 @@ export function parseAlerts(rows, region = '동해시', now = Date.now(), days =
   if (list.length && !withId) throw new Error('응답 항목 확인 필요(일련번호 없음)')
   return out.sort((a, b) => (a.at && b.at ? b.at.localeCompare(a.at) : a.at ? -1 : b.at ? 1 : 0))
 }
-async function alerts() {
+async function alerts(_key, R = openDataOf(REGION)) {
   const key = process.env.SAFETYDATA_KEY
   const source = '행정안전부 긴급재난문자(재난안전데이터공유플랫폼)'
   if (!key) return { source, status: 'pending', appliedAt: ALERTS_APPLIED, list: [], fetchedAt: new Date().toISOString() }
@@ -224,28 +226,39 @@ async function alerts() {
   const rows = []
   // 한 쪽 100행씩 최대 5쪽. 기간 검색 인자(crtDt)의 해석은 승인 뒤 실제 응답으로 확인
   for (let page = 1; page <= 5; page++) {
-    const j = await getJson(`https://www.safetydata.go.kr/V2/api/DSSP-IF-00247?serviceKey=${encodeURIComponent(key)}&returnType=json&pageNo=${page}&numOfRows=100&crtDt=${ymd}&rgnNm=${encodeURIComponent('동해시')}`)
+    const j = await getJson(`https://www.safetydata.go.kr/V2/api/DSSP-IF-00247?serviceKey=${encodeURIComponent(key)}&returnType=json&pageNo=${page}&numOfRows=100&crtDt=${ymd}&rgnNm=${encodeURIComponent(R.alertRegion)}`)
     const code = j?.header?.resultCode
     if (code && !['00', '0', '0000'].includes(String(code))) throw new Error(`결과코드 ${code}`)
     const got = alertRows(j)
     rows.push(...got)
     if (got.length < 100) break
   }
-  const list = parseAlerts(rows)
+  const list = parseAlerts(rows, R.alertRegion)
   return { source, status: 'ok', list: list.slice(0, 20), fetchedAt: new Date().toISOString() }
 }
 
 const KINDS = { fire, shelters, ltc, ambulance, warning, wind, er, access, alerts }
+
+// 지역 설정의 공공데이터 인자. 시도 이름(province)을 함께 넘긴다
+export const openDataOf = (region) => ({ ...region.openData, province: region.province, regionId: region.id })
+// 항목마다 꼭 있어야 하는 지역 인자. 비어 있으면 상류를 부르지 않고 503 REGION 으로 돌려준다(엉뚱한 시군 자료 방지)
+const NEEDS = { fire: ['fireSigucode', 'fireSigun'], shelters: ['addressLike'], ltc: ['ltc'], ambulance: ['ambulanceOrg'], warning: ['warningWord'], wind: ['weatherPoint'], er: ['erStage2'], access: ['accessCgg'], alerts: ['alertRegion'] }
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return fail(res, 405, 'METHOD', 'GET 만 허용')
   const kind = req.query?.kind
   const fn = KINDS[kind]
   if (!fn) return fail(res, 400, 'KIND', 'kind 는 fire, shelters, ltc, ambulance, warning, wind, er, access, alerts 중 하나')
+  const regionId = req.query?.region
+  if (regionId && !REGIONS[regionId]) return fail(res, 400, 'REGION', '등록되지 않은 지역')
+  const R = openDataOf(regionId ? REGIONS[regionId] : REGION)
+  const missing = NEEDS[kind].filter((k) => R[k] == null || R[k] === '')
+  if (missing.length) return fail(res, 503, 'REGION', `지역 설정에 공공데이터 인자 없음: ${missing.join(', ')}`)
   const key = process.env.DATA_GO_KR_KEY
   if (!key && kind !== 'alerts') return fail(res, 503, 'NO_KEY', '공공데이터포털 인증키 미설정')
   try {
-    const data = stamp(kind, await fn(key))
+    // 응답에 지역 이름표를 붙여 화면이 다른 시군 자료를 받았는지 가릴 수 있게 한다
+    const data = { ...stamp(kind, await fn(key, R)), region: R.regionId }
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=3600')
     return res.status(200).json(data)
   } catch (e) {

@@ -4,8 +4,9 @@ import { Printer } from 'lucide-react'
 import Button from '../ui/Button.jsx'
 import { TAGS } from '../../lib/intake.js'
 import { gradeOf } from '../../lib/shortage.js'
-import { TEMP_SHELTERS } from '../../mock/donghaeData.js'
+import { TEMP_SHELTERS } from '../../regions/data.js'
 import { fmtKDate } from './BasisLine.jsx'
+import { REGION } from '../../regions/index.js'
 
 export default function RosterPrint({ groups, dongs, today }) {
   const dongName = (c) => dongs.find((d) => d.code === c)?.name || c
@@ -30,7 +31,7 @@ export default function RosterPrint({ groups, dongs, today }) {
                 <p className="type-meta text-text-sec">명부 {fmtKDate(today)} 기준</p>
               </header>
               <dl className="mt-3 grid gap-x-6 gap-y-1 type-body-sm text-text-pri sm:grid-cols-2">
-                <div className="flex gap-2"><dt className="text-text-sec">집결지</dt><dd>{g.village.pickup ? `${g.village.pickup.name}, ${g.village.pickup.road.replace('동해시 ', '')}` : '미지정'}</dd></div>
+                <div className="flex gap-2"><dt className="text-text-sec">집결지</dt><dd>{g.village.pickup ? `${g.village.pickup.name}, ${g.village.pickup.road.replace(`${REGION.name} `, '')}` : '미지정'}</dd></div>
                 <div className="flex gap-2"><dt className="text-text-sec">평시 대피소</dt><dd>{s ? `${s.name}, 왕복 ${g.village.roundTripMin}분` : '미지정'}</dd></div>
               </dl>
               <table className="mt-4 w-full border-collapse type-body-sm">

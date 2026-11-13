@@ -7,7 +7,7 @@
 // GET /api/open?kind=scenarios       확산 시나리오 목록
 // GET /api/open?kind=scenario&id=S-1 시나리오별 마을 부족분, 대피소 배정, 필요 추가 차량
 // 개인 단위 자료는 내보내지 않는다. 마을 단위 집계만 낸다. 차량과 도우미 수량은 가정값이며 응답에 표시한다.
-import { DATA_SOURCES, DONG_CENTERS, DONG_STATS, LTC, LTC_DAYCARE, LTC_RESIDENTIAL, TEMP_SHELTERS, VILLAGES } from '../src/mock/donghaeData.js'
+import { DATA_SOURCES, DONG_CENTERS, DONG_STATS, LTC, LTC_DAYCARE, LTC_RESIDENTIAL, TEMP_SHELTERS, VILLAGES } from '../src/regions/data.js'
 import { buildSeed } from '../src/mock/seed.js'
 import { computeShortage, requiredExtraVehicles } from '../src/lib/shortageCalc.js'
 

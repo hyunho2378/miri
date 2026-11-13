@@ -5,7 +5,7 @@ import { buildContext, runBaseline, runOptimize } from './assign.js'
 import { EXTRA_TYPE, GRADES, capOf, emptyByGrade, formulaShortage, typeOf } from './shortage.js'
 import { HOUR } from './time.js'
 import { resolveVillages } from './scenario.js'
-import { TEMP_SHELTERS } from '../mock/donghaeData.js'
+import { TEMP_SHELTERS } from '../regions/data.js'
 
 // 발령 시간대. 회신 R24(김현규)와 R27(최충익). 시나리오에 timeBand 가 없으면 이전과 같이 모두 집에 있다고 본다
 export const TIME_BANDS = [

@@ -12,6 +12,7 @@ import { fadeValue } from '../motion/fade.js'
 import { prefersReducedMotion } from '../motion/useReducedMotion.js'
 import { createBarsLayer } from './barsLayer.js'
 import { OVERLAY, SEVERITY_COLOR, STYLE_URL } from './mapTheme.js'
+import { REGION } from '../../regions/index.js'
 
 setWorkerUrl(workerUrl)
 
@@ -524,7 +525,7 @@ export default function MapCanvas({
 
   return (
     <div className="relative h-full w-full">
-      <div ref={boxRef} className="h-full w-full" role="region" aria-label="동해시 상황판 지도, 마을 표식 Tab 키 선택" />
+      <div ref={boxRef} className="h-full w-full" role="region" aria-label={`${REGION.name} 상황판 지도, 마을 표식 Tab 키 선택`} />
       {tip && (
         <div
           role="presentation"

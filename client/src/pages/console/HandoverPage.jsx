@@ -32,6 +32,7 @@ import { computeShortage, optimizedUnserved, requiredExtraVehicles } from '../..
 import { handoverPreview } from '../../lib/handoverPreview.js'
 import { addressText } from '../../lib/addressText.js'
 import Drawer from '../../components/ui/Drawer.jsx'
+import { REGION } from '../../regions/index.js'
 
 const REASON = { ...UNSERVED_REASON, ...FAIL_REASONS }
 
@@ -213,7 +214,7 @@ export default function HandoverPage() {
             footer={(
               <>
                 <Button variant="ghost" onClick={() => setHandOpen(false)}>취소</Button>
-                <Button variant="danger" onClick={() => { setHandOpen(false); d.handover(picked); setSelected(new Set()); toast(`동해소방서 인계: ${picked.length}명`, 'primary') }}>소방 인계</Button>
+                <Button variant="danger" onClick={() => { setHandOpen(false); d.handover(picked); setSelected(new Set()); toast(`${REGION.org.fire} 인계: ${picked.length}명`, 'primary') }}>소방 인계</Button>
               </>
             )}
           >

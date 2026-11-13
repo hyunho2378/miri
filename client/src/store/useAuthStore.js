@@ -2,6 +2,7 @@
 // 데모(mock)는 시 관리자로 시작하고 로그인 화면에서 역할을 바꿀 수 있다.
 import { create } from 'zustand'
 import { USE_MOCK } from '../lib/api.js'
+import { REGION } from '../regions/index.js'
 import { ensureDemoSession, forgetDemoRole } from '../lib/demoSession.js'
 import { setRoleAlign, setSessionRecover } from '../lib/dispatchSync.js'
 
@@ -10,7 +11,7 @@ import { setRoleAlign, setSessionRecover } from '../lib/dispatchSync.js'
 
 export const DEMO_USERS = {
   city: { id: 'U-1', name: '시 재난부서 관리자', role: 'city', dong: null },
-  dong: { id: 'U-2', name: '망상동 재난 담당자', role: 'dong', dong: 'MS' }
+  dong: { id: 'U-2', name: REGION.demo.dongUser.name, role: 'dong', dong: REGION.demo.dongUser.dong }
 }
 
 export const ROLE_LABEL = { city: '시 관리자', dong: '동 담당자' }

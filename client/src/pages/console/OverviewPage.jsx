@@ -26,6 +26,7 @@ import { openDataErrorText } from '../../lib/openDataError.js'
 import { staleRosterCount, STALE_DAYS } from '../../lib/handoverRows.js'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
+import { REGION } from '../../regions/index.js'
 
 const fmt = (n) => Number(n || 0).toLocaleString('ko-KR')
 
@@ -80,7 +81,7 @@ export default function OverviewPage() {
   const shortVillages = inScope.filter((x) => x.r.total > 0)
   const diff = optUnserved == null ? 0 : optUnserved - result.total
   const dongName = (c) => dongs.find((d) => d.code === c)?.name || c
-  const scopeName = isDong ? dongName(user.dong) : '동해시 전체'
+  const scopeName = isDong ? dongName(user.dong) : `${REGION.name} 전체`
 
   // 대피 대상 마을을 도달 순으로 세운다
   const arrival = (code) => result.ctx?.deadlines?.[code]?.arrival ?? Infinity

@@ -5,6 +5,10 @@ import { HELPER_PHRASES, AVOID_PHRASES } from './helperGuidance.js'
 // 본문 항목은 <p class="gm" data-lv="단계"> 로 쓰고, 화면은 CSS 가, 한글 파일은 kordoc 이 항목 기호(1. 가. 1) 가) … 또는 □ ○ - ·)를 붙인다.
 // 사실 수치는 넣지 않는다. 숫자는 자료 칸(V, C)이 상황판에서 가져오고, 모르는 칸은 ○○○ 로 둔다.
 import { C, V } from './docVars.js'
+import { REGION } from '../regions/index.js'
+
+// 기관명, 시장, 소방서, 주소는 지역 설정(regions/<지역>.js org)에서 읽는다
+const ORG = REGION.org
 
 const L = (lv, text) => `<p class="gm" data-lv="${lv}">${text}</p>`
 const P = (text) => `<p>${text}</p>`
@@ -33,8 +37,8 @@ export const DOC_CATEGORIES = [
 
 // 기안문 두문과 결문 기본값. 편집기 오른쪽 [문서 정보]에서 고친다
 const GIAN_FOOT = {
-  sender: '동해시장', drafter: '주무관 ○○○', reviewer: '팀장 ○○○', approver: '안전과장 ○○○',
-  docNum: '안전과-○○○○ (○○○○. ○. ○.)', zip: '25745', address: '강원특별자치도 동해시 천곡로 77(천곡동)',
+  sender: `${ORG.head}`, drafter: '주무관 ○○○', reviewer: '팀장 ○○○', approver: '안전과장 ○○○',
+  docNum: '안전과-○○○○ (○○○○. ○. ○.)', zip: ORG.zip || '○○○○○', address: ORG.address || `${REGION.province} ${ORG.name} ○○로 ○○`,
   site: 'www.dh.go.kr', phone: '033-530-○○○○', fax: '033-530-○○○○', email: '○○○@korea.kr', disclosure: '대국민공개'
 }
 
@@ -48,7 +52,7 @@ export const DOC_TEMPLATES = [
   {
     key: 'gian-request', cat: 'gongmun', title: '협조 요청 공문',
     preset: '기안문', numbering: 'standard',
-    head: { org: '동해시', to: '동해소방서장', via: '', title: '거동불편자 사전 대피 이송 차량 지원 협조 요청' }, foot: GIAN_FOOT,
+    head: { org: `${ORG.name}`, to: `${ORG.fire}장`, via: '', title: '거동불편자 사전 대피 이송 차량 지원 협조 요청' }, foot: GIAN_FOOT,
     html: join(
       L(1, `관련: 「재난 및 안전관리 기본법」 제40조(대피명령)`),
       L(1, `우리 시는 ${V('hazard')} 발생에 대비하여 스스로 대피하기 어려운 주민의 사전 대피 이송 계획을 수립하고 있습니다.`),
@@ -62,9 +66,9 @@ export const DOC_TEMPLATES = [
   {
     key: 'gian-data', cat: 'gongmun', title: '자료 제출 요청 공문',
     preset: '기안문', numbering: 'standard',
-    head: { org: '동해시', to: '수신자 참조', via: '', title: '거동불편자 명부 정기 갱신 자료 제출 요청' }, foot: { ...GIAN_FOOT, recipients: '천곡동장, 송정동장, 북삼동장, 부곡동장, 동호동장, 발한동장, 묵호동장, 북평동장, 망상동장, 삼화동장' },
+    head: { org: `${ORG.name}`, to: '수신자 참조', via: '', title: '거동불편자 명부 정기 갱신 자료 제출 요청' }, foot: { ...GIAN_FOOT, recipients: REGION.dongs.map((d) => `${d.name}장`).join(', ') },
     html: join(
-      L(1, '관련: 동해시 재난 및 안전관리 기본 조례'),
+      L(1, `관련: ${ORG.name} 재난 및 안전관리 기본 조례`),
       L(1, `명부 기준일 이후 변동된 거동불편자의 이송 등급과 특이사항을 아래와 같이 제출하여 주시기 바랍니다.`),
       L(2, `제출 대상: 관할 마을 거동불편자(현재 ${V('rosterSummary')})`),
       L(2, '제출 항목: 대상자 코드, 이송 등급(침상, 휠체어, 부축, 도보), 특이사항'),
@@ -108,7 +112,7 @@ export const DOC_TEMPLATES = [
       V('tableShortage'),
       L(1, '조치 사항'),
       L(2, '○○:○○ 실행대기 발령, 도우미 배정표 전송'),
-      L(2, '○○:○○ 구조 대상 명단 동해소방서 인계'),
+      L(2, `○○:○○ 구조 대상 명단 ${ORG.fire} 인계`),
       L(1, '향후 계획'),
       L(2, '○○:○○ 2보 예정'),
       NOTE('미이송 예상은 규칙 기반 계산값이며 현장 상황에 따라 달라질 수 있음')
@@ -121,7 +125,7 @@ export const DOC_TEMPLATES = [
       '<h1>거동불편자 이송 부족분 검토 보고</h1>',
       `<blockquote>「${V('scenario')}」 기준으로 미이송 예상 ${V('unserved')}, 필요 추가 차량 ${V('extraVehicles')}</blockquote>`,
       '<h2>현황</h2>',
-      L(1, `동해시 주민등록인구 ${V('population')} 중 65세 이상 ${V('age65')}(고령화율 ${V('agingRate')})`),
+      L(1, `${ORG.name} 주민등록인구 ${V('population')} 중 65세 이상 ${V('age65')}(고령화율 ${V('agingRate')})`),
       L(1, `${V('rosterSummary')}, 마을 ${V('villages')}`),
       V('tableGrades'),
       '<h2>검토 결과</h2>',
@@ -144,7 +148,7 @@ export const DOC_TEMPLATES = [
       L(1, `일시: ${V('drillPeriod')}`),
       L(1, `장소: 대피 대상 마을 ${V('scopeVillages')}`),
       L(1, `상황: ${V('scenario')}`),
-      L(1, `참여: 안전과, 동 행정복지센터, 동해소방서, 대피 도우미 ${V('drillHelpers')}`),
+      L(1, `참여: 안전과, 동 행정복지센터, ${ORG.fire}, 대피 도우미 ${V('drillHelpers')}`),
       '<h2>훈련 결과</h2>',
       L(1, `대상자 ${V('drillTargets')} 중 인계 완료 ${V('drillDone')}, 소방 인계 ${V('drillFire')}, 미완료 ${V('drillOpen')}(${V('drillBaseAt')} 종료 기록 기준)`),
       L(1, '마을별 실제 왕복 시간: 별도 표'),
@@ -181,7 +185,7 @@ export const DOC_TEMPLATES = [
       '<h2>대상</h2>',
       L(1, `${V('rosterSummary')}, 이송 등급별 침상 ${V('bed')}, 휠체어 ${V('wheelchair')}, 부축 ${V('assist')}, 도보 ${V('walk')}`),
       '<h2>추진 체계</h2>',
-      T(['구분', '역할', '담당'], [['안전과', '총괄, 발령, 차량 협약', '○○○'], ['동 행정복지센터', '명부 정비, 도우미 연락', '○○○'], ['동해소방서', '침상 이송, 구조 대상(기한 안 미이송) 구조', '○○○'], ['요양시설', '시설 차량 지원', '○○○']]),
+      T(['구분', '역할', '담당'], [['안전과', '총괄, 발령, 차량 협약', '○○○'], ['동 행정복지센터', '명부 정비, 도우미 연락', '○○○'], [`${ORG.fire}`, '침상 이송, 구조 대상(기한 안 미이송) 구조', '○○○'], ['요양시설', '시설 차량 지원', '○○○']]),
       '<h2>자원 현황</h2>',
       L(1, `${V('vehicleSummaryLong')}, 도우미 ${V('helpers')}, 임시주거시설 ${V('shelters')} 수용 ${V('shelterCapacity')}`),
       V('tableVehicles'),
@@ -199,7 +203,7 @@ export const DOC_TEMPLATES = [
       L(1, `상황 가정: ${V('scenario')}(첫 도달 발령 후 ${V('firstArrival')})`),
       L(1, `대상: 마을 ${V('scopeVillages')}, 대상자 ${V('scopeTargets')}`),
       '<h2>세부 진행</h2>',
-      T(['시간', '진행', '담당'], [['○○:○○', '실행대기 발령', '안전과'], ['○○:○○', '배정표 전송, 도우미 출발', '동 행정복지센터'], ['○○:○○', '이송 완료 확인, 구조 대상 인계', '동해소방서']]),
+      T(['시간', '진행', '담당'], [['○○:○○', '실행대기 발령', '안전과'], ['○○:○○', '배정표 전송, 도우미 출발', '동 행정복지센터'], ['○○:○○', '이송 완료 확인, 구조 대상 인계', `${ORG.fire}`]]),
       '<h2>준비 사항</h2>',
       L(1, '차량 협약 기관 사전 통보'),
       L(1, '훈련 안내문 마을 배포')
@@ -210,7 +214,7 @@ export const DOC_TEMPLATES = [
   {
     key: 'helper-notice', cat: 'notice', title: '대피 도우미 모집 공고',
     preset: '알림', numbering: 'standard',
-    noticeHead: { no: '동해시 공고 제○○○○-○○○호', date: '', sender: '동해시장' },
+    noticeHead: { no: `${ORG.name} 공고 제○○○○-○○○호`, date: '', sender: `${ORG.head}` },
     html: join(
       '<h1>거동불편자 대피 도우미 모집 공고</h1>',
       P('재난 때 스스로 대피하기 어려운 이웃의 대피를 도울 주민을 아래와 같이 모집합니다.'),
@@ -239,9 +243,9 @@ export const DOC_TEMPLATES = [
     html: join(
       '<h1>재난문자 문안</h1>',
       '<h2>실행대기 발령</h2>',
-      P(`[동해시] ${V('hazard')} 우려로 거동이 불편한 주민 사전 대피를 시작합니다. 도우미 방문 시 함께 이동 바랍니다.`),
+      P(`[${ORG.name}] ${V('hazard')} 우려로 거동이 불편한 주민 사전 대피를 시작합니다. 도우미 방문 시 함께 이동 바랍니다.`),
       '<h2>대피 완료 안내</h2>',
-      P('[동해시] 사전 대피 대상 주민 이송을 마쳤습니다. 미이송 가구는 소방이 방문합니다.'),
+      P(`[${ORG.name}] 사전 대피 대상 주민 이송을 마쳤습니다. 미이송 가구는 소방이 방문합니다.`),
       NOTE('재난문자 길이 제한과 송출 승인 절차는 기관 기준을 따름')
     )
   },
@@ -285,9 +289,9 @@ export const DOC_TEMPLATES = [
     preset: '보도자료', numbering: 'report',
     press: { release: '○○○○. ○. ○.(○) ○○:○○ 이후', sub: ['거동 불편 주민 사전 대피 합동 훈련'], contact: { dept: '안전과', manager: '○○○', phone: '033-530-○○○○' } },
     html: join(
-      '<h1>동해시, 거동불편자 사전 대피 훈련 실시</h1>',
-      L(1, `동해시는 ○월 ○일 ${V('hazard')}을 가정해 스스로 대피하기 어려운 주민을 미리 옮기는 합동 훈련을 했다.`),
-      L(1, `훈련에는 동 행정복지센터, 동해소방서, 대피 도우미가 참여했다.`),
+      `<h1>${ORG.name}, 거동불편자 사전 대피 훈련 실시</h1>`,
+      L(1, `${ORG.name}는 ○월 ○일 ${V('hazard')}을 가정해 스스로 대피하기 어려운 주민을 미리 옮기는 합동 훈련을 했다.`),
+      L(1, `훈련에는 동 행정복지센터, ${ORG.fire}, 대피 도우미가 참여했다.`),
       L(1, '○○○ 안전과장은 "○○○"라고 말했다.')
     )
   },
@@ -337,7 +341,7 @@ export const DOC_TEMPLATES = [
       '<h1>거동불편자 대피 지원 서비스 연구 협조 요청</h1>',
       P('<b>수신</b> ○○○(○○과장)'),
       P('<b>발신</b> 한림대학교 서비스디자인 팀 오아시스'),
-      L(1, '요청 배경: 산불과 대설과 호우 때 스스로 대피하기 어려운 동해시 주민을 제때 옮길 차량과 인력을 평시에 계산하는 서비스를 연구하고 있음'),
+      L(1, `요청 배경: 산불과 대설과 호우 때 스스로 대피하기 어려운 ${ORG.name} 주민을 제때 옮길 차량과 인력을 평시에 계산하는 서비스를 연구하고 있음`),
       L(1, '요청 내용'),
       L(2, '담당자 인터뷰(60분 내외)'),
       L(2, '개인 식별 정보가 없는 통계와 빈 서식'),
@@ -354,7 +358,7 @@ export const DOC_TEMPLATES = [
     preset: '통지', numbering: 'standard',
     html: join(
       '<h1>구조 대상(기한 안 미이송) 소방 인계서</h1>',
-      T(['인계 일시', '○○○○. ○. ○. ○○:○○', '인계자', '안전과 ○○○'], [['인수 기관', '동해소방서', '인수자', '○○○']]),
+      T(['인계 일시', '○○○○. ○. ○. ○○:○○', '인계자', '안전과 ○○○'], [['인수 기관', `${ORG.fire}`, '인수자', '○○○']]),
       L(1, `상황: ${V('scenario')}`),
       L(1, `미이송 인원: ${V('unserved')}`),
       V('tableShortage'),
@@ -429,13 +433,13 @@ export const DOC_TEMPLATES = [
     html: join(
       '<h1>가족 안내 문자 문안</h1>',
       T(['시점', '문안', '포함 정보'], [
-        ['차량 출발', '[동해시] ○○○님을 모시러 이송 차량이 출발했습니다. 도착 대피소 ○○○.', '대피소 이름'],
-        ['대피소 도착', '[동해시] ○○○님이 ○○○ 대피소에 도착했습니다. 문의 033-530-○○○○.', '대피소 이름, 문의처'],
-        ['이송 지연', '[동해시] ○○○님 이송이 지연되고 있습니다. 소방과 함께 확인 중입니다.', '지연 사실']
+        ['차량 출발', `[${ORG.name}] ○○○님을 모시러 이송 차량이 출발했습니다. 도착 대피소 ○○○.`, '대피소 이름'],
+        ['대피소 도착', `[${ORG.name}] ○○○님이 ○○○ 대피소에 도착했습니다. 문의 ${ORG.telMask}.`, '대피소 이름, 문의처'],
+        ['이송 지연', `[${ORG.name}] ○○○님 이송이 지연되고 있습니다. 소방과 함께 확인 중입니다.`, '지연 사실']
       ]),
       L(1, '보내지 않는 정보: 건강 상태, 차량 위치 추적, 도우미 개인 연락처'),
       L(1, '받는 사람: 명부에 동의를 받아 등록한 가족 1명'),
-      NOTE('개발자 자문 반영. 가족 알림 범위는 동해시 개인정보 담당과 협의 뒤 확정')
+      NOTE(`개발자 자문 반영. 가족 알림 범위는 ${ORG.name} 개인정보 담당과 협의 뒤 확정`)
     )
   },
 

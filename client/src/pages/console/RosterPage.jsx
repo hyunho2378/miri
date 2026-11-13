@@ -41,6 +41,7 @@ import SegmentControl from '../../components/ui/SegmentControl.jsx'
 import RosterPrint from '../../components/miri/RosterPrint.jsx'
 import { gradeOf } from '../../lib/shortage.js'
 import { countText } from '../../lib/unitText.js'
+import { REGION } from '../../regions/index.js'
 
 // 지도는 무거워서 지도 보기를 고를 때만 받는다
 const RosterMap = lazy(() => import('../../components/miri/RosterMap.jsx'))
@@ -304,7 +305,7 @@ export default function RosterPage() {
               label="대상자 명부" columns={columns} grid={listGrid} rows={rows} rowKey={(p) => p.code} selectedKey={open?.code}
               onSelect={(code) => { setEditing(null); openPerson(code) }}
               emptyTitle="조건에 맞는 대상자 없음" emptyDesc="조건을 바꿔 다시 확인"
-              footer={<p className="shrink-0 pt-2 type-meta tabular-nums text-text-sec">{rosterChipsText(rosterBreakdown(persons))}. {fmtKDate(today)} 기준, 동해시 명부</p>}
+              footer={<p className="shrink-0 pt-2 type-meta tabular-nums text-text-sec">{rosterChipsText(rosterBreakdown(persons))}. {fmtKDate(today)} 기준, {REGION.name} 명부</p>}
             />
           </section>
           {detail}

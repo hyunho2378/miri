@@ -223,12 +223,14 @@ export async function toolGuard(req, res, name) {
   return true
 }
 
-// 접근 기록: 경로, 방법, 상태, 지연, 역할만 남긴다. 본문, 쿼리 값, IP 원문, 쿠키는 남기지 않는다
+// 접근 기록: 경로, 방법, 상태, 지연, 역할, 지역만 남긴다. 본문, 쿼리 값, IP 원문, 쿠키는 남기지 않는다
+// 지역은 배포 환경 변수 MIRI_REGION(없으면 donghae). 여러 시군을 운영할 때 기록을 시군별로 나눠 보려고 둔다.
+// 지역 설정 파일 전체를 불러오지 않으려고 환경 변수 값만 읽는다
 export function accessLog(req, res, started, extra = {}) {
   try {
     const path = String(req.url || '').split('?')[0]
     const s = req.miriSession
-    const line = { t: new Date().toISOString(), path, method: req.method, status: res.statusCode, ms: Date.now() - started, scope: s?.scope || null, role: s?.role || null, ...extra }
+    const line = { t: new Date().toISOString(), path, method: req.method, status: res.statusCode, ms: Date.now() - started, scope: s?.scope || null, role: s?.role || null, region: process.env.MIRI_REGION || 'donghae', ...extra }
     if (process.env.MIRI_ACCESS_LOG !== '0') console.log(JSON.stringify({ miri_access: line }))
     return line
   } catch { return null }

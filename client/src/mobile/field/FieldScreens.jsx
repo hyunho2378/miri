@@ -25,6 +25,7 @@ import { aiErrorMessage } from '../../lib/aiErrors.js'
 import { REAL_READ_SOURCE } from '../../mock/realReadings.js'
 import { AppBar, DisplaySettings, Button, Dialog, EmptyState, Figure, FilledInput, FilledTextarea, InfoSheet, List, ListRow, Progress, Segmented, Sheet, Spinner, Toggle, useMobileToast } from '../ui.jsx'
 import { ACTIVE, failedPending, unservedPeople, scopeDispatch, fieldSummary, helperResponses, hm, searchPersons, stepLabel, unservedByReason, villageName, villageProgress, deadlineTag, scopedShortage, scopedOptimized, lateVillages, docQueue, noteQueue } from './fieldModel.js'
+import { REGION } from '../../regions/index.js'
 
 // 발령 복원과 10초 주기 조회(콘솔 발령 운영과 같은 방식)
 function useDispatchLive() {
@@ -91,7 +92,7 @@ export function FieldStatusPage() {
         </Figure>
         {notMoved > 0 && (
           <List label="차량이 닿지 않는 사람">
-            <ListRow lead={<PhoneOutgoing size={22} />} title={`이동 불가 인원 ${u.total}명`} subtitle={scope.isDong ? '마을별 번호 확인 후 직접 연락' : '동해소방서 지원 요청 대상'} chevron onClick={() => navigate('/m/f/fire')} />
+            <ListRow lead={<PhoneOutgoing size={22} />} title={`이동 불가 인원 ${u.total}명`} subtitle={scope.isDong ? '마을별 번호 확인 후 직접 연락' : `${REGION.org.fire} 지원 요청 대상`} chevron onClick={() => navigate('/m/f/fire')} />
           </List>
         )}
         <List label="보내기">
@@ -105,7 +106,7 @@ export function FieldStatusPage() {
           ))}
           <ListRow title="모든 마을 보기" chevron onClick={() => navigate('/m/f/villages')} />
         </List>
-        {scope.isDong ? null : u.total > 0 && <Button block variant="danger" onClick={() => navigate('/m/f/fire')}>동해소방서 지원 요청</Button>}
+        {scope.isDong ? null : u.total > 0 && <Button block variant="danger" onClick={() => navigate('/m/f/fire')}>{REGION.org.fire} 지원 요청</Button>}
         {d.remote?.state !== 'saved' && <ServerLink remote={d.remote} />}
         <CloseDispatch isDong={scope.isDong} left={left} />
       </main>
@@ -553,13 +554,13 @@ export function FieldFirePage() {
                 </InfoSheet>
               )}
             </List>
-            {!scope.isDong && <Button block variant="danger" disabled={!u.total} onClick={() => setOpen(true)}>동해소방서 지원 요청</Button>}
+            {!scope.isDong && <Button block variant="danger" disabled={!u.total} onClick={() => setOpen(true)}>{REGION.org.fire} 지원 요청</Button>}
           </>
         )}
       </main>
-      <Dialog open={open} onClose={() => setOpen(false)} title={`${u.total}명 지원 요청`} body="사유와 마을별 인원을 동해소방서 인계 기록으로 넘김"
+      <Dialog open={open} onClose={() => setOpen(false)} title={`${u.total}명 지원 요청`} body={`사유와 마을별 인원을 ${REGION.org.fire} 인계 기록으로 넘김`}
         actions={<><Button variant="plain" onClick={() => setOpen(false)}>취소</Button><Button variant="danger" onClick={() => { const q = requestFireSupport(); toast(q ? `지원 요청 ${q.count}명 기록` : '요청할 사람 없음'); setOpen(false) }}>요청</Button></>} />
-      <Dialog open={openFail} onClose={() => setOpenFail(false)} title={`실패 ${failed.length}명 소방 인계`} body="이동 중 실패한 사람을 동해소방서 인계 기록으로 넘김"
+      <Dialog open={openFail} onClose={() => setOpenFail(false)} title={`실패 ${failed.length}명 소방 인계`} body={`이동 중 실패한 사람을 ${REGION.org.fire} 인계 기록으로 넘김`}
         actions={<><Button variant="plain" onClick={() => setOpenFail(false)}>취소</Button><Button variant="danger" onClick={() => { handover(failed.map((f) => f.code)); toast(`실패 ${failed.length}명 소방 인계 기록`); setOpenFail(false) }}>인계</Button></>} />
     </>
   )

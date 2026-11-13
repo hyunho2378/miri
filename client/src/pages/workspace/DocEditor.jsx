@@ -26,6 +26,7 @@ import useWorkspaceStore, { useWorkspaceInit } from '../../store/useWorkspaceSto
 import EditorFrame, { download } from './EditorFrame.jsx'
 import Button from '../../components/ui/Button.jsx'
 import { htmlPagesToPdf, paginateHtml, printHtmlPages } from './hwpPages.js'
+import { REGION } from '../../regions/index.js'
 
 const lawCache = new Map()
 const LAW_TONE = { exists: ['success', '실존'], not_found: ['danger', '없음'], unknown: ['warning', '확인 불가'] }
@@ -518,7 +519,7 @@ export default function DocEditor() {
     page: <>
       <div className="flex shrink-0 flex-col justify-center gap-1 px-2">
         <span className="text-[11px] text-text-meta">문서 양식</span>
-        <Pick label="문서 양식" value={presetKey} onChange={(v) => setMeta({ preset: v, head: v === '기안문' && !meta.head ? { org: '동해시', to: '', via: '', title: doc.title } : meta.head, foot: v === '기안문' && !meta.foot ? { sender: '동해시장' } : meta.foot })} options={PRESETS.map((p) => ({ value: p.key, label: p.label }))} className="w-52" />
+        <Pick label="문서 양식" value={presetKey} onChange={(v) => setMeta({ preset: v, head: v === '기안문' && !meta.head ? { org: REGION.org.name, to: '', via: '', title: doc.title } : meta.head, foot: v === '기안문' && !meta.foot ? { sender: REGION.org.head } : meta.foot })} options={PRESETS.map((p) => ({ value: p.key, label: p.label }))} className="w-52" />
       </div>
       <RibbonSep />
       <div className="flex shrink-0 flex-col justify-center px-2 text-[11px] leading-5 text-text-sec">
@@ -869,7 +870,7 @@ function DocInfo({ meta, setMeta }) {
     <div className="space-y-4">
       <section className="space-y-2">
         <h3 className="type-strong text-text-pri">문서 양식</h3>
-        <Pick label="양식" value={meta.preset} onChange={(v) => setMeta({ preset: v, head: v === '기안문' && !meta.head ? { org: '동해시', to: '', via: '', title: '' } : meta.head, foot: v === '기안문' && !meta.foot ? { sender: '동해시장' } : meta.foot })} options={PRESETS.map((p) => ({ value: p.key, label: p.label }))} className="w-full" />
+        <Pick label="양식" value={meta.preset} onChange={(v) => setMeta({ preset: v, head: v === '기안문' && !meta.head ? { org: REGION.org.name, to: '', via: '', title: '' } : meta.head, foot: v === '기안문' && !meta.foot ? { sender: REGION.org.head } : meta.foot })} options={PRESETS.map((p) => ({ value: p.key, label: p.label }))} className="w-full" />
         <p className="type-meta leading-5 text-text-meta">A4, 여백 위 {m.page.top} 아래 {m.page.bottom} 왼쪽 {m.page.left} 오른쪽 {m.page.right}mm. 본문 {m.body.font} {m.body.pt}pt, 줄 간격 {m.body.lineSpacing}%. 한글 파일로 저장하면 이 값이 그대로 적용됩니다.</p>
       </section>
       {meta.preset === '기안문' && (
