@@ -164,3 +164,11 @@ test('Q14 소방 인계 목록과 CSV: 명부 마지막 확인 경과일을 명�
   assert.match(s, /arrivals: d\.arrivals, now,/)
   assert.doesNotMatch(s, /now: today/)
 })
+
+test('Q15 현장 모바일: 주소로 바로 연 화면(/m/f/note)은 계정 고른 뒤 그 화면으로 돌아가고, 탭 제목을 정함', () => {
+  const s = src('src/mobile/shells.jsx')
+  assert.match(s, /const back = \/\^\\\/m\\\/f\(\\\/\|\$\)\/\.test\(loc\.pathname\) \? `\$\{loc\.pathname\}\$\{loc\.search\}` : '\/m\/f'/)
+  assert.match(s, /navigate\(back, \{ replace: true \}\)/)
+  assert.match(s, /usePageTitle\('현장 담당자'\)/)
+  assert.match(s, /usePageTitle\('계정 고르기'\)/)
+})

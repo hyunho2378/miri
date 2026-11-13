@@ -12,6 +12,7 @@ import { MobileRoot, AppBar, EmptyState, OfflineBanner, BottomNav, DisplaySettin
 import { EXP_NOTICE, expCapture, expScreen, expSource } from '../lib/expTrack.js'
 import { pathKeyOf } from '../lib/expSchema.js'
 import { USE_MOCK } from '../lib/api.js'
+import usePageTitle from '../hooks/usePageTitle.js'
 import useAuthStore, { DEMO_USERS, ROLE_LABEL } from '../store/useAuthStore.js'
 import { FieldVillagesPage, FieldPeoplePage } from './field/FieldScreens.jsx'
 
@@ -113,7 +114,11 @@ const LOGIN_ROLES = [
 export function FieldLogin() {
   const setDemoUser = useAuthStore((s) => s.setDemoUser)
   const navigate = useNavigate()
-  const pick = (role) => { setDemoUser(role); navigate('/m/f', { replace: true }) }
+  const loc = useLocation()
+  usePageTitle('계정 고르기')
+  // 주소로 바로 들어온 현장 화면(예: /m/f/note)은 계정을 고른 뒤 그 화면을 그대로 연다. 그 밖에는 현장 홈
+  const back = /^\/m\/f(\/|$)/.test(loc.pathname) ? `${loc.pathname}${loc.search}` : '/m/f'
+  const pick = (role) => { setDemoUser(role); navigate(back, { replace: true }) }
   return (
     <MobileRoot>
       <div className="mob-screen">
@@ -146,6 +151,7 @@ export function FieldShell() {
 }
 
 function FieldShellBody() {
+  usePageTitle('현장 담당자')
   const { pathname, state } = useLocation()
   const navigate = useNavigate()
   // 더보기 아래 업무 화면(소방 요청, 대상자, 서류, 소식)은 더보기 탭으로 표시
