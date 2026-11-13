@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import Region3D from '../../three/Region3D.js'
 import { EXAG } from '../../three/proj.js'
 import { prefersReducedMotion } from '../motion/useReducedMotion.js'
+import { REGION } from '../../regions/index.js'
 
 export default function Map3D({
   theme = 'light', layers, villages, vehicles, shelters, ltc, fire, selected, onSelect, focus, fitSeq, scopeBounds, padding,
@@ -44,7 +45,7 @@ export default function Map3D({
           const st = h.dongCode ? propsRef.current.dongStats?.[h.dongCode] : null
           setTip({
             x: h.x, y: h.y, title: `${h.sggName} ${h.name}`,
-            line: st ? `대상자 ${st.targets}명, 이동 불가 ${st.shortage}명, 고령화율 ${st.aging}%` : h.dongCode ? '' : '동해시 밖, 대피 대상 아님'
+            line: st ? `대상자 ${st.targets}명, 이동 불가 ${st.shortage}명, 고령화율 ${st.aging}%` : h.dongCode ? '' : `${REGION.name} 밖, 대피 대상 아님`
           })
         }
       }
@@ -77,7 +78,7 @@ export default function Map3D({
 
   return (
     <div className="relative h-full w-full">
-      <div ref={boxRef} className="relative h-full w-full overflow-hidden" role="region" aria-label="동해시와 접경 시군을 보여 주는 3D 지도입니다. 마을 표식은 Tab 키로 고를 수 있습니다" />
+      <div ref={boxRef} className="relative h-full w-full overflow-hidden" role="region" aria-label={`${REGION.name}와 접경 시군을 보여 주는 3D 지도입니다. 마을 표식은 Tab 키로 고를 수 있습니다`} />
       {progress < 1 && !failed && (
         <div role="status" className="pointer-events-none absolute inset-x-0 top-1/2 z-raised mx-auto w-64 -translate-y-1/2 rounded-md bg-page px-4 py-3 shadow-md">
           <p className="type-strong text-text-pri">지형을 만드는 중</p>

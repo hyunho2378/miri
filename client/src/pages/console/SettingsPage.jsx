@@ -15,6 +15,7 @@ import { GRADES, VEHICLE_TYPES } from '../../lib/shortage.js'
 import useAuthStore, { DEMO_USERS, ROLE_LABEL } from '../../store/useAuthStore.js'
 import useMiriStore, { dongName } from '../../store/useMiriStore.js'
 import { DATA_SOURCES, DONG_STATS, LTC } from '../../regions/data.js'
+import { REGION } from '../../regions/index.js'
 
 export default function SettingsPage() {
   const settings = useMiriStore((s) => s.settings)
@@ -39,7 +40,7 @@ export default function SettingsPage() {
   const villageCols = [
     { key: 'label', label: '마을(법정동)', sortable: true, render: (v) => <span className="type-strong text-text-pri">{v.label}</span> },
     { key: 'dong', label: '행정동', render: (v) => dongName({ dongs }, v.dongCode), hideBelow: 'lg' },
-    { key: 'pickup', label: '집결지', hideBelow: 'md', render: (v) => (v.pickup ? <span><span className="block">{v.pickup.name}</span><span className="block type-meta text-text-meta">{v.pickup.road.replace('동해시 ', '')}</span></span> : <span className="text-text-meta">미지정(법정동 기준점)</span>) },
+    { key: 'pickup', label: '집결지', hideBelow: 'md', render: (v) => (v.pickup ? <span><span className="block">{v.pickup.name}</span><span className="block type-meta text-text-meta">{v.pickup.road.replace(`${REGION.name} `, '')}</span></span> : <span className="text-text-meta">미지정(법정동 기준점)</span>) },
     { key: 'shelter', label: '지정 대피소', render: (v) => sname(v.shelterCode), hideBelow: 'md' },
     { key: 'driveMin', label: '편도 주행', align: 'right', sortable: true, hideBelow: 'lg', render: (v) => `${v.driveMin}분` },
     { key: 'roundTripMin', label: '왕복', align: 'right', sortable: true, render: (v) => <span className="type-strong tabular-nums">{Math.round(2 * v.driveMin + (settings.boardingMinutes ?? 20))}분</span> },
@@ -47,7 +48,7 @@ export default function SettingsPage() {
   ]
   const shelterCols = [
     { key: 'name', label: '시설', sortable: true, render: (x) => <span><span className="block type-strong text-text-pri">{x.name}</span><span className="block type-meta text-text-meta">{x.kind}</span></span> },
-    { key: 'address', label: '주소', hideBelow: 'md', render: (x) => <span className="type-body-sm text-text-sec">{x.address.replace('동해시 ', '')}{x.coordApprox ? ' (좌표 근사)' : ''}</span> },
+    { key: 'address', label: '주소', hideBelow: 'md', render: (x) => <span className="type-body-sm text-text-sec">{x.address.replace(`${REGION.name} `, '')}{x.coordApprox ? ' (좌표 근사)' : ''}</span> },
     { key: 'capacity', label: '수용 가능', align: 'right', sortable: true, render: (x) => `${x.capacity}명` },
     { key: 'areaM2', label: '면적', align: 'right', hideBelow: 'lg', render: (x) => `${x.areaM2.toLocaleString('ko-KR')}㎡` },
     { key: 'quake', label: '지진 겸용', hideBelow: 'lg', render: (x) => (x.quake ? '겸용' : '아님') }
@@ -130,7 +131,7 @@ export default function SettingsPage() {
               <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                 <div className="min-w-0">
                   <p className="type-strong text-text-pri">{u.name}</p>
-                  <p className="type-meta text-text-meta">{u.dong ? `${dongName({ dongs }, u.dong)} 담당` : '동해시 전체 담당'}</p>
+                  <p className="type-meta text-text-meta">{u.dong ? `${dongName({ dongs }, u.dong)} 담당` : `${REGION.name} 전체 담당`}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {me?.id === u.id && <Badge tone="primary">현재 사용자</Badge>}

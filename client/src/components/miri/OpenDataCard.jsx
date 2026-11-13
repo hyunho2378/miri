@@ -3,6 +3,7 @@ import { Flame, Building } from 'lucide-react'
 import Card from '../ui/Card.jsx'
 import KeyValue from '../ui/KeyValue.jsx'
 import useOpenData from '../../hooks/useOpenData.js'
+import { REGION } from '../../regions/index.js'
 
 export default function OpenDataCard() {
   const fire = useOpenData('fire')
@@ -13,7 +14,7 @@ export default function OpenDataCard() {
     <Card title="공공데이터 연계" desc="출처: 공공데이터포털(산림청, 행정안전부)">
       <div className="space-y-4">
         <div>
-          <p className="mb-2 inline-flex items-center gap-1.5 type-caption text-text-sec"><Flame size={16} aria-hidden="true" />동해시 산불위험예보</p>
+          <p className="mb-2 inline-flex items-center gap-1.5 type-caption text-text-sec"><Flame size={16} aria-hidden="true" />{REGION.name} 산불위험예보</p>
           {fire.data?.analyzedAt ? (
             <KeyValue dense items={[
               { label: '평균 지수', value: `${fire.data.mean}`, strong: true },

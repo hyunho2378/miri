@@ -15,7 +15,7 @@ const REQUIRED = [
   'map.bbox', 'map.center', 'map.outline', 'map.dongGeo', 'map.weatherPoint',
   'dongs', 'data.DATA_SOURCES', 'data.DONG_STATS', 'data.LTC', 'data.VILLAGES', 'data.TEMP_SHELTERS',
   'data.LTC_RESIDENTIAL', 'data.LTC_DAYCARE', 'data.DONG_CENTERS', 'data.SENIOR_CENTERS',
-  'terrain', 'roads', 'fleet', 'scenarios', 'activeScenarioId', 'intakeDocs', 'drills', 'demo.dongUser', 'openData'
+  'terrain', 'roads', 'fireHistory', 'fleet', 'scenarios', 'activeScenarioId', 'intakeDocs', 'drills', 'demo.dongUser', 'openData'
 ]
 const get = (o, path) => path.split('.').reduce((a, k) => (a == null ? a : a[k]), o)
 

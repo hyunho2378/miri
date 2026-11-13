@@ -38,6 +38,7 @@ import { scopeSummary } from '../../lib/shortageCalc.js'
 import { speedText } from '../../lib/unitText.js'
 import { progressBasisLine } from '../../lib/progressBasis.js'
 import { FOLLOW_UPS, FOLLOW_UP_BASIS, FOLLOW_UP_DONE, FOLLOW_UP_TITLE, followUpKindFor, lastFollowUp, needsFollowUp } from '../../lib/noAckFollowUp.js'
+import { REGION } from '../../regions/index.js'
 
 const SPEEDS = [1, 60, 240].map((v) => ({ value: v, label: speedText(v) }))
 const COUNT_ORDER = ['wait', 'depart', 'arrive', 'board', 'handover', 'fail', 'handedToFire', 'unassigned']
@@ -455,7 +456,7 @@ function SentPanel({ now, meta }) {
 
   // 확인 필요(미배정)가 남아 있으면 소방 지원 요청을 먼저, 발령 종료는 그 뒤에 둔다(공무원 시점 점검 2026. 10. 27.)
   const waitingFire = d.result.unassigned.filter((u) => d.events[u.personCode]?.step !== 'handedToFire')
-  const askFire = () => { const q = d.requestFireSupport(); toast(q ? `소방 지원 요청: 미배정 ${q.count}명, 동해소방서` : '요청 대상 미배정자 없음', q ? 'primary' : 'danger') }
+  const askFire = () => { const q = d.requestFireSupport(); toast(q ? `소방 지원 요청: 미배정 ${q.count}명, ${REGION.org.fire}` : '요청 대상 미배정자 없음', q ? 'primary' : 'danger') }
 
   return (
     <div className="space-y-4">
@@ -510,7 +511,7 @@ function SentPanel({ now, meta }) {
               {FAIL_FOLLOW_UP[failReasonOf(d, r.code)] && <span className="type-body-sm text-text-sec">후속 조치: {FAIL_FOLLOW_UP[failReasonOf(d, r.code)]}</span>}
               <span className="ml-auto flex flex-wrap gap-2">
                 <Button size="sm" variant="secondary" onClick={() => { const v = d.reassign(r.code); toast(v ? `재배정: ${r.code}, ${v} 차량 새 회차` : '기한 내 이송 가능한 차량이 없습니다. 소방 인계가 필요합니다.', v ? 'primary' : 'danger') }}>재배정</Button>
-                {role === 'city' && <Button size="sm" variant="danger" onClick={() => { d.handover([r.code]); toast(`소방 인계: ${r.code}, 동해소방서`) }}>소방 인계</Button>}
+                {role === 'city' && <Button size="sm" variant="danger" onClick={() => { d.handover([r.code]); toast(`소방 인계: ${r.code}, ${REGION.org.fire}`) }}>소방 인계</Button>}
               </span>
             </Card>
           ))}

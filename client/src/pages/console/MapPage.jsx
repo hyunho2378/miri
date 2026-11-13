@@ -33,6 +33,7 @@ import useMiriStore, { activeScenario } from '../../store/useMiriStore.js'
 import { useDispatchStore } from '../../store/useDispatchStore.js'
 import { Link } from 'react-router-dom'
 import { spacing } from '../../tokens.js'
+import { REGION } from '../../regions/index.js'
 
 const px = (v) => Number.parseInt(v, 10)
 const AGING = agingStops()
@@ -59,7 +60,7 @@ export default function MapPage() {
     const sc = fireScenario({
       ...base, id: 'S-W', villages, heading: windHour.toDeg,
       name: `오늘 예보 바람 기준(${dirName(windHour.fromDeg)}풍 ${windHour.speed}m/s)`,
-      basis: `기상청 단기예보(${wind.data.base} 발표) 동해시 격자의 ${windHour.at.slice(8, 10)}시 풍향 ${windHour.fromDeg}도를 확산 방향으로 둡니다.`
+      basis: `기상청 단기예보(${wind.data.base} 발표) ${REGION.name} 격자의 ${windHour.at.slice(8, 10)}시 풍향 ${windHour.fromDeg}도를 확산 방향으로 둡니다.`
     })
     saveScenario(sc)
     setActiveScenario('S-W')
@@ -363,7 +364,7 @@ export default function MapPage() {
                   className={clsx('h-8 rounded-sm px-3 type-body-sm transition-colors duration-fast', theme === v ? 'bg-page text-text-pri shadow-sm' : 'text-text-meta hover:text-text-pri')}>{l}</button>
               ))}
             </div>
-            <button type="button" onClick={() => setFitSeq((n) => n + 1)} aria-label={mode === '3d' ? '대피 대상 구역 보기' : '동해시 전체 보기'} title={mode === '3d' ? '대피 대상 구역 보기' : '동해시 전체 보기'}
+            <button type="button" onClick={() => setFitSeq((n) => n + 1)} aria-label={mode === '3d' ? '대피 대상 구역 보기' : `${REGION.name} 전체 보기`} title={mode === '3d' ? '대피 대상 구역 보기' : `${REGION.name} 전체 보기`}
               className="inline-flex h-9 w-9 items-center justify-center rounded-md text-text-sec hover:bg-mute hover:text-text-pri">
               <Maximize size={16} aria-hidden="true" />
             </button>

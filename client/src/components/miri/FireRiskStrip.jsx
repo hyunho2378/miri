@@ -4,6 +4,7 @@ import useOpenData from '../../hooks/useOpenData.js'
 import clsx from 'clsx'
 import { Flame } from 'lucide-react'
 import FreshnessNote from './FreshnessNote.jsx'
+import { REGION } from '../../regions/index.js'
 
 // 산불위험지수 임계값 51, 66, 86. d2~d4 는 지수 51, 66, 86 이상인 면적 비율(%)이다
 // (국립산림과학원, 한국산림과학회지 114권 4호 504쪽, 2025. 12. 31.)
@@ -47,7 +48,7 @@ export function WeatherLine({ className }) {
   const v = useWind()
   const h = v.data?.hours?.[0]
   const parts = []
-  if (w.data) parts.push(w.data.active.length ? `동해 발효 특보: ${w.data.active.join(', ')}` : '동해 발효 특보 없음')
+  if (w.data) parts.push(w.data.active.length ? `${REGION.shortName} 발효 특보: ${w.data.active.join(', ')}` : `${REGION.shortName} 발효 특보 없음`)
   else if (w.error) parts.push(`기상특보 불러오지 못함(${w.error})`)
   if (h) parts.push(`바람 ${dirName(h.fromDeg)}풍 ${h.speed}m/s, 습도 ${h.humidity}%`)
   else if (v.error) parts.push(`단기예보 불러오지 못함(${v.error})`)
@@ -73,7 +74,7 @@ export default function FireRiskStrip({ className, compact = false }) {
     <p className={clsx('inline-flex flex-wrap items-center gap-x-2 gap-y-1 type-body-sm text-text-pri', className)}>
       <Flame size={16} aria-hidden="true" className="text-warning" />
       {fireLevelOf(g) && <strong>산불 위험 {fireLevelOf(g)}</strong>}
-      <span>동해시 산불위험지수 평균 <strong className="tabular-nums">{data.mean}</strong>, 최고 <strong className="tabular-nums">{data.max}</strong></span>
+      <span>{REGION.name} 산불위험지수 평균 <strong className="tabular-nums">{data.mean}</strong>, 최고 <strong className="tabular-nums">{data.max}</strong></span>
       <span className={clsx('rounded-xs px-1.5 py-0.5 type-caption', toneOf(g))}>지수 51 이상 면적 {over51}%</span>
       {!compact && <span className="type-meta text-text-meta">산림청 국립산림과학원</span>}
       <FreshnessNote kind="fire" state={fr} />

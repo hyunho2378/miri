@@ -4,14 +4,17 @@
 import { useState } from 'react'
 import clsx from 'clsx'
 import { PageHeader, Section } from '../../components/console/index.js'
+import { REGION } from '../../regions/index.js'
 
 const EFFECTIVE = '시행 2026. 10. 6.'
+// 처리 기관(지역 설정의 시청과 담당 부서)
+const OFFICE = `${REGION.org.office} ${REGION.org.dept}`
 
 const ARTICLES = [
   {
     id: 'a1', title: '제1조(개인정보의 처리 목적)',
     body: [
-      '동해시청 안전과는 다음 목적으로 개인정보를 처리합니다. 처리한 개인정보는 목적 외로 이용하지 않으며, 목적이 바뀌면 개인정보 보호법 제18조에 따라 필요한 조치를 합니다.',
+      `${OFFICE}는 다음 목적으로 개인정보를 처리합니다. 처리한 개인정보는 목적 외로 이용하지 않으며, 목적이 바뀌면 개인정보 보호법 제18조에 따라 필요한 조치를 합니다.`,
       '1. 산불 등 재난 때 스스로 대피하기 어려운 주민의 이송 계획 수립',
       '2. 이송 차량과 도우미의 배정',
       '3. 기한 안에 이송하지 못한 구조 대상의 관계 기관 인계',
@@ -119,7 +122,7 @@ const ARTICLES = [
     table: {
       head: ['구분', '내용'],
       rows: [
-        ['담당 부서', '동해시청 안전과'],
+        ['담당 부서', OFFICE],
         ['문의', '서비스 저장소 이슈(github.com/hyunho2378/miri)']
       ]
     },
@@ -164,7 +167,7 @@ export default function PrivacyPage() {
     <div className="mx-auto w-full max-w-page px-4 py-6 md:px-6 lg:px-8 page-enter">
       <PageHeader title="개인정보 처리방침" meta={EFFECTIVE} />
       <p className="mb-8 max-w-3xl type-body-sm leading-7 text-text-sec break-keep">
-        동해시청 안전과는 개인정보 보호법 제30조에 따라 정보주체의 개인정보를 보호하고 관련 고충을 신속하게 처리하기 위하여 다음과 같이 처리방침을 수립하여 공개합니다.
+        {OFFICE}는 개인정보 보호법 제30조에 따라 정보주체의 개인정보를 보호하고 관련 고충을 신속하게 처리하기 위하여 다음과 같이 처리방침을 수립하여 공개합니다.
       </p>
       <div className="grid gap-10 lg:grid-cols-[16rem_minmax(0,1fr)]">
         <nav aria-label="처리방침 목차" className="lg:sticky lg:top-24 lg:self-start">

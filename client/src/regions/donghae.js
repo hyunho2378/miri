@@ -5,6 +5,7 @@ import { ALLOC, DATA_SOURCES, DONG_CENTERS, DONG_STATS, LTC, LTC_DAYCARE, LTC_RE
 import { CITY_OUTLINE, DONG_GEO, DONGHAE_BBOX, DONGHAE_CENTER } from '../mock/geoDonghae.js'
 import { VILLAGE_TERRAIN } from '../mock/villageTerrain.js'
 import { ROAD_ROUTES } from '../data/roadRoutes.js'
+import { FOREST_FIRE_ROWS, FOREST_FIRE_SOURCE } from '../data/forestFireHistory.js'
 
 // 발화 가정 지점(OpenStreetMap 지명 좌표)
 const ORIGIN_NAMYANG = [129.01109, 37.56721]   // 강릉시 옥계면 남양리
@@ -135,7 +136,7 @@ export default {
   // 행정 코드. sgg 는 행정안전부 시군구 코드(5자리), sido와 sigungu 는 장기요양기관 검색 인자, openGov 는 행정안전부 개방자치단체코드
   codes: { sgg: '51170', sido: '51', sigungu: '170', openGov: '4211000' },
   org: {
-    name: '동해시', head: '동해시장', dept: '안전과', office: '동해시청', fire: '동해소방서',
+    name: '동해시', head: '동해시장', dept: '안전과', office: '동해시청', fire: '동해소방서', telMask: '033-530-○○○○',
     zip: '25745', address: '강원특별자치도 동해시 천곡로 77(천곡동)'
   },
   // 지도. bbox 는 [서, 남, 동, 북], weatherPoint 는 기상청 격자를 구할 [위도, 경도](시청 부근)
@@ -149,6 +150,8 @@ export default {
   data: { DATA_SOURCES, DONG_STATS, LTC, VILLAGES, TEMP_SHELTERS, LTC_RESIDENTIAL, LTC_DAYCARE, DONG_CENTERS, SENIOR_CENTERS, ALLOC },
   terrain: VILLAGE_TERRAIN,
   roads: ROAD_ROUTES,
+  // 산불 이력(산림청 산불통계데이터에서 이 시군 행만 옮긴 표)
+  fireHistory: { source: FOREST_FIRE_SOURCE, rows: FOREST_FIRE_ROWS },
   // 차량 기본값(가정). 구급차 6대는 SOURCE A 5절 수치, 리프트 승합차는 주야간보호기관 9곳(공단 2026. 10. 6.)에 기관당 1대를 둔 가정.
   // 칸마다 소속 동 코드 목록이고 대기 위치는 그 동 행정복지센터다
   fleet: {

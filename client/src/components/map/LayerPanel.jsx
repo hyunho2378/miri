@@ -7,6 +7,7 @@ import Disclosure from '../ui/Disclosure.jsx'
 import { splitDesc } from '../../lib/foldText.js'
 import { SEVERITY_STEPS, fmtElapsed } from '../../lib/geo.js'
 import { AGING_STEPS, SEVERITY_SWATCH } from './mapTheme.js'
+import { REGION } from '../../regions/index.js'
 
 function Segment({ label, value, onChange, items }) {
   return (
@@ -66,7 +67,7 @@ export default function LayerPanel({
         <Segment label="지도" value={mode} onChange={onMode} items={[{ value: '2d', label: '2D' }, { value: '3d', label: '3D' }]} />
         <Segment label="바탕" value={theme} onChange={onTheme} items={[{ value: 'light', label: '라이트' }, { value: 'dark', label: '다크' }]} />
         <button type="button" onClick={onFit} className="inline-flex h-9 items-center gap-2 rounded-md px-2 type-strong text-primary-text hover:bg-mute">
-          <Maximize size={16} aria-hidden="true" />{mode === '3d' ? '대피 대상 구역 보기' : '동해시 전체 보기'}
+          <Maximize size={16} aria-hidden="true" />{mode === '3d' ? '대피 대상 구역 보기' : `${REGION.name} 전체 보기`}
         </button>
       </section>}
 

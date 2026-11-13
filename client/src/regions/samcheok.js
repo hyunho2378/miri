@@ -73,11 +73,13 @@ export default {
   sampleLabel: SAMPLE,
   // 행정안전부 개방자치단체코드는 확인 전이라 비워 둔다(응급환자이송업 조회는 지역 미설정으로 응답)
   codes: { sgg: '51230', sido: '51', sigungu: '230', openGov: null },
-  org: { name: '삼척시', head: '삼척시장', dept: '재난 담당 부서', office: '삼척시청', fire: '삼척소방서', zip: null, address: null },
+  org: { name: '삼척시', head: '삼척시장', dept: '재난 담당 부서', office: '삼척시청', fire: '삼척소방서', telMask: '033-○○○-○○○○', zip: null, address: null },
   map: { bbox: BBOX, center: CITY_HALL, outline: OUTLINE, dongGeo: DONG_GEO, weatherPoint: [CITY_HALL[1], CITY_HALL[0]] },
   dongs,
   data: { DATA_SOURCES, DONG_STATS, LTC, VILLAGES, TEMP_SHELTERS, LTC_RESIDENTIAL: [], LTC_DAYCARE: [], DONG_CENTERS, SENIOR_CENTERS: [], ALLOC: null },
   terrain: {},
+  // 산불 이력: 산림청 산불통계데이터(공공데이터포털 15121380)에서 삼척 행을 옮기기 전이라 비워 둔다
+  fireHistory: { source: { name: '산림청 산불통계데이터', portalId: '15121380', file: '삼척 행 추출 전', portalUpdated: '' }, rows: [] },
   roads: { source: { label: '도로 경로', org: SAMPLE }, routes: {} },
   fleet: { ambulance: ['GY', 'NY'], ambulanceReady: 1, bedVan: ['GY'], liftFacility: ['NY'], liftCity: ['GY'], car: ['GY', 'NY', 'JR'], carContractSoon: 0, bus: ['GY'] },
   scenarios: [

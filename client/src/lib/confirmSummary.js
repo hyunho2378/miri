@@ -19,8 +19,10 @@ export function handoverConfirmLines(rows, picked, labelOf = (v) => v, at = '') 
   for (const r of chosen) byVillage[r.village] = (byVillage[r.village] || 0) + 1
   const villages = Object.entries(byVillage).sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])))
     .map(([v, n]) => `${labelOf(v)} ${n}명`).join(', ')
-  const lines = [`선택한 구조 대상 ${chosen.length}명의 목록을 동해소방서에 넘깁니다.`]
+  const lines = [`선택한 구조 대상 ${chosen.length}명의 목록을 ${REGION.org.fire}에 넘깁니다.`]
   if (villages) lines.push(`마을별: ${villages}`)
   if (at) lines.push(`목록 기준 시각 ${at}`)
   return lines
 }
+
+import { REGION } from '../regions/index.js'

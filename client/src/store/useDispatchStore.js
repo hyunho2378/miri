@@ -12,6 +12,7 @@ import { MIN } from '../lib/time.js'
 import { clearRemote, loadRemote, newDispatchId, restoreSnapshot, saveRemote, snapshotOf } from '../lib/dispatchSync.js'
 import { mergeReports } from '../lib/reportQueue.js'
 import { activeScenario, useMiriStore } from './useMiriStore.js'
+import { REGION } from '../regions/index.js'
 
 // 도우미 참여 동의, 철회, 역할 변경을 명부 도우미에 반영
 // 서버가 발령과 별도로 보관한 동의 상태(prefs, 도우미별 최신 한 건과 서버 접수 순번)를 받는다. 발령을 종료해도 지워지지 않는다
@@ -367,7 +368,7 @@ export const useDispatchStore = create((set, get) => ({
     const events = { ...d.events }
     for (const u of rows) events[u.personCode] = { step: 'handedToFire', reason: u.reason, at: vnow }
     const req = { at: vnow, count: codes.length, reasons, villages, codes }
-    set({ events, fireRequests: [...d.fireRequests, req], handovers: [...d.handovers, { at: vnow, codes, receiver: '동해소방서 지원 요청(미배정)', kind: 'support', reasons }] })
+    set({ events, fireRequests: [...d.fireRequests, req], handovers: [...d.handovers, { at: vnow, codes, receiver: `${REGION.org.fire} 지원 요청(미배정)`, kind: 'support', reasons }] })
     return req
   },
 
@@ -376,7 +377,7 @@ export const useDispatchStore = create((set, get) => ({
     const vnow = vnowOf(d)
     const events = { ...d.events }
     codes.forEach((c) => { const prev = d.events[c] || {}; events[c] = { step: 'handedToFire', reason: prev.reason || d.failPlan[c]?.reason || 'capacity', ...(prev.memo ? { memo: prev.memo } : {}), ...(prev.care ? { care: prev.care } : {}), at: vnow } })
-    set({ events, handovers: [...d.handovers, { at: vnow, codes, receiver: '동해소방서' }] })
+    set({ events, handovers: [...d.handovers, { at: vnow, codes, receiver: REGION.org.fire }] })
   },
 
   close: () => {
