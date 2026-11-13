@@ -3,6 +3,7 @@
 // 처리 사실은 docs/OVERVIEW.md 개인정보 보호 설계와 docs/LEGAL_REVIEW.md 에 적힌 것만 쓴다. 조문 인용은 2026. 10. 6. 실존 확인한 것만 둔다.
 import { useState } from 'react'
 import clsx from 'clsx'
+import usePageTitle from '../../hooks/usePageTitle.js'
 import { PageHeader, Section } from '../../components/console/index.js'
 
 const EFFECTIVE = '시행 2026. 10. 6.'
@@ -155,6 +156,7 @@ function Table({ head, rows }) {
 }
 
 export default function PrivacyPage() {
+  usePageTitle('개인정보 처리방침')
   const [active, setActive] = useState(ARTICLES[0].id)
   const go = (id) => {
     setActive(id)

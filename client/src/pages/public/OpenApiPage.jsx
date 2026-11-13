@@ -1,6 +1,7 @@
 // 개방 API 안내. /api/open 을 키 없이 부를 수 있다. 화면에서 바로 호출해 응답 일부를 보인다.
 import { useState } from 'react'
 import { Play } from 'lucide-react'
+import usePageTitle from '../../hooks/usePageTitle.js'
 import Button from '../../components/ui/Button.jsx'
 import Card from '../../components/ui/Card.jsx'
 import TableCard from '../../components/dashboard/TableCard.jsx'
@@ -17,6 +18,7 @@ const ENDPOINTS = [
 ]
 
 export default function OpenApiPage() {
+  usePageTitle('개방 API')
   const [sel, setSel] = useState(ENDPOINTS[6].path)
   const [out, setOut] = useState(null)
   const [busy, setBusy] = useState(false)

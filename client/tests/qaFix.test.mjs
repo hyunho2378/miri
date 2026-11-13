@@ -82,3 +82,12 @@ test('Q4 공공데이터 조회 실패: NO_KEY, HTTP 502 같은 내부 코드를
     assert.doesNotMatch(s, /\(\$\{[a-z]+\.error\}\)|\(\{s\.error\}\)|\(\{error\}\)|\$\{s\.error \|\|/, f)
   }
 })
+
+test('Q5 상황판, 개인정보 처리방침, 개방 API, 페이지 없음: 이전 화면 탭 제목이 남지 않게 제목을 정하고 상황판에 화면 제목(h1)을 둠', async () => {
+  const { pageTitle } = await import('../src/hooks/usePageTitle.js')
+  assert.equal(pageTitle('상황판'), '상황판 | 미리')
+  for (const [f, t] of [['src/pages/console/MapPage.jsx', '상황판'], ['src/pages/public/PrivacyPage.jsx', '개인정보 처리방침'], ['src/pages/public/OpenApiPage.jsx', '개방 API'], ['src/pages/public/NotFoundPage.jsx', '페이지 없음']]) {
+    assert.match(src(f), new RegExp(`usePageTitle\\('${t}'\\)`), f)
+  }
+  assert.match(src('src/pages/console/MapPage.jsx'), /<h1 className="sr-only">상황판<\/h1>/)
+})

@@ -1,8 +1,10 @@
 // 404.
 import { Link } from 'react-router-dom'
 import Button from '../../components/ui/Button.jsx'
+import usePageTitle from '../../hooks/usePageTitle.js'
 
 export default function NotFoundPage() {
+  usePageTitle('페이지 없음')
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-20 text-center page-enter">
       <img src="/images/illustrations/not-found.svg" alt="" className="h-32 w-32" />

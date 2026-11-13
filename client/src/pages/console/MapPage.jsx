@@ -7,6 +7,7 @@ import { useCallback, useMemo, useState } from 'react'
 import clsx from 'clsx'
 import { ChevronDown, ChevronUp, Layers, Maximize, X } from 'lucide-react'
 import Card from '../../components/ui/Card.jsx'
+import usePageTitle from '../../hooks/usePageTitle.js'
 import Button from '../../components/ui/Button.jsx'
 import Select from '../../components/ui/Select.jsx'
 import IconButton from '../../components/ui/IconButton.jsx'
@@ -39,6 +40,7 @@ const AGING = agingStops()
 const GRADE_LABEL = Object.fromEntries(GRADES.map((g) => [g.key, g.label]))
 
 export default function MapPage() {
+  usePageTitle('상황판')
   useTopbar({ title: '상황판' })
   const persons = useMiriStore((s) => s.persons)
   const villages = useMiriStore((s) => s.villages)
@@ -242,6 +244,7 @@ export default function MapPage() {
 
   return (
     <div className="relative lg:h-full lg:overflow-hidden">
+      <h1 className="sr-only">상황판</h1>
 
       {/* 지도 */}
       <div className={clsx('relative h-[60vh] min-h-80 lg:absolute lg:inset-0 lg:h-auto', theme === 'dark' ? 'bg-text-pri' : 'bg-mute')}>
