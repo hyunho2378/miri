@@ -345,8 +345,8 @@ function RemoteStatus() {
               return (
                 <li key={h} className="flex flex-wrap items-center gap-3 py-2">
                   <span className="type-strong text-text-pri tabular-nums">{h}</span>
-                  <a href={`/h/${t}`} target="_blank" rel="noreferrer" className="inline-flex min-h-11 md:min-h-0 items-center gap-1 type-body-sm text-primary-text underline underline-offset-2">링크 열기<ExternalLink size={14} aria-hidden="true" /></a>
-                  <Button size="sm" variant="secondary" onClick={() => { navigator.clipboard?.writeText(url); toast(`${h} 링크 복사`) }}>링크 복사</Button>
+                  <a href={`/h/${t}`} target="_blank" rel="noreferrer" aria-label={`${h} 배정 링크 열기(새 창)`} className="inline-flex min-h-11 md:min-h-0 items-center gap-1 type-body-sm text-primary-text underline underline-offset-2">링크 열기<ExternalLink size={14} aria-hidden="true" /></a>
+                  <Button size="sm" variant="secondary" aria-label={`${h} 배정 링크 복사`} onClick={() => { navigator.clipboard?.writeText(url); toast(`${h} 링크 복사`) }}>링크 복사</Button>
                 </li>
               )
             })}

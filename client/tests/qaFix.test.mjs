@@ -91,3 +91,12 @@ test('Q5 상황판, 개인정보 처리방침, 개방 API, 페이지 없음: 이
   }
   assert.match(src('src/pages/console/MapPage.jsx'), /<h1 className="sr-only">상황판<\/h1>/)
 })
+
+test('Q6 반복 단추 이름: 도우미 링크 44개와 대상자별 보고 단추를 화면 읽기 프로그램이 구별', () => {
+  const d = src('src/pages/console/DispatchPage.jsx')
+  assert.match(d, /aria-label=\{`\$\{h\} 배정 링크 열기\(새 창\)`\}/)
+  assert.match(d, /aria-label=\{`\$\{h\} 배정 링크 복사`\}/)
+  const r = src('src/pages/helper/RemoteHelper.jsx')
+  assert.match(r, /aria-label=\{`\$\{c\} \$\{nx\[1\]\}`\}/)
+  assert.match(r, /aria-label=\{`\$\{c\} 실패`\}/)
+})

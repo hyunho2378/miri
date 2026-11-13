@@ -134,8 +134,8 @@ export default function RemoteHelper({ token }) {
                   <span className="type-strong text-text-pri tabular-nums">{c}</span>
                   <span className="type-body-sm text-text-sec">{STEP_TEXT[st]}</span>
                   <span className="ml-auto flex gap-2">
-                    {nx && <Button size="sm" onClick={() => report({ type: 'step', personCode: c, step: nx[0] })}>{nx[1]}</Button>}
-                    {nx && st !== 'wait' && <Button size="sm" variant="secondary" onClick={() => report({ type: 'step', personCode: c, step: 'fail', reason: 'absent' })}>실패</Button>}
+                    {nx && <Button size="sm" aria-label={`${c} ${nx[1]}`} onClick={() => report({ type: 'step', personCode: c, step: nx[0] })}>{nx[1]}</Button>}
+                    {nx && st !== 'wait' && <Button size="sm" variant="secondary" aria-label={`${c} 실패`} onClick={() => report({ type: 'step', personCode: c, step: 'fail', reason: 'absent' })}>실패</Button>}
                   </span>
                 </li>
               )
