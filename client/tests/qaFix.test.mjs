@@ -138,3 +138,10 @@ test('Q11 문서, 시트, 설문 편집기와 설문 응답 화면: 탭 제목�
   assert.match(src('src/pages/workspace/EditorFrame.jsx'), /usePageTitle\(title \|\| '문서'\)/)
   assert.match(src('src/pages/workspace/FormFillPage.jsx'), /usePageTitle\(form\?\.title \|\| '설문지'\)/)
 })
+
+test('Q12 설문 응답: 글 칸 이름이 "내 답변"이 아니라 질문 제목이고, 빈 필수 질문은 오류 문구와 연결되며 초점이 첫 빈 칸으로 이동', () => {
+  const s = src('src/pages/workspace/FormRenderer.jsx')
+  assert.equal((s.match(/aria-label=\{q\.title\} aria-invalid=\{errors\[q\.id\] \|\| undefined\} aria-describedby=\{errors\[q\.id\] \? `q-\$\{q\.id\}-err` : undefined\}/g) || []).length, 3)
+  assert.match(s, /id=\{`q-\$\{q\.id\}-err`\}/)
+  assert.match(s, /first\?\.querySelector\('input, textarea, button'\)\?\.focus\(\{ preventScroll: true \}\)/)
+})

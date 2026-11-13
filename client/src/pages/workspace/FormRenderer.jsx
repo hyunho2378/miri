@@ -36,7 +36,10 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
     const miss = Object.fromEntries(form.questions.filter((q) => q.required && (answers[q.id] == null || answers[q.id] === '' || (Array.isArray(answers[q.id]) && !answers[q.id].length))).map((q) => [q.id, true]))
     setErrors(miss)
     if (Object.keys(miss).length) {
-      document.getElementById(`q-${Object.keys(miss)[0]}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      // 첫 빈 질문으로 이동하고 그 칸에 초점을 옮겨 키보드와 화면 읽기 사용자도 바로 고칠 수 있게 한다
+      const first = document.getElementById(`q-${Object.keys(miss)[0]}`)
+      first?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      first?.querySelector('input, textarea, button')?.focus({ preventScroll: true })
       return
     }
     setSending(true); setSendError('')
@@ -64,9 +67,9 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
         <fieldset key={q.id} id={`q-${q.id}`} className={clsx('rounded-lg bg-page p-5 shadow-card md:p-6', errors[q.id] && 'ring-2 ring-danger')}>
           <legend className="type-body-strong text-text-pri">{q.title}{q.required && <span className="ml-1 text-danger-text" aria-label="필수">*</span>}</legend>
           <div className="mt-3">
-            {q.type === 'short' && <input autoComplete="off" spellCheck={false} value={answers[q.id] || ''} onChange={(e) => set(q.id, e.target.value)} className="h-11 w-full border-b border-line-def bg-transparent type-body outline-none focus:border-primary" placeholder="내 답변" />}
-            {q.type === 'long' && <textarea autoComplete="off" spellCheck={false} value={answers[q.id] || ''} onChange={(e) => set(q.id, e.target.value)} rows={3} className="w-full resize-y border-b border-line-def bg-transparent type-body outline-none focus:border-primary" placeholder="내 답변" />}
-            {q.type === 'date' && <input autoComplete="off" spellCheck={false} inputMode="numeric" value={answers[q.id] || ''} onChange={(e) => set(q.id, e.target.value)} className="h-11 w-48 border-b border-line-def bg-transparent type-body outline-none focus:border-primary" placeholder="2026. 10. 12." />}
+            {q.type === 'short' && <input aria-label={q.title} aria-invalid={errors[q.id] || undefined} aria-describedby={errors[q.id] ? `q-${q.id}-err` : undefined} autoComplete="off" spellCheck={false} value={answers[q.id] || ''} onChange={(e) => set(q.id, e.target.value)} className="h-11 w-full border-b border-line-def bg-transparent type-body outline-none focus:border-primary" placeholder="내 답변" />}
+            {q.type === 'long' && <textarea aria-label={q.title} aria-invalid={errors[q.id] || undefined} aria-describedby={errors[q.id] ? `q-${q.id}-err` : undefined} autoComplete="off" spellCheck={false} value={answers[q.id] || ''} onChange={(e) => set(q.id, e.target.value)} rows={3} className="w-full resize-y border-b border-line-def bg-transparent type-body outline-none focus:border-primary" placeholder="내 답변" />}
+            {q.type === 'date' && <input aria-label={q.title} aria-invalid={errors[q.id] || undefined} aria-describedby={errors[q.id] ? `q-${q.id}-err` : undefined} autoComplete="off" spellCheck={false} inputMode="numeric" value={answers[q.id] || ''} onChange={(e) => set(q.id, e.target.value)} className="h-11 w-48 border-b border-line-def bg-transparent type-body outline-none focus:border-primary" placeholder="2026. 10. 12." />}
             {q.type === 'choice' && (
               <div className="space-y-1">
                 {(q.options || []).map((o) => (
@@ -101,7 +104,7 @@ export default function FormRenderer({ form, onSubmit, preview = false }) {
               </div>
             )}
           </div>
-          {errors[q.id] && <p className="mt-2 type-caption text-danger-text">필수 질문</p>}
+          {errors[q.id] && <p id={`q-${q.id}-err`} className="mt-2 type-caption text-danger-text">필수 질문</p>}
         </fieldset>
       ))}
       <div className="flex items-center justify-between pt-2">
