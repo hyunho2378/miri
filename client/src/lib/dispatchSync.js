@@ -63,8 +63,8 @@ export function setSessionRecover(fn) { recoverSession = typeof fn === 'function
 let alignRole = null
 export function setRoleAlign(fn) { alignRole = typeof fn === 'function' ? fn : null }
 
-async function call(method, action, body, query = {}, retried = false) {
-  if (alignRole && !retried) { try { await alignRole() } catch { /* 맞추기 실패는 무시 */ } }
+async function call(method, action, body, query = {}, retried = false, opts = {}) {
+  if (alignRole && !retried && !opts.skipAlign) { try { await alignRole() } catch { /* 맞추기 실패는 무시 */ } }
   const qs = new URLSearchParams({ ...(action ? { action } : {}), ...query }).toString()
   const r = await fetch(`${API}${qs ? `?${qs}` : ''}`, {
     method, credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : undefined,
@@ -83,7 +83,8 @@ export const saveRemote = (d, ctx, meta = {}) => {
   const briefs = briefsOf(d, ctx)
   // 위치 공개 후보는 배정 요약과 따로 보낸다. 서버는 도우미가 수락했을 때만 그 도우미에게 돌려준다(locationDisclosure.js)
   const locations = ctx?.persons && ctx?.privateInfo ? locationsForHelpers({ kind: d.kind, briefs, persons: ctx.persons, privateInfo: ctx.privateInfo }) : {}
-  return call('POST', 'save', { dispatchId: meta.dispatchId ?? d.remote?.dispatchId, rev: meta.rev, state: snapshotOf(d), briefs, locations })
+  // 화면을 떠나는 순간의 저장(meta.leaving)은 역할 맞추기 요청을 기다리지 않고 바로 보낸다(문서가 내려가기 전에 본문 전송)
+  return call('POST', 'save', { dispatchId: meta.dispatchId ?? d.remote?.dispatchId, rev: meta.rev, state: snapshotOf(d), briefs, locations }, {}, false, { skipAlign: !!meta.leaving })
 }
 export const loadRemote = () => call('GET', 'state')
 export const clearRemote = (dispatchId) => call('DELETE', '', null, dispatchId ? { dispatchId } : {})

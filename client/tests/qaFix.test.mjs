@@ -46,3 +46,24 @@ test('Q2 도우미 링크 화면: 바깥 레이아웃 main 안에 main 을 다�
   assert.ok(re.test('/h/demo'))
   assert.ok(!re.test('/h/Dabc123.H-084.1794631434.sig'))
 })
+
+test('Q3 저장 대기(1.5초) 중 새로고침이나 탭 닫기: 기다리지 않고 바로 저장하고, 떠나는 저장은 역할 맞추기를 기다리지 않음', async () => {
+  const s = src('src/store/useDispatchStore.js')
+  assert.match(s, /addEventListener\?\.\('pagehide', flushPendingSave\)/)
+  assert.match(s, /visibilityState === 'hidden'\) flushPendingSave\(\)/)
+  assert.match(s, /syncSave\(\{ leaving: true \}\)/)
+  const { saveRemote, setRoleAlign } = await import('../src/lib/dispatchSync.js')
+  let aligned = 0
+  setRoleAlign(async () => { aligned += 1 })
+  const orig = globalThis.fetch
+  const sent = []
+  globalThis.fetch = async (url, init) => { sent.push(init?.method); return { ok: true, status: 200, json: async () => ({ dispatchId: 'Dqa00001', tokens: {} }) } }
+  try {
+    const d = { kind: 'drill', status: 'sent', result: null, remote: {} }
+    await saveRemote(d, {}, { dispatchId: 'Dqa00001', rev: 2, leaving: true })
+    assert.equal(aligned, 0)
+    assert.deepEqual(sent, ['POST'])
+    await saveRemote(d, {}, { dispatchId: 'Dqa00001', rev: 3 })
+    assert.equal(aligned, 1)
+  } finally { globalThis.fetch = orig; setRoleAlign(null) }
+})

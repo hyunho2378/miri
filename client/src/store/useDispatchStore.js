@@ -287,7 +287,7 @@ export const useDispatchStore = create((set, get) => ({
     set((s) => ({ remote: { ...s.remote, dispatchId, rev } }))
     const same = () => get().remote.dispatchId === dispatchId && ['standby', 'assigned', 'sent'].includes(get().status)
     try {
-      const r = await saveRemote(get(), { scenario: activeScenario(data), villages: data.villages, officerContact: data.settings?.officerContact, persons: data.persons, shelters: data.shelters, privateInfo: data.privateInfo }, { dispatchId, rev })
+      const r = await saveRemote(get(), { scenario: activeScenario(data), villages: data.villages, officerContact: data.settings?.officerContact, persons: data.persons, shelters: data.shelters, privateInfo: data.privateInfo }, { dispatchId, rev, leaving: !!opts.leaving })
       if (!same()) return null // 응답이 오기 전에 종료했거나 다른 발령으로 바뀜
       set((s) => ({ remote: { ...s.remote, state: 'saved', dispatchId: r.dispatchId, tokens: { ...s.remote.tokens, ...r.tokens }, reason: null, savedAt: Date.now() } }))
       return r
@@ -440,8 +440,17 @@ if (typeof window !== 'undefined') {
     // 도우미 링크 화면(/h/, /m/h/)에서는 담당자 발령을 저장하지 않는다(예약 타이머 포함)
     if (helperPage()) return
     clearTimeout(timer)
-    timer = setTimeout(() => { if (!helperPage()) useDispatchStore.getState().syncSave() }, 1500)
+    timer = setTimeout(() => { timer = null; if (!helperPage()) useDispatchStore.getState().syncSave() }, 1500)
   })
+  // 저장 대기 중에 새로고침하거나 탭을 닫거나 다른 앱으로 넘어가면 1.5초를 기다리지 않고 바로 저장한다(직전 조작 유실 방지)
+  const flushPendingSave = () => {
+    if (!timer) return
+    clearTimeout(timer)
+    timer = null
+    if (!helperPage()) useDispatchStore.getState().syncSave({ leaving: true })
+  }
+  window.addEventListener?.('pagehide', flushPendingSave)
+  if (typeof document !== 'undefined') document.addEventListener?.('visibilitychange', () => { if (document.visibilityState === 'hidden') flushPendingSave() })
 }
 
 export { snapshotOf }
