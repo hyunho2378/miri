@@ -48,6 +48,8 @@ export function briefsOf(d, { scenario, villages = [], officerContact = '', pers
       clock: { realStart: d.realStart, vStart: d.vStart, speed: d.speed },
       trips: [...a.trips].sort((x, y) => x.index - y.index).map((t) => ({
         index: t.index, village: label(t.village), grade: t.grade, personCodes: t.personCodes,
+        // 회차마다 그 마을의 이송 완료 기한. 머리의 기한은 가장 이른 마을 기준이라 뒤 회차 완료 시각이 그보다 늦어 보일 수 있다
+        completeBy: d.result?.ctx?.deadlines?.[t.village]?.completeBy ?? null,
         departAt: t.departAt, finishAt: t.finishAt, shelters: t.shelters || [], routeCheck: !!checks?.[t.index]?.routeCheck, routeBasis: checks?.[t.index]?.routeBasis === 'road' ? 'road' : 'line'
       })),
       personCodes: a.trips.flatMap((t) => t.personCodes)

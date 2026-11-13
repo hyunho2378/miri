@@ -172,3 +172,21 @@ test('Q15 현장 모바일: 주소로 바로 연 화면(/m/f/note)은 계정 고
   assert.match(s, /usePageTitle\('현장 담당자'\)/)
   assert.match(s, /usePageTitle\('계정 고르기'\)/)
 })
+
+test('Q16 도우미 링크: 여러 마을 배정은 회차마다 그 마을 기한을 보여, 뒤 회차 완료(04:20)가 머리 기한(04:18)을 넘긴 것처럼 보이지 않음', async () => {
+  const { briefsOf } = await import('../src/lib/dispatchSync.js')
+  const { cleanBrief } = await import('../api/dispatch.js')
+  const d = { kind: 'drill', realStart: 0, vStart: 0, speed: 60, result: {
+    ctx: { deadlines: { A: { completeBy: 1000 }, B: { completeBy: 2000 } }, vmap: { A: { label: '괴란동' }, B: { label: '묵호진동' } } },
+    assignments: [{ vehicleCode: 'V1', helperCodes: ['H1'], trips: [
+      { index: 1, village: 'A', grade: 'assist', personCodes: ['P1'], departAt: 100, finishAt: 900 },
+      { index: 2, village: 'B', grade: 'assist', personCodes: ['P2'], departAt: 900, finishAt: 1100 }] }] } }
+  const b = briefsOf(d, {}).H1
+  assert.equal(b.completeBy, 1000)
+  assert.deepEqual(b.trips.map((t) => t.completeBy), [1000, 2000])
+  const c = cleanBrief(b)
+  assert.deepEqual(c.trips.map((t) => t.completeBy), [1000, 2000])
+  const r = src('src/pages/helper/RemoteHelper.jsx')
+  assert.match(r, /'가장 이른 이송 완료 기한'/)
+  assert.match(r, /, 기한 \$\{fmtHM\(t\.completeBy\)\}/)
+})

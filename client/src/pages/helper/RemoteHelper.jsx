@@ -105,7 +105,7 @@ export default function RemoteHelper({ token }) {
       <Card title="배정 안내">
         {!ack && <p role="note" className="type-body-sm text-text-sec">수락 시 배정 확정, 불가 선택 시 불이익 없음, 다른 도우미에게 전환</p>}
         <KeyValue items={[
-          { label: '이송 완료 기한', value: b.completeBy ? `${fmtHM(b.completeBy)}까지` : '담당자 확인' },
+          { label: (b.villages || []).length > 1 ? '가장 이른 이송 완료 기한' : '이송 완료 기한', value: b.completeBy ? `${fmtHM(b.completeBy)}까지` : '담당자 확인' },
           { label: '마을', value: (b.villages || []).join(', ') },
           { label: '만나는 곳', value: `${b.meetVillage || '-'} 첫 대상자 댁, 차량 ${b.vehicleCode}` },
           { label: '동승 도우미', value: b.coHelpers?.length ? b.coHelpers.join(', ') : '없음' },
@@ -123,7 +123,7 @@ export default function RemoteHelper({ token }) {
       </Card>
 
       {ack?.answer === 'accept' && (b.trips || []).map((t) => (
-        <Card key={t.index} title={`${t.index}회차, ${t.village}`} meta={`출발 ${fmtHM(t.departAt)}, 완료 ${fmtHM(t.finishAt)}`}>
+        <Card key={t.index} title={`${t.index}회차, ${t.village}`} meta={`출발 ${fmtHM(t.departAt)}, 완료 ${fmtHM(t.finishAt)}${t.completeBy ? `, 기한 ${fmtHM(t.completeBy)}` : ''}`}>
           <ul className="divide-y divide-line-sub">
             {t.personCodes.map((c) => {
               const st = stepOf(c)

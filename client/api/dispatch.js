@@ -144,7 +144,7 @@ export function cleanBrief(b) {
   out.trips = (Array.isArray(b.trips) ? b.trips : []).slice(0, 30).map((t) => ({
     index: num(t?.index), village: txt(t?.village, 40), grade: code(t?.grade),
     personCodes: (Array.isArray(t?.personCodes) ? t.personCodes : []).map(code).filter(Boolean).slice(0, 60),
-    departAt: num(t?.departAt), finishAt: num(t?.finishAt),
+    departAt: num(t?.departAt), finishAt: num(t?.finishAt), completeBy: num(t?.completeBy),
     shelters: (Array.isArray(t?.shelters) ? t.shelters : []).slice(0, 10).map((x) => (typeof x === 'string' ? txt(x, 60) : x && typeof x === 'object' ? { code: code(x.code), name: txt(x.name, 60), count: num(x.count) } : undefined)).filter(Boolean),
     routeCheck: t?.routeCheck === true,
     routeBasis: t?.routeBasis === 'road' ? 'road' : 'line'
