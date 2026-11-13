@@ -119,7 +119,16 @@ export async function helperSendResult(token, item) {
   const code = j?.error?.code || null
   return { kind: classifySend(r.status, code), status: r.status, code, message: j?.error?.message || (r.ok ? '' : `HTTP ${r.status}`) }
 }
-// 기존 큰 화면 도우미(RemoteHelper)용: 영구 거부는 대기열에서 빼고(true), 재시도 대상은 남긴다(false)
+// 큰 화면 도우미(RemoteHelper)의 보고 결과 처리. ok: 저장됨 / retry: 대기열에 남김 / end: 배정 종료, 교체, 만료라 안내 화면으로 / reject: 보내지 못한 보고로 옮김
+const END_CODES = new Set(['CLOSED', 'NO_ASSIGNMENT', 'EXPIRED', 'BAD_TOKEN'])
+export function remoteSendOutcome(res) {
+  if (!res || res.kind === 'ok') return res ? 'ok' : 'retry'
+  if (res.kind === 'retry') return 'retry'
+  const code = String(res.code || '')
+  if (END_CODES.has(code) || /EXPIRE/.test(code) || /TOKEN|SIG/.test(code) || res.status === 401 || res.status === 403 || res.status === 404 || res.status === 410) return 'end'
+  return 'reject'
+}
+// 이전 큰 화면 도우미용: 영구 거부는 대기열에서 빼고(true), 재시도 대상은 남긴다(false)
 export async function helperSend(token, item) {
   const res = await helperSendResult(token, item)
   if (res.kind === 'retry' && res.code === 'NETWORK') throw Object.assign(new Error(res.message), { status: 0 })

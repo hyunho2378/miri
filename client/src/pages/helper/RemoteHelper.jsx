@@ -6,8 +6,8 @@ import Button from '../../components/ui/Button.jsx'
 import Card from '../../components/ui/Card.jsx'
 import KeyValue from '../../components/ui/KeyValue.jsx'
 import useToast from '../../hooks/useToast.js'
-import { clockNow, helperGet, helperSend } from '../../lib/dispatchSync.js'
-import { enqueue, flush, readQueue } from '../../lib/reportQueue.js'
+import { clockNow, helperGet, helperSendResult, remoteSendOutcome } from '../../lib/dispatchSync.js'
+import { enqueue, flush, moveToRejected, readQueue, readRejected } from '../../lib/reportQueue.js'
 import { fmtHM } from '../../lib/time.js'
 
 const NEXT = { wait: ['depart', '출발'], depart: ['arrive', '도착'], arrive: ['board', '탑승 완료'], board: ['handover', '대피소 인계 완료'] }
@@ -23,11 +23,21 @@ export default function RemoteHelper({ token }) {
   const [local, setLocal] = useState([])
 
   const load = useCallback(async () => {
-    try { setData(await helperGet(token)); setError(null) } catch (e) { if (!data) setError(e.message) }
+    try { setData(await helperGet(token)); setError(null) } catch (e) { if (!data || remoteSendOutcome({ kind: 'reject', status: e.status, code: e.code }) === 'end') setError(e.message) }
   }, [token, data])
+  const [rejected, setRejected] = useState(() => readRejected(scope))
+  // 보고가 거부되면 지우지 않는다. 종료, 교체, 만료는 안내 화면으로 바꾸고, 그 밖의 거부는 '보내지 못한 보고'로 옮겨 남긴다
   const send = useCallback(async () => {
-    const r = await flush(scope, (it) => helperSend(token, it))
+    const r = await flush(scope, async (it) => {
+      const res = await helperSendResult(token, it)
+      const out = remoteSendOutcome(res)
+      if (out === 'ok') return true
+      if (out === 'end') { setError(res.message || '이 링크의 배정이 종료되었습니다'); return false }
+      if (out === 'reject') moveToRejected(scope, it.key, res.message || res.code || `HTTP ${res.status}`)
+      return false
+    })
     setPending(r.left)
+    setRejected(readRejected(scope))
     if (r.sent) load()
     return r
   }, [scope, token, load])
@@ -36,36 +46,43 @@ export default function RemoteHelper({ token }) {
   useEffect(() => {
     const on = () => send()
     window.addEventListener('online', on)
-    const t = setInterval(() => { if (readQueue(scope).length) send() }, 15_000)
+    // 보낼 보고가 없어도 배정을 다시 받아 종료, 교체를 알아챈다
+    const t = setInterval(() => { if (readQueue(scope).length) send(); else load() }, 15_000)
     return () => { window.removeEventListener('online', on); clearInterval(t) }
-  }, [send, scope])
+  }, [send, load, scope])
 
   const report = (item) => {
     // 보고 시각은 발령 가상 시계 기준(담당자 화면 기록과 같은 시간 축)
     const it = enqueue(scope, { ...item, at: Math.round(clockNow(data?.brief?.clock)) })
     setLocal((l) => [...l, it])
     setPending(readQueue(scope).length)
-    send().then((r) => { if (r.left) toast(`연결 끊김: 전송 대기 ${r.left}건, 연결되면 다시 보냄`, 'danger') })
+    send().then((r) => {
+      const rej = readRejected(scope).length
+      if (rej) toast(`보내지 못한 보고 ${rej}건, 담당자에게 문자로 알림`, 'danger')
+      else if (r.left) toast(`연결 끊김: 전송 대기 ${r.left}건, 연결되면 다시 보냄`, 'danger')
+    })
   }
 
   if (error) {
     return (
-      <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col items-center justify-center px-6 text-center">
+      <div role="alert" className="mx-auto flex w-full max-w-[480px] flex-1 flex-col items-center justify-center px-6 py-16 text-center">
         <CircleX size={48} aria-hidden="true" className="text-text-meta" />
         <h1 className="mt-5 type-h2 text-text-pri">배정을 열 수 없음</h1>
         <p className="mt-2 type-body text-text-sec">{error}</p>
-      </main>
+      </div>
     )
   }
-  if (!data) return <main className="mx-auto max-w-[480px] px-6 py-16 type-body text-text-sec">배정 정보 불러오는 중</main>
+  if (!data) return <p role="status" className="mx-auto max-w-[480px] px-6 py-16 type-body text-text-sec">배정 정보 불러오는 중</p>
 
   const b = data.brief
-  const all = [...(data.reports || []), ...local]
+  // 거부된 보고는 화면 단계에 반영하지 않는다
+  const rejKeys = new Set(rejected.map((x) => x.key))
+  const all = [...(data.reports || []), ...local.filter((x) => !rejKeys.has(x.key))]
   const ack = [...all].reverse().find((r) => r.type === 'ack')
   const stepOf = (code) => [...all].reverse().find((r) => r.type === 'step' && r.personCode === code)?.step || 'wait'
 
   return (
-    <main className="mx-auto max-w-[480px] space-y-4 px-4 py-6">
+    <div className="mx-auto w-full max-w-[480px] space-y-4 px-4 py-6">
       <header>
         <p className="type-meta text-text-meta">{b.drill ? '훈련 발령' : '발령'}, 도우미 {data.helper}</p>
         <h1 className="mt-1 type-h2 text-text-pri">{b.disaster} 대피 이송 배정</h1>
@@ -75,6 +92,13 @@ export default function RemoteHelper({ token }) {
         <Card as="div" role="status" tone="danger" padding="sm" bodyClassName="flex items-center gap-2">
           <CloudOff size={18} aria-hidden="true" />
           <span className="type-body-sm text-text-pri">전송 대기 {pending}건. 연결되면 자동으로 다시 보냄</span>
+        </Card>
+      )}
+
+      {rejected.length > 0 && (
+        <Card as="div" role="alert" tone="danger" padding="sm" bodyClassName="flex items-center gap-2">
+          <CircleX size={18} aria-hidden="true" />
+          <span className="type-body-sm text-text-pri">보내지 못한 보고 {rejected.length}건({rejected[rejected.length - 1].rejected}). 담당자에게 문자로 알림</span>
         </Card>
       )}
 
@@ -119,6 +143,6 @@ export default function RemoteHelper({ token }) {
           </ul>
         </Card>
       ))}
-    </main>
+    </div>
   )
 }
