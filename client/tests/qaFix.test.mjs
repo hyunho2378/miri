@@ -133,3 +133,8 @@ test('Q10 문서 센터와 시트: 단추가 여는 숨은 파일 칸은 Tab 순
   assert.match(src('src/pages/workspace/WorkspaceHome.jsx'), /accept="\.hwp,\.hwpx,\.pdf,\.docx" className="sr-only" tabIndex=\{-1\} aria-hidden="true"/)
   assert.match(src('src/pages/workspace/SheetEditor.jsx'), /accept="\.csv,text\/csv" className="sr-only" tabIndex=\{-1\} aria-hidden="true"/)
 })
+
+test('Q11 문서, 시트, 설문 편집기와 설문 응답 화면: 탭 제목이 문서 센터로 남지 않고 문서 제목을 보임', () => {
+  assert.match(src('src/pages/workspace/EditorFrame.jsx'), /usePageTitle\(title \|\| '문서'\)/)
+  assert.match(src('src/pages/workspace/FormFillPage.jsx'), /usePageTitle\(form\?\.title \|\| '설문지'\)/)
+})

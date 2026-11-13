@@ -1,6 +1,7 @@
 // 편집기 공통 틀. 왼쪽 위 문서함으로 돌아가기, 제목 바로 고치기, 저장 상태, 오른쪽 동작 버튼.
 // 사이드바 없이 화면 전체를 쓴다(구글 문서와 같은 배치).
 import clsx from 'clsx'
+import usePageTitle from '../../hooks/usePageTitle.js'
 import { ArrowLeft, Cloud } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
@@ -18,6 +19,7 @@ export function download(filename, content, type) {
 
 // 문서, 시트, 설문지 편집기가 모두 쓰는 머리(높이 44px). 뒤로, 종류 표시, 제목, 저장 상태, 오른쪽 동작 순서가 같다
 export default function EditorFrame({ fill = false, kind, Icon, title, onTitle, updatedAt, actions, tabs, badge, suffix, children }) {
+  usePageTitle(title || '문서')
   const [draft, setDraft] = useState(title)
   useEffect(() => { setDraft(title) }, [title])
   const commit = () => { const t = draft.trim(); if (t && t !== title) onTitle(t); else setDraft(title) }

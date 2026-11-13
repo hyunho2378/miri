@@ -5,6 +5,7 @@ import Logo from '../../components/nav/Logo.jsx'
 import * as api from '../../lib/workspaceApi.js'
 import useWorkspaceStore from '../../store/useWorkspaceStore.js'
 import FormRenderer from './FormRenderer.jsx'
+import usePageTitle from '../../hooks/usePageTitle.js'
 
 export default function FormFillPage() {
   const { id } = useParams()
@@ -19,6 +20,7 @@ export default function FormFillPage() {
   }, [id])
 
   const form = remote || local
+  usePageTitle(form?.title || '설문지')
   const onSubmit = async (answers) => {
     if (remote) {
       try { await api.submit(id, answers); return { ok: true } } catch (e) { return { ok: false, message: e.message } }
