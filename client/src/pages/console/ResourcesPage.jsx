@@ -235,8 +235,9 @@ export default function ResourcesPage() {
       else setForm({ kind: 'vehicle', mode: 'add', value: { code: '', type: 'car', owner: 'request', baseDong: 'MS', available: true, contractUntil: '', note: '', commitment: 'unconfirmed' } })
     }}>{tab === 'helpers' ? '도우미 추가' : '차량 추가'}</Button>
   )
-  const grid = 'grid min-h-0 flex-1 gap-x-10 gap-y-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(380px,1fr)]'
-  const listCls = 'flex min-h-0 flex-col max-lg:max-h-[50vh]'
+  // 좁은 폭(lg 미만)은 한 칸을 화면 폭에 맞추고 목록만 안에서 가로로 넘긴다(320, 390 폭에서 화면 전체가 가로로 밀리던 문제)
+  const grid = 'grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] gap-x-10 gap-y-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(380px,1fr)]'
+  const listCls = 'flex min-h-0 min-w-0 flex-col max-lg:max-h-[50vh] max-lg:overflow-x-auto'
 
   return (
     <PageShell title="차량과 도우미" hideHeader className="flex flex-col lg:h-full lg:pb-4">

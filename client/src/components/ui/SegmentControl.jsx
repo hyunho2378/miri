@@ -1,4 +1,5 @@
 // 보기 전환(dah SegmentControl 구조, G-Chat 토큰). role=radiogroup, 좌우 화살표 이동. items: [{ value, label, icon? }]
+// 좁은 폭(320)에서 항목이 부모보다 넓으면 줄을 바꿔 화면 전체가 가로로 밀리지 않게 한다
 import { useRef } from 'react'
 import clsx from 'clsx'
 
@@ -13,7 +14,7 @@ export default function SegmentControl({ items = [], value, onChange, label, cla
     refs.current[next]?.focus()
   }
   return (
-    <div role="radiogroup" aria-label={label} onKeyDown={onKeyDown} className={clsx('inline-flex rounded-sm bg-mute p-1 gap-1', className)}>
+    <div role="radiogroup" aria-label={label} onKeyDown={onKeyDown} className={clsx('inline-flex max-w-full flex-wrap rounded-sm bg-mute p-1 gap-1', className)}>
       {items.map((it, i) => {
         const active = it.value === value
         return (

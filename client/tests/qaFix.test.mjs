@@ -100,3 +100,18 @@ test('Q6 반복 단추 이름: 도우미 링크 44개와 대상자별 보고 단
   assert.match(r, /aria-label=\{`\$\{c\} \$\{nx\[1\]\}`\}/)
   assert.match(r, /aria-label=\{`\$\{c\} 실패`\}/)
 })
+
+test('Q7 320 폭 발령 운영: 훈련 속도 선택(보기 전환)이 부모보다 넓어도 화면 전체가 가로로 밀리지 않음', () => {
+  const s = src('src/components/ui/SegmentControl.jsx')
+  assert.match(s, /'inline-flex max-w-full flex-wrap rounded-sm bg-mute p-1 gap-1'/)
+})
+
+test('Q8 320, 390 폭: 대상자 명부, 차량과 도우미 목록은 화면 폭 한 칸 안에서 목록만 가로로 넘기고, 현장 소식 반영 단추는 줄을 바꿈', () => {
+  const r = src('src/pages/console/RosterPage.jsx')
+  assert.match(r, /grid min-h-0 flex-1 grid-cols-\[minmax\(0,1fr\)\] gap-x-10 gap-y-4 lg:grid-cols-\[minmax\(0,1\.25fr\)_minmax\(400px,1fr\)\]/)
+  assert.match(r, /aria-label="대상자 목록" className="flex min-h-0 min-w-0 flex-col max-lg:max-h-\[50vh\] max-lg:overflow-x-auto"/)
+  const s = src('src/pages/console/ResourcesPage.jsx')
+  assert.match(s, /const grid = 'grid min-h-0 flex-1 grid-cols-\[minmax\(0,1fr\)\]/)
+  assert.match(s, /const listCls = 'flex min-h-0 min-w-0 flex-col max-lg:max-h-\[50vh\] max-lg:overflow-x-auto'/)
+  assert.match(src('src/components/miri/NoteReview.jsx'), /ml-auto inline-flex max-w-full flex-wrap items-center justify-end gap-2/)
+})

@@ -290,8 +290,9 @@ export default function RosterPage() {
       />
       <div className="mb-3 shrink-0">{filterBar}</div>
       {view === 'list' ? (
-        <div className="grid min-h-0 flex-1 gap-x-10 gap-y-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(400px,1fr)]">
-          <section aria-label="대상자 목록" className="flex min-h-0 flex-col max-lg:max-h-[50vh]">
+        <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] gap-x-10 gap-y-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(400px,1fr)]">
+          {/* 좁은 폭(lg 미만)은 한 칸을 화면 폭에 맞추고 목록만 안에서 가로로 넘긴다(320, 390 폭에서 화면 전체가 가로로 밀리던 문제) */}
+          <section aria-label="대상자 목록" className="flex min-h-0 min-w-0 flex-col max-lg:max-h-[50vh] max-lg:overflow-x-auto">
             <div className="shrink-0 pb-3">
               <h2 className="flex items-baseline gap-2 type-title text-text-pri">표시 중인 명부<span className="font-normal tabular-nums text-text-sec">{countText(rows.length, '건')}</span></h2>
               <dl className="mt-2 flex flex-wrap items-baseline gap-x-6 gap-y-1 type-body-sm tabular-nums">
