@@ -152,3 +152,15 @@ test('Q13 AI 읽기 꺼짐 안내: 오류 문구가 화면 단추 이름(예시 
   assert.equal(aiErrorMessage({ code: 'NO_KEY' }, '소식').desc, '예시 소식 읽기 선택')
   for (const code of ['STORED_ONLY', 'NO_KEY', 'NEED_SESSION', 'NO_SESSION_CONFIG', 'X']) assert.doesNotMatch(JSON.stringify(aiErrorMessage({ code, message: 'm' })), /샘플/)
 })
+
+test('Q14 소방 인계 목록과 CSV: 명부 마지막 확인 경과일을 명부 화면과 같은 현재 시각으로 셈(10. 23. 확인이 0일 전으로 보이던 문제)', async () => {
+  const { buildHandoverRows, checkedOf } = await import('../src/lib/handoverRows.js')
+  const at = new Date(2026, 9, 23, 9).getTime()
+  const now = new Date(2026, 10, 14, 2).getTime()
+  assert.equal(checkedOf({ planCheckedAt: at }, now).text, '21일 전')
+  const rows = buildHandoverRows({ entries: [{ code: 'P1', reason: '차량 부족', status: 'unassigned' }], persons: [{ code: 'P1', villageCode: 'V1', grade: 'assist', planCheckedAt: at }], villages: [{ code: 'V1', label: '만우동' }], now })
+  assert.equal(rows[0].checked.days, 21)
+  const s = src('src/pages/console/HandoverPage.jsx')
+  assert.match(s, /arrivals: d\.arrivals, now,/)
+  assert.doesNotMatch(s, /now: today/)
+})

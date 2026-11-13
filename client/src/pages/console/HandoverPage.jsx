@@ -80,8 +80,9 @@ export default function HandoverPage() {
     for (const p of persons) if (stepOf(d, p.code, now, stops) === 'fail') add(p.code, failReasonOf(d, p.code), 'fail')
     for (const u of d.result.unassigned) add(u.personCode, u.reason, 'unassigned')
     // 같은 대상자는 처음 들어온 상태(소방 인계, 이송 실패, 미배정 순)만 남기고, 가장 급한 사람 먼저 정렬
+    // 명부 마지막 확인 경과일은 대상자 명부 화면과 같은 현재 시각으로 센다(명부 기준일로 세면 기준일 뒤 확인이 모두 0일 전으로 보임)
     return buildHandoverRows({
-      entries, persons, villages, privateInfo, arrivals: d.arrivals, now: today,
+      entries, persons, villages, privateInfo, arrivals: d.arrivals, now,
       dongName: dname, tagText: (t) => TAGS[t] || t
     }).map((r, i) => ({ ...r, rank: i + 1 }))
   }, [d, persons, villages, privateInfo, today, now]) // eslint-disable-line react-hooks/exhaustive-deps
