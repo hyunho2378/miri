@@ -182,7 +182,7 @@ function MapSvg() {
   const off = () => setAct(null);
   const dim = (ids) => (act && act !== 'hub' && !ids.includes(act) ? ' dim' : '');
   return (
-    <svg className={`map-svg${act ? ' focusing' : ''}`} viewBox="0 0 1600 900" role="group" aria-label="미리 이해관계자 지도">
+    <svg className={`map-svg${act ? ' focusing' : ''}`} viewBox={MAP.vb} role="group" aria-label="미리 이해관계자 지도">
       <defs>
         <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M0 0 L10 5 L0 10 z" fill="#1e6ef4" />
