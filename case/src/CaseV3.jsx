@@ -354,11 +354,10 @@ function Chapter({ id, photo, dark = false }) {
       {photo ? <div className="ch-bg" style={{ backgroundImage: `url(${photo})` }} /> : null}
       <div className="ch-in">
         <p className="ch-n">{c.n}</p>
-        <p className="ch-en image">{c.en}</p>
+        <p className="ch-en" data-slide>{c.en}</p>
         <p className="ch-ko image">{c.ko}</p>
         <p className="ch-lead image">{c.lead}</p>
       </div>
-      {photo && c.cap ? <p className="ch-cap">{c.cap}</p> : null}
     </section>
   );
 }
@@ -411,7 +410,7 @@ function Logic() {
         <div className="lg-col">
           <p className="lg-h">결과</p>
           <div className={`lg-out${k === LOGIC.rules.length ? ' on' : ''}`}><b><span data-count={LOGIC.result.n}>{LOGIC.result.n}</span>명</b><span>{LOGIC.result.t}</span><em>{LOGIC.result.s}</em></div>
-          <div className="lg-why"><p>옮기지 못하는 사유</p>{LOGIC.reasons.map((r) => <span key={r}>{r}</span>)}</div>
+          <p className="lg-why"><b>옮기지 못하는 사유</b>{LOGIC.reasons.join(', ')}</p>
         </div>
       </div>
     </section>
@@ -432,7 +431,7 @@ function Pipeline() {
           </button>
         ))}
       </div>
-      <div className="pp-stops image"><p>멈추는 경우</p>{PIPE.stops.map((x) => <span key={x}>{x}</span>)}</div>
+      <p className="pp-stops image"><b>멈추는 경우</b>{PIPE.stops.join(', ')}</p>
     </section>
   );
 }
@@ -459,7 +458,7 @@ function Network() {
           return (
             <button type="button" key={g.id} className={`net-g p-${g.pos} g-${g.id}${sel === g.id ? ' on' : ''}`} onClick={() => setSel(g.id)} aria-pressed={sel === g.id}>
               <p className="net-name"><I size={20} strokeWidth={2} />{g.name}<em>{g.chips.length}</em></p>
-              <div className="net-chips">{g.chips.map((c) => <span key={c}>{c}</span>)}</div>
+              <p className="net-names">{g.chips.join(', ')}</p>
             </button>
           );
         })}
@@ -525,7 +524,7 @@ function ShortageScrub() {
   useLayoutEffect(() => {
     if (reduced()) return undefined;
     const st = ScrollTrigger.create({
-      trigger: ref.current, start: 'top top', end: '+=140%', pin: true, scrub: 0.6,
+      trigger: ref.current, start: 'top top', end: '+=90%', pin: true, scrub: 0.6,
       onUpdate: (self) => setCars(Math.round(self.progress * 20)),
     });
     return () => st.kill();
@@ -544,9 +543,43 @@ function ShortageScrub() {
   );
 }
 
+// 스크롤 강조: 화면이 들어올 때 작게 시작해 제자리로 커지고, 사진과 큰 단어는 스크롤 속도와 다르게 움직인다
+function useScrollEmphasis() {
+  useLayoutEffect(() => {
+    if (reduced()) return undefined;
+    const ctx = gsap.context(() => {
+      gsap.utils.toArray('.con-scr .auto-stage').forEach((el) => {
+        gsap.fromTo(el, { scale: 0.82, yPercent: 10, opacity: 0.35 }, { scale: 1, yPercent: 0, opacity: 1, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'top 25%', scrub: 0.8 } });
+      });
+      gsap.utils.toArray('.con-scr .auto-steps').forEach((el) => {
+        gsap.fromTo(el, { y: 80 }, { y: 0, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'top 40%', scrub: 0.8 } });
+      });
+      gsap.utils.toArray('[data-slide]').forEach((el) => {
+        gsap.fromTo(el, { xPercent: 22, opacity: 0.2 }, { xPercent: 0, opacity: 1, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'top 45%', scrub: 0.8 } });
+      });
+      gsap.utils.toArray('.ch-bg').forEach((el) => {
+        gsap.fromTo(el, { scale: 1.18 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } });
+      });
+      gsap.utils.toArray('.fire-photos .ph-in img').forEach((el) => {
+        gsap.fromTo(el, { yPercent: -16 }, { yPercent: 0, ease: 'none', scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } });
+      });
+      gsap.utils.toArray('.dd-shape').forEach((el) => {
+        const len = el.getTotalLength();
+        gsap.fromTo(el, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: el.closest('.dd'), start: 'top 85%', end: 'top 35%', scrub: 0.8 } });
+      });
+      gsap.utils.toArray('.net-hub, .lg-out b').forEach((el) => {
+        gsap.fromTo(el, { scale: 0.7 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'top 50%', scrub: 0.8 } });
+      });
+    });
+    const t = setTimeout(() => ScrollTrigger.refresh(), 600);
+    return () => { clearTimeout(t); ctx.revert(); };
+  }, []);
+}
+
 export default function CaseV3() {
   usePlusXMotion();
   useCountUp();
+  useScrollEmphasis();
   return (
     <div className="portfolio">
       <header className="top">
@@ -616,7 +649,7 @@ export default function CaseV3() {
         </div>
         {PHOTOS.fires?.length ? (
           <div className="fire-photos mockup-wrap">
-            {PHOTOS.fires.map((p) => <figure key={p.src} className="image"><img src={p.src} alt={p.t} loading="lazy" /><figcaption><b>{p.t}</b><span>{p.cr}</span></figcaption></figure>)}
+            {PHOTOS.fires.map((p) => <figure key={p.src} className="image"><div className="ph-in"><img src={p.src} alt={p.t} loading="lazy" /></div><figcaption>{p.t}</figcaption></figure>)}
           </div>
         ) : null}
       </section>
@@ -674,7 +707,7 @@ export default function CaseV3() {
       <Chapter id="develop" />
 
       <section className="bg-bk con7" id="promise">
-        <Txt badge="Concept" title={['사람과 기관이 불이 나기 전에', '맺는 약속 네 가지']} sub={[DEFINE.sub[0]]} light />
+        <Txt badge="Concept" title={['끊긴 연결을 잇기 위해', '약속 네 가지를 세웠습니다.']} sub={['화면보다 먼저 사람과 기관이 불이 나기 전에 맺는 약속을 설계했습니다.']} light />
         <div className="content boxes">
           {[[0], [1, 2], [3]].map((col, ci) => (
             <div className="box-wrap" key={ci}>
@@ -706,7 +739,7 @@ export default function CaseV3() {
           <div className="sys-stack item-wrap">{SYSTEM.stack.map((x) => { const I = STACK_ICON[x.icon]; return <div key={x.k} className="item st"><span className="st-icon"><I size={22} strokeWidth={2} /></span><b>{x.k}</b><p>{x.v}</p></div>; })}</div>
           <div className="sys-data image">
             <p className="ds-k">공공데이터 9종</p>
-            <div className="chips">{SYSTEM.data.map((d) => <span key={d}>{d}</span>)}</div>
+            <p className="sys-list">{SYSTEM.data.join(', ')}</p>
             <p className="ds-note">{SYSTEM.dataNote}</p>
           </div>
           <div className="sys-plat image">
@@ -752,7 +785,6 @@ export default function CaseV3() {
             <div><dt>Members</dt><dd>{CREDITS.people.join(', ')}</dd></div>
             <div><dt>Course</dt><dd>{CREDITS.course}</dd></div>
           </dl>
-          <ul className="cr-photos">{PHOTOS.list.map((x) => <li key={x}>{x}</li>)}</ul>
           <div className="cr-links">{CREDITS.links.map((l) => <a key={l.label} href={l.href} target="_blank" rel="noreferrer">{l.label}<ArrowUpRight size={14} strokeWidth={2} /></a>)}</div>
         </div>
       </section>

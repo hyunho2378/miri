@@ -4,7 +4,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { LiveScreen } from './Live.jsx';
 
-const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+// 2026. 11. 23. 사용자 지시로 모든 시연을 2배 빠르게(기다림과 움직임 시간을 절반으로)
+const SPEED = 0.5;
+const wait = (ms) => new Promise((r) => setTimeout(r, ms * SPEED));
 const norm = (el) => (el.getAttribute?.('aria-label') || el.textContent || el.placeholder || '').replace(/\s+/g, ' ').trim();
 
 // 대상 찾기: { text, exact, find, within, sel, up, nth }
@@ -63,7 +65,7 @@ async function typeInto(el, text, alive) {
     v += ch;
     setter.call(el, v);
     el.dispatchEvent(new win.Event('input', { bubbles: true }));
-    await wait(ch === ' ' ? 40 : 75 + Math.random() * 50);
+    await wait(ch === ' ' ? 40 : 70 + Math.random() * 40);
   }
 }
 
@@ -94,7 +96,7 @@ export function AutoScreen({ route, role, kind = 'desktop', poster, title, steps
     setMode('play'); setCur(-1); setZoom({ z: 1, ox: 50, oy: 50 }); setHand((h) => ({ ...h, on: false }));
     // 처음 상태로 다시 연다
     if (live.current?.ready()) { try { getDoc()?.defaultView?.localStorage?.clear(); } catch { /* 무시 */ } await live.current.reset(); }
-    for (let i = 0; i < 40 && !live.current?.ready(); i += 1) { if (!alive()) return; await wait(200); }
+    for (let i = 0; i < 90 && !live.current?.ready(); i += 1) { if (!alive()) return; await wait(200); }
     await wait(intro);
     for (let i = 0; i < steps.length; i += 1) {
       if (!alive()) return;
