@@ -80,7 +80,7 @@ export const LiveScreen = forwardRef(function LiveScreen({ route, role, kind = '
     </div>
   );
   return kind === 'phone'
-    ? <div className={`phone live ${className}`}>{inner}</div>
+    ? <div className={`iphone live ${className}`}><div className="ip-scr">{inner}</div><img className="ip-bz" src="/v3/ip18pro_black.webp" alt="" width="900" height="1840" /></div>
     : <div className={`shot live lift ${className}`}>{inner}</div>;
 });
 

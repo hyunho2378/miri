@@ -8,6 +8,7 @@ import {
   Accessibility, Flame, Landmark, Bus, Car, Users, HeartHandshake, Building2, House, FileText, Map as MapIcon, Bell,
   ClipboardCheck, Phone, Shield, Calendar, Send, Settings, X, ArrowUpRight, Hand, HeartPulse, Siren, GraduationCap,
   Handshake, Monitor, Server, Cpu, CircleCheck, TriangleAlert, CircleHelp, Truck, Database, Smartphone,
+  ClipboardList, Calculator, Route, RefreshCw, ShieldCheck, Ambulance, PersonStanding, BedDouble, HandHelping, UserCheck, ScanText, EyeOff,
 } from 'lucide-react';
 import './caseV3.css';
 import { LiveScreen, driveHelper } from './Live.jsx';
@@ -15,7 +16,7 @@ import { buildSeed } from '../../client/src/mock/seed.js';
 import { computeShortage } from '../../client/src/lib/shortageCalc.js';
 import {
   LINKS, HERO, OVERVIEW, CONTEXT, INTERVIEW, RESEARCH, MAP, PARTNERS, DEFINE, DS, CONSOLE, AI, SHORTAGE, CARS, SYSTEM, DELIVER, CREDITS,
-  DIAMOND, CHAPTER, RESEARCH_N, HMW, BLUEPRINT, LOGIC, PIPE, NETWORK, SCREENS, PHOTOS, FIRES,
+  DIAMOND, CHAPTER, RESEARCH_N, HMW, BLUEPRINT, LOGIC, PIPE, NETWORK, SCREENS, PHOTOS, FIRES, USED, BP2,
 } from './caseCopy3.js';
 import { AutoScreen } from './Autoplay.jsx';
 
@@ -26,7 +27,7 @@ const Lines = ({ lines }) => lines.map((l, i) => <span key={i} className="ln">{l
 const Txt = ({ badge, title, sub, en = false, light = false }) => (
   <div className={`txt-wrap${light ? ' on-dark' : ''}`}>
     <span className="badge">{badge}</span>
-    <p className={`txt-title${en ? ' en' : ''}`}><Lines lines={title} /></p>
+    <p className={`txt-title${en ? ' en' : ''}`}>{title.join(' ')}</p>
     {sub?.map((s, i) => <p key={i} className="sub">{s}</p>)}
   </div>
 );
@@ -98,7 +99,7 @@ function usePlusXMotion() {
       });
       // 큰 글자 블러 해제
       const pv = { blur: 30 };
-      const big = document.querySelector('.con8 .txt-img');
+      const big = document.querySelector('.ch-insight .txt-img');
       if (big) {
         gsap.set(big, { filter: `blur(${pv.blur}px)` });
         ScrollTrigger.create({ trigger: '.animation-y', once: true, start: '30% bottom', onEnter: () => {
@@ -323,11 +324,77 @@ function useCycle(n, ms, ref) {
   return [i, (k) => { setHold(true); setI(k); }];
 }
 
+
+// 장 사이 목업 구간: 플러스엑스 브랜딩 사례처럼 글 없이 색 면 위에 실제 화면만 놓는다. 그림은 모두 실제 서비스 캡처와 실제 사진
+const PH = (src, cls, sp, alt = '') => ({ src, cls, sp, alt });
+function Showcase({ v }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current; if (!el || reduced()) return undefined;
+    const ctx = gsap.context(() => {
+      el.querySelectorAll('[data-sp]').forEach((n) => {
+        const sp = parseFloat(n.dataset.sp);
+        gsap.fromTo(n, { y: sp * 120 }, { y: -sp * 120, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.6 } });
+      });
+      const row = el.querySelector('[data-x]');
+      if (row) gsap.fromTo(row, { xPercent: 8 }, { xPercent: -8, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.6 } });
+    }, el);
+    return () => ctx.revert();
+  }, [v]);
+  const phone = (p, bz = 'black') => (
+    <figure key={p.src + p.cls} className={`sc-ip ${p.cls}`} data-sp={p.sp}>
+      <div className="iphone"><div className="ip-scr"><img src={p.src} alt={p.alt} loading="lazy" /></div><img className="ip-bz" src={`/v3/ip18pro_${bz}.webp`} alt="" width="900" height="1840" /></div>
+    </figure>
+  );
+  if (v === 'brand') {
+    return (
+      <section className="sc sc-brand" ref={ref} aria-label="미리 대표 그림">
+        <div className="sc-logo" data-sp="0.15"><img src="/v3/tile.webp" alt="" width="1240" height="1233" /><b>미리</b></div>
+        {[PH('/v3/phone-assign.webp', 'b1', 0.9, '도우미 배정 알림 화면'), PH('/v3/phone-dong.webp', 'b2', -0.6, '동 담당자 오늘 할 일 화면')].map((p) => phone(p))}
+        <figure className="sc-chip b3" data-sp="1.4"><img src="/v3/def-consent.webp" alt="도우미가 고르는 도움 종류" loading="lazy" /></figure>
+      </section>
+    );
+  }
+  // 휴대폰 화면 줄: 애플 공식 아이폰 18 Pro 베젤에 실제 화면을 넣어 한 줄로 세우고, 스크롤하면 줄 전체가 옆으로 흐른다
+  return (
+    <section className="sc sc-line" ref={ref} aria-label="도우미와 동 담당자 휴대폰 화면">
+      <div className="sc-row" data-x="1">
+        {[PH('/v3/phone-helper.webp', 'r1', 0, '도우미 첫 화면'), PH('/v3/phone-consent.webp', 'r2', 0, '참여 동의'), PH('/v3/phone-assign.webp', 'r3', 0, '배정 알림'), PH('/v3/phone-accepted.webp', 'r4', 0, '수락 뒤 대상자 순서'), PH('/v3/phone-dong.webp', 'r5', 0, '동 담당자 오늘 할 일')].map((p) => phone(p, 'silver'))}
+      </div>
+    </section>
+  );
+}
+
+// 인터뷰: 플러스엑스 SK바이오팜 ZERO "In-depth Interview" 구간 구조(흐린 사진 바탕, 큰 영문 두 단어, 왼쪽 글, 오른쪽에 어긋나게 뜬 말 카드, 하나만 흰색)
+function Interview() {
+  const ref = useRef(null);
+  const [on, pick] = useCycle(INTERVIEW.chats.length, 3200, ref);
+  return (
+    <section className="con4 iv2" id="interview" ref={ref}>
+      <div className="iv2-bg" style={{ backgroundImage: 'url(/v3/real/mukho-hill.webp)' }} />
+      <p className="iv2-word" aria-hidden="true"><span>Field</span><span className="o">Interview</span></p>
+      <div className="iv2-row">
+        <div className="iv2-l">
+          <Txt badge={INTERVIEW.badge} title={INTERVIEW.title} sub={INTERVIEW.sub} />
+          <div className="rn item-wrap">{RESEARCH_N.map((x) => <div key={x.t} className="item rn-it"><p><b data-count={x.n}>{x.n}</b>{x.u}</p><span>{x.t}</span>{x.s ? <em>{x.s}</em> : null}</div>)}</div>
+        </div>
+        <div className="iv2-r">
+          {INTERVIEW.chats.map((c, i) => (
+            <button type="button" key={c.q} className={`iv2-c c${i}${on === i ? ' on' : ''}`} onClick={() => pick(i)}>
+              <em>{c.who}</em><span>“{c.q}”</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Diamond() {
   return (
     <section className="con-dd" id="process">
       <Txt badge={DIAMOND.badge} title={DIAMOND.title} />
-      <div className="dd image">
+      <div className="dd">
         <svg viewBox="0 0 1200 300" className="dd-svg" aria-hidden="true">
           <path className="dd-shape d1" d="M20 150 L300 20 L580 150 L300 280 Z" />
           <path className="dd-shape d2" d="M620 150 L900 20 L1180 150 L900 280 Z" />
@@ -347,91 +414,143 @@ function Diamond() {
   );
 }
 
-function Chapter({ id, photo, dark = false }) {
+function Chapter({ id, photo }) {
   const c = CHAPTER[id];
   return (
-    <section className={`chapter${dark ? ' dark' : ''}${photo ? ' ph' : ''}`} id={id}>
-      {photo ? <div className="ch-bg" style={{ backgroundImage: `url(${photo})` }} /> : null}
-      <div className="ch-in">
-        <p className="ch-n">{c.n}</p>
-        <p className="ch-en" data-slide>{c.en}</p>
-        <p className="ch-ko image">{c.ko}</p>
-        <p className="ch-lead image">{c.lead}</p>
+    <section className="bg-bk ch-insight" id={id}>
+      <div className="bg-img-wrap image">
+        <div className="bg-img" style={{ backgroundImage: `url(${photo})` }} />
+        <p className="side"><span>{c.n}</span><span>FROM</span><span>DONGHAE</span><span>&nbsp;</span><span>TO</span><span>MIRI</span></p>
       </div>
+      <div className="animation-y"><p className="txt-img"><span>{c.en.toUpperCase()}</span></p></div>
+      <p className="ch-lead2 image">{c.lead}</p>
     </section>
   );
 }
+
+// 티 우주 IMPRESSION, SUBSCRIPTION처럼 구간 맨 위에 깔리는 흐린 큰 단어
+const BigWord = ({ id }) => (
+  <p className="bigword" aria-hidden="true"><span data-slide>{CHAPTER[id].en.toUpperCase()}</span></p>
+);
+
+const BP_ICON = { clipboard: ClipboardList, calc: Calculator, siren: Siren, route: Route, car: Car, refresh: RefreshCw, handover: ShieldCheck, home: House, users: Users, monitor: Monitor, cpu: Cpu };
 
 function Blueprint() {
   const ref = useRef(null);
-  const [col, pick] = useCycle(BLUEPRINT.stages.length, 2600, ref);
+  const [col, pick] = useCycle(BLUEPRINT.stages.length, 2200, ref);
   return (
     <section className="con-bp" id="blueprint" ref={ref}>
-      <Txt badge={BLUEPRINT.badge} title={BLUEPRINT.title} sub={BLUEPRINT.sub} />
-      <div className="bp-wrap image">
-        <div className="bp" style={{ '--cols': BLUEPRINT.stages.length }}>
-          <div className="bp-corner">단계</div>
-          {BLUEPRINT.stages.map((st, i) => (
-            <button key={st.t} type="button" className={`bp-stage${i === col ? ' on' : ''}`} onClick={() => pick(i)}>
-              <span>{String(i + 1).padStart(2, '0')}</span><b>{st.t}</b><em>{st.s}</em>
+      <Txt badge={BLUEPRINT.badge} title={BLUEPRINT.title} />
+      <div className="bp2 image" style={{ '--cols': BLUEPRINT.stages.length }}>
+        <div className="bp2-head" />
+        {BLUEPRINT.stages.map((st, i) => {
+          const I = BP_ICON[BP2.icons[i]];
+          return (
+            <button key={st.t} type="button" className={`bp2-st${i === col ? ' on' : ''}${i < col ? ' past' : ''}`} onClick={() => pick(i)}>
+              <span className="bp2-ic"><I size={26} strokeWidth={1.9} /></span>
+              <em>{String(i + 1).padStart(2, '0')}</em><b>{st.t}</b>
             </button>
-          ))}
-          {BLUEPRINT.lanes.map((ln) => (
-            <div className="bp-row" key={ln.t} style={{ display: 'contents' }}>
-              <div className="bp-lane"><b>{ln.t}</b>{ln.tag ? <em>{ln.tag}</em> : null}</div>
-              {ln.cells.map((c, i) => <div key={i} className={`bp-cell${i === col ? ' on' : ''}`}>{c}</div>)}
+          );
+        })}
+        {BP2.lanes.map((ln) => {
+          const L = BP_ICON[ln.icon];
+          return (
+            <div key={ln.t} style={{ display: 'contents' }}>
+              <div className="bp2-lane"><L size={18} strokeWidth={2} /><b>{ln.t}</b></div>
+              {ln.cells.map((c, i) => <div key={i} className={`bp2-cell${i === col ? ' on' : ''}`}>{c}</div>)}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+// 배정 규칙 인포그래픽: 등급별 주민 → 규칙 여섯 개 → 차 네 종류 → 남는 사람
+const GRADES = [
+  { k: '침상', I: BedDouble, c: '#BA1A1A', n: 12 },
+  { k: '휠체어', I: Accessibility, c: '#1E6EF4', n: 14 },
+  { k: '부축', I: HandHelping, c: '#C93400', n: 18 },
+  { k: '도보', I: PersonStanding, c: '#008932', n: 20 },
+];
+const VEHICLES = [
+  { k: '침상 승합차', s: '침상 2명', I: Ambulance, seats: 2 },
+  { k: '리프트 승합차', s: '휠체어 3명', I: Accessibility, seats: 3 },
+  { k: '승용차', s: '부축 3명, 도보 4명', I: Car, seats: 4 },
+  { k: '마을버스', s: '도보 20명', I: Bus, seats: 20 },
+];
+function Logic() {
+  const ref = useRef(null);
+  const [k, pick] = useCycle(LOGIC.rules.length + 1, 1300, ref);
+  const fill = Math.min(1, k / LOGIC.rules.length);
+  return (
+    <section className="con-logic" id="logic" ref={ref}>
+      <Txt badge={LOGIC.badge} title={LOGIC.title} />
+      <div className="lg2 image">
+        <div className="lg2-col">
+          {GRADES.map((g) => (
+            <div key={g.k} className="lg2-grade">
+              <span className="lg2-gi" style={{ background: g.c }}><g.I size={22} strokeWidth={2} color="#fff" /></span>
+              <div><b>{g.k}</b><p className="dots">{Array.from({ length: g.n }, (_, i) => <i key={i} style={{ background: g.c, opacity: i < g.n * (1 - fill * 0.7) ? 1 : 0.18 }} />)}</p></div>
             </div>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-
-function Logic() {
-  const ref = useRef(null);
-  const [k, pick] = useCycle(LOGIC.rules.length + 1, 1500, ref);
-  return (
-    <section className="con-logic" id="logic" ref={ref}>
-      <Txt badge={LOGIC.badge} title={LOGIC.title} sub={LOGIC.sub} />
-      <div className="lg image">
-        <div className="lg-col">
-          <p className="lg-h">입력</p>
-          {LOGIC.inputs.map((x) => <div className="lg-in" key={x.t}><b>{x.t}</b><span>{x.s}</span></div>)}
-        </div>
-        <div className="lg-col rules">
-          <p className="lg-h">계산과 배정 규칙</p>
+        <span className="lg2-ar" aria-hidden="true" />
+        <div className="lg2-rules">
+          <div className="lg2-funnel"><Users size={30} strokeWidth={2} color="#fff" /></div>
           {LOGIC.rules.map((x, i) => (
-            <button type="button" key={x.t} className={`lg-rule${i === k ? ' on' : ''}${i < k ? ' past' : ''}`} onClick={() => pick(i)}>
-              <span>{i + 1}</span><b>{x.t}</b><em>{x.s}</em>
+            <button type="button" key={x.t} className={`lg2-rule${i === k ? ' on' : ''}${i < k ? ' past' : ''}`} onClick={() => pick(i)}>
+              <span>{i + 1}</span><b>{x.t}</b>
             </button>
           ))}
         </div>
-        <div className="lg-col">
-          <p className="lg-h">결과</p>
-          <div className={`lg-out${k === LOGIC.rules.length ? ' on' : ''}`}><b><span data-count={LOGIC.result.n}>{LOGIC.result.n}</span>명</b><span>{LOGIC.result.t}</span><em>{LOGIC.result.s}</em></div>
-          <p className="lg-why"><b>옮기지 못하는 사유</b>{LOGIC.reasons.join(', ')}</p>
+        <span className="lg2-ar" aria-hidden="true" />
+        <div className="lg2-col">
+          {VEHICLES.map((v, vi) => (
+            <div key={v.k} className="lg2-car">
+              <span className="lg2-ci"><v.I size={30} strokeWidth={1.8} /></span>
+              <div><b>{v.k}</b><em>{v.s}</em><p className="seats">{Array.from({ length: Math.min(v.seats, 10) }, (_, i) => <i key={i} className={i < Math.round(Math.min(v.seats, 10) * fill) ? 'on' : ''} style={{ transitionDelay: `${vi * 80 + i * 40}ms` }} />)}</p></div>
+            </div>
+          ))}
         </div>
+        <span className="lg2-ar" aria-hidden="true" />
+        <div className={`lg2-out${k === LOGIC.rules.length ? ' on' : ''}`}><b data-count={LOGIC.result.n}>{LOGIC.result.n}</b><span>명</span><em>기한 안에 옮기지 못하는 사람</em></div>
       </div>
     </section>
   );
 }
 
+// AI 서류 읽기 인포그래픽: 서류, 가림, 국내 AI, 등급 초안, 담당자 확인
+const PIPE5 = [
+  { t: '서류 사진', s: '동마다 서식이 다른 종이 서류' },
+  { t: '개인정보 가림', s: '이름과 연락처, 주소를 가림' },
+  { t: '국내 AI가 읽기', s: 'CLOVA OCR과 HyperCLOVA X' },
+  { t: '등급 초안', s: '도보, 부축, 휠체어, 침상' },
+  { t: '담당자 확인', s: '원문과 대조해 확정' },
+];
 function Pipeline() {
   const ref = useRef(null);
-  const [k, pick] = useCycle(PIPE.steps.length, 1400, ref);
+  const [k, pick] = useCycle(PIPE5.length, 1500, ref);
+  const gi = 2; // 휠체어
   return (
     <section className="con-pipe" id="pipeline" ref={ref}>
       <Txt badge={PIPE.badge} title={PIPE.title} />
-      <div className="pp image">
-        <div className="pp-track"><i style={{ width: `${(k / (PIPE.steps.length - 1)) * 100}%` }} /></div>
-        {PIPE.steps.map((x, i) => (
-          <button type="button" key={x.t} className={`pp-st${i === k ? ' on' : ''}${i < k ? ' past' : ''} t-${x.tag === 'AI' ? 'ai' : x.tag === '사람 확인' ? 'hu' : x.tag === '입력' ? 'in' : 'ru'}`} onClick={() => pick(i)}>
-            <em>{x.tag}</em><b>{x.t}</b><span>{x.s}</span>
+      <div className="pp2 image">
+        {PIPE5.map((x, i) => (
+          <button type="button" key={x.t} className={`pp2-st${i === k ? ' on' : ''}${i < k ? ' past' : ''}`} onClick={() => pick(i)}>
+            <p className="pp2-n">{String(i + 1).padStart(2, '0')}</p>
+            <b>{x.t}</b><span>{x.s}</span>
+            <div className={`pp2-art a${i}`}>
+              {i === 0 ? <><img src="/v3/doc-card.webp" alt="" /><i className="scan" /></> : null}
+              {i === 1 ? <div className="mask"><img src="/v3/doc-card.webp" alt="" /><i className="bar b1" /><i className="bar b2" /></div> : null}
+              {i === 2 ? <div className="chip"><Cpu size={44} strokeWidth={1.6} color="#fff" /></div> : null}
+              {i === 3 ? <div className="grades">{[PersonStanding, HandHelping, Accessibility, BedDouble].map((I, j) => <span key={j} className={j === gi ? 'on' : ''}><I size={30} strokeWidth={1.9} /></span>)}</div> : null}
+              {i === 4 ? <div className="human"><UserCheck size={46} strokeWidth={1.6} /><span className="ok"><CircleCheck size={22} strokeWidth={2.4} />확인</span></div> : null}
+            </div>
+            {i < PIPE5.length - 1 ? <i className="pp2-ar" aria-hidden="true" /> : null}
           </button>
         ))}
       </div>
-      <p className="pp-stops image"><b>멈추는 경우</b>{PIPE.stops.join(', ')}</p>
     </section>
   );
 }
@@ -471,6 +590,66 @@ function Network() {
   );
 }
 
+// 차 카드: 주현호 포트폴리오(26-portfolio-hyunho) StackCarousel의 아치 배치를 가져와 줄이고, 가운데 카드를 누르면 뒤집혀 설명이 보이게 바꿨다
+const CAR_ICON = [Ambulance, Accessibility, Car, Bus];
+const CARD_LIST = [
+  { name: '침상 승합차', g: '침상', cap: '한 번에 2명', cls: 'c-blue', back: [['누가 타나', '앉은 자세를 유지하기 어려워 누운 채 옮겨야 하는 분'], ['함께 가는 사람', '구급대원'], ['배정 순서', '1순위, 같은 등급은 불이 먼저 닿는 마을부터']] },
+  { name: '리프트 승합차', g: '휠체어', cap: '한 번에 3명', cls: 'c-white', back: [['누가 타나', '걷기 어렵지만 휠체어에 앉을 수 있는 분'], ['함께 가는 사람', '도우미 2명'], ['배정 순서', '2순위, 전동 휠체어는 경차 특장차에 배정하지 않음']] },
+  { name: '협약 승용차', g: '부축', cap: '한 번에 3명', cls: 'c-red', back: [['누가 타나', '사람이나 보조기구에 기대야 걸을 수 있는 분'], ['함께 가는 사람', '도우미 1명, 도보 등급은 4명까지'], ['배정 순서', '3순위, 평소 협약으로 대수를 미리 약속']] },
+  { name: '마을버스', g: '도보', cap: '한 번에 20명', cls: 'c-deep', back: [['누가 타나', '안내만 받으면 차까지 스스로 걷는 분'], ['함께 가는 사람', '인솔 1명'], ['배정 순서', '4순위']] },
+];
+const ARC = 12;
+function Cars() {
+  const N = CARD_LIST.length;
+  const [active, setActive] = useState(0);
+  const [flip, setFlip] = useState(-1);
+  const box = useRef(null);
+  const [cw, setCw] = useState(300);
+  const drag = useRef({ on: false, x: 0, dx: 0 });
+  useEffect(() => {
+    const el = box.current; if (!el) return undefined;
+    const ro = new ResizeObserver(([e]) => setCw(Math.round(Math.max(200, Math.min(340, e.contentRect.width * 0.24)))));
+    ro.observe(el); return () => ro.disconnect();
+  }, []);
+  const go = (dir) => { setFlip(-1); setActive((a) => a + dir); };
+  const norm = ((active % N) + N) % N;
+  const dist = (i) => { let d = ((((i - active) % N) + N) % N); if (d > N / 2) d -= N; return d; };
+  const onCard = (i) => { if (i === norm) setFlip((f) => (f === i ? -1 : i)); else { setFlip(-1); setActive(active + dist(i)); } };
+  const ch = Math.round(cw * 1.4);
+  return (
+    <section className="bg-bk con16" id="cars-sec">
+      <Txt badge={CARS.badge} title={CARS.title} sub={['가운데 카드를 누르면 뒤집혀 누가 타는지 보입니다. 옆 카드를 누르거나 끌면 넘어갑니다.']} light />
+      <div
+        className="arc" ref={box} style={{ height: ch + Math.round(cw * 0.5) }}
+        tabIndex={0} aria-label="차종 카드. 화살표로 넘기고 Enter로 뒤집습니다."
+        onKeyDown={(e) => { if (e.key === 'ArrowLeft') go(-1); if (e.key === 'ArrowRight') go(1); if (e.key === 'Enter') onCard(norm); }}
+        onPointerDown={(e) => { drag.current = { on: true, x: e.clientX, dx: 0 }; }}
+        onPointerMove={(e) => { if (drag.current.on) drag.current.dx = e.clientX - drag.current.x; }}
+        onPointerUp={() => { const { dx } = drag.current; drag.current.on = false; if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1); }}
+      >
+        {CARD_LIST.map((c, i) => {
+          const d = dist(i); const ad = Math.abs(d); const I = CAR_ICON[i];
+          return (
+            <div key={c.name} className="arc-slot" style={{ width: cw, height: ch, transformOrigin: `center ${Math.round(cw * 4.1)}px`, transform: `translateX(-50%) rotate(${d * ARC}deg)`, zIndex: 100 - ad }}>
+              <button type="button" className={`flipcard${flip === i ? ' flipped' : ''}`} onClick={() => { if (Math.abs(drag.current.dx) < 6) onCard(i); }} aria-label={`${c.name} ${flip === i ? '앞면 보기' : '뒷면 보기'}`}>
+                <span className={`face front ${c.cls}`}>
+                  <span className="tc-top"><span className="tc-ic"><I size={30} strokeWidth={1.8} /></span><span className="tc-g">{c.g}</span></span>
+                  <span className="tc-bot"><b>{c.name}</b><em>{c.cap}</em></span>
+                  <span className="dim" style={{ opacity: ad < 0.5 ? 0 : Math.min(0.45, ad * 0.22) }} />
+                </span>
+                <span className={`face back ${c.cls}`}>
+                  <b className="bk-t">{c.name}</b>
+                  {c.back.map(([k, v]) => <span key={k} className="bk-row"><em>{k}</em><span>{v}</span></span>)}
+                </span>
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function DesignSystem() {
   const [w, setW] = useState(700);
   return (
@@ -506,11 +685,13 @@ function DesignSystem() {
   );
 }
 
-function ScreenSection({ sc, flip }) {
+function ScreenSection({ sc, first = false }) {
+  const dark = sc.dark || first;
   return (
-    <section className={`con-scr${sc.dark ? ' bg-bk' : ''}${sc.kind === 'phone' ? ' phone-row' : ''}${flip ? ' flip' : ''}`} id={`scr-${sc.id}`}>
+    <section className={`con-scr${dark ? ' bg-bk' : ''}${sc.kind === 'phone' ? ' phone-row' : ''}${first ? ' has-word' : ''}`} id={`scr-${sc.id}`}>
+      {first ? <><span id="deliver" className="anchor" /><BigWord id="deliver" /></> : null}
       <div className="scr-head">
-        <Txt badge={sc.en} title={sc.title} light={!!sc.dark} />
+        <Txt badge={first ? `04 Deliver  ${sc.en}` : sc.en} title={sc.title} light={dark} />
       </div>
       <AutoScreen route={sc.route} role={sc.role} kind={sc.kind || 'desktop'} poster={sc.poster} title={`${sc.name} 실제 화면`} steps={sc.steps} />
     </section>
@@ -534,7 +715,6 @@ function ShortageScrub() {
       <div className="sh-row">
         <div>
           <Txt badge={SHORTAGE.badge} title={SHORTAGE.title} sub={SHORTAGE.sub} />
-          <div className="sh-meter"><span style={{ width: `${(cars / 20) * 100}%` }} /></div>
           <p className="sh-hint">아래로 내리면 승용차가 한 대씩 늘어납니다.</p>
         </div>
         <ShortageCalc value={cars} onChange={setCars} />
@@ -563,10 +743,6 @@ function useScrollEmphasis() {
       gsap.utils.toArray('.fire-photos .ph-in img').forEach((el) => {
         gsap.fromTo(el, { yPercent: -16 }, { yPercent: 0, ease: 'none', scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } });
       });
-      gsap.utils.toArray('.dd-shape').forEach((el) => {
-        const len = el.getTotalLength();
-        gsap.fromTo(el, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: el.closest('.dd'), start: 'top 85%', end: 'top 35%', scrub: 0.8 } });
-      });
       gsap.utils.toArray('.net-hub, .lg-out b').forEach((el) => {
         gsap.fromTo(el, { scale: 0.7 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'top 50%', scrub: 0.8 } });
       });
@@ -582,11 +758,6 @@ export default function CaseV3() {
   useScrollEmphasis();
   return (
     <div className="portfolio">
-      <header className="top">
-        <a href="#" className="logo" aria-label="미리 처음으로"><img src="/v3/tile.webp" alt="" width="28" height="28" />미리</a>
-        <nav className="top-dd" aria-label="단계">{DIAMOND.stages.map((st) => <button key={st.id} type="button" onClick={() => go(st.id)}>{st.en}</button>)}</nav>
-        <a className="top-link" href={LINKS.service} target="_blank" rel="noreferrer">체험<ArrowUpRight size={14} strokeWidth={2} /></a>
-      </header>
 
       <section className="con1" id="cover">
         <div className="hero">
@@ -617,10 +788,12 @@ export default function CaseV3() {
         </div>
       </section>
 
+      <Showcase v="brand" />
+
       <Diamond />
 
       {/* 01 Discover */}
-      <Chapter id="discover" photo={PHOTOS.chapter1} dark />
+      <Chapter id="discover" photo={PHOTOS.chapter1} />
 
       <section className="con3" id="context">
         <div className="bg"><span /></div>
@@ -654,20 +827,7 @@ export default function CaseV3() {
         ) : null}
       </section>
 
-      <section className="con4" id="interview">
-        <div className="bg"><span /></div>
-        <div className="iv-row">
-          <div>
-            <Txt badge={INTERVIEW.badge} title={INTERVIEW.title} sub={INTERVIEW.sub} />
-            <div className="rn item-wrap">{RESEARCH_N.map((x) => <div key={x.t} className="item rn-it"><p><b data-count={x.n}>{x.n}</b>{x.u}</p><span>{x.t}</span>{x.s ? <em>{x.s}</em> : null}</div>)}</div>
-          </div>
-          <div className="iv-chats">
-            {INTERVIEW.chats.map((c) => (
-              <div key={c.q} className="badge-img chat"><span className="badge-bg" /><p className="badge-txt"><span />{c.q}<em>{c.who}</em></p></div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Interview />
 
       <section className="con6" id="research">
         <div className="bg" /><div className="bg" />
@@ -679,7 +839,7 @@ export default function CaseV3() {
                 <div key={c.who} className="box">
                   <span className="user">{c.who}</span>
                   <p className="title">“{c.q}”</p>
-                  <p className="change"><b>바뀐 설계</b>{c.c}</p>
+                  <p className="change"><b>반영</b>{c.c}</p>
                 </div>
               ))}
             </div>
@@ -688,10 +848,9 @@ export default function CaseV3() {
       </section>
 
       {/* 02 Define */}
-      <Chapter id="define" />
-
-      <section className="con-map" id="map">
-        <Txt badge={MAP.badge} title={MAP.title} />
+      <section className="bg-bk con-map dark-map" id="define">
+        <BigWord id="define" />
+        <Txt badge={`02 Define  ${MAP.badge}`} title={MAP.title} sub={[CHAPTER.define.lead]} light />
         <div className="map-wrap"><StakeholderMap /></div>
       </section>
 
@@ -704,10 +863,9 @@ export default function CaseV3() {
       </section>
 
       {/* 03 Develop */}
-      <Chapter id="develop" />
-
-      <section className="bg-bk con7" id="promise">
-        <Txt badge="Concept" title={['끊긴 연결을 잇기 위해', '약속 네 가지를 세웠습니다.']} sub={['화면보다 먼저 사람과 기관이 불이 나기 전에 맺는 약속을 설계했습니다.']} light />
+      <section className="bg-bk con7" id="develop">
+        <BigWord id="develop" />
+        <Txt badge="03 Develop  Concept" title={['끊긴 연결을 잇기 위해', '약속 네 가지를 세웠습니다.']} sub={['화면보다 먼저 사람과 기관이 불이 나기 전에 맺는 약속을 설계했습니다.']} light />
         <div className="content boxes">
           {[[0], [1, 2], [3]].map((col, ci) => (
             <div className="box-wrap" key={ci}>
@@ -754,24 +912,45 @@ export default function CaseV3() {
       <DesignSystem />
 
       {/* 04 Deliver */}
-      <Chapter id="deliver" dark />
+      {SCREENS.slice(0, 1).map((sc) => <ScreenSection key={sc.id} sc={sc} first />)}
 
-      {SCREENS.slice(0, 4).map((sc, i) => <ScreenSection key={sc.id} sc={sc} flip={i % 2 === 1} />)}
+      <Showcase v="line" />
+
+      {SCREENS.slice(1, 4).map((sc) => <ScreenSection key={sc.id} sc={sc} />)}
       <ShortageScrub />
-      {SCREENS.slice(4).map((sc, i) => <ScreenSection key={sc.id} sc={sc} flip={i % 2 === 1} />)}
+      {SCREENS.slice(4).map((sc) => <ScreenSection key={sc.id} sc={sc} />)}
 
-      <section className="bg-bk con16" id="cars">
-        <div className="cars-row">
-          <Txt badge={CARS.badge} title={CARS.title} sub={CARS.sub} light />
-          <div className="cards item-wrap">
-            {CARS.cards.map((c, i) => <div key={c.name} className={`card item c${i}${c.dark ? ' lightcard' : ''}`} style={{ background: c.c }}><span>{c.sub}</span><b>{c.name}</b></div>)}
+      <Cars />
+
+      <section className="con17" id="used">
+        <Txt badge={USED.badge} title={USED.title} />
+        <div className="ut-lead">
+          <div className="ut-who">
+            <b>{USED.lead.who}</b><span>{USED.lead.org}</span>
+            <p className="ut-used">{USED.lead.used}</p>
+            <p className="ut-q">“{USED.lead.quote}”</p>
           </div>
+          <ol className="ut-pairs item-wrap">
+            {USED.lead.pairs.map((x, i) => (
+              <li key={x.said} className="item"><span className="ut-n">{String(i + 1).padStart(2, '0')}</span><p className="ut-said">{x.said}</p><p className="ut-did"><em>반영</em>{x.did}</p></li>
+            ))}
+          </ol>
         </div>
       </section>
 
-      <section className="con17" id="used">
-        <Txt badge={DELIVER.badge} title={DELIVER.title} />
-        <div className="dl-list item-wrap">{DELIVER.rows.map((r) => <div className="item dl" key={r.who}><b>{r.who}</b><span>{r.used}</span><p><em>바뀐 설계</em>{r.c}</p></div>)}</div>
+      <section className="con-ut2 nice bg-bk">
+        <div className="nice-head"><Txt badge="Reviewers" title={['현장과 학계, 시민사회에서', '화면을 보고 의견을 보탠 분들']} light /></div>
+        <ul className="nice-l">
+          {USED.people.map((x, i) => (
+            <li key={x.who} className="nice-it">
+              <span className="nice-n">{String(i + 1).padStart(2, '0')}</span>
+              <p className="nice-q">“{x.quote}”</p>
+              <b className="nice-k">{x.who}</b>
+              <span className="nice-o">{x.org}</span>
+              <p className="nice-d"><em>반영</em>{x.did}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="plus" id="credits">

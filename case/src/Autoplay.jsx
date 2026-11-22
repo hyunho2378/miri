@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { LiveScreen } from './Live.jsx';
 
 // 2026. 11. 23. 사용자 지시로 모든 시연을 2배 빠르게(기다림과 움직임 시간을 절반으로)
-const SPEED = 0.5;
+const SPEED = 0.7;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms * SPEED));
 const norm = (el) => (el.getAttribute?.('aria-label') || el.textContent || el.placeholder || '').replace(/\s+/g, ' ').trim();
 
@@ -87,7 +87,10 @@ export function AutoScreen({ route, role, kind = 'desktop', poster, title, steps
     const r = el.getBoundingClientRect();
     const fr = live.current?.frame();
     const W = fr ? fr.offsetWidth : 1440; const H = fr ? fr.offsetHeight : 900;
-    return { x: ((r.left + r.width / 2) / W) * 100, y: ((r.top + r.height / 2) / H) * 100, w: r.width / W, h: r.height / H };
+    const x = ((r.left + r.width / 2) / W) * 100; const y = ((r.top + r.height / 2) / H) * 100;
+    // 휴대폰은 애플 베젤 안 화면 자리(왼쪽 5.333%, 위 2.5%, 폭 89.333%, 높이 95%)로 옮긴다
+    if (kind === 'phone') return { x: 5.333 + x * 0.89333, y: 2.5 + y * 0.95, w: (r.width / W) * 0.89333, h: (r.height / H) * 0.95 };
+    return { x, y, w: r.width / W, h: r.height / H };
   };
 
   async function play() {
@@ -111,12 +114,12 @@ export function AutoScreen({ route, role, kind = 'desktop', poster, title, steps
       else if (s.zoom === 1 || s.reset) setZoom({ z: 1, ox: 50, oy: 50 });
       if (el && (s.do === 'click' || s.do === 'type' || s.do === 'point')) {
         const p = pct(el); setHand((h) => ({ x: p.x, y: p.y, on: true, tap: h.tap }));
-        await wait(700);
+        await wait(950);
         if (!alive()) return;
       }
       if (el && s.do === 'click') { setHand((h) => ({ ...h, tap: h.tap + 1 })); await wait(160); el.click(); }
       if (el && s.do === 'type') { setHand((h) => ({ ...h, tap: h.tap + 1 })); await typeInto(el, s.text, alive); }
-      if (s.do === 'nav') { const a = await find(getDoc, { text: s.text, exact: true, find: 'a', within: 'aside, nav' }); if (a) { const p = pct(a); setHand((h) => ({ x: p.x, y: p.y, on: true, tap: h.tap })); await wait(650); setHand((h) => ({ ...h, tap: h.tap + 1 })); a.click(); } }
+      if (s.do === 'nav') { const a = await find(getDoc, { text: s.text, exact: true, find: 'a', within: 'aside, nav' }); if (a) { const p = pct(a); setHand((h) => ({ x: p.x, y: p.y, on: true, tap: h.tap })); await wait(950); setHand((h) => ({ ...h, tap: h.tap + 1 })); a.click(); } }
       await wait(s.ms ?? 1600);
     }
     if (!alive()) return;
@@ -159,8 +162,40 @@ export function AutoScreen({ route, role, kind = 'desktop', poster, title, steps
   const userClick = useRef(false);
   const onPointer = () => { userClick.current = true; run.current += 1; setMode('user'); setZoom({ z: 1, ox: 50, oy: 50 }); setHand((h) => ({ ...h, on: false })); };
 
+  // 주석 칸: 단계를 왼쪽과 오른쪽으로 나눠 화면 둘레에 둔다
+  const half = Math.ceil(steps.length / 2);
+  const left = steps.map((st, i) => ({ st, i })).slice(0, half);
+  const right = steps.map((st, i) => ({ st, i })).slice(half);
+  const wrap = useRef(null);
+  const noteRefs = useRef([]);
+  const [line, setLine] = useState(null);
+  // 지금 단계 주석에서 화면 속 누르는 자리까지 잇는 선
+  useEffect(() => {
+    if (mode !== 'play' || cur < 0 || !hand.on) { setLine(null); return undefined; }
+    const t = setTimeout(() => {
+      const w = wrap.current?.getBoundingClientRect(); const st = stage.current?.getBoundingClientRect(); const n = noteRefs.current[cur]?.getBoundingClientRect();
+      if (!w || !st || !n) return;
+      const vx = zoom.ox + (hand.x - zoom.ox) * zoom.z; const vy = zoom.oy + (hand.y - zoom.oy) * zoom.z;
+      const tx = st.left - w.left + (Math.max(2, Math.min(98, vx)) / 100) * st.width;
+      const ty = st.top - w.top + (Math.max(2, Math.min(98, vy)) / 100) * st.height;
+      const isLeft = cur < half;
+      const sx = isLeft ? n.right - w.left + 14 : n.left - w.left - 14;
+      const sy = n.top - w.top + 14;
+      setLine({ sx, sy, tx, ty, isLeft, w: w.width, h: w.height });
+    }, 380);
+    return () => clearTimeout(t);
+  }, [cur, mode, hand, zoom, half]);
+
+  const Note = ({ st, i }) => (
+    <li ref={(el) => { noteRefs.current[i] = el; }} className={i === cur && mode === 'play' ? 'on' : ''}>
+      <b><span aria-hidden="true">+</span>{st.k}</b>
+      <p>{st.say}</p>
+    </li>
+  );
+
   return (
-    <div className={`auto ${kind} ${className}`}>
+    <div className={`auto k-${kind} ${className}`} ref={wrap}>
+      <ol className="auto-notes l">{left.map((x) => <Note key={x.st.say} {...x} />)}</ol>
       <div className="auto-stage" ref={stage}>
         <div className="auto-zoom" style={{ transform: `scale(${zoom.z})`, transformOrigin: `${zoom.ox}% ${zoom.oy}%` }}>
           <LiveScreen ref={live} route={route} role={role} kind={kind} poster={poster} title={title} margin="80%" />
@@ -173,14 +208,13 @@ export function AutoScreen({ route, role, kind = 'desktop', poster, title, steps
           <button type="button" className="auto-replay" onClick={() => { userClick.current = false; play(); }}>자동 시연 다시 보기</button>
         ) : null}
       </div>
-      <ol className="auto-steps" aria-live="polite">
-        {steps.map((s, i) => (
-          <li key={s.say} className={i === cur && mode === 'play' ? 'on' : i < cur && mode === 'play' ? 'past' : ''}>
-            <span className="n">{String(i + 1).padStart(2, '0')}</span>
-            <p>{s.say}</p>
-          </li>
-        ))}
-      </ol>
+      <ol className="auto-notes r">{right.map((x) => <Note key={x.st.say} {...x} />)}</ol>
+      {line ? (
+        <svg className="auto-line" width={line.w} height={line.h} aria-hidden="true">
+          <path d={`M${line.sx} ${line.sy} C ${line.sx + (line.isLeft ? 60 : -60)} ${line.sy}, ${line.tx + (line.isLeft ? -80 : 80)} ${line.ty}, ${line.tx} ${line.ty}`} />
+          <circle cx={line.tx} cy={line.ty} r="5" />
+        </svg>
+      ) : null}
     </div>
   );
 }
