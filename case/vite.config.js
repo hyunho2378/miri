@@ -12,6 +12,8 @@ import twConfig from '../client/tailwind.config.js';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const client = path.resolve(here, '../client');
 const clientPublic = path.join(client, 'public');
+// 링크된 node_modules도 실제 경로로 맞춰 리액트가 한 벌만 올라오게 한다
+const clientModules = fs.realpathSync(path.join(client, 'node_modules'));
 // 서비스 화면 글자 모양(테일윈드)은 client에 깔린 것을 그대로 쓴다
 const fromClient = createRequire(path.join(client, 'package.json'));
 const tailwind = fromClient('tailwindcss');
@@ -49,10 +51,10 @@ export default defineConfig({
   // 케이스 본문과 서비스 화면이 리액트 한 벌을 같이 쓴다(두 벌이면 훅이 깨진다)
   resolve: {
     alias: [
-      { find: /^react$/, replacement: path.join(client, 'node_modules/react/index.js') },
-      { find: /^react\/(.*)$/, replacement: path.join(client, 'node_modules/react/$1') },
-      { find: /^react-dom$/, replacement: path.join(client, 'node_modules/react-dom/index.js') },
-      { find: /^react-dom\/(.*)$/, replacement: path.join(client, 'node_modules/react-dom/$1') },
+      { find: /^react$/, replacement: path.join(clientModules, 'react/index.js') },
+      { find: /^react\/(.*)$/, replacement: path.join(clientModules, 'react/$1') },
+      { find: /^react-dom$/, replacement: path.join(clientModules, 'react-dom/index.js') },
+      { find: /^react-dom\/(.*)$/, replacement: path.join(clientModules, 'react-dom/$1') },
     ],
   },
   define: {
@@ -74,7 +76,7 @@ export default defineConfig({
   },
   server: {
     port: 5181,
-    fs: { allow: [here, client] },
+    fs: { allow: [here, client, clientModules, fs.realpathSync(path.join(here, 'node_modules'))] },
     // 서비스 화면의 공공데이터 요청은 개발 중 배포된 서버리스 함수로 보낸다(client/vite.config.js와 같은 방식)
     proxy: { '/api': { target: 'https://miri-indol.vercel.app', changeOrigin: true, secure: true } },
   },

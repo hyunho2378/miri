@@ -1,5 +1,5 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import Case from './Case.jsx';
+import CaseV3 from './CaseV3.jsx';
 
-createRoot(document.getElementById('root')).render(<Case />);
+createRoot(document.getElementById('root')).render(<CaseV3 />);
