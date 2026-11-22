@@ -6,15 +6,18 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   Accessibility, Flame, Landmark, Bus, Car, Users, HeartHandshake, Building2, House, FileText, Map as MapIcon, Bell,
-  ClipboardCheck, Phone, Shield, Calendar, Send, Settings, X, ArrowUpRight,
+  ClipboardCheck, Phone, Shield, Calendar, Send, Settings, X, ArrowUpRight, Hand, HeartPulse, Siren, GraduationCap,
+  Handshake, Monitor, Server, Cpu, CircleCheck, TriangleAlert, CircleHelp, Truck, Database, Smartphone,
 } from 'lucide-react';
 import './caseV3.css';
 import { LiveScreen, driveHelper } from './Live.jsx';
 import { buildSeed } from '../../client/src/mock/seed.js';
 import { computeShortage } from '../../client/src/lib/shortageCalc.js';
 import {
-  LINKS, OVERVIEW, CONTEXT, INTERVIEW, RESEARCH, MAP, DEFINE, INSIGHT, UI, CONSOLE, MOBILE, AI, SHORTAGE, CARS, DELIVER, AWARD, CREDITS,
+  LINKS, HERO, OVERVIEW, CONTEXT, INTERVIEW, RESEARCH, MAP, PARTNERS, DEFINE, DS, CONSOLE, AI, SHORTAGE, CARS, SYSTEM, DELIVER, CREDITS,
+  DIAMOND, CHAPTER, RESEARCH_N, HMW, BLUEPRINT, LOGIC, PIPE, NETWORK, SCREENS, PHOTOS, FIRES,
 } from './caseCopy3.js';
+import { AutoScreen } from './Autoplay.jsx';
 
 gsap.registerPlugin(ScrollTrigger);
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -228,8 +231,10 @@ const inputOf = () => {
   return calcInput;
 };
 const runCalc = (cars) => { const { base } = inputOf(); return computeShortage({ ...base, scenario: { ...base.scenario, extraVehicles: { ...(base.scenario.extraVehicles || {}), car: cars } } }); };
-function ShortageCalc() {
-  const [cars, setCars] = useState(0);
+function ShortageCalc({ value, onChange }) {
+  const [own, setOwn] = useState(0);
+  const cars = value ?? own;
+  const setCars = (n) => { setOwn(n); onChange?.(n); };
   const all = useMemo(() => Array.from({ length: SHORTAGE.max + 1 }, (_, n) => runCalc(n)), []);
   const r = all[cars]; const v = r.total; const { names } = inputOf();
   const villages = useMemo(() => Object.entries(all[0].byVillage).filter(([, x]) => x.total > 0).sort((a, b) => b[1].total - a[1].total).map(([code, x]) => ({ code, name: names[code] || code, start: x.total })), [all, names]);
@@ -237,10 +242,10 @@ function ShortageCalc() {
   return (
     <div className="calc">
       <div className="calc-top">
-        <label htmlFor="cars" className="calc-lb">{SHORTAGE.label}</label>
+        <label htmlFor="cars-range" className="calc-lb">{SHORTAGE.label}</label>
         <b className="calc-cars">{cars}대</b>
       </div>
-      <input id="cars" className="slider" type="range" min="0" max={SHORTAGE.max} value={cars} style={{ '--p': `${(cars / SHORTAGE.max) * 100}%` }} onChange={(e) => setCars(Number(e.target.value))} aria-valuetext={`승용차 ${cars}대`} />
+      <input id="cars-range" className="slider" type="range" min="0" max={SHORTAGE.max} value={cars} style={{ '--p': `${(cars / SHORTAGE.max) * 100}%` }} onChange={(e) => setCars(Number(e.target.value))} aria-valuetext={`승용차 ${cars}대`} />
       <div className="ticks" aria-hidden="true">{SHORTAGE.ticks.map((s) => <button type="button" tabIndex={-1} key={s} className={s === cars ? 'on' : ''} style={{ left: `${(s / SHORTAGE.max) * 100}%` }} onClick={() => setCars(s)}>{s}</button>)}</div>
       <p className="calc-say" aria-live="polite">{SHORTAGE.say(cars, v)}</p>
       <div className="vbars">
@@ -282,48 +287,320 @@ const ScreenThumb = ({ s, onOpen }) => (
   </button>
 );
 
+const DICON = { hand: Hand, car: Car, pulse: HeartPulse, siren: Siren };
+const STACK_ICON = { monitor: Monitor, server: Server, cpu: Cpu, check: CircleCheck };
+const DS_ICONS = [House, FileText, Users, MapIcon, Car, Bell, Flame, ClipboardCheck, Phone, Shield, Calendar, Accessibility, Bus, Send, Settings, Smartphone, Database, Siren];
+const NET_ICON = { pub: Landmark, uni: GraduationCap, biz: Building2, etc: Handshake };
+const go = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+function useCountUp() {
+  useEffect(() => {
+    const els = [...document.querySelectorAll('[data-count]')];
+    if (reduced()) { els.forEach((el) => { el.textContent = Number(el.dataset.count).toLocaleString('ko-KR'); }); return undefined; }
+    const sts = els.map((el) => {
+      const to = Number(el.dataset.count); const o = { v: 0 }; el.textContent = '0';
+      return ScrollTrigger.create({ trigger: el, start: 'top 90%', once: true, onEnter: () => gsap.to(o, { v: to, duration: 1.2, ease: 'power2.out', onUpdate: () => { el.textContent = Math.round(o.v).toLocaleString('ko-KR'); } }) });
+    });
+    return () => sts.forEach((x) => x.kill());
+  }, []);
+}
+
+// 보일 때 일정 간격으로 다음 칸을 밝히는 순환(청사진, 규칙, AI 흐름)
+function useCycle(n, ms, ref) {
+  const [i, setI] = useState(0);
+  const [on, setOn] = useState(false);
+  const [hold, setHold] = useState(false);
+  useEffect(() => {
+    const io = new IntersectionObserver(([e]) => setOn(e.intersectionRatio > 0.35), { threshold: [0, 0.35] });
+    if (ref.current) io.observe(ref.current);
+    return () => io.disconnect();
+  }, [ref]);
+  useEffect(() => {
+    if (!on || hold || reduced()) return undefined;
+    const t = setInterval(() => setI((x) => (x + 1) % n), ms);
+    return () => clearInterval(t);
+  }, [on, hold, n, ms]);
+  return [i, (k) => { setHold(true); setI(k); }];
+}
+
+function Diamond() {
+  return (
+    <section className="con-dd" id="process">
+      <Txt badge={DIAMOND.badge} title={DIAMOND.title} />
+      <div className="dd image">
+        <svg viewBox="0 0 1200 300" className="dd-svg" aria-hidden="true">
+          <path className="dd-shape d1" d="M20 150 L300 20 L580 150 L300 280 Z" />
+          <path className="dd-shape d2" d="M620 150 L900 20 L1180 150 L900 280 Z" />
+          <line className="dd-mid" x1="300" y1="20" x2="300" y2="280" />
+          <line className="dd-mid" x1="900" y1="20" x2="900" y2="280" />
+        </svg>
+        <div className="dd-tags" aria-hidden="true">{DIAMOND.stages.map((st) => <span key={st.id}>{st.en}</span>)}</div>
+        <div className="dd-labels">
+          {DIAMOND.stages.map((st, i) => (
+            <button key={st.id} type="button" className={`dd-st s${i}`} onClick={() => go(st.id)}>
+              <b>{st.en}</b><span>{st.ko}</span><em>{st.did}</em>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Chapter({ id, photo, dark = false }) {
+  const c = CHAPTER[id];
+  return (
+    <section className={`chapter${dark ? ' dark' : ''}${photo ? ' ph' : ''}`} id={id}>
+      {photo ? <div className="ch-bg" style={{ backgroundImage: `url(${photo})` }} /> : null}
+      <div className="ch-in">
+        <p className="ch-n">{c.n}</p>
+        <p className="ch-en image">{c.en}</p>
+        <p className="ch-ko image">{c.ko}</p>
+        <p className="ch-lead image">{c.lead}</p>
+      </div>
+      {photo && c.cap ? <p className="ch-cap">{c.cap}</p> : null}
+    </section>
+  );
+}
+
+function Blueprint() {
+  const ref = useRef(null);
+  const [col, pick] = useCycle(BLUEPRINT.stages.length, 2600, ref);
+  return (
+    <section className="con-bp" id="blueprint" ref={ref}>
+      <Txt badge={BLUEPRINT.badge} title={BLUEPRINT.title} sub={BLUEPRINT.sub} />
+      <div className="bp-wrap image">
+        <div className="bp" style={{ '--cols': BLUEPRINT.stages.length }}>
+          <div className="bp-corner">단계</div>
+          {BLUEPRINT.stages.map((st, i) => (
+            <button key={st.t} type="button" className={`bp-stage${i === col ? ' on' : ''}`} onClick={() => pick(i)}>
+              <span>{String(i + 1).padStart(2, '0')}</span><b>{st.t}</b><em>{st.s}</em>
+            </button>
+          ))}
+          {BLUEPRINT.lanes.map((ln) => (
+            <div className="bp-row" key={ln.t} style={{ display: 'contents' }}>
+              <div className="bp-lane"><b>{ln.t}</b>{ln.tag ? <em>{ln.tag}</em> : null}</div>
+              {ln.cells.map((c, i) => <div key={i} className={`bp-cell${i === col ? ' on' : ''}`}>{c}</div>)}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Logic() {
+  const ref = useRef(null);
+  const [k, pick] = useCycle(LOGIC.rules.length + 1, 1500, ref);
+  return (
+    <section className="con-logic" id="logic" ref={ref}>
+      <Txt badge={LOGIC.badge} title={LOGIC.title} sub={LOGIC.sub} />
+      <div className="lg image">
+        <div className="lg-col">
+          <p className="lg-h">입력</p>
+          {LOGIC.inputs.map((x) => <div className="lg-in" key={x.t}><b>{x.t}</b><span>{x.s}</span></div>)}
+        </div>
+        <div className="lg-col rules">
+          <p className="lg-h">계산과 배정 규칙</p>
+          {LOGIC.rules.map((x, i) => (
+            <button type="button" key={x.t} className={`lg-rule${i === k ? ' on' : ''}${i < k ? ' past' : ''}`} onClick={() => pick(i)}>
+              <span>{i + 1}</span><b>{x.t}</b><em>{x.s}</em>
+            </button>
+          ))}
+        </div>
+        <div className="lg-col">
+          <p className="lg-h">결과</p>
+          <div className={`lg-out${k === LOGIC.rules.length ? ' on' : ''}`}><b><span data-count={LOGIC.result.n}>{LOGIC.result.n}</span>명</b><span>{LOGIC.result.t}</span><em>{LOGIC.result.s}</em></div>
+          <div className="lg-why"><p>옮기지 못하는 사유</p>{LOGIC.reasons.map((r) => <span key={r}>{r}</span>)}</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Pipeline() {
+  const ref = useRef(null);
+  const [k, pick] = useCycle(PIPE.steps.length, 1400, ref);
+  return (
+    <section className="con-pipe" id="pipeline" ref={ref}>
+      <Txt badge={PIPE.badge} title={PIPE.title} />
+      <div className="pp image">
+        <div className="pp-track"><i style={{ width: `${(k / (PIPE.steps.length - 1)) * 100}%` }} /></div>
+        {PIPE.steps.map((x, i) => (
+          <button type="button" key={x.t} className={`pp-st${i === k ? ' on' : ''}${i < k ? ' past' : ''} t-${x.tag === 'AI' ? 'ai' : x.tag === '사람 확인' ? 'hu' : x.tag === '입력' ? 'in' : 'ru'}`} onClick={() => pick(i)}>
+            <em>{x.tag}</em><b>{x.t}</b><span>{x.s}</span>
+          </button>
+        ))}
+      </div>
+      <div className="pp-stops image"><p>멈추는 경우</p>{PIPE.stops.map((x) => <span key={x}>{x}</span>)}</div>
+    </section>
+  );
+}
+
+function Network() {
+  const [sel, setSel] = useState('pub');
+  const detail = useMemo(() => {
+    const pub = PARTNERS.groups.find((g) => g.id === 'pub').items;
+    const uni = PARTNERS.groups.find((g) => g.id === 'uni').items;
+    const civ = PARTNERS.groups.find((g) => g.id === 'civ').items;
+    return {
+      pub: pub.filter((x) => !x.n.includes('소방관')),
+      uni,
+      biz: civ.filter((x) => x.n.includes('카카오')),
+      etc: [...civ.filter((x) => !x.n.includes('카카오')), ...pub.filter((x) => x.n.includes('소방관'))],
+    };
+  }, []);
+  return (
+    <section className="con-net" id="network">
+      <Txt badge={NETWORK.badge} title={NETWORK.title} sub={NETWORK.sub} />
+      <div className="net image">
+        {NETWORK.groups.map((g) => {
+          const I = NET_ICON[g.id];
+          return (
+            <button type="button" key={g.id} className={`net-g p-${g.pos} g-${g.id}${sel === g.id ? ' on' : ''}`} onClick={() => setSel(g.id)} aria-pressed={sel === g.id}>
+              <p className="net-name"><I size={20} strokeWidth={2} />{g.name}<em>{g.chips.length}</em></p>
+              <div className="net-chips">{g.chips.map((c) => <span key={c}>{c}</span>)}</div>
+            </button>
+          );
+        })}
+        <div className="net-hub"><img src="/v3/tile.webp" alt="" width="1240" height="1233" /><b>미리</b>
+          <span className="net-ar a-top" /><span className="net-ar a-left" /><span className="net-ar a-right" /><span className="net-ar a-bottom" />
+        </div>
+      </div>
+      <ul className="net-detail" key={sel}>{detail[sel].map((x) => <li key={x.n}><b>{x.n}</b><span>{x.r}</span></li>)}</ul>
+    </section>
+  );
+}
+
+function DesignSystem() {
+  const [w, setW] = useState(700);
+  return (
+    <section className="con-ds" id="ds">
+      <div className="ds-head">
+        <Txt badge={DS.badge} title={DS.title} sub={DS.sub} />
+        <a className="ds-link" href={LINKS.figma} target="_blank" rel="noreferrer">피그마 디자인 시스템<ArrowUpRight size={16} strokeWidth={2} /></a>
+      </div>
+      <div className="ds-grid">
+        <div className="ds-cell ds-type image">
+          <p className="ds-k">01 Typography</p>
+          <p className="ds-aa" style={{ fontWeight: w }}>Aa 가</p>
+          <p className="ds-fname">{DS.font.name}<span>{DS.font.note}</span></p>
+          <div className="ds-weights" role="radiogroup" aria-label="굵기">
+            {DS.weights.map((x) => <button key={x.w} type="button" role="radio" aria-checked={w === x.w} className={w === x.w ? 'on' : ''} onClick={() => setW(x.w)} style={{ fontWeight: x.w }}><b>{x.w}</b><span>{x.u}</span></button>)}
+          </div>
+        </div>
+        <div className="ds-cell ds-scale image">
+          <p className="ds-k">02 Type Scale</p>
+          <ul>{DS.scale.map((x) => <li key={x.k}><span className="ds-tag">{x.k}<em>{x.px}</em></span><span className="ds-sample" style={{ fontSize: `min(${x.px}px, ${(x.px / 14.4).toFixed(2)}vw + 6px)`, fontWeight: x.w }}>{x.s}</span></li>)}</ul>
+        </div>
+        <div className="ds-cell ds-color image">
+          <p className="ds-k">03 Color</p>
+          <div className="ds-sw">{DS.colors.map((c) => <div key={c.role} className="sw"><span className="chip" style={{ background: c.hex }} /><b>{c.role}</b><code>{c.hex}</code><em>{c.u}</em></div>)}</div>
+        </div>
+        <div className="ds-cell ds-icons image">
+          <p className="ds-k">04 Icon</p>
+          <div className="ig">{DS_ICONS.map((I, i) => <span key={i}><I size={26} strokeWidth={DS.icons.stroke} /></span>)}</div>
+          <p className="ds-note">{DS.icons.set} 선 굵기 {DS.icons.stroke}, 크기 {DS.icons.sizes.join(', ')}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ScreenSection({ sc, flip }) {
+  return (
+    <section className={`con-scr${sc.dark ? ' bg-bk' : ''}${sc.kind === 'phone' ? ' phone-row' : ''}${flip ? ' flip' : ''}`} id={`scr-${sc.id}`}>
+      <div className="scr-head">
+        <Txt badge={sc.en} title={sc.title} light={!!sc.dark} />
+      </div>
+      <AutoScreen route={sc.route} role={sc.role} kind={sc.kind || 'desktop'} poster={sc.poster} title={`${sc.name} 실제 화면`} steps={sc.steps} />
+    </section>
+  );
+}
+
+// 스크롤하면 협약 승용차 막대가 0대에서 20대까지 따라 움직인다
+function ShortageScrub() {
+  const ref = useRef(null);
+  const [cars, setCars] = useState(0);
+  useLayoutEffect(() => {
+    if (reduced()) return undefined;
+    const st = ScrollTrigger.create({
+      trigger: ref.current, start: 'top top', end: '+=140%', pin: true, scrub: 0.6,
+      onUpdate: (self) => setCars(Math.round(self.progress * 20)),
+    });
+    return () => st.kill();
+  }, []);
+  return (
+    <section className="con15" id="shortage" ref={ref}>
+      <div className="sh-row">
+        <div>
+          <Txt badge={SHORTAGE.badge} title={SHORTAGE.title} sub={SHORTAGE.sub} />
+          <div className="sh-meter"><span style={{ width: `${(cars / 20) * 100}%` }} /></div>
+          <p className="sh-hint">아래로 내리면 승용차가 한 대씩 늘어납니다.</p>
+        </div>
+        <ShortageCalc value={cars} onChange={setCars} />
+      </div>
+    </section>
+  );
+}
+
 export default function CaseV3() {
   usePlusXMotion();
-  const [open, setOpen] = useState(null);
-  const scr = (id) => CONSOLE.screens.find((s) => s.id === id);
+  useCountUp();
   return (
     <div className="portfolio">
       <header className="top">
-        <a href="#" className="logo" aria-label="미리 처음으로"><img src="/v3/tile.webp" alt="" width="28" height="33" />미리</a>
-        <a className="top-link" href={LINKS.service} target="_blank" rel="noreferrer">서비스 열기<ArrowUpRight size={14} strokeWidth={2} /></a>
+        <a href="#" className="logo" aria-label="미리 처음으로"><img src="/v3/tile.webp" alt="" width="28" height="28" />미리</a>
+        <nav className="top-dd" aria-label="단계">{DIAMOND.stages.map((st) => <button key={st.id} type="button" onClick={() => go(st.id)}>{st.en}</button>)}</nav>
+        <a className="top-link" href={LINKS.service} target="_blank" rel="noreferrer">체험<ArrowUpRight size={14} strokeWidth={2} /></a>
       </header>
 
-      {/* con1 표지 */}
       <section className="con1" id="cover">
         <div className="hero">
           <div className="hero-bg" />
-          <img className="h-obj h-tile" src="/v3/tile.webp" alt="" width="826" height="962" />
-          <img className="h-obj h-van" src="/v3/obj-van.webp" alt="" width="886" height="702" />
-          <img className="h-obj h-phone" src="/v3/obj-phone.webp" alt="" width="890" height="890" />
+          <img className="h-obj h-tile" src="/v3/tile.webp" alt="" width="1240" height="1233" />
+          <img className="h-obj h-van" src="/v3/obj-van.webp" alt="" width="886" height="583" />
+          <img className="h-obj h-phone" src="/v3/obj-phone.webp" alt="" width="890" height="779" />
           <div className="hero-txt">
-            <span className="badge">Civic Tech Service Design</span>
-            <h1>미리</h1>
-            <p>동해시 재난취약자 사전 이송 서비스</p>
+            <span className="badge">{HERO.badge}</span>
+            <h1>{HERO.title}</h1>
+            <p>{HERO.sub}</p>
           </div>
         </div>
         <div className="bg-wh" />
       </section>
 
-      {/* con2 OVERVIEW */}
       <section className="con2" id="overview">
         <div className="bg"><span /></div>
         <div className="box-wh">
-          <Txt badge={OVERVIEW.badge} title={OVERVIEW.title} sub={OVERVIEW.sub} en />
+          <div className="ov-objs" aria-hidden="true">
+            <img className="image o-tile" src="/v3/tile.webp" alt="" width="1240" height="1233" />
+            <img className="image o-wheel" src="/v3/obj-wheelchair.webp" alt="" width="900" height="796" />
+          </div>
+          <Txt badge={OVERVIEW.badge} title={OVERVIEW.title} sub={OVERVIEW.sub} />
         </div>
-        <img className="image o-tile" src="/v3/tile.webp" alt="" width="826" height="962" />
-        <img className="image o-wheel" src="/v3/obj-wheelchair.webp" alt="" width="900" height="900" />
-        <img className="image o-van" src="/v3/obj-van.webp" alt="" width="886" height="702" />
+        <div className="facts item-wrap">
+          {OVERVIEW.facts.map((f) => <div key={f.t} className="fact item"><p><b data-count={f.n}>{f.n}</b>{f.u}</p><span>{f.t}</span></div>)}
+        </div>
       </section>
 
-      {/* con3 CONTEXT 막대 */}
+      <Diamond />
+
+      {/* 01 Discover */}
+      <Chapter id="discover" photo={PHOTOS.chapter1} dark />
+
       <section className="con3" id="context">
         <div className="bg"><span /></div>
         <Txt badge={CONTEXT.badge} title={CONTEXT.title} sub={CONTEXT.sub} />
+        <div className="fires item-wrap">
+          {FIRES.map((f) => (
+            <div key={f.y} className="fire item">
+              <p className="fire-y">{f.y}</p><p className="fire-t">{f.t}</p>
+              <div className="fire-n">{f.facts.map((x) => <div key={x.k}><b>{x.n}<em>{x.u}</em></b><span>{x.k}</span></div>)}</div>
+              <p className="fire-src">{f.src}</p>
+            </div>
+          ))}
+        </div>
         <div className="graph-wrap">
           <div className="graph">
             <div className="year">{CONTEXT.rows.map((r, i) => <p key={i} className={i === 1 ? 'now' : ''}><span>{r.time}</span><span>{r.text}</span></p>)}</div>
@@ -337,39 +614,28 @@ export default function CaseV3() {
           </div>
           <p className="src">{CONTEXT.src}</p>
         </div>
+        {PHOTOS.fires?.length ? (
+          <div className="fire-photos mockup-wrap">
+            {PHOTOS.fires.map((p) => <figure key={p.src} className="image"><img src={p.src} alt={p.t} loading="lazy" /><figcaption><b>{p.t}</b><span>{p.cr}</span></figcaption></figure>)}
+          </div>
+        ) : null}
       </section>
 
-      {/* con4 현장 면담 말풍선 */}
       <section className="con4" id="interview">
         <div className="bg"><span /></div>
-        <Txt badge={INTERVIEW.badge} title={INTERVIEW.title} sub={INTERVIEW.sub} />
-        <div className="bg-txt-wrap">
-          <div className="big-words" aria-hidden="true">{INTERVIEW.words.map((w) => <span key={w}>{w}</span>)}</div>
-          <div className="badge-img-wrap">
+        <div className="iv-row">
+          <div>
+            <Txt badge={INTERVIEW.badge} title={INTERVIEW.title} sub={INTERVIEW.sub} />
+            <div className="rn item-wrap">{RESEARCH_N.map((x) => <div key={x.t} className="item rn-it"><p><b data-count={x.n}>{x.n}</b>{x.u}</p><span>{x.t}</span>{x.s ? <em>{x.s}</em> : null}</div>)}</div>
+          </div>
+          <div className="iv-chats">
             {INTERVIEW.chats.map((c) => (
-              <div key={c} className="badge-img chat"><span className="badge-bg" /><p className="badge-txt"><span />{c}</p></div>
+              <div key={c.q} className="badge-img chat"><span className="badge-bg" /><p className="badge-txt"><span />{c.q}<em>{c.who}</em></p></div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* con5 목업과 키워드 */}
-      <section className="con5">
-        <div className="img-wrap-row mockup-wrap">
-          <div className="mockup image"><img src="/v3/mock-hand.webp" alt="도우미 휴대폰에 온 배정 알림 화면" width="1040" height="1300" /></div>
-          <div className="icons">
-            <div className="keyword image">
-              <div className="chips">{INTERVIEW.keywords.map((k, i) => <span key={k} className={i % 3 === 1 ? 'on' : ''}>{k}</span>)}</div>
-            </div>
-            <div className="wallet-wrap">
-              <div className="op-5 image"><img src="/v3/obj-wheelchair.webp" alt="" width="900" height="900" /></div>
-              <div className="op-5 image corner"><img src="/v3/tile.webp" alt="" width="826" height="962" /></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* con6 사용자 리서치 카드 */}
       <section className="con6" id="research">
         <div className="bg" /><div className="bg" />
         <Txt badge={RESEARCH.badge} title={RESEARCH.title} />
@@ -377,10 +643,10 @@ export default function CaseV3() {
           {[0, 1].map((col) => (
             <div className="box-wrap" key={col}>
               {RESEARCH.cards.filter((_, i) => i % 2 === col).map((c) => (
-                <div key={c.title} className={`box${c.kind === 'p' ? ' photo' : ''}`}>
-                  {c.kind === 'p' ? <img src={c.src} alt="" loading="lazy" width="1800" height="1350" /> : null}
-                  <span className="user">{c.user}</span>
-                  <p className="title">{c.title}</p>
+                <div key={c.who} className="box">
+                  <span className="user">{c.who}</span>
+                  <p className="title">“{c.q}”</p>
+                  <p className="change"><b>바뀐 설계</b>{c.c}</p>
                 </div>
               ))}
             </div>
@@ -388,25 +654,38 @@ export default function CaseV3() {
         </div>
       </section>
 
-      {/* 이해관계자 지도 */}
+      {/* 02 Define */}
+      <Chapter id="define" />
+
       <section className="con-map" id="map">
         <Txt badge={MAP.badge} title={MAP.title} />
         <div className="map-wrap"><StakeholderMap /></div>
       </section>
 
-      {/* 검은 면: Define과 약속 네 가지 */}
-      <section className="bg-bk con7" id="define">
-        <Txt badge={DEFINE.badge} title={DEFINE.title} sub={DEFINE.sub} light />
+      <section className="bg-bk con-def" id="problem">
+        <Txt badge={DEFINE.badge} title={DEFINE.title} light />
+        <div className="hmw item-wrap">
+          <p className="hmw-k">{HMW.badge}</p>
+          {HMW.items.map((h, i) => <div key={h} className="item hmw-it"><span>{String(i + 1).padStart(2, '0')}</span><p>{h}</p></div>)}
+        </div>
+      </section>
+
+      {/* 03 Develop */}
+      <Chapter id="develop" />
+
+      <section className="bg-bk con7" id="promise">
+        <Txt badge="Concept" title={['사람과 기관이 불이 나기 전에', '맺는 약속 네 가지']} sub={[DEFINE.sub[0]]} light />
         <div className="content boxes">
           {[[0], [1, 2], [3]].map((col, ci) => (
             <div className="box-wrap" key={ci}>
               {col.map((i) => {
-                const b = DEFINE.boxes[i];
+                const b = DEFINE.boxes[i]; const I = DICON[b.icon];
                 return (
                   <div className="box" key={b.eng}>
                     <div className="box-bg" />
                     <div className="box-inner">
-                      <p className="eng">{b.eng}</p>
+                      <div className="box-top"><span className="d-icon"><I size={26} strokeWidth={2} /></span><p className="eng">{b.eng}</p></div>
+                      <div className={`d-img${b.img.includes('def-') ? ' ph' : ''}`}><img src={b.img} alt="" loading="lazy" /></div>
                       <div className="title-sub"><span>{b.t}</span><span>{b.s}</span></div>
                     </div>
                   </div>
@@ -417,152 +696,55 @@ export default function CaseV3() {
         </div>
       </section>
 
-      {/* 검은 면: 현장 사진, 큰 글자, 실제 휴대폰 두 대, 원 도식 */}
-      <section className="bg-bk con8" id="insight">
-        <div className="bg-img-wrap image">
-          <div className="bg-img" />
-          <p className="side">{INSIGHT.side.map((s, i) => <span key={i}>{s || '\u00a0'}</span>)}</p>
-        </div>
-        <div className="animation-y"><p className="txt-img">{INSIGHT.big.map((b) => <span key={b}>{b}</span>)}</p></div>
-        <div className="phones">
-          <div className="phones-cap image"><Txt badge="Field Mobile" title={['One Plan', 'on Two Phones']} sub={['동 담당자 휴대폰에는 오늘 할 일과 우리 동 인원이, 도우미 휴대폰에는 참여 동의와 배정 알림이 뜹니다. 두 화면 모두 눌러 볼 수 있습니다.']} light en /></div>
-          <div className="ph ph1 image"><LiveScreen kind="phone" route="/m/f" role="dong" poster="/v3/phone-dong.webp" title="동 담당자 휴대폰 실제 화면" margin="30%" /></div>
-          <div className="ph ph2 image" data-yv="120"><LiveScreen kind="phone" route="/m/h/demo" poster="/v3/phone-helper.webp" title="도우미 휴대폰 실제 화면" margin="30%" /></div>
-        </div>
-        <div className="circles image">
-          <span className="end">Neighbor</span>
-          <div className="cc">{INSIGHT.circles.map((c) => <span key={c}>{c}</span>)}</div>
-          <span className="end">{INSIGHT.circlesEnd}</span>
-        </div>
-        <p className="circles-sub image">{INSIGHT.circlesSub}</p>
-      </section>
+      <Blueprint />
+      <Logic />
+      <Pipeline />
 
-      {/* con10 UI 요소 */}
-      <section className="con10" id="ui">
-        <Txt badge={UI.badge} title={['Pretendard GOV']} sub={[UI.fontNote]} en />
-        <div className="aa image"><span className="b">Aa</span><span className="r">Aa</span></div>
-        <div className="aa-meta image"><p><b>Bold</b>제목과 수치</p><p><b>Regular</b>본문과 표</p></div>
-        <div className="swatches item-wrap">
-          {UI.colors.map((c) => (
-            <div key={c.name} className="sw item">
-              <p>{c.name}</p>
-              <div className="chip" style={{ background: c.hex, color: c.on }}>{c.hex}</div>
-              {c.pair ? <div className="chip pair">{c.pair}</div> : null}
-            </div>
-          ))}
-        </div>
-        <img className="image-point p-tile" src="/v3/tile.webp" alt="" width="826" height="962" />
-      </section>
-
-      {/* con11 정사각 두 칸: 실제 업무 장면과 아이콘 */}
-      <section className="con11">
-        <div className="grid2">
-          <div className="sq image"><img src="/v3/mock-desk.webp" alt="담당자가 현황판을 보며 입력하는 장면" width="1586" height="992" /></div>
-          <div className="sq icons-sq image">
-            <div className="icon-grid">{[House, FileText, Users, MapIcon, Car, Bell, Flame, ClipboardCheck, Phone, Shield, Calendar, Accessibility, Bus, Send, Settings].map((I, i) => <span key={i}><I size={30} strokeWidth={1.6} /></span>)}</div>
-            <p className="sq-cap">Icon Set</p>
+      <section className="con-sys" id="system">
+        <Txt badge={SYSTEM.badge} title={SYSTEM.title} />
+        <div className="sys-grid">
+          <div className="sys-stack item-wrap">{SYSTEM.stack.map((x) => { const I = STACK_ICON[x.icon]; return <div key={x.k} className="item st"><span className="st-icon"><I size={22} strokeWidth={2} /></span><b>{x.k}</b><p>{x.v}</p></div>; })}</div>
+          <div className="sys-data image">
+            <p className="ds-k">공공데이터 9종</p>
+            <div className="chips">{SYSTEM.data.map((d) => <span key={d}>{d}</span>)}</div>
+            <p className="ds-note">{SYSTEM.dataNote}</p>
+          </div>
+          <div className="sys-plat image">
+            <p className="ds-k">민관협력 지원 플랫폼</p>
+            <div className="plat-n">{SYSTEM.platform.map((x) => <div key={x.t}><b>{x.n}</b><span>{x.t}</span>{x.s ? <em>{x.s}</em> : null}</div>)}</div>
+            <p className="ds-note">{SYSTEM.platformNote}</p>
           </div>
         </div>
       </section>
 
-      {/* 담당자 웹: 실제 현황판과 화면 여덟 장 */}
-      <section className="vid-wrap" id="console">
-        <div className="big-words faint" aria-hidden="true"><span>DASHBOARD</span></div>
-        <div className="console-row">
-          <Txt badge={CONSOLE.badge} title={CONSOLE.title} sub={CONSOLE.sub} en />
-          <div className="console-live image"><LiveScreen route="/console" poster="/v3/scr-01.webp" title="현황판 실제 화면" margin="40%" /></div>
-        </div>
-        <div className="thumbs item-wrap">{CONSOLE.screens.map((s) => <ScreenThumb key={s.id} s={s} onOpen={setOpen} />)}</div>
-      </section>
+      <Network />
+      <DesignSystem />
 
-      {/* con13 흰 면 두 칸: 도우미 휴대폰, 파란 면, 빨간 면 */}
-      <section className="con13" id="helper">
-        <div className="grid2">
-          <div className="tall image">
-            <Txt badge={MOBILE.badge} title={MOBILE.title} sub={MOBILE.sub} en />
-            <HelperDemo />
-          </div>
-          <div className="col">
-            <div className="panel blue image">
-              <p className="p-title">{MOBILE.relayTitle}</p>
-              <div className="relay">{MOBILE.relay.map((r, i) => <span key={r} className={i ? 'ok' : ''}>{r}</span>)}</div>
-              <img className="image-point p-obj" src="/v3/obj-phone.webp" alt="" width="890" height="890" />
-            </div>
-            <div className="panel red image">
-              <p className="p-title">{MOBILE.handTitle}</p>
-              <button type="button" className="p-open" onClick={() => setOpen(scr('08'))}>소방 인계 화면 열기<ArrowUpRight size={16} strokeWidth={2} /></button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 04 Deliver */}
+      <Chapter id="deliver" dark />
 
-      {/* 검은 면: AI */}
-      <section className="bg-bk con14" id="ai">
-        <div className="ai-row">
-          <Txt badge={AI.badge} title={AI.title} sub={AI.sub} light en />
-          <div className="ai-live image"><LiveScreen route="/console/intake" poster="/v3/scr-03.webp" title="서류 읽기 실제 화면" margin="40%" /></div>
-        </div>
-        <div className="item-wrap ai-items">
-          {AI.items.map((x) => <div className="item ai-it" key={x.k}><span>{x.k}</span><p>{x.v}</p></div>)}
-        </div>
-        <p className="src on-dark">{AI.src}</p>
-      </section>
+      {SCREENS.slice(0, 4).map((sc, i) => <ScreenSection key={sc.id} sc={sc} flip={i % 2 === 1} />)}
+      <ShortageScrub />
+      {SCREENS.slice(4).map((sc, i) => <ScreenSection key={sc.id} sc={sc} flip={i % 2 === 1} />)}
 
-      {/* 부족분 계산 */}
-      <section className="con15" id="shortage">
-        <div className="sh-row">
-          <div>
-            <Txt badge={SHORTAGE.badge} title={SHORTAGE.title} sub={SHORTAGE.sub} en />
-            <img className="image-point p-wheel" src="/v3/obj-wheelchair.webp" alt="" width="900" height="900" />
-          </div>
-          <div className="image"><ShortageCalc /></div>
-        </div>
-      </section>
-
-      {/* 검은 면: 차 카드와 화면 세 장 */}
       <section className="bg-bk con16" id="cars">
         <div className="cars-row">
-          <Txt badge={CARS.badge} title={CARS.title} sub={CARS.sub} light en />
+          <Txt badge={CARS.badge} title={CARS.title} sub={CARS.sub} light />
           <div className="cards item-wrap">
-            {CARS.cards.map((c, i) => (
-              <div key={c.name} className={`card item c${i}${c.dark ? ' lightcard' : ''}`} style={{ background: c.c }}>
-                <span>{c.sub}</span><b>{c.name}</b>
-              </div>
-            ))}
+            {CARS.cards.map((c, i) => <div key={c.name} className={`card item c${i}${c.dark ? ' lightcard' : ''}`} style={{ background: c.c }}><span>{c.sub}</span><b>{c.name}</b></div>)}
           </div>
         </div>
-        <div className="item-wrap three">{CARS.screens.map((id) => <ScreenThumb key={id} s={scr(id)} onOpen={setOpen} />)}</div>
       </section>
 
-      {/* Deliver: 사용 평가와 바뀐 화면 */}
-      <section className="con17" id="deliver">
-        <div className="dl-row">
-          <div className="dl-photo image"><img src="/v3/persona-officer.webp" alt="동 재난 담당자" width="825" height="1100" /></div>
-          <div>
-            <Txt badge={DELIVER.badge} title={DELIVER.title} sub={DELIVER.sub} />
-            <div className="tasks item-wrap">{DELIVER.tasks.map((t, i) => <div className="task item" key={t.t}><span>{String(i + 1).padStart(2, '0')} {t.role}</span><p>{t.t}</p></div>)}</div>
-          </div>
-        </div>
-        <div className="changed item-wrap benefit">
-          <p className="badge">Feedback to Screens</p>
-          {DELIVER.changed.map((c) => <div className="ch item" key={c.who}><span>{c.who}</span><p>{c.what}</p></div>)}
-        </div>
+      <section className="con17" id="used">
+        <Txt badge={DELIVER.badge} title={DELIVER.title} />
+        <div className="dl-list item-wrap">{DELIVER.rows.map((r) => <div className="item dl" key={r.who}><b>{r.who}</b><span>{r.used}</span><p><em>바뀐 설계</em>{r.c}</p></div>)}</div>
       </section>
 
-      {/* 수상 */}
-      <section className="con18" id="award">
-        <img className="image-point a-tile" src="/v3/tile.webp" alt="" width="826" height="962" />
-        <div>
-          <Txt badge={AWARD.badge} title={AWARD.title} />
-          <dl className="award item-wrap">{AWARD.rows.map((r) => <div className="item" key={r.k}><dt>{r.k}</dt><dd>{r.v}</dd></div>)}</dl>
-        </div>
-      </section>
-
-      {/* 크레딧 */}
       <section className="plus" id="credits">
-        <div className="plus-bg" />
+        <div className="plus-bg" style={PHOTOS.credits ? { backgroundImage: `url(${PHOTOS.credits})` } : undefined} />
         <div className="plus-in">
-          <img src="/v3/tile.webp" alt="" width="826" height="962" className="cr-tile" />
+          <img src="/v3/tile.webp" alt="" width="1240" height="1233" className="cr-tile" />
           <p className="cr-name">{CREDITS.name}</p>
           <p className="cr-sub">{CREDITS.sub}</p>
           <dl className="cr-list">
@@ -570,11 +752,10 @@ export default function CaseV3() {
             <div><dt>Members</dt><dd>{CREDITS.people.join(', ')}</dd></div>
             <div><dt>Course</dt><dd>{CREDITS.course}</dd></div>
           </dl>
+          <ul className="cr-photos">{PHOTOS.list.map((x) => <li key={x}>{x}</li>)}</ul>
           <div className="cr-links">{CREDITS.links.map((l) => <a key={l.label} href={l.href} target="_blank" rel="noreferrer">{l.label}<ArrowUpRight size={14} strokeWidth={2} /></a>)}</div>
         </div>
       </section>
-
-      <ScreenLayer open={open} onClose={() => setOpen(null)} />
     </div>
   );
 }
