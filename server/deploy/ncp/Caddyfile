@@ -1,0 +1,9 @@
+# 공인 IP 211.233.205.1 을 이름으로 바꿔 주는 sslip.io 주소에 Let's Encrypt 인증서를 자동 발급한다
+211-233-205-1.sslip.io {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8787
+}
+
+http://211.233.205.1 {
+	redir https://211-233-205-1.sslip.io{uri} 308
+}
