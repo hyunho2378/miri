@@ -21,7 +21,7 @@ export const OVERVIEW = {
     { n: 8, u: '개 대학', t: '함께 검토한 대학' },
     { n: 14, u: '개', t: '담당자 컴퓨터 화면' },
     { n: 9, u: '종', t: '연결한 공공데이터' },
-    { n: 332, u: '개', t: '통과한 자동 시험' },
+    { n: 363, u: '개', t: '통과한 자동 시험' },
   ],
 };
 
@@ -39,7 +39,7 @@ export const CONTEXT = {
 };
 
 export const INTERVIEW = {
-  badge: 'Field Interview',
+  badge: 'User Research',
   title: ['동해의 재난 담당과 돌봄 현장을', '직접 찾아갔습니다.'],
   sub: ['2026년 10월 26일 망상동 행정복지센터와 동해시노인종합복지관에서 면담했습니다. 시청 안전과 서면 답변과 소방관 면담을 더했습니다.'],
   chats: [
@@ -130,7 +130,7 @@ export const PARTNERS = {
 
 export const DEFINE = {
   badge: 'Define',
-  title: ['도와줄 사람과 차는 이미 정해져 있었지만', '그날 올지는 불이 난 뒤에야 알게 됩니다.'],
+  title: ['도와줄 사람과 차는 이미 정해져 있었지만', '산불 발생 당일 올지는 불이 난 뒤에야 알게 됩니다.'],
   sub: ['그래서 화면보다 먼저 사람과 기관이 평소에 맺는 약속 네 가지를 설계했습니다.'],
   boxes: [
     { eng: 'Consent', icon: 'hand', img: '/v3/def-consent.webp', t: '도우미 본인의 약속', s: '할 수 있는 도움을 직접 고르고 동의합니다. 불이 난 날 한 번 더 수락해야 배정이 확정됩니다.' },
@@ -352,7 +352,7 @@ export const DIAMOND = {
 };
 
 export const CHAPTER = {
-  discover: { n: '01', en: 'Discover', ko: '발견', lead: '강릉에서 동해로 번진 산불과 그날의 대피를 먼저 조사했습니다.', cap: '2022년 3월 동해안 산불 연기 위성 영상, NASA MODIS' },
+  discover: { n: '01', en: 'Discover', ko: '발견', lead: '강릉에서 동해로 번진 산불 발생 당일의 대피를 먼저 조사했습니다.', cap: '2022년 3월 동해안 산불 연기 위성 영상, NASA MODIS' },
   define: { n: '02', en: 'Define', ko: '정의', lead: '들은 말을 이해관계자 지도로 묶어 끊긴 연결을 찾았습니다.' },
   develop: { n: '03', en: 'Develop', ko: '전개', lead: '사람과 기관의 약속을 청사진과 계산 규칙으로 옮겼습니다.' },
   deliver: { n: '04', en: 'Deliver', ko: '전달', lead: '화면마다 실제 서비스가 직접 움직입니다.' },

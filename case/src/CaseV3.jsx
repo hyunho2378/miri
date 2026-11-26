@@ -19,6 +19,9 @@ import {
   DIAMOND, CHAPTER, RESEARCH_N, HMW, BLUEPRINT, LOGIC, PIPE, NETWORK, SCREENS, PHOTOS, FIRES, USED, BP2,
 } from './caseCopy3.js';
 import { AutoScreen } from './Autoplay.jsx';
+import { Situation, Roles, AsIsToBe, LogicLab, AILab, DispatchFlow, Access, Architecture, DesignQA, Redesign, Impact } from './Backstage.jsx';
+import { CONTEST_TEAM } from './caseCopy4.js';
+import './backstage.css';
 
 gsap.registerPlugin(ScrollTrigger);
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -179,8 +182,8 @@ const LINKS_MAP = [
   { d: [[531.5, 106], [531.5, 160]], c: 'b', n: ['safe'], t: '대피 계획을 매년 내려보냄', tx: 544, ty: 128, a: 'start' },
   { d: [[880, 106], [880, 162]], c: 'b', n: ['traf', 'taxi'], t: '필요할 때 그때 부탁', tx: 868, ty: 138, a: 'end' },
   { d: [[405.6, 210], [212, 210]], c: 'b', n: ['tong'], t: '명단 확인과 동의를 맡김', tx: 309, ty: 196, a: 'middle' },
-  { d: [[212, 242], [405.6, 242]], c: 'r', n: ['tong'], t: '그날 올지 확인한 적 없음', tx: 309, ty: 266, a: 'middle' },
-  { d: [[571.5, 226], [763, 226]], c: 'r', n: ['taxi'], t: '차가 그날 올지 약속 없음', tx: 667, ty: 212, a: 'middle' },
+  { d: [[212, 242], [405.6, 242]], c: 'r', n: ['tong'], t: '산불 발생 당일 올지 확인한 적 없음', tx: 309, ty: 266, a: 'middle' },
+  { d: [[571.5, 226], [763, 226]], c: 'r', n: ['taxi'], t: '차가 산불 발생 당일 올지 약속 없음', tx: 667, ty: 212, a: 'middle' },
   { d: [[95, 290], [95, 346]], c: 'b', n: ['tong', 'resi'], t: '도와줄 사람으로 정함', tx: 107, ty: 322, a: 'start' },
   { d: [[487.5, 310], [487.5, 346]], c: 'r', n: ['care'], t: '몸 상태 변화가 명단에 닿는 길 없음', tx: 499, ty: 332, a: 'start' },
   { d: [[357.5, 410], [212, 410]], c: 'b', n: ['care', 'resi'], t: '평소 방문하며 몸 상태를 앎', tx: 285, ty: 396, a: 'middle' },
@@ -372,7 +375,7 @@ function Interview() {
   return (
     <section className="con4 iv2" id="interview" ref={ref}>
       <div className="iv2-bg" style={{ backgroundImage: 'url(/v3/real/mukho-hill.webp)' }} />
-      <p className="iv2-word" aria-hidden="true"><span>Field</span><span className="o">Interview</span></p>
+      <p className="iv2-word" aria-hidden="true"><span>User</span><span className="o">Research</span></p>
       <div className="iv2-row">
         <div className="iv2-l">
           <Txt badge={INTERVIEW.badge} title={INTERVIEW.title} sub={INTERVIEW.sub} />
@@ -681,6 +684,7 @@ function DesignSystem() {
           <p className="ds-note">{DS.icons.set} 선 굵기 {DS.icons.stroke}, 크기 {DS.icons.sizes.join(', ')}</p>
         </div>
       </div>
+      <DesignQA />
     </section>
   );
 }
@@ -827,6 +831,8 @@ export default function CaseV3() {
         ) : null}
       </section>
 
+      <Situation />
+
       <Interview />
 
       <section className="con6" id="research">
@@ -862,6 +868,9 @@ export default function CaseV3() {
         </div>
       </section>
 
+      <AsIsToBe />
+      <Roles />
+
       {/* 03 Develop */}
       <section className="bg-bk con7" id="develop">
         <BigWord id="develop" />
@@ -888,25 +897,12 @@ export default function CaseV3() {
       </section>
 
       <Blueprint />
-      <Logic />
-      <Pipeline />
+      <LogicLab />
+      <AILab />
+      <DispatchFlow />
+      <Access />
 
-      <section className="con-sys" id="system">
-        <Txt badge={SYSTEM.badge} title={SYSTEM.title} />
-        <div className="sys-grid">
-          <div className="sys-stack item-wrap">{SYSTEM.stack.map((x) => { const I = STACK_ICON[x.icon]; return <div key={x.k} className="item st"><span className="st-icon"><I size={22} strokeWidth={2} /></span><b>{x.k}</b><p>{x.v}</p></div>; })}</div>
-          <div className="sys-data image">
-            <p className="ds-k">공공데이터 9종</p>
-            <p className="sys-list">{SYSTEM.data.join(', ')}</p>
-            <p className="ds-note">{SYSTEM.dataNote}</p>
-          </div>
-          <div className="sys-plat image">
-            <p className="ds-k">민관협력 지원 플랫폼</p>
-            <div className="plat-n">{SYSTEM.platform.map((x) => <div key={x.t}><b>{x.n}</b><span>{x.t}</span>{x.s ? <em>{x.s}</em> : null}</div>)}</div>
-            <p className="ds-note">{SYSTEM.platformNote}</p>
-          </div>
-        </div>
-      </section>
+      <Architecture />
 
       <Network />
       <DesignSystem />
@@ -921,6 +917,9 @@ export default function CaseV3() {
       {SCREENS.slice(4).map((sc) => <ScreenSection key={sc.id} sc={sc} />)}
 
       <Cars />
+
+      <Redesign />
+      <Impact />
 
       <section className="con17" id="used">
         <Txt badge={USED.badge} title={USED.title} />
@@ -963,6 +962,7 @@ export default function CaseV3() {
             <div><dt>Team</dt><dd>{CREDITS.team}</dd></div>
             <div><dt>Members</dt><dd>{CREDITS.people.join(', ')}</dd></div>
             <div><dt>Course</dt><dd>{CREDITS.course}</dd></div>
+            <div><dt>Contest Team</dt><dd className="cr-team">{CONTEST_TEAM.map((m) => <span key={m.v}><em>{m.k}</em>{m.v}</span>)}</dd></div>
           </dl>
           <div className="cr-links">{CREDITS.links.map((l) => <a key={l.label} href={l.href} target="_blank" rel="noreferrer">{l.label}<ArrowUpRight size={14} strokeWidth={2} /></a>)}</div>
         </div>
