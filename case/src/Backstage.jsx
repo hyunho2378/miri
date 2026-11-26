@@ -6,7 +6,7 @@ import {
   Landmark, Users, Building2, BedDouble, Accessibility, HandHelping, PersonStanding, Ambulance, Bus, Car,
   Check, X, ArrowRight, FileText, ShieldCheck, UserCheck, EyeOff, ScanSearch, FileSearch, Ban, CloudOff, KeyRound, Clock, Layers,
 } from './icons.jsx';
-import { FEATURES, SITUATION, ROLES, ASIS, LOGIC2, AI2, FLOW, ACCESS, ARCH, REDESIGN, DSQA, IMPACT } from './caseCopy4.js';
+import { HELPERS, FEATURES, SITUATION, ROLES, ASIS, LOGIC2, AI2, FLOW, ACCESS, ARCH, REDESIGN, DSQA, IMPACT } from './caseCopy4.js';
 
 const ICON = {
   monitor: Monitor, phone: Smartphone, mic: Mic, siren: Siren, person: User, lock: Lock, server: Server, db: Database,
@@ -578,14 +578,25 @@ export function Impact() {
           ); })}
         </div>
       </div>
-      <div className={`im-steps${seen ? ' seen' : ''}`}>
+      <div className={`im-road${seen ? ' seen' : ''}`}>
         <p className="dg-cap">확산 단계</p>
-        <div className="im-line"><i /></div>
-        <div className="im-st">{I.steps.map((s, i) => <div key={s.k}><em>{String(i + 1).padStart(2, '0')}</em><b>{s.k}</b><span>{s.s}</span></div>)}</div>
+        <div className="rd-track"><i /></div>
+        <div className="rd-nodes">
+          {I.steps.map((st, i) => (
+            <div key={st.k} className={`rd-n n${i}`}>
+              <span className="rd-dot"><b>{String(i + 1).padStart(2, '0')}</b></span>
+              <b className="rd-k">{st.k}</b><span className="rd-s">{st.s}</span>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="im-two">
-        <div><p className="dg-cap">다음 확장</p>{I.next.map((n) => <p key={n.k} className="im-n"><b>{n.k}</b>{n.v}<em>{n.who}</em></p>)}</div>
-        <div><p className="dg-cap">확인한 결과</p>{I.verify.map((n) => <p key={n.k} className="im-n"><b>{n.k}</b>{n.v}</p>)}</div>
+      <div className="im-next">
+        <p className="dg-cap">다음 확장</p>
+        <div className="nx-g">
+          {I.next.map((n, i) => { const Ic = [Users, Car, ShieldCheck, Cpu][i]; return (
+            <div key={n.k} className="nx-c"><Tile icon={Ic} /><b>{n.k}</b><p>{n.v}</p><em>{n.who}</em></div>
+          ); })}
+        </div>
       </div>
     </section>
   );
@@ -617,5 +628,30 @@ export function PartnerMap({ groups, sel, onPick }) {
       </div>
       <Panel id="etc" cls="a-etc" />
     </div>
+  );
+}
+
+// ───────── 도움 주신 분: 모두 같은 크기 칸, 이름과 직위, 좋은 말, 반영 ─────────
+export function Contributors() {
+  const G = ['공공기관', '학교', '민간기업', '현장과 시민사회'];
+  return (
+    <section className="dg-sec" id="used">
+      <Txt badge="Contributors" title={['기획과 화면을 함께 다듬어 주신 분들']} sub={['서면 자문과 면담, 공개 화면 직접 사용으로 의견을 주신 분들입니다.']} />
+      {G.map((g) => (
+        <div key={g} className="ct-g">
+          <p className="dg-sub-h">{g}</p>
+          <div className="ct-grid">
+            {HELPERS.filter((h) => h.g === g).map((h) => (
+              <div key={h.n + h.t} className="ct-c">
+                <b className="ct-n">{h.n}</b>
+                {h.t ? <span className="ct-t">{h.t}</span> : null}
+                {h.q ? <p className="ct-q">“{h.q}”</p> : <p className="ct-h">{h.h}</p>}
+                {h.r ? <p className="ct-r"><em>반영</em>{h.r}</p> : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </section>
   );
 }

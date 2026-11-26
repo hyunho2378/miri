@@ -728,3 +728,56 @@ img[src$="tile.webp"] { box-shadow: none !important; border-radius: 0 !important
 .con7 .content.boxes2 .box { padding: 7%; }
 @media (max-width: 900px) { .con7 .content.boxes2 { grid-template-columns: 1fr !important; padding-left: 6%; padding-right: 6%; } }
 .ds-sw .chip { width: auto; box-shadow: none !important; animation: none !important; display: block; }
+
+/* ═════ 도움 주신 분 ═════ */
+.ct-g { margin-top: 70px; }
+.ct-g:first-of-type { margin-top: 56px; }
+.ct-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 18px; }
+.ct-c { display: flex; flex-direction: column; gap: 8px; padding: 24px; border-radius: 20px; background: #fff; box-shadow: 0 1px 2px rgba(17,24,39,.06), 0 14px 34px rgba(17,24,39,.07); }
+.ct-n { font-size: clamp(18px, 1.25vw, 21px); font-weight: 800; color: #111; letter-spacing: -0.02em; word-break: keep-all; }
+.ct-t { font-size: 14px; font-weight: 600; color: var(--dg-b); line-height: 1.45; word-break: keep-all; }
+.ct-q { margin-top: 6px; font-size: clamp(15px, 1vw, 16.5px); font-weight: 700; line-height: 1.6; color: #111; word-break: keep-all; }
+.ct-h { margin-top: 6px; font-size: clamp(14px, 0.95vw, 16px); font-weight: 500; line-height: 1.6; color: #444; word-break: keep-all; }
+.ct-r { margin-top: auto; padding-top: 12px; font-size: 14px; line-height: 1.55; color: #555; word-break: keep-all; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ct-r em { font-style: normal; font-weight: 800; color: var(--dg-b); margin-right: 6px; }
+@media (max-width: 1200px) { .ct-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .ct-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .ct-grid { grid-template-columns: 1fr; grid-auto-rows: auto; } }
+
+/* ═════ 확산 단계 로드맵: 점이 단계마다 커짐 ═════ */
+.im-road { margin-top: 110px; position: relative; }
+.rd-track { position: relative; height: 6px; margin: 40px 6% 0; border-radius: 3px; background: #2a2a2a; }
+.rd-track i { position: absolute; inset: 0; border-radius: 3px; background: var(--dg-b); transform: scaleX(0); transform-origin: left; transition: transform 1.6s var(--ease); }
+.im-road.seen .rd-track i { transform: scaleX(1); }
+.rd-nodes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: -46px; }
+.rd-n { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 0 10px; }
+.rd-dot { display: grid; place-items: center; height: 86px; }
+.rd-dot b { display: grid; place-items: center; border-radius: 50%; background: var(--dg-b); color: #fff; font-weight: 800; box-shadow: 0 0 0 8px #111214; }
+.rd-n.n0 .rd-dot b { width: 46px; height: 46px; font-size: 14px; }
+.rd-n.n1 .rd-dot b { width: 58px; height: 58px; font-size: 15px; }
+.rd-n.n2 .rd-dot b { width: 70px; height: 70px; font-size: 16px; }
+.rd-n.n3 .rd-dot b { width: 84px; height: 84px; font-size: 18px; }
+.rd-k { font-size: clamp(16px, 1.15vw, 19px); font-weight: 800; color: #fff; line-height: 1.4; word-break: keep-all; }
+.rd-s { font-size: clamp(14px, 0.95vw, 16px); color: #c8c8c8; word-break: keep-all; }
+.im-next { margin-top: 100px; }
+.nx-g { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 20px; }
+.nx-c { display: flex; flex-direction: column; gap: 10px; padding: 26px; border-radius: 22px; background: #1f1f21; }
+.nx-c b { margin-top: 8px; font-size: clamp(17px, 1.2vw, 20px); font-weight: 800; color: #fff; }
+.nx-c p { font-size: clamp(14px, 0.95vw, 16px); line-height: 1.6; color: #d0d0d0; word-break: keep-all; }
+.nx-c em { margin-top: auto; padding-top: 8px; font-style: normal; font-size: 14px; font-weight: 700; color: #9fc0ff; }
+@media (max-width: 900px) { .rd-nodes, .nx-g { grid-template-columns: 1fr 1fr; } .rd-track { display: none; } .rd-nodes { margin-top: 20px; row-gap: 28px; } }
+
+/* ═════ 짧은 막대와 첫 줄 가운데 맞춤 ═════ */
+.im-w li, .dd-did li, .fl-firedata li { display: flex; gap: 12px; padding-left: 0 !important; line-height: 1.65; }
+.im-w li::before, .dd-did li::before, .fl-firedata li::before { position: static !important; flex: none; width: 9px !important; height: 3px !important; margin-top: calc(0.825em - 1.5px); border-radius: 2px; background: var(--dg-b); content: ''; }
+.dd-did li { line-height: 1.5; } .dd-did li::before { margin-top: calc(0.75em - 1.5px); }
+
+/* ═════ 운영 구조 선: 칸 가운데와 정확히 이어짐 ═════ */
+.im-cols { --g: 28px; gap: var(--g); }
+.im-cols::before { left: calc((100% - 2 * var(--g)) / 6); right: calc((100% - 2 * var(--g)) / 6); top: -40px; }
+.im-cols::after { top: -76px; height: 40px; }
+.im-c::before { top: -40px; height: 40px; }
+
+/* ═════ 첫 화면 글자: 제목에 맞춰 키움 ═════ */
+.hero-txt .badge { font-size: clamp(15px, 1.05vw, 19px) !important; }
+.hero-txt p { font-size: clamp(20px, 1.6vw, 30px) !important; font-weight: 700 !important; }

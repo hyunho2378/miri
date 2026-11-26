@@ -21,7 +21,7 @@ import {
   DIAMOND, CHAPTER, RESEARCH_N, HMW, BLUEPRINT, LOGIC, PIPE, NETWORK, SCREENS, PHOTOS, FIRES, USED, BP2,
 } from './caseCopy3.js';
 import { AutoScreen } from './Autoplay.jsx';
-import { PartnerMap, Situation, Roles, AsIsToBe, LogicLab, AILab, DispatchFlow, Access, Architecture, Redesign, Impact } from './Backstage.jsx';
+import { Contributors, PartnerMap, Situation, Roles, AsIsToBe, LogicLab, AILab, DispatchFlow, Access, Architecture, Redesign, Impact } from './Backstage.jsx';
 import './backstage.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -576,7 +576,6 @@ function Network() {
     <section className="con-net" id="network">
       <Txt badge={NETWORK.badge} title={NETWORK.title} sub={NETWORK.sub} />
       <PartnerMap groups={NETWORK.groups} sel={sel} onPick={setSel} />
-      <ul className="net-detail" key={sel}>{detail[sel].map((x) => <li key={x.n}><b>{x.n}</b><span>{x.r}</span></li>)}</ul>
     </section>
   );
 }
@@ -928,38 +927,8 @@ export default function CaseV3() {
       </section>
       <Redesign />
 
-      <section className="con17" id="used">
-        <Txt badge={USED.badge} title={USED.title} />
-        <div className="ut-lead">
-          <div className="ut-who">
-            <b>{USED.lead.who}</b><span>{USED.lead.org}</span>
-            <p className="ut-used">{USED.lead.used}</p>
-            <p className="ut-q">“{USED.lead.quote}”</p>
-          </div>
-          <ol className="ut-pairs item-wrap">
-            {USED.lead.pairs.map((x, i) => (
-              <li key={x.said} className="item"><span className="ut-n">{String(i + 1).padStart(2, '0')}</span><p className="ut-said">{x.said}</p><p className="ut-did"><em>반영</em>{x.did}</p></li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <section className="con-ut2 nice bg-bk">
-        <div className="nice-head"><Txt badge="Reviewers" title={['현장과 학계, 시민사회에서', '화면을 보고 의견을 보탠 분들']} light /></div>
-        <ul className="nice-l">
-          {USED.people.map((x, i) => (
-            <li key={x.who} className="nice-it">
-              <span className="nice-n">{String(i + 1).padStart(2, '0')}</span>
-              <p className="nice-q">“{x.quote}”</p>
-              <b className="nice-k">{x.who}</b>
-              <span className="nice-o">{x.org}</span>
-              <p className="nice-d"><em>반영</em>{x.did}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
       <Network />
+      <Contributors />
       <Impact />
 
       <section className="plus" id="credits">
