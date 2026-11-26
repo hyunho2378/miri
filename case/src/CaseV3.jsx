@@ -379,7 +379,7 @@ function Interview() {
       <div className="iv2-row">
         <div className="iv2-l">
           <Txt badge={INTERVIEW.badge} title={INTERVIEW.title} sub={INTERVIEW.sub} />
-          <div className="rn item-wrap">{RESEARCH_N.map((x) => <div key={x.t} className="item rn-it"><p><b data-count={x.n}>{x.n}</b>{x.u}</p><span>{x.t}</span>{x.s ? <em>{x.s}</em> : null}</div>)}</div>
+          <div className="rn item-wrap">{RESEARCH_N.map((x) => <div key={x.t} className="item rn-it"><p><b>{x.n}</b>{x.u}</p><span>{x.t}</span>{x.s ? <em>{x.s}</em> : null}</div>)}</div>
         </div>
         <div className="iv2-r">
           {INTERVIEW.chats.map((c, i) => (
@@ -775,7 +775,7 @@ export default function CaseV3() {
           <Txt badge={OVERVIEW.badge} title={OVERVIEW.title} sub={OVERVIEW.sub} />
         </div>
         <div className="facts item-wrap">
-          {OVERVIEW.facts.map((f) => <div key={f.t} className="fact item"><p><b data-count={f.n}>{f.n}</b>{f.u}</p><span>{f.t}</span></div>)}
+          {OVERVIEW.facts.map((f) => <div key={f.t} className="fact item"><p><b>{f.n}</b>{f.u}</p><span>{f.t}</span></div>)}
         </div>
       </section>
 

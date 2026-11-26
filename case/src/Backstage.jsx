@@ -65,7 +65,7 @@ function Wires({ box, links, deps = [] }) {
       <svg className="wires" aria-hidden="true">
         <defs>
           {['blue', 'red', 'mute', 'white'].map((c) => (
-            <marker key={c} id={`ah-${c}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <marker key={c} id={`ah-${c}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse">
               <path d="M0 0 L10 5 L0 10 z" className={`ah ${c}`} />
             </marker>
           ))}
@@ -121,7 +121,7 @@ export function Situation() {
     <section className="dg-sec" id="situation">
       <Txt badge={S.badge} title={S.title} />
       <div className="sit-facts">
-        {S.facts.map((f) => <div key={f.t} className="sit-f"><p className="v">{f.n}<small>{f.u}</small></p><b>{f.t}</b><span>{f.s}</span></div>)}
+        {S.facts.map((f) => <div key={f.t} className="sit-f"><b>{f.t}</b><p className="v">{f.n}{f.u}</p><span>{f.s}</span></div>)}
       </div>
       <div className="sit-map" ref={box}>
         <div className="sit-col">
@@ -154,7 +154,7 @@ export function Roles() {
       <div className="roles">
         {groups.map((g) => (
           <div key={g.k} className="role-g">
-            <p className="role-h"><g.icon size={20} strokeWidth={2} />{g.k}<em>{g.rows.length}</em></p>
+            <p className="role-h"><g.icon size={22} strokeWidth={2.2} />{g.k}</p>
             {g.rows.map((r) => { const I = ICON[r.icon]; return <div key={r.k} className="role-r"><span className="dg-tile t-glass"><I size={20} strokeWidth={2} /></span><div><b>{r.k}</b><p>{r.v}</p></div></div>; })}
           </div>
         ))}
@@ -192,14 +192,15 @@ export function AsIsToBe() {
 
 // ───────── 03 Develop: 부족분 계산(탭 네 개) ─────────
 export function LogicLab() {
-  const [t, setT] = useState(0);
   const L = LOGIC2; const box = useRef(null); const ref = useRef(null); const seen = useSeen(ref);
   const total = L.target.grades.reduce((a, g) => a + g.n, 0);
   return (
     <section className="dg-sec" id="logic" ref={ref}>
       <Txt badge={L.badge} title={L.title} />
-      <Tabs items={L.tabs} i={t} set={setT} />
-      <div className={`dg-panel${seen ? ' seen' : ''}`} key={t}>
+      {L.tabs.map((name, t) => (
+      <div className="dg-sub" key={name}>
+      <p className="dg-sub-h"><em>{String(t + 1).padStart(2, '0')}</em>{name}</p>
+      <div className={`dg-panel${seen ? ' seen' : ''}`}>
         {t === 0 ? (
           <div className="lg-target" ref={box}>
             <div className="lg-left">
@@ -298,6 +299,8 @@ export function LogicLab() {
           </div>
         ) : null}
       </div>
+      </div>
+      ))}
     </section>
   );
 }
@@ -305,7 +308,6 @@ export function LogicLab() {
 // ───────── 03 Develop: AI 서류 읽기(탭 다섯 개) ─────────
 const STEP_ICON = [ScanText, EyeOff, ScanSearch, FileSearch, Cpu, ShieldCheck, UserCheck];
 export function AILab() {
-  const [t, setT] = useState(0);
   const A = AI2; const box = useRef(null); const ref = useRef(null); const seen = useSeen(ref);
   const [cur, setCur] = useState(0); const [auto, setAuto] = useState(true); const [vis, setVis] = useState(false);
   useEffect(() => {
@@ -313,14 +315,16 @@ export function AILab() {
     if (ref.current) io.observe(ref.current); return () => io.disconnect();
   }, []);
   useEffect(() => {
-    if (!auto || !vis || t !== 0) return undefined;
+    if (!auto || !vis) return undefined;
     const id = setInterval(() => setCur((c) => (c + 1) % A.steps.length), 2200); return () => clearInterval(id);
-  }, [auto, vis, t, A.steps.length]);
+  }, [auto, vis, A.steps.length]);
   return (
     <section className="dg-sec bg-bk" id="pipeline" ref={ref}>
       <Txt badge={A.badge} title={A.title} light />
-      <Tabs items={A.tabs} i={t} set={setT} light />
-      <div className={`dg-panel dark${seen ? ' seen' : ''}`} key={t}>
+      {A.tabs.map((name, t) => (
+      <div className="dg-sub" key={name}>
+      <p className="dg-sub-h"><em>{String(t + 1).padStart(2, '0')}</em>{name}</p>
+      <div className={`dg-panel dark${seen ? ' seen' : ''}`}>
         {t === 0 ? (
           <div className="ai-flow">
             <div className="ai-row" ref={box}>
@@ -406,6 +410,8 @@ export function AILab() {
           </div>
         ) : null}
       </div>
+      </div>
+      ))}
     </section>
   );
 }
@@ -454,6 +460,11 @@ export function DispatchFlow() {
         </div>
       </div>
       <p className="dg-note fl-fire">{F.fire}</p>
+      <div className="fl-firedata">
+        <p className="dg-cap"><Siren size={16} strokeWidth={2.2} />{F.fireData.t}</p>
+        <ul>{F.fireData.rows.map((r) => <li key={r}>{r}</li>)}</ul>
+        <p className="dg-note">{F.fireData.note}</p>
+      </div>
     </section>
   );
 }
@@ -600,26 +611,31 @@ export function Impact() {
   );
 }
 
-// ───────── 협력 네 갈래: 같은 크기 상자 넷과 가운데 미리, 굵은 연결선 ─────────
+// ───────── 협력 네 묶음: 상세기획서 그림 5 구조(위 공공기관, 가운데 학교와 미리와 민간기업, 아래 현장과 시민사회) ─────────
 const PART_ICON = { pub: Landmark, uni: Users, biz: Building2, etc: UserCheck };
 export function PartnerMap({ groups, sel, onPick }) {
-  const box = useRef(null);
-  const order = ['pub', 'uni', 'biz', 'etc'];
-  const G = order.map((id) => groups.find((g) => g.id === id)).filter(Boolean);
-  const side = { pub: ['r', 'l'], uni: ['r', 'l'], biz: ['l', 'r'], etc: ['l', 'r'] };
+  const G = Object.fromEntries(groups.map((g) => [g.id, g]));
+  const Panel = ({ id, cls }) => {
+    const g = G[id]; if (!g) return null; const I = PART_ICON[id];
+    return (
+      <button type="button" className={`pm2-g ${cls}${sel === id ? ' on' : ''}`} onClick={() => onPick(id)} aria-pressed={sel === id}>
+        <p className="pm2-h"><I size={24} strokeWidth={2.2} />{g.name}</p>
+        <span className="pm2-chips">{g.chips.map((c) => <span key={c}>{c}</span>)}</span>
+      </button>
+    );
+  };
   return (
-    <div className="pm" ref={box}>
-      {G.map((g, i) => {
-        const I = PART_ICON[g.id];
-        return (
-          <button type="button" key={g.id} className={`pm-g p${i}${sel === g.id ? ' on' : ''}`} data-w={`pm-${g.id}`} onClick={() => onPick(g.id)} aria-pressed={sel === g.id}>
-            <p className="pm-h"><Tile icon={I} /><b>{g.name}</b><em>{g.chips.length}</em></p>
-            <p className="pm-n">{g.chips.join(', ')}</p>
-          </button>
-        );
-      })}
-      <div className="pm-hub" data-w="pm-hub"><img src="/v3/tile.webp" alt="" width="1240" height="1233" /><b>미리</b></div>
-      <Wires box={box} deps={[sel]} links={G.map((g) => ({ a: `pm-${g.id}`, b: 'pm-hub', as: side[g.id][0], bs: side[g.id][1], tone: sel === g.id ? 'blue' : 'mute', dur: 2 }))} />
+    <div className="pm2">
+      <Panel id="pub" cls="a-pub" />
+      <div className="pm2-mid">
+        <Panel id="uni" cls="a-uni" />
+        <div className="pm2-hub">
+          <i className="ar up" /><i className="ar left" /><i className="ar right" /><i className="ar down" />
+          <span className="pm2-core"><img src="/v3/tile.webp" alt="" width="1240" height="1233" /><b>미리</b></span>
+        </div>
+        <Panel id="biz" cls="a-biz" />
+      </div>
+      <Panel id="etc" cls="a-etc" />
     </div>
   );
 }
