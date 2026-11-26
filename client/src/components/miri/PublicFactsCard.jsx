@@ -55,7 +55,7 @@ export default function PublicFactsCard({ only = null, className = '' }) {
                 <li className="type-body-sm text-text-pri">70세 이상 <strong>{ems.data.age70.share}%</strong>, 80세 이상 <strong>{ems.data.age80.share}%</strong></li>
                 <li className="type-body-sm text-text-pri">많은 병력 {ems.data.historyTop.map((h) => h.name).join(', ')}</li>
               </ul>
-            ) : <p className="type-body-sm text-text-meta">{REGION.name} 구급통계 자료 없음</p>
+            ) : ems.data.platform ? null : <p className="type-body-sm text-text-meta">{REGION.name} 구급통계 자료 없음</p>
           ) : <Status s={ems} />}
           {ems.data?.platform?.total ? <p className="mt-2 type-body-sm text-text-pri">구급 출동 <strong>{ems.data.platform.total.toLocaleString('ko-KR')}건</strong>, 많은 증상 {ems.data.platform.symptomsTop.map((x) => x.name).join(', ')}</p> : null}
           {ems.data?.platform?.arrival?.byEmd?.length ? (

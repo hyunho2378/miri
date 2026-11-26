@@ -181,7 +181,7 @@ function stamp(kind, d) {
     asOf = ts[0] || null; basis = '가장 오래된 기관 입력 시각'
     extra = { list, latestAt: ts.at(-1) || null, missingAsOf: list.filter((x) => !x.asOf).length }
   } else if (kind === 'alerts') { asOf = d.list?.[0]?.at || null; basis = '최근 문자 발송 시각' }
-  const empty = kind === 'ems' ? !d.total : kind === 'alerts' ? false : kind === 'warning' ? !d.issuedAt : kind === 'wind' ? !(d.hours || []).length : Array.isArray(d.list) ? d.list.length === 0 : false
+  const empty = kind === 'ems' ? !d.total && !d.platform : kind === 'alerts' ? false : kind === 'warning' ? !d.issuedAt : kind === 'wind' ? !(d.hours || []).length : Array.isArray(d.list) ? d.list.length === 0 : false
   if (REALTIME.has(kind)) return { ...d, ...extra, fetchedAt, asOf, asOfBasis: basis, empty }
   return { ...d, ...extra, fetchedAt, asOf: fetchedAt, asOfBasis: '조회 시각', empty }
 }
@@ -331,10 +331,16 @@ async function ems(key, R) {
   const hit = emsCache.get(R.regionId)
   if (hit && Date.now() - hit.at < 24 * 3600000) return hit.data
   const data = await emsFetch(key, R)
-  if (data.total) emsCache.set(R.regionId, { at: Date.now(), data })
+  if (data.total || data.platform) emsCache.set(R.regionId, { at: Date.now(), data })
   return data
 }
 async function emsFetch(key, R) {
+  if (!key) {
+    // 공공데이터포털 인증키가 없는 서버(네이버 서버)에서는 플랫폼 승인키로 받은 값만 돌려준다
+    const year = Number(kst().ymd.slice(0, 4)) - 1
+    const platform = await platformEms(R, year)
+    return { source: '소방안전 빅데이터 플랫폼', station: `${R.ems.sido} ${R.ems.station}`, year, total: 0, platform, list: platform ? [1] : [], fetchedAt: new Date().toISOString() }
+  }
   const thisYear = Number(kst().ymd.slice(0, 4))
   for (const year of [thisYear - 1, thisYear - 2]) {
     const { place, age, hist } = await emsYear(key, R, year)
@@ -362,7 +368,7 @@ export default async function handler(req, res) {
   const missing = NEEDS[kind].filter((k) => R[k] == null || R[k] === '')
   if (missing.length) return fail(res, 503, 'REGION', `지역 설정에 공공데이터 인자 없음: ${missing.join(', ')}`)
   const key = process.env.DATA_GO_KR_KEY
-  if (!key && kind !== 'alerts') return fail(res, 503, 'NO_KEY', '공공데이터포털 인증키 미설정')
+  if (!key && kind !== 'alerts' && !(kind === 'ems' && process.env.BIGDATA_119_KEY)) return fail(res, 503, 'NO_KEY', '공공데이터포털 인증키 미설정')
   try {
     // 응답에 지역 이름표를 붙여 화면이 다른 시군 자료를 받았는지 가릴 수 있게 한다
     const data = { ...stamp(kind, await fn(key, R)), region: R.regionId }
