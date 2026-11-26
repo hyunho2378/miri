@@ -22,7 +22,7 @@ export default function PublicFactsCard({ only = null, className = '' }) {
   const access = useOpenData('access')
   const ems = useOpenData('ems')
   return (
-    <Card title={only === 'er' ? `인계 참고: ${REGION.shortName} 응급실` : '공공데이터 추가 연계'} desc={only === 'er' ? '출처: 국립중앙의료원 전국 응급의료기관 정보 조회 서비스' : '출처: 국립중앙의료원, 한국사회보장정보원, 소방청, 산림청'} className={className}>
+    <Card title={only === 'er' ? `인계 참고: ${REGION.shortName} 응급실` : only === 'ems' ? `인계 참고: ${REGION.shortName} 평시 소방 도착 시간` : '공공데이터 추가 연계'} desc={only === 'er' ? '출처: 국립중앙의료원 전국 응급의료기관 정보 조회 서비스' : only === 'ems' ? '출처: 소방안전 빅데이터 플랫폼, 소방청 구급통계서비스' : '출처: 국립중앙의료원, 한국사회보장정보원, 소방청, 산림청'} className={className}>
       <div className="space-y-5">
         {show('er') && <section aria-label={`${REGION.shortName} 응급실 가용병상`}>
           <p className="mb-2 inline-flex items-center gap-1.5 type-caption text-text-sec"><Ambulance size={16} aria-hidden="true" />{REGION.shortName} 응급실 가용병상(실시간)</p>
@@ -58,6 +58,18 @@ export default function PublicFactsCard({ only = null, className = '' }) {
             ) : <p className="type-body-sm text-text-meta">{REGION.name} 구급통계 자료 없음</p>
           ) : <Status s={ems} />}
           {ems.data?.platform?.total ? <p className="mt-2 type-body-sm text-text-pri">구급 출동 <strong>{ems.data.platform.total.toLocaleString('ko-KR')}건</strong>, 많은 증상 {ems.data.platform.symptomsTop.map((x) => x.name).join(', ')}</p> : null}
+          {ems.data?.platform?.arrival?.byEmd?.length ? (
+            <div className="mt-2">
+              <p className="type-body-sm text-text-pri">신고 접수 뒤 출동 지령에서 현장 도착까지 {ems.data.year}년 중앙값 <strong>{ems.data.platform.arrival.city.median}분</strong>, 열 건 중 아홉 건 {ems.data.platform.arrival.city.p90}분 안</p>
+              <ul className="mt-1 space-y-0.5">
+                {ems.data.platform.arrival.byEmd.slice(0, 5).map((x) => (
+                  <li key={x.name} className="type-body-sm text-text-pri tabular-nums">{x.name} 중앙값 {x.median}분, 열 건 중 아홉 건 {x.p90}분 안 <span className="text-text-meta">({x.n}건)</span></li>
+                ))}
+              </ul>
+              {ems.data.platform.arrival.hospital ? <p className="mt-1 type-body-sm text-text-pri">현장에서 병원 도착까지 중앙값 {ems.data.platform.arrival.hospital.median}분</p> : null}
+              <p className="mt-1 type-caption text-text-meta">평시 기록이며 출동 센터가 적힌 {ems.data.platform.arrival.usedRows.toLocaleString('ko-KR')}건 기준, 느린 읍면동 순</p>
+            </div>
+          ) : null}
           <p className="mt-1.5 type-caption text-text-meta">{ems.data ? `출처: ${ems.data.source}, ${ems.data.station}${ems.data.platform ? `, ${ems.data.platform.source}` : ''}` : '출처: 소방청 구급통계서비스'}</p>
           <FreshnessNote kind="ems" state={ems} className="mt-1" />
         </section>}

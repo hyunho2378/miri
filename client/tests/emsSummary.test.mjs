@@ -24,3 +24,15 @@ test('플랫폼 집계 요약은 총 건수와 증상 상위 세 개를 돌려�
   assert.deepEqual(s.symptomsTop.map((x) => x.name), ['호흡곤란', '타박상', '흉통'])
   assert.equal(s.seasons.length, 2)
 })
+
+import { arrivalStats } from '../api/opendata.js'
+test('평시 도착 시간은 센터가 없는 건과 0분 건을 빼고 읍면동별로 계산한다', () => {
+  const mk = (emd, d, a, c = '천곡119안전센터') => ({ emdNm: emd, cntrNm: c, dsptDrtvDt: `20250101${d}`, grndsArvlDt: `20250101${a}` })
+  const rows = [mk('망상동', '100000', '101000'), mk('망상동', '110000', '111200'), mk('망상동', '120000', '120000'), mk('망상동', '130000', '131000', ''), mk('천곡동', '100000', '100500')]
+  const s = arrivalStats(rows, 1)
+  assert.equal(s.totalRows, 5)
+  assert.equal(s.usedRows, 3)
+  assert.equal(s.byEmd[0].name, '망상동')
+  assert.equal(s.byEmd[0].n, 2)
+  assert.equal(s.byEmd[0].median, 12)
+})

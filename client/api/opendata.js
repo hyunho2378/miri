@@ -289,6 +289,27 @@ export function platformSummary(total, seasons, symptoms) {
   const top = rows(symptoms).filter((x) => x.ptnSymSeNm && !['기타', '미상'].includes(x.ptnSymSeNm)).map((x) => ({ name: x.ptnSymSeNm, count: Number(x.rowCount) || 0 })).sort((a, b) => b.count - a.count).slice(0, 3)
   return { total: Number(total) || 0, seasons: season, symptomsTop: top }
 }
+// 119 신고접수 건별 기록에서 출동 지령부터 현장 도착까지의 평시 소요 시간을 읍면동별로 구한다.
+// 센터 이름이 비어 있거나 지령과 도착이 같은 시각(0분)으로 적힌 건은 시간이 입력되지 않은 기록이라 뺀다.
+const stampMs = (s) => { const m = String(s || '').match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]) : null }
+const pctl = (arr, q) => { const a = [...arr].sort((x, y) => x - y); return a.length ? a[Math.min(a.length - 1, Math.floor(a.length * q))] : null }
+const r1 = (n) => (n == null ? null : Math.round(n * 10) / 10)
+export function arrivalStats(rows, minN = 30) {
+  const list = asList(rows)
+  const usable = []
+  for (const r of list) {
+    if (!r.cntrNm) continue
+    const a = stampMs(r.dsptDrtvDt), b = stampMs(r.grndsArvlDt)
+    if (a == null || b == null) continue
+    const m = (b - a) / 60000
+    if (m > 0 && m < 120) usable.push({ emd: String(r.emdNm || '').trim(), m, hosp: stampMs(r.hsptlArvlDt) == null ? null : (stampMs(r.hsptlArvlDt) - b) / 60000 })
+  }
+  const by = {}
+  usable.forEach((x) => { if (x.emd) (by[x.emd] ||= []).push(x.m) })
+  const byEmd = Object.entries(by).filter(([, v]) => v.length >= minN).map(([name, v]) => ({ name, n: v.length, median: r1(pctl(v, 0.5)), p90: r1(pctl(v, 0.9)) })).sort((x, y) => y.median - x.median)
+  const hosp = usable.map((x) => x.hosp).filter((h) => h != null && h > 0 && h < 180)
+  return { totalRows: list.length, usedRows: usable.length, city: { median: r1(pctl(usable.map((x) => x.m), 0.5)), p90: r1(pctl(usable.map((x) => x.m), 0.9)) }, byEmd, hospital: hosp.length ? { n: hosp.length, median: r1(pctl(hosp, 0.5)), p90: r1(pctl(hosp, 0.9)) } : null }
+}
 export async function platformEms(R, year) {
   const key = process.env.BIGDATA_119_KEY
   if (!key || !R.ems.sidoShort) return null
@@ -296,7 +317,13 @@ export async function platformEms(R, year) {
     const tot = await bdPost(key, R, year, { includeTotal: 'true', size: '1' })
     const seasons = await bdPost(key, R, year, { groupBy: 'seasnNm', aggregation: 'count' })
     const symptoms = await bdPost(key, R, year, { groupBy: 'ptnSymSeNm', aggregation: 'count' })
-    return { source: '소방안전 빅데이터 플랫폼 구급현황 API', year, ...platformSummary(tot.total, seasons, symptoms) }
+    let arrival = null
+    try {
+      const q = new URLSearchParams({ page: '1', size: '10000', sggNm: R.ems.sigun, dclrYmdFrom: `${year}0101`, dclrYmdTo: `${year}1231` })
+      const r = await fetch(`https://www.bigdata-119.kr/fsdpApi/rest/v1/call-receipts?${q.toString()}`, { method: 'POST', headers: { 'X-API-KEY': key, Accept: 'application/json' }, signal: AbortSignal.timeout(20000) })
+      if (r.ok) arrival = arrivalStats((await r.json()).items)
+    } catch { arrival = null }
+    return { source: '소방안전 빅데이터 플랫폼 구급현황, 119 신고접수 API', year, ...platformSummary(tot.total, seasons, symptoms), arrival }
   } catch { return null }
 }
 const emsCache = new Map() // 지역 id -> { at, data }. 연 단위 자료라 하루 보관

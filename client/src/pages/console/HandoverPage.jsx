@@ -226,6 +226,7 @@ export default function HandoverPage() {
           <HandoverPrint rows={rows} baseAt={baseAt} orgName={orgName} />
 
           <PublicFactsCard only="er" />
+          <PublicFactsCard only="ems" />
 
           <Section title="전달 기록" count={`${d.handovers.length}회`}>
             {d.handovers.length ? (
