@@ -11,6 +11,9 @@
     },
     "api/parse.js": {
       "excludeFiles": "node_modules/{onnxruntime-node,onnxruntime-web,@huggingface,@img,sharp,@hyzyla}/**"
+    },
+    "api/opendata.js": {
+      "maxDuration": 30
     }
   },
   "regions": [

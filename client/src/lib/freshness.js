@@ -14,7 +14,7 @@ export const MAX_LAG_MIN = {
   warning: { min: 72 * 60, basis: '팀 기준(발표 72시간 경과, 변동 없을 때 발표 시각 유지)' }
 }
 // 등록 목록형 자료: 기준 시각이 없어 지연 판정을 하지 않고 조회 시각만 보인다
-export const STATIC_KINDS = new Set(['access', 'shelters', 'ltc', 'ambulance'])
+export const STATIC_KINDS = new Set(['access', 'shelters', 'ltc', 'ambulance', 'ems'])
 
 const pad = (n) => String(n).padStart(2, '0')
 export function fmtKst(iso) {

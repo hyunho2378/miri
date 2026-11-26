@@ -1,5 +1,5 @@
 // api/opendata.js Vercel 서버리스 함수. 공공데이터포털 연계(현재 지역 한정, 기본 동해시).
-// GET ?kind=fire | shelters | ltc | ambulance | warning | wind | er | access | alerts [&region=<지역 id>]
+// GET ?kind=fire | shelters | ltc | ambulance | warning | wind | er | access | alerts | ems [&region=<지역 id>]
 // 시군 이름과 코드는 지역 설정(client/src/regions/<지역>.js 의 openData)에서 읽는다. 값이 비어 있으면 그 항목은 503 REGION.
 import { REGION, REGIONS } from '../src/regions/index.js'
 // 모든 응답에 fetchedAt(조회 시각), asOf(자료 기준 시각, ISO), empty(응답 0건 여부)를 붙인다. 지연 판정은 client/src/lib/freshness.js
@@ -181,7 +181,7 @@ function stamp(kind, d) {
     asOf = ts[0] || null; basis = '가장 오래된 기관 입력 시각'
     extra = { list, latestAt: ts.at(-1) || null, missingAsOf: list.filter((x) => !x.asOf).length }
   } else if (kind === 'alerts') { asOf = d.list?.[0]?.at || null; basis = '최근 문자 발송 시각' }
-  const empty = kind === 'alerts' ? false : kind === 'warning' ? !d.issuedAt : kind === 'wind' ? !(d.hours || []).length : Array.isArray(d.list) ? d.list.length === 0 : false
+  const empty = kind === 'ems' ? !d.total : kind === 'alerts' ? false : kind === 'warning' ? !d.issuedAt : kind === 'wind' ? !(d.hours || []).length : Array.isArray(d.list) ? d.list.length === 0 : false
   if (REALTIME.has(kind)) return { ...d, ...extra, fetchedAt, asOf, asOfBasis: basis, empty }
   return { ...d, ...extra, fetchedAt, asOf: fetchedAt, asOfBasis: '조회 시각', empty }
 }
@@ -237,18 +237,74 @@ async function alerts(_key, R = openDataOf(REGION)) {
   return { source, status: 'ok', list: list.slice(0, 20), fetchedAt: new Date().toISOString() }
 }
 
-const KINDS = { fire, shelters, ltc, ambulance, warning, wind, er, access, alerts }
+// 소방청 구급통계서비스(공공데이터포털 15099428). 관할 소방서의 한 해 이송환자를 사고 장소, 연령, 병력으로 모아 평시 구급 수요의 구성을 본다.
+// 개인정보 없는 월별 집계 자료다. 자료는 연 단위로 늦게 올라와 올해 값이 비면 지난해, 그것도 비면 그 전 해를 쓴다.
+const EMS = 'EmergencyStatisticsService'
+export function emsSummary(place, age, hist) {
+  const sum = (o) => Object.values(o).reduce((a, b) => a + b, 0)
+  const total = sum(place)
+  const share = (n) => (total ? Math.round((n / total) * 1000) / 10 : 0)
+  const home = place['집'] || 0
+  const a80 = age['80세 이상'] || 0
+  const a70 = (age['70~79세'] || 0) + a80
+  const top = Object.entries(hist).filter(([k]) => !['없음', '미상', '기타'].includes(k)).sort((x, y) => y[1] - x[1]).slice(0, 3).map(([name, count]) => ({ name, count }))
+  return { total, home: { count: home, share: share(home) }, age80: { count: a80, share: share(a80) }, age70: { count: a70, share: share(a70) }, historyTop: top }
+}
+async function emsMonth(key, R, op, ym) {
+  const q = new URLSearchParams({ serviceKey: key, pageNo: '1', numOfRows: '200', resultType: 'json', sidoHqOgidNm: R.ems.sido, rsacGutFsttOgidNm: R.ems.station, rcptYm: ym })
+  let j
+  try { j = await getJson(`${BASE}/1661000/${EMS}/${op}?${q.toString()}`) } catch (e) {
+    if (!String(e.message).includes('429')) throw e
+    await new Promise((r) => setTimeout(r, 1200))
+    j = await getJson(`${BASE}/1661000/${EMS}/${op}?${q.toString()}`)
+  }
+  return asList(j?.body?.items)
+}
+async function emsYear(key, R, year) {
+  const months = Array.from({ length: 12 }, (_, i) => `${year}${String(i + 1).padStart(2, '0')}`)
+  const add = (acc, k, n) => { if (k != null) acc[k] = (acc[k] || 0) + (Number(n) || 0) }
+  const place = {}, age = {}, hist = {}
+  // 상류가 초당 호출 수를 막아(HTTP 429) 한 건씩 차례로 부른다
+  const rows = []
+  for (const m of months) {
+    const a = await emsMonth(key, R, 'getTrasferPatientByPlaceStats', m)
+    const b = await emsMonth(key, R, 'getTrasferPatientByAgeGroupStats', m)
+    const c = await emsMonth(key, R, 'getTrasferPatientByCaseHistoryStats', m)
+    rows.push([a, b, c])
+  }
+  for (const [p, a, h] of rows) { p.forEach((x) => add(place, x.ruptOccrPlcCdNm, x.trnfPcnt)); a.forEach((x) => add(age, x.ageScov, x.trnfPcnt)); h.forEach((x) => add(hist, x.mpwrCdNm, x.trnfPcnt)) }
+  return { place, age, hist }
+}
+const emsCache = new Map() // 지역 id -> { at, data }. 연 단위 자료라 하루 보관
+async function ems(key, R) {
+  const hit = emsCache.get(R.regionId)
+  if (hit && Date.now() - hit.at < 24 * 3600000) return hit.data
+  const data = await emsFetch(key, R)
+  if (data.total) emsCache.set(R.regionId, { at: Date.now(), data })
+  return data
+}
+async function emsFetch(key, R) {
+  const thisYear = Number(kst().ymd.slice(0, 4))
+  for (const year of [thisYear - 1, thisYear - 2]) {
+    const { place, age, hist } = await emsYear(key, R, year)
+    const s = emsSummary(place, age, hist)
+    if (s.total > 0) return { source: '소방청 구급통계서비스(공공데이터포털 15099428)', station: `${R.ems.sido} ${R.ems.station}`, year, ...s, fetchedAt: new Date().toISOString() }
+  }
+  return { source: '소방청 구급통계서비스(공공데이터포털 15099428)', station: `${R.ems.sido} ${R.ems.station}`, year: null, total: 0, list: [], fetchedAt: new Date().toISOString() }
+}
+
+const KINDS = { fire, shelters, ltc, ambulance, warning, wind, er, access, alerts, ems }
 
 // 지역 설정의 공공데이터 인자. 시도 이름(province)을 함께 넘긴다
 export const openDataOf = (region) => ({ ...region.openData, province: region.province, regionId: region.id })
 // 항목마다 꼭 있어야 하는 지역 인자. 비어 있으면 상류를 부르지 않고 503 REGION 으로 돌려준다(엉뚱한 시군 자료 방지)
-const NEEDS = { fire: ['fireSigucode', 'fireSigun'], shelters: ['addressLike'], ltc: ['ltc'], ambulance: ['ambulanceOrg'], warning: ['warningWord'], wind: ['weatherPoint'], er: ['erStage2'], access: ['accessCgg'], alerts: ['alertRegion'] }
+const NEEDS = { fire: ['fireSigucode', 'fireSigun'], shelters: ['addressLike'], ltc: ['ltc'], ambulance: ['ambulanceOrg'], warning: ['warningWord'], wind: ['weatherPoint'], er: ['erStage2'], access: ['accessCgg'], alerts: ['alertRegion'], ems: ['ems'] }
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return fail(res, 405, 'METHOD', 'GET 만 허용')
   const kind = req.query?.kind
   const fn = KINDS[kind]
-  if (!fn) return fail(res, 400, 'KIND', 'kind 는 fire, shelters, ltc, ambulance, warning, wind, er, access, alerts 중 하나')
+  if (!fn) return fail(res, 400, 'KIND', 'kind 는 fire, shelters, ltc, ambulance, warning, wind, er, access, alerts, ems 중 하나')
   const regionId = req.query?.region
   if (regionId && !REGIONS[regionId]) return fail(res, 400, 'REGION', '등록되지 않은 지역')
   const R = openDataOf(regionId ? REGIONS[regionId] : REGION)
@@ -259,7 +315,7 @@ export default async function handler(req, res) {
   try {
     // 응답에 지역 이름표를 붙여 화면이 다른 시군 자료를 받았는지 가릴 수 있게 한다
     const data = { ...stamp(kind, await fn(key, R)), region: R.regionId }
-    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=3600')
+    res.setHeader('Cache-Control', kind === 'ems' ? 's-maxage=86400, stale-while-revalidate=604800' : 's-maxage=600, stale-while-revalidate=3600')
     return res.status(200).json(data)
   } catch (e) {
     return fail(res, 502, 'UPSTREAM', `공공데이터포털 응답 오류: ${String(e.message || '').slice(0, 80)}`)

@@ -1,6 +1,6 @@
 // 현황판 공공데이터 추가 카드. 동해 응급실 실시간 가용병상(국립중앙의료원), 장애인편의시설 수(한국사회보장정보원),
 // 산불 이력(산림청 산불통계 스냅샷). 출처와 기준 시각을 함께 보인다. 실시간 조회가 실패하면 사유를 그대로 적는다.
-import { Ambulance, Accessibility, Flame } from 'lucide-react'
+import { Ambulance, Accessibility, Flame, Siren } from 'lucide-react'
 import Card from '../ui/Card.jsx'
 import useOpenData from '../../hooks/useOpenData.js'
 import FreshnessNote from './FreshnessNote.jsx'
@@ -20,8 +20,9 @@ export default function PublicFactsCard({ only = null, className = '' }) {
   const show = (k) => !only || only === k
   const er = useOpenData('er')
   const access = useOpenData('access')
+  const ems = useOpenData('ems')
   return (
-    <Card title={only === 'er' ? `인계 참고: ${REGION.shortName} 응급실` : '공공데이터 추가 연계'} desc={only === 'er' ? '출처: 국립중앙의료원 전국 응급의료기관 정보 조회 서비스' : '출처: 국립중앙의료원, 한국사회보장정보원, 산림청'} className={className}>
+    <Card title={only === 'er' ? `인계 참고: ${REGION.shortName} 응급실` : '공공데이터 추가 연계'} desc={only === 'er' ? '출처: 국립중앙의료원 전국 응급의료기관 정보 조회 서비스' : '출처: 국립중앙의료원, 한국사회보장정보원, 소방청, 산림청'} className={className}>
       <div className="space-y-5">
         {show('er') && <section aria-label={`${REGION.shortName} 응급실 가용병상`}>
           <p className="mb-2 inline-flex items-center gap-1.5 type-caption text-text-sec"><Ambulance size={16} aria-hidden="true" />{REGION.shortName} 응급실 가용병상(실시간)</p>
@@ -44,6 +45,20 @@ export default function PublicFactsCard({ only = null, className = '' }) {
             <p className="type-body-sm text-text-pri"><strong>{access.data.count.toLocaleString('ko-KR')}곳</strong> <span className="text-text-meta">(좌표 있는 곳 {access.data.list.filter((x) => x.lat && x.lon).length}곳)</span></p>
           ) : <Status s={access} />}
           <FreshnessNote kind="access" state={access} className="mt-1.5" />
+        </section>}
+        {show('ems') && <section aria-label={`${REGION.shortName} 평시 구급 수요`}>
+          <p className="mb-2 inline-flex items-center gap-1.5 type-caption text-text-sec"><Siren size={16} aria-hidden="true" />{REGION.shortName} 평시 구급 수요({ems.data?.year ?? '연도 확인 중'}년 이송환자)</p>
+          {ems.data ? (
+            ems.data.total ? (
+              <ul className="space-y-1">
+                <li className="type-body-sm text-text-pri">이송환자 <strong>{ems.data.total.toLocaleString('ko-KR')}명</strong> 가운데 집에서 이송 <strong>{ems.data.home.share}%</strong></li>
+                <li className="type-body-sm text-text-pri">70세 이상 <strong>{ems.data.age70.share}%</strong>, 80세 이상 <strong>{ems.data.age80.share}%</strong></li>
+                <li className="type-body-sm text-text-pri">많은 병력 {ems.data.historyTop.map((h) => h.name).join(', ')}</li>
+              </ul>
+            ) : <p className="type-body-sm text-text-meta">{REGION.name} 구급통계 자료 없음</p>
+          ) : <Status s={ems} />}
+          <p className="mt-1.5 type-caption text-text-meta">{ems.data ? `출처: ${ems.data.source}, ${ems.data.station}` : '출처: 소방청 구급통계서비스'}</p>
+          <FreshnessNote kind="ems" state={ems} className="mt-1" />
         </section>}
         {show('fires') && <section aria-label={`${REGION.shortName} 산불 이력`}>
           <p className="mb-2 inline-flex items-center gap-1.5 type-caption text-text-sec"><Flame size={16} aria-hidden="true" />{REGION.shortName} 산불 이력</p>

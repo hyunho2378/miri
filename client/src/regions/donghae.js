@@ -175,6 +175,7 @@ export default {
   openData: {
     fireSigucode: 51170, fireSigun: '동해시', fireUpper: 51,
     addressLike: '동해시', erStage2: '동해시', accessCgg: '동해시', alertRegion: '동해시', warningWord: '동해',
-    ltc: { siDoCd: '51', siGunGuCd: '170' }, ambulanceOrg: '4211000', weatherPoint: [37.5247, 129.1143]
+    ltc: { siDoCd: '51', siGunGuCd: '170' }, ambulanceOrg: '4211000', weatherPoint: [37.5247, 129.1143],
+    ems: { sido: '강원소방본부', station: '동해소방서' }
   }
 }

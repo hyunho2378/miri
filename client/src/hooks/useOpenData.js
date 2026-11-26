@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { DEFAULT_REGION_ID, REGION_ID } from '../regions/index.js'
 
 const MIN = 60 * 1000
-export const TTL = { er: 5 * MIN, alerts: 5 * MIN, warning: 10 * MIN, wind: 30 * MIN, fire: 30 * MIN }
+export const TTL = { er: 5 * MIN, alerts: 5 * MIN, warning: 10 * MIN, wind: 30 * MIN, fire: 30 * MIN, ems: 24 * 60 * MIN }
 const ttlOf = (kind) => TTL[kind] ?? 60 * MIN
 const cache = new Map() // kind -> { s, at }
 export const fresh = (kind, now = Date.now()) => { const c = cache.get(kind); return Boolean(c && now - c.at < ttlOf(kind)) }
