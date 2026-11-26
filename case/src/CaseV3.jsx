@@ -22,7 +22,6 @@ import {
 } from './caseCopy3.js';
 import { AutoScreen } from './Autoplay.jsx';
 import { PartnerMap, Situation, Roles, AsIsToBe, LogicLab, AILab, DispatchFlow, Access, Architecture, DesignQA, Redesign, Impact } from './Backstage.jsx';
-import { CONTEST_TEAM } from './caseCopy4.js';
 import './backstage.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -381,7 +380,7 @@ function Interview() {
       <div className="iv2-row">
         <div className="iv2-l">
           <Txt badge={INTERVIEW.badge} title={INTERVIEW.title} sub={INTERVIEW.sub} />
-          <div className="rn item-wrap">{RESEARCH_N.map((x) => <div key={x.t} className="item rn-it"><p><b>{x.n}</b>{x.u}</p><span>{x.t}</span>{x.s ? <em>{x.s}</em> : null}</div>)}</div>
+          <div className="rm">{RESEARCH_N.map((x) => <div key={x.t} className="rm-r"><b>{x.t}</b><span>{x.who}</span><p>{x.got}</p></div>)}</div>
         </div>
         <div className="iv2-r">
           {INTERVIEW.chats.map((c, i) => (
@@ -410,7 +409,7 @@ function Diamond() {
         <div className="dd-labels">
           {DIAMOND.stages.map((st, i) => (
             <button key={st.id} type="button" className={`dd-st s${i}`} onClick={() => go(st.id)}>
-              <b>{st.en}</b><span>{st.ko}</span><em>{st.did}</em>
+              <b>{st.en}</b><span>{st.ko}</span><ul className="dd-did">{st.did.map((d) => <li key={d}>{d}</li>)}</ul>
             </button>
           ))}
         </div>
@@ -682,9 +681,8 @@ function ScreenSection({ sc, first = false }) {
   const dark = sc.dark || first;
   return (
     <section className={`con-scr${dark ? ' bg-bk' : ''}${sc.kind === 'phone' ? ' phone-row' : ''}${first ? ' has-word' : ''}`} id={`scr-${sc.id}`}>
-      {first ? <><span id="deliver" className="anchor" /><BigWord id="deliver" /></> : null}
       <div className="scr-head">
-        <Txt badge={first ? `04 Deliver  ${sc.en}` : sc.en} title={sc.title} light={dark} />
+        <Txt badge={first ? `03 Develop  ${sc.en}` : sc.en} title={sc.title} light={dark} />
       </div>
       <AutoScreen route={sc.route} role={sc.role} kind={sc.kind || 'desktop'} poster={sc.poster} title={`${sc.name} 실제 화면`} steps={sc.steps} />
     </section>
@@ -745,12 +743,39 @@ function useScrollEmphasis() {
   }, []);
 }
 
+// 머리 메뉴: 심사위원이 네 단계로 바로 건너가도록 누르면 그 장으로 이동하고 지금 장을 표시한다
+const STAGES = [['discover', 'Discover'], ['define', 'Define'], ['develop', 'Develop'], ['deliver', 'Deliver']];
+function StageNav() {
+  const [cur, setCur] = useState('');
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const on = () => {
+      setShow(window.scrollY > window.innerHeight * 0.6);
+      let c = '';
+      STAGES.forEach(([id]) => { const el = document.getElementById(id); if (el && el.getBoundingClientRect().top < window.innerHeight * 0.35) c = id; });
+      setCur(c);
+    };
+    on(); window.addEventListener('scroll', on, { passive: true }); return () => window.removeEventListener('scroll', on);
+  }, []);
+  const go = (id) => { const el = document.getElementById(id); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: 'smooth' }); };
+  return (
+    <nav className={`stage-nav${show ? ' on' : ''}`} aria-label="단계 이동">
+      {STAGES.map(([id, en], i) => (
+        <button key={id} type="button" className={cur === id ? 'cur' : ''} onClick={() => go(id)} aria-current={cur === id ? 'true' : undefined}>
+          <em>{String(i + 1).padStart(2, '0')}</em>{en}<i />
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 export default function CaseV3() {
   usePlusXMotion();
   useCountUp();
   useScrollEmphasis();
   return (
     <div className="portfolio">
+      <StageNav />
 
       <section className="con1" id="cover">
         <div className="hero">
@@ -775,9 +800,6 @@ export default function CaseV3() {
             <img className="image o-wheel" src="/v3/obj-wheelchair.webp" alt="" width="900" height="796" />
           </div>
           <Txt badge={OVERVIEW.badge} title={OVERVIEW.title} sub={OVERVIEW.sub} />
-        </div>
-        <div className="facts item-wrap">
-          {OVERVIEW.facts.map((f) => <div key={f.t} className="fact item"><p><b>{f.n}</b>{f.u}</p><span>{f.t}</span></div>)}
         </div>
       </section>
 
@@ -864,8 +886,8 @@ export default function CaseV3() {
       <section className="bg-bk con7" id="develop">
         <BigWord id="develop" />
         <Txt badge="03 Develop  Concept" title={['끊긴 연결을 잇기 위해', '약속 네 가지를 세웠습니다.']} sub={['화면보다 먼저 사람과 기관이 불이 나기 전에 맺는 약속을 설계했습니다.']} light />
-        <div className="content boxes">
-          {[[0], [1, 2], [3]].map((col, ci) => (
+        <div className="content boxes boxes2">
+          {[[0, 1], [2, 3]].map((col, ci) => (
             <div className="box-wrap" key={ci}>
               {col.map((i) => {
                 const b = DEFINE.boxes[i]; const I = DICON[b.icon];
@@ -885,30 +907,27 @@ export default function CaseV3() {
         </div>
       </section>
 
+      {SCREENS.slice(0, 1).map((sc) => <ScreenSection key={sc.id} sc={sc} first />)}
+      <Showcase v="line" />
+      {SCREENS.slice(1, 4).map((sc) => <ScreenSection key={sc.id} sc={sc} />)}
+      <ShortageScrub />
+      {SCREENS.slice(4).map((sc) => <ScreenSection key={sc.id} sc={sc} />)}
+      <Cars />
+
       <Blueprint />
       <LogicLab />
       <AILab />
       <DispatchFlow />
       <Access />
-
       <Architecture />
-
-      <Network />
       <DesignSystem />
 
       {/* 04 Deliver */}
-      {SCREENS.slice(0, 1).map((sc) => <ScreenSection key={sc.id} sc={sc} first />)}
-
-      <Showcase v="line" />
-
-      {SCREENS.slice(1, 4).map((sc) => <ScreenSection key={sc.id} sc={sc} />)}
-      <ShortageScrub />
-      {SCREENS.slice(4).map((sc) => <ScreenSection key={sc.id} sc={sc} />)}
-
-      <Cars />
-
+      <section className="bg-bk ch-mini" id="deliver">
+        <BigWord id="deliver" />
+        <Txt badge="04 Deliver" title={[CHAPTER.deliver.lead]} light />
+      </section>
       <Redesign />
-      <Impact />
 
       <section className="con17" id="used">
         <Txt badge={USED.badge} title={USED.title} />
@@ -941,6 +960,9 @@ export default function CaseV3() {
         </ul>
       </section>
 
+      <Network />
+      <Impact />
+
       <section className="plus" id="credits">
         <div className="plus-bg" style={PHOTOS.credits ? { backgroundImage: `url(${PHOTOS.credits})` } : undefined} />
         <div className="plus-in">
@@ -949,9 +971,8 @@ export default function CaseV3() {
           <p className="cr-sub">{CREDITS.sub}</p>
           <dl className="cr-list">
             <div><dt>Team</dt><dd>{CREDITS.team}</dd></div>
-            <div><dt>Members</dt><dd>{CREDITS.people.join(', ')}</dd></div>
+            <div><dt>Members</dt><dd className="cr-team">{CREDITS.people.map((n) => <span key={n}>{n}</span>)}</dd></div>
             <div><dt>Course</dt><dd>{CREDITS.course}</dd></div>
-            <div><dt>Contest Team</dt><dd className="cr-team">{CONTEST_TEAM.map((m) => <span key={m.v}><em>{m.k}</em>{m.v}</span>)}</dd></div>
           </dl>
           <div className="cr-links">{CREDITS.links.map((l) => <a key={l.label} href={l.href} target="_blank" rel="noreferrer">{l.label}<ArrowUpRight size={14} strokeWidth={2} /></a>)}</div>
         </div>

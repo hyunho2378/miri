@@ -331,7 +331,7 @@ export const CREDITS = {
   sub: '동해시 재난취약자 사전 이송 서비스',
   team: 'Team Oasis',
   people: ['주현호', '허준희', '김서환', '김채린'],
-  course: 'Service Design, Hallym University, 2026',
+  course: 'Hallym University Service Design 2026',
   links: [
     { label: 'Live Service', href: LINKS.service },
     { label: 'Mobile', href: LINKS.mobile },
@@ -344,25 +344,25 @@ export const DIAMOND = {
   badge: 'Process',
   title: ['Discover에서 Deliver까지', '네 단계로 진행했습니다.'],
   stages: [
-    { id: 'discover', en: 'Discover', ko: '발견', did: '산불 기록과 현장 면담, 서면 자문으로 동해의 대피 현장을 넓게 조사' },
-    { id: 'define', en: 'Define', ko: '정의', did: '이해관계자 지도와 문제 정의, HMW로 진짜 문제를 하나로 좁힘' },
-    { id: 'develop', en: 'Develop', ko: '전개', did: '서비스 청사진과 계산 규칙, AI 서류 읽기, 디자인 시스템을 설계' },
-    { id: 'deliver', en: 'Deliver', ko: '전달', did: '담당자 웹과 휴대폰 화면을 실제 코드로 만들고 현장에서 써 봄' },
+    { id: 'discover', en: 'Discover', ko: '발견', did: ['산불 기록과 위성 영상 조사', '동해 현장 두 곳 대면 면담', '시청 안전과 서면 답변과 소방관 면담', '서면 자문 회신 30곳 정리'] },
+    { id: 'define', en: 'Define', ko: '정의', did: ['이해관계자 지도와 끊긴 연결 세 곳', '처음 문제를 버리고 다시 쓴 문제 정의', 'HMW 세 가지', '지금과 미리 비교'] },
+    { id: 'develop', en: 'Develop', ko: '전개', did: ['사람과 기관의 약속 네 가지', '담당자 웹과 휴대폰 화면', '청사진과 계산 규칙', 'AI 서류 읽기와 디자인 시스템'] },
+    { id: 'deliver', en: 'Deliver', ko: '전달', did: ['공개 주소로 서비스 배포', '현장과 전문가의 직접 사용', '의견을 반영한 화면과 계산', '운영 구조와 확산 단계'] },
   ],
 };
 
 export const CHAPTER = {
   discover: { n: '01', en: 'Discover', ko: '발견', lead: '강릉에서 동해로 번진 산불 발생 당일의 대피를 먼저 조사했습니다.', cap: '2022년 3월 동해안 산불 연기 위성 영상, NASA MODIS' },
-  define: { n: '02', en: 'Define', ko: '정의', lead: '들은 말을 이해관계자 지도로 묶어 끊긴 연결을 찾았습니다.' },
+  define: { n: '02', en: 'Define', ko: '정의', lead: '면담과 서면 답변에 나온 기관과 사람을 지도로 그려 산불 발생 당일 확인되지 않는 연결 세 곳을 찾았습니다.' },
   develop: { n: '03', en: 'Develop', ko: '전개', lead: '사람과 기관의 약속을 청사진과 계산 규칙으로 옮겼습니다.' },
-  deliver: { n: '04', en: 'Deliver', ko: '전달', lead: '화면마다 실제 서비스가 직접 움직입니다.' },
+  deliver: { n: '04', en: 'Deliver', ko: '전달', lead: '공개한 화면을 현장과 전문가가 직접 써 보고 남긴 의견으로 화면과 계산을 고쳤습니다.' },
 };
 
 export const RESEARCH_N = [
-  { n: 2, u: '곳', t: '동해 현장 대면 면담', s: '망상동 행정복지센터, 동해시노인종합복지관' },
-  { n: 1, u: '건', t: '동해시청 안전과 서면 답변' },
-  { n: 1, u: '명', t: '현직 소방관 면담' },
-  { n: 150, u: '곳', t: '서면 자문 요청', s: '회신 30곳, 의견과 자료 19곳' },
+  { t: '대면 면담', who: '망상동 행정복지센터 재난 담당과 노인종합복지관 사회복지사', got: '연락이 끊기면 다음 방도가 없다는 말과 와상 환자 좌석 조건' },
+  { t: '서면 답변', who: '동해시청 안전과', got: '도우미를 1대1로 지정하고 차량은 발령 뒤에 요청하는 지금의 방식' },
+  { t: '소방관 면담', who: '경기 파주소방서 현직 소방관', got: '소방 인계 목록에 들어갈 기준 시각과 위치 항목' },
+  { t: '서면 자문 회신', who: '기관과 대학 30곳이 답하고 19곳이 의견과 자료를 보냄', got: '탑승 시간과 동의서, 시간대 계산을 바꾼 의견' },
 ];
 
 export const HMW = {

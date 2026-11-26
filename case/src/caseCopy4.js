@@ -227,8 +227,8 @@ export const FLOW = {
 
 // 03 Develop: 권한과 개인정보(개발보고서 표 21, 표 22, 표 25)
 export const ACCESS = {
-  badge: 'Access and Privacy',
-  title: ['서버가 역할과 담당 동을 확인해', '필요한 자료만 돌려줍니다.'],
+  badge: 'Privacy',
+  title: ['개인정보는 필요한 사람에게', '필요한 만큼만 보입니다.'],
   roles: [
     { k: '시 관리자', how: '서명 쿠키, 역할 city', can: '발령 저장, 조회, 종료, AI 판독, 문서 센터' },
     { k: '동 담당자', how: '서명 쿠키, 역할 dong과 동 코드', can: '담당 동 마을만 담긴 발령 조회', no: '저장과 종료는 거절' },

@@ -197,7 +197,7 @@ export function LogicLab() {
   return (
     <section className="dg-sec" id="logic" ref={ref}>
       <Txt badge={L.badge} title={L.title} />
-      {L.tabs.map((name, t) => (
+      {L.tabs.map((name, t) => t > 1 ? null : (
       <div className="dg-sub" key={name}>
       <p className="dg-sub-h"><em>{String(t + 1).padStart(2, '0')}</em>{name}</p>
       <div className={`dg-panel${seen ? ' seen' : ''}`}>
@@ -321,7 +321,7 @@ export function AILab() {
   return (
     <section className="dg-sec bg-bk" id="pipeline" ref={ref}>
       <Txt badge={A.badge} title={A.title} light />
-      {A.tabs.map((name, t) => (
+      {A.tabs.map((name, t) => (t !== 0 && t !== 3) ? null : (
       <div className="dg-sub" key={name}>
       <p className="dg-sub-h"><em>{String(t + 1).padStart(2, '0')}</em>{name}</p>
       <div className={`dg-panel dark${seen ? ' seen' : ''}`}>
@@ -455,11 +455,8 @@ export function DispatchFlow() {
         <div className="fl-side">
           <p className="dg-cap">{String(cur + 1).padStart(2, '0')} 남는 기록</p>
           <p className="fl-rec" key={cur}>{F.steps[cur].r}</p>
-          <div className="fl-res"><p className="dg-cap">{F.resultNote}</p>{F.result.map((r) => <div key={r.k}><span>{r.k}</span><b>{r.v}</b></div>)}</div>
-          <div className="fl-off"><p className="dg-cap"><CloudOff size={16} strokeWidth={2.2} />{F.offline.t}</p>{F.offline.rows.map((r) => <p key={r.k}><b>{r.k}</b>{r.v}</p>)}</div>
         </div>
       </div>
-      <p className="dg-note fl-fire">{F.fire}</p>
       <div className="fl-firedata">
         <p className="dg-cap"><Siren size={16} strokeWidth={2.2} />{F.fireData.t}</p>
         <ul>{F.fireData.rows.map((r) => <li key={r}>{r}</li>)}</ul>
@@ -475,24 +472,9 @@ export function Access() {
   return (
     <section className="dg-sec bg-bk" id="access">
       <Txt badge={C.badge} title={C.title} light />
-      <div className="ac-map" ref={box}>
-        <div className="ac-col">
-          {C.roles.map((r, i) => <div key={r.k} className="dg-blk dark" data-w={`r${i}`}><Tile icon={[Landmark, Building2, Smartphone, Users, Globe][i]} tone="glass" size={20} /><div><b>{r.k}</b><span>{r.how}</span></div></div>)}
-        </div>
-        <div className="ac-gate" data-w="gate">
-          <KeyRound size={34} strokeWidth={1.8} />
-          <b>서버 확인</b>
-          <span>서명 확인, 역할, 담당 동 범위, 같은 출처, 사용량 상한</span>
-        </div>
-        <div className="ac-col">
-          {C.roles.map((r, i) => <div key={r.k} className="dg-blk dark" data-w={`o${i}`}><div><b>{r.can}</b>{r.no ? <span className="no"><Ban size={13} strokeWidth={2.4} />{r.no}</span> : null}</div></div>)}
-        </div>
-        <Wires box={box} links={[...C.roles.map((_, i) => ({ a: `r${i}`, b: 'gate', tone: 'white', flow: false, arrow: false })), ...C.roles.map((_, i) => ({ a: 'gate', b: `o${i}`, tone: 'white', dur: 2.8 }))]} />
-      </div>
       <div className="ac-priv">
         {C.privacy.map((p) => <div key={p.k}><b><ShieldCheck size={18} strokeWidth={2.2} />{p.k}</b><p>{p.v}</p></div>)}
       </div>
-      <div className="ac-lim"><p className="dg-cap"><Clock size={16} strokeWidth={2.2} />사용량 상한</p>{C.limits.map((l) => <p key={l.k}><b>{l.k}</b>{l.v}</p>)}</div>
     </section>
   );
 }
@@ -538,11 +520,6 @@ export function Architecture() {
         </div>
         <Wires box={box} links={links} />
       </div>
-      <div className="ar-facts">
-        {A.quality.map((q) => <div key={q.k}><span>{q.k}</span><b>{q.v}</b><em>{q.s}</em></div>)}
-        {A.platform.map((q) => <div key={q.k} className="pl"><span>민관협력 지원 플랫폼</span><b>{q.v}</b><em>{q.k}</em></div>)}
-      </div>
-      <p className="dg-note">{A.platformNote}</p>
     </section>
   );
 }
