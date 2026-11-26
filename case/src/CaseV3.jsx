@@ -19,7 +19,7 @@ import {
   DIAMOND, CHAPTER, RESEARCH_N, HMW, BLUEPRINT, LOGIC, PIPE, NETWORK, SCREENS, PHOTOS, FIRES, USED, BP2,
 } from './caseCopy3.js';
 import { AutoScreen } from './Autoplay.jsx';
-import { Situation, Roles, AsIsToBe, LogicLab, AILab, DispatchFlow, Access, Architecture, DesignQA, Redesign, Impact } from './Backstage.jsx';
+import { PartnerMap, Situation, Roles, AsIsToBe, LogicLab, AILab, DispatchFlow, Access, Architecture, DesignQA, Redesign, Impact } from './Backstage.jsx';
 import { CONTEST_TEAM } from './caseCopy4.js';
 import './backstage.css';
 
@@ -574,20 +574,7 @@ function Network() {
   return (
     <section className="con-net" id="network">
       <Txt badge={NETWORK.badge} title={NETWORK.title} sub={NETWORK.sub} />
-      <div className="net image">
-        {NETWORK.groups.map((g) => {
-          const I = NET_ICON[g.id];
-          return (
-            <button type="button" key={g.id} className={`net-g p-${g.pos} g-${g.id}${sel === g.id ? ' on' : ''}`} onClick={() => setSel(g.id)} aria-pressed={sel === g.id}>
-              <p className="net-name"><I size={20} strokeWidth={2} />{g.name}<em>{g.chips.length}</em></p>
-              <p className="net-names">{g.chips.join(', ')}</p>
-            </button>
-          );
-        })}
-        <div className="net-hub"><img src="/v3/tile.webp" alt="" width="1240" height="1233" /><b>미리</b>
-          <span className="net-ar a-top" /><span className="net-ar a-left" /><span className="net-ar a-right" /><span className="net-ar a-bottom" />
-        </div>
-      </div>
+      <PartnerMap groups={NETWORK.groups} sel={sel} onPick={setSel} />
       <ul className="net-detail" key={sel}>{detail[sel].map((x) => <li key={x.n}><b>{x.n}</b><span>{x.r}</span></li>)}</ul>
     </section>
   );

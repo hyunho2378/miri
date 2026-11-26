@@ -435,3 +435,28 @@
 .feat-g p { margin-top: 6px; font-size: var(--t-label); line-height: 1.6; color: var(--sub); word-break: keep-all; }
 @media (max-width: 900px) { .feat-g { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .ar-cloud { z-index: auto; }
+
+/* 협력 네 갈래 상자 */
+.pm { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-rows: 1fr 1fr; gap: 28px 7vw; margin-top: 52px; }
+.pm-g { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding: 28px 30px; border-radius: 26px; background: #fff; text-align: left; box-shadow: 0 1px 2px rgba(17,24,39,.06), 0 18px 40px rgba(17,24,39,.08); transition: box-shadow 300ms var(--ease), transform 300ms var(--ease); }
+.pm-g.p0 { grid-column: 1; grid-row: 1; } .pm-g.p1 { grid-column: 1; grid-row: 2; } .pm-g.p2 { grid-column: 3; grid-row: 1; } .pm-g.p3 { grid-column: 3; grid-row: 2; }
+.pm-h { display: flex; align-items: center; gap: 14px; width: 100%; }
+.pm-h b { font-size: clamp(20px, 1.5vw, 26px); font-weight: 800; letter-spacing: -0.02em; }
+.pm-h em { margin-left: auto; font-style: normal; font-size: 15px; font-weight: 800; color: var(--blue); }
+.pm-n { font-size: var(--t-body); line-height: 1.75; color: #333; word-break: keep-all; }
+.pm-g.on { box-shadow: 0 0 0 3px var(--blue), 0 24px 50px rgba(30,110,244,.18); }
+.pm-hub { grid-column: 2; grid-row: 1 / span 2; align-self: center; position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 12px; width: clamp(180px, 15vw, 240px); aspect-ratio: 1; justify-content: center; border-radius: 50%; background: radial-gradient(circle at 30% 25%, #4d8dff, #1E6EF4 55%, #005BC1); box-shadow: 0 30px 70px rgba(30,110,244,.35); }
+.pm-hub img { width: 44%; border-radius: 22%; }
+.pm-hub b { font-size: clamp(22px, 1.8vw, 30px); font-weight: 800; color: #fff; }
+@media (max-width: 1000px) {
+  .pm { grid-template-columns: 1fr; grid-template-rows: none; gap: 16px; }
+  .pm-g { grid-column: 1 !important; grid-row: auto !important; }
+  .pm-hub { grid-column: 1; grid-row: 1; justify-self: center; width: 160px; }
+}
+
+/* 역할 카드 높이를 가장 긴 카드에 맞춤 */
+.roles { align-items: stretch; }
+.ar-ext { display: grid; grid-template-rows: auto 1fr 1fr; }
+.ar-users { display: grid; grid-auto-rows: auto; }
+.ac-col { display: grid; grid-auto-rows: 1fr; }
+.ac-col .dg-blk { min-height: 0; height: 100%; }

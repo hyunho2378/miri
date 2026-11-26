@@ -599,3 +599,27 @@ export function Impact() {
     </section>
   );
 }
+
+// ───────── 협력 네 갈래: 같은 크기 상자 넷과 가운데 미리, 굵은 연결선 ─────────
+const PART_ICON = { pub: Landmark, uni: Users, biz: Building2, etc: UserCheck };
+export function PartnerMap({ groups, sel, onPick }) {
+  const box = useRef(null);
+  const order = ['pub', 'uni', 'biz', 'etc'];
+  const G = order.map((id) => groups.find((g) => g.id === id)).filter(Boolean);
+  const side = { pub: ['r', 'l'], uni: ['r', 'l'], biz: ['l', 'r'], etc: ['l', 'r'] };
+  return (
+    <div className="pm" ref={box}>
+      {G.map((g, i) => {
+        const I = PART_ICON[g.id];
+        return (
+          <button type="button" key={g.id} className={`pm-g p${i}${sel === g.id ? ' on' : ''}`} data-w={`pm-${g.id}`} onClick={() => onPick(g.id)} aria-pressed={sel === g.id}>
+            <p className="pm-h"><Tile icon={I} /><b>{g.name}</b><em>{g.chips.length}</em></p>
+            <p className="pm-n">{g.chips.join(', ')}</p>
+          </button>
+        );
+      })}
+      <div className="pm-hub" data-w="pm-hub"><img src="/v3/tile.webp" alt="" width="1240" height="1233" /><b>미리</b></div>
+      <Wires box={box} deps={[sel]} links={G.map((g) => ({ a: `pm-${g.id}`, b: 'pm-hub', as: side[g.id][0], bs: side[g.id][1], tone: sel === g.id ? 'blue' : 'mute', dur: 2 }))} />
+    </div>
+  );
+}
