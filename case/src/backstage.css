@@ -727,3 +727,4 @@ img[src$="tile.webp"] { box-shadow: none !important; border-radius: 0 !important
 .con7 .content.boxes2 .box-wrap { display: contents !important; transform: none !important; }
 .con7 .content.boxes2 .box { padding: 7%; }
 @media (max-width: 900px) { .con7 .content.boxes2 { grid-template-columns: 1fr !important; padding-left: 6%; padding-right: 6%; } }
+.ds-sw .chip { width: auto; box-shadow: none !important; animation: none !important; display: block; }

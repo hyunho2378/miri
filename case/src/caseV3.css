@@ -932,7 +932,7 @@ a { color: inherit; text-decoration: none; }
 .mask .bar { position: absolute; height: 8%; border-radius: 3px; background: #1b1b1f; transform-origin: left; animation: barIn 1.4s var(--ease) infinite alternate; }
 .mask .b1 { left: 14%; top: 31%; width: 34%; } .mask .b2 { left: 62%; top: 31%; width: 34%; animation-delay: .25s; }
 @keyframes barIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-.chip { width: 96px; height: 96px; border-radius: 26px; background: var(--blue); display: grid; place-items: center; box-shadow: 0 0 0 10px rgba(30,110,244,.12), 0 0 40px 10px rgba(30,110,244,.35); animation: chipGlow 1.8s ease-in-out infinite alternate; }
+.pp2-art .chip { width: 96px; height: 96px; border-radius: 26px; background: var(--blue); display: grid; place-items: center; box-shadow: 0 0 0 10px rgba(30,110,244,.12), 0 0 40px 10px rgba(30,110,244,.35); animation: chipGlow 1.8s ease-in-out infinite alternate; }
 @keyframes chipGlow { to { box-shadow: 0 0 0 18px rgba(30,110,244,.06), 0 0 60px 16px rgba(30,110,244,.45); } }
 .grades { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 76%; }
 .grades span { aspect-ratio: 1; border-radius: 18px; background: #f2f3f7; color: #8a8a8e; display: grid; place-items: center; transition: background-color 300ms, color 300ms; }
