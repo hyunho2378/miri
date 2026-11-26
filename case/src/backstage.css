@@ -781,3 +781,17 @@ img[src$="tile.webp"] { box-shadow: none !important; border-radius: 0 !important
 /* ═════ 첫 화면 글자: 제목에 맞춰 키움 ═════ */
 .hero-txt .badge { font-size: clamp(15px, 1.05vw, 19px) !important; }
 .hero-txt p { font-size: clamp(20px, 1.6vw, 30px) !important; font-weight: 700 !important; }
+/* 약속 네 가지: 한 줄 네 칸으로 한눈에 */
+.con7 .content.boxes2 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 16px; padding-bottom: 9vw; }
+.con7 .content.boxes2 .box { padding: 22px; border-radius: 24px; }
+.con7 .content.boxes2 .box-bg { border-radius: 24px; }
+.con7 .content.boxes2 .box-inner { gap: 14px; }
+.con7 .content.boxes2 .d-icon { width: 44px; height: 44px; border-radius: 13px; }
+.con7 .content.boxes2 .eng { font-size: 15px; }
+.con7 .content.boxes2 .d-img { aspect-ratio: 16 / 11; overflow: hidden; border-radius: 14px; }
+.con7 .content.boxes2 .d-img img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+.con7 .content.boxes2 .title-sub span:first-child { font-size: clamp(17px, 1.2vw, 20px); font-weight: 800; }
+.con7 .content.boxes2 .title-sub span:last-child { font-size: clamp(14px, 0.9vw, 15px); line-height: 1.6; }
+@media (max-width: 1100px) { .con7 .content.boxes2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+@media (max-width: 600px) { .con7 .content.boxes2 { grid-template-columns: 1fr !important; } }
+.con7 .content.boxes2 { padding-bottom: 3vw !important; }
