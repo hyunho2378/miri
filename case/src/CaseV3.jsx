@@ -21,7 +21,7 @@ import {
   DIAMOND, CHAPTER, RESEARCH_N, HMW, BLUEPRINT, LOGIC, PIPE, NETWORK, SCREENS, PHOTOS, FIRES, USED, BP2,
 } from './caseCopy3.js';
 import { AutoScreen } from './Autoplay.jsx';
-import { PartnerMap, Situation, Roles, AsIsToBe, LogicLab, AILab, DispatchFlow, Access, Architecture, DesignQA, Redesign, Impact } from './Backstage.jsx';
+import { PartnerMap, Situation, Roles, AsIsToBe, LogicLab, AILab, DispatchFlow, Access, Architecture, Redesign, Impact } from './Backstage.jsx';
 import './backstage.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -672,7 +672,6 @@ function DesignSystem() {
           <p className="ds-note">{DS.icons.set} 선 굵기 {DS.icons.stroke}, 크기 {DS.icons.sizes.join(', ')}</p>
         </div>
       </div>
-      <DesignQA />
     </section>
   );
 }
