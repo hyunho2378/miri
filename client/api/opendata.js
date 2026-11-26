@@ -275,6 +275,30 @@ async function emsYear(key, R, year) {
   for (const [p, a, h] of rows) { p.forEach((x) => add(place, x.ruptOccrPlcCdNm, x.trnfPcnt)); a.forEach((x) => add(age, x.ageScov, x.trnfPcnt)); h.forEach((x) => add(hist, x.mpwrCdNm, x.trnfPcnt)) }
   return { place, age, hist }
 }
+// 소방안전 빅데이터 플랫폼 구급현황 API(승인키 X-API-KEY, 환경변수 BIGDATA_119_KEY). 구급 출동 보고서를 건수로 집계해 같은 해 값을 함께 보인다.
+const BD119 = 'https://www.bigdata-119.kr/fsdpApi/rest/v1/ems-incidents'
+async function bdPost(key, R, year, extra) {
+  const q = new URLSearchParams({ page: '1', size: '60', ctpvNm: R.ems.sidoShort, sggNm: R.ems.sigun, dclrYmdFrom: `${year}0101`, dclrYmdTo: `${year}1231`, ...extra })
+  const r = await fetch(`${BD119}?${q.toString()}`, { method: 'POST', headers: { 'X-API-KEY': key, Accept: 'application/json' }, signal: AbortSignal.timeout(9000) })
+  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+  return r.json()
+}
+export function platformSummary(total, seasons, symptoms) {
+  const rows = (o) => asList(o?.items)
+  const season = rows(seasons).filter((x) => x.seasnNm).map((x) => ({ name: x.seasnNm, count: Number(x.rowCount) || 0 }))
+  const top = rows(symptoms).filter((x) => x.ptnSymSeNm && !['기타', '미상'].includes(x.ptnSymSeNm)).map((x) => ({ name: x.ptnSymSeNm, count: Number(x.rowCount) || 0 })).sort((a, b) => b.count - a.count).slice(0, 3)
+  return { total: Number(total) || 0, seasons: season, symptomsTop: top }
+}
+async function platformEms(R, year) {
+  const key = process.env.BIGDATA_119_KEY
+  if (!key || !R.ems.sidoShort) return null
+  try {
+    const tot = await bdPost(key, R, year, { includeTotal: 'true', size: '1' })
+    const seasons = await bdPost(key, R, year, { groupBy: 'seasnNm', aggregation: 'count' })
+    const symptoms = await bdPost(key, R, year, { groupBy: 'ptnSymSeNm', aggregation: 'count' })
+    return { source: '소방안전 빅데이터 플랫폼 구급현황 API', year, ...platformSummary(tot.total, seasons, symptoms) }
+  } catch { return null }
+}
 const emsCache = new Map() // 지역 id -> { at, data }. 연 단위 자료라 하루 보관
 async function ems(key, R) {
   const hit = emsCache.get(R.regionId)
@@ -288,7 +312,7 @@ async function emsFetch(key, R) {
   for (const year of [thisYear - 1, thisYear - 2]) {
     const { place, age, hist } = await emsYear(key, R, year)
     const s = emsSummary(place, age, hist)
-    if (s.total > 0) return { source: '소방청 구급통계서비스(공공데이터포털 15099428)', station: `${R.ems.sido} ${R.ems.station}`, year, ...s, fetchedAt: new Date().toISOString() }
+    if (s.total > 0) return { source: '소방청 구급통계서비스(공공데이터포털 15099428)', station: `${R.ems.sido} ${R.ems.station}`, year, ...s, platform: await platformEms(R, year), fetchedAt: new Date().toISOString() }
   }
   return { source: '소방청 구급통계서비스(공공데이터포털 15099428)', station: `${R.ems.sido} ${R.ems.station}`, year: null, total: 0, list: [], fetchedAt: new Date().toISOString() }
 }

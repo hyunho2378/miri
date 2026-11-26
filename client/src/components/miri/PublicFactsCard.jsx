@@ -57,7 +57,8 @@ export default function PublicFactsCard({ only = null, className = '' }) {
               </ul>
             ) : <p className="type-body-sm text-text-meta">{REGION.name} 구급통계 자료 없음</p>
           ) : <Status s={ems} />}
-          <p className="mt-1.5 type-caption text-text-meta">{ems.data ? `출처: ${ems.data.source}, ${ems.data.station}` : '출처: 소방청 구급통계서비스'}</p>
+          {ems.data?.platform?.total ? <p className="mt-2 type-body-sm text-text-pri">구급 출동 <strong>{ems.data.platform.total.toLocaleString('ko-KR')}건</strong>, 많은 증상 {ems.data.platform.symptomsTop.map((x) => x.name).join(', ')}</p> : null}
+          <p className="mt-1.5 type-caption text-text-meta">{ems.data ? `출처: ${ems.data.source}, ${ems.data.station}${ems.data.platform ? `, ${ems.data.platform.source}` : ''}` : '출처: 소방청 구급통계서비스'}</p>
           <FreshnessNote kind="ems" state={ems} className="mt-1" />
         </section>}
         {show('fires') && <section aria-label={`${REGION.shortName} 산불 이력`}>
