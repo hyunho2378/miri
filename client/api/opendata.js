@@ -289,7 +289,7 @@ export function platformSummary(total, seasons, symptoms) {
   const top = rows(symptoms).filter((x) => x.ptnSymSeNm && !['기타', '미상'].includes(x.ptnSymSeNm)).map((x) => ({ name: x.ptnSymSeNm, count: Number(x.rowCount) || 0 })).sort((a, b) => b.count - a.count).slice(0, 3)
   return { total: Number(total) || 0, seasons: season, symptomsTop: top }
 }
-async function platformEms(R, year) {
+export async function platformEms(R, year) {
   const key = process.env.BIGDATA_119_KEY
   if (!key || !R.ems.sidoShort) return null
   try {
