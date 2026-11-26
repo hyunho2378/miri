@@ -628,3 +628,48 @@
 .pm2-hub .ar.right { right: -6px; top: 50%; translate: 0 -50%; border-left: 20px solid var(--dg-k); border-right: 0; }
 @media (max-width: 1000px) { .pm2-mid { grid-template-columns: 1fr; } .pm2-hub { width: 180px; margin: 0 auto; } .pm2-hub .ar { display: none; } }
 .pm2-g.on { outline: none; box-shadow: 0 22px 44px rgba(0,0,0,.22); }
+
+/* ═════ 여백과 가독성(2026-11-26 밤) ═════ */
+.dg-sec { padding-top: 10vw; padding-bottom: 9vw; }
+.dg-blk { padding: 20px 22px; gap: 16px; border-radius: 22px; }
+.dg-blk span { margin-top: 5px; line-height: 1.6; }
+.sit-col, .ar-users, .ar-ext, .ac-col, .lg-pairs { gap: 18px; }
+.sit-facts { gap: 4vw; margin: 56px 0 80px; }
+.sit-f span { line-height: 1.65; }
+.dg-sub { margin-top: 110px; }
+.dg-sub:first-of-type { margin-top: 60px; }
+.dg-sub-h { margin-bottom: 36px; }
+.roles { gap: 28px; margin-top: 60px; }
+.role-g { padding: 30px 30px 18px; }
+.role-r { padding: 20px 0; gap: 16px; }
+.feat { margin-top: 90px; }
+.feat-g { gap: 36px 3.4vw; }
+.ar-map, .ac-map, .lg-target { margin-top: 64px; }
+.ai-row { gap: 22px; }
+.ai-band { gap: 22px; margin-top: 20px; }
+.ai-detail { margin-top: 44px; }
+.rd-r { padding: 24px 0; }
+.im-who { gap: 28px; margin-top: 60px; }
+.im-w { padding: 32px; }
+.im-w li { padding: 10px 0 10px 18px; line-height: 1.65; }
+/* 협력 칩 가운데 정렬 */
+.pm2-chips, .pm2-mid .pm2-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.pm2-chips span { flex: 0 1 220px; }
+.pm2-mid .pm2-chips span { flex: 0 1 150px; }
+.pm2-g { justify-content: center; padding: 30px 30px 32px; gap: 20px; }
+.pm2 { gap: 26px; }
+.pm2-mid { gap: 26px; }
+/* 운영 구조: 위 미리, 아래 세 주체, 굵은 선으로 이어짐 */
+.im-org { margin-top: 110px; display: flex; flex-direction: column; align-items: center; }
+.im-top { position: relative; display: flex; align-items: center; gap: 18px; padding: 20px 30px 20px 20px; border-radius: 24px; background: var(--dg-b); }
+.im-top img { width: 64px; border-radius: 18px; }
+.im-top b { display: block; font-size: clamp(22px, 1.6vw, 28px); font-weight: 800; color: #fff; }
+.im-top span { display: block; margin-top: 4px; font-size: clamp(14px, 0.95vw, 16px); color: #fff; font-weight: 600; }
+.im-cols { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; width: 100%; margin-top: 76px; }
+.im-cols::before { content: ''; position: absolute; left: calc(100% / 6); right: calc(100% / 6); top: -38px; height: 4px; border-radius: 2px; background: #fff; }
+.im-cols::after { content: ''; position: absolute; left: 50%; top: -76px; width: 4px; height: 40px; translate: -50% 0; border-radius: 2px; background: #fff; }
+.im-c { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 28px; border-radius: 24px; background: #1f1f21; }
+.im-c::before { content: ''; position: absolute; left: 50%; top: -38px; width: 4px; height: 38px; translate: -50% 0; background: #fff; border-radius: 2px; }
+.im-c b { margin-top: 8px; font-size: clamp(18px, 1.3vw, 22px); font-weight: 800; color: #fff; }
+.im-c span { font-size: clamp(14px, 0.95vw, 16px); color: #d0d0d0; }
+@media (max-width: 900px) { .im-cols { grid-template-columns: 1fr; margin-top: 30px; } .im-cols::before, .im-cols::after, .im-c::before { display: none; } }

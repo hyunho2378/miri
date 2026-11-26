@@ -9,7 +9,9 @@ import {
   ClipboardCheck, Phone, Shield, Calendar, Send, Settings, X, ArrowUpRight, Hand, HeartPulse, Siren, GraduationCap,
   Handshake, Monitor, Server, Cpu, CircleCheck, TriangleAlert, CircleHelp, Truck, Database, Smartphone,
   ClipboardList, Calculator, Route, RefreshCw, ShieldCheck, Ambulance, PersonStanding, BedDouble, HandHelping, UserCheck, ScanText, EyeOff,
-} from 'lucide-react';
+} from './icons.jsx';
+// 디자인 시스템 아이콘 칸은 서비스 앱이 실제로 쓰는 루시드 아이콘을 그대로 보여 준다
+import { House as LcHouse, FileText as LcFileText, Users as LcUsers, Map as LcMap, Car as LcCar, Bell as LcBell, Flame as LcFlame, ClipboardCheck as LcClipboardCheck, Phone as LcPhone, Shield as LcShield, Calendar as LcCalendar, Accessibility as LcAccessibility, Bus as LcBus, Send as LcSend, Settings as LcSettings, Smartphone as LcSmartphone, Database as LcDatabase, Siren as LcSiren } from 'lucide-react';
 import './caseV3.css';
 import { LiveScreen, driveHelper } from './Live.jsx';
 import { buildSeed } from '../../client/src/mock/seed.js';
@@ -293,7 +295,7 @@ const ScreenThumb = ({ s, onOpen }) => (
 
 const DICON = { hand: Hand, car: Car, pulse: HeartPulse, siren: Siren };
 const STACK_ICON = { monitor: Monitor, server: Server, cpu: Cpu, check: CircleCheck };
-const DS_ICONS = [House, FileText, Users, MapIcon, Car, Bell, Flame, ClipboardCheck, Phone, Shield, Calendar, Accessibility, Bus, Send, Settings, Smartphone, Database, Siren];
+const DS_ICONS = [LcHouse, LcFileText, LcUsers, LcMap, LcCar, LcBell, LcFlame, LcClipboardCheck, LcPhone, LcShield, LcCalendar, LcAccessibility, LcBus, LcSend, LcSettings, LcSmartphone, LcDatabase, LcSiren];
 const NET_ICON = { pub: Landmark, uni: GraduationCap, biz: Building2, etc: Handshake };
 const go = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 

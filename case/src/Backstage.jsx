@@ -5,7 +5,7 @@ import {
   Monitor, Smartphone, Mic, Siren, User, Lock, Server, Database, ScanText, Cpu, Package, Globe, Route,
   Landmark, Users, Building2, BedDouble, Accessibility, HandHelping, PersonStanding, Ambulance, Bus, Car,
   Check, X, ArrowRight, FileText, ShieldCheck, UserCheck, EyeOff, ScanSearch, FileSearch, Ban, CloudOff, KeyRound, Clock, Layers,
-} from 'lucide-react';
+} from './icons.jsx';
 import { FEATURES, SITUATION, ROLES, ASIS, LOGIC2, AI2, FLOW, ACCESS, ARCH, REDESIGN, DSQA, IMPACT } from './caseCopy4.js';
 
 const ICON = {
@@ -593,10 +593,13 @@ export function Impact() {
       <div className="im-who">
         {I.who.map((w) => { const Ic = ICON[w.icon]; return <div key={w.k} className="im-w"><Tile icon={Ic} tone="glass" /><b>{w.k}</b><ul>{w.v.map((v) => <li key={v}>{v}</li>)}</ul></div>; })}
       </div>
-      <div className="im-model" ref={box}>
-        <div className="im-hub" data-w="hub"><img src="/v3/tile.webp" alt="" width="1240" height="1233" /><b>미리</b></div>
-        {I.model.map((m, i) => <div key={m.k} className={`dg-blk dark im-m m${i}`} data-w={`m${i}`}><div><b>{m.k}</b><span>{m.v}</span></div></div>)}
-        <Wires box={box} links={I.model.map((_, i) => ({ a: `m${i}`, b: 'hub', as: i === 1 ? 'b' : i === 0 ? 'r' : 'l', bs: i === 1 ? 't' : i === 0 ? 'l' : 'r', tone: 'white' }))} />
+      <div className="im-org">
+        <div className="im-top"><img src="/v3/tile.webp" alt="" width="1240" height="1233" /><div><b>미리</b><span>같은 계획을 세 주체가 나눠 맡습니다.</span></div></div>
+        <div className="im-cols">
+          {I.model.map((m, i) => { const Ic = [Landmark, Building2, Smartphone][i]; return (
+            <div key={m.k} className="im-c"><Tile icon={Ic} /><b>{m.k}</b><span>{m.v}</span></div>
+          ); })}
+        </div>
       </div>
       <div className={`im-steps${seen ? ' seen' : ''}`}>
         <p className="dg-cap">확산 단계</p>
