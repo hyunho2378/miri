@@ -1,6 +1,6 @@
 # 새 시군 추가 방법
 
-미리는 시군 한 곳의 자료와 이름을 지역 설정 파일 하나에 모아 두고, 앱 전체가 지금 고른 지역 설정 하나만 읽는다. 기본 지역은 동해시이고, 삼척시 설정은 두 번째 지역이 파일 하나로 켜지는지 확인하려고 넣은 견본이다.
+미리는 시군 한 곳의 자료와 이름을 지역 설정 파일 하나에 모아 두고, 앱 전체가 지금 고른 지역 설정 하나만 읽는다. 기본 지역은 동해시이고, 삼척시는 동해시와 같은 출처와 산출 순서로 만든 두 번째 실제 자료 지역이다(2026. 11. 27.).
 
 ## 1. 구조
 
@@ -8,11 +8,13 @@
 | --- | --- |
 | `client/src/regions/index.js` | 지역 등록부(REGIONS), 지역 고르기, 설정 검사(validateRegion) |
 | `client/src/regions/donghae.js` | 동해시 설정. 실제 공개 자료 파일(`mock/donghaeData.js`, `mock/geoDonghae.js`, `mock/villageTerrain.js`, `data/roadRoutes.js`, `data/forestFireHistory.js`)을 가리키고 시나리오, 시연 서류, 훈련 기록, 차량 배치, 기관 이름을 담음 |
-| `client/src/regions/samcheok.js` | 삼척시 견본 설정. 행정동 이름과 코드, 경계만 실제 자료이고 나머지는 시험용 가상 자료 |
+| `client/src/regions/samcheok.js` | 삼척시 설정. 실제 공개 자료 파일(`mock/samcheokData.js`, `mock/samcheokTerrain.js`, `data/forestFireHistorySamcheok.js`)을 가리키고 재난 기록 기반 시나리오 4개, 가정 차량 배치, 기관 이름을 담음 |
+| `client/scripts/build-samcheok-data.mjs` | 삼척시 원자료(`scripts/data-raw/samcheok`)를 `mock/samcheokData.js` 로 바꾸는 생성 스크립트. 산출 순서는 머리 주석과 원자료 README |
 | `client/src/regions/samcheok.geo.js` | 삼척시 행정동 경계(자동 생성) |
 | `client/src/regions/data.js` | 현재 지역 자료를 예전 이름(TEMP_SHELTERS, VILLAGES 등)으로 내보내는 연결 파일 |
 | `client/scripts/build-region-geo.mjs` | 시군 코드로 행정동 경계 파일을 만드는 도구 |
 | `client/tests/region.test.mjs` | 지역 설정 검사, 두 지역 전환, 지역 간 자료 섞임 시험 |
+| `client/tests/samcheok.test.mjs` | 삼척 원자료 대조, 산출 순서, 시설 자료, 시나리오별 이동 불가 인원과 추가 자원 |
 
 화면과 계산 모듈은 `regions/data.js` 또는 `regions/index.js` 의 `REGION` 만 읽는다. `mock/donghaeData.js` 를 직접 읽는 화면 코드는 없다(시험 파일과 동해시 설정 파일만 읽음).
 
@@ -62,7 +64,7 @@
 
    지금 원본(`mock/geoRegion.js`)은 동해시와 접경 시군(강릉, 삼척, 정선, 태백)만 담는다. 그 밖의 시군은 같은 vuski 원본 GeoJSON 에서 시군 코드로 걸러 넣는다.
 
-2. `src/regions/<id>.js` 만들기. `samcheok.js` 를 복사해 칸을 채운다. 실제 공개 자료를 받으면 `scripts/build-donghae-data.mjs` 처럼 그 시군용 생성 스크립트를 만들어 `mock/<id>Data.js` 를 만들고 설정에서 가리킨다.
+2. `src/regions/<id>.js` 만들기. `samcheok.js` 를 복사해 칸을 채운다. 실제 공개 자료는 `scripts/build-samcheok-data.mjs` 처럼 그 시군용 생성 스크립트를 만들어 `mock/<id>Data.js` 를 만들고, 지형 값은 `scripts/build-village-terrain.mjs` 의 TARGETS 에 한 줄 더해 만든다. 받는 곳과 방법은 `scripts/data-raw/samcheok/README.md` 가 예시다.
 
 3. `src/regions/index.js` 의 `REGIONS` 에 한 줄 추가
 

@@ -9,10 +9,11 @@ import Card from '../../components/ui/Card.jsx'
 import Input from '../../components/ui/Input.jsx'
 import { USE_MOCK } from '../../lib/api.js'
 import useAuthStore, { DEMO_USERS, ROLE_LABEL } from '../../store/useAuthStore.js'
+import { REGION } from '../../regions/index.js'
 
 const DEMO = [
   { role: 'city', desc: '전체 화면 이용, 발령 개시와 종료, 소방 인계, 설정' },
-  { role: 'dong', desc: '망상동 명부 관리, 서류 읽기, 부족분 계산, 배정 확인' }
+  { role: 'dong', desc: `${REGION.dongs.find((d) => d.code === REGION.demo.dongUser.dong)?.name || ''} 명부 관리, 서류 읽기, 부족분 계산, 배정 확인` }
 ]
 
 // 시연 코드: AI 판독과 문서함 서버 저장을 쓰려면 서버가 발급하는 서명 쿠키가 필요하다

@@ -112,25 +112,40 @@ test('지역 전환: 삼척시는 설정 파일 하나로 켜지고 동해시 �
   assert.ok(s.shelters.every((x) => !dShelters.has(x)))
   assert.ok(s.dongs.every((c) => !d.dongs.some((x) => x.code === c)))
   assert.deepEqual(s.addresses, ['삼척시'])
-  // 동해시 도로 경로, 훈련 기록, 시나리오(S-1 등)를 쓰지 않는다
+  // 동해시 도로 경로, 훈련 기록, 시나리오(S-1 등)를 쓰지 않는다. 시나리오는 삼척시 재난 기록 기반
   assert.equal(s.roadKeys, 0)
   assert.equal(s.records, 0)
-  assert.deepEqual(s.scenarios, ['S-4'])
-  // 대상자 수는 설정 견본 마을의 합계
+  assert.deepEqual(s.scenarios, ['F-1', 'F-2', 'T-1', 'S-4'])
+  // 대상자 수는 삼척 마을 추정 합계(재가 장기요양 수급자 1,647명)
   assert.equal(s.persons, REGIONS.samcheok.data.VILLAGES.reduce((a, v) => a + v.targets, 0))
-  assert.equal(s.scopeTargets, s.persons)
+  assert.equal(s.persons, 1647)
+  // 시작 시나리오(F-1, 원덕 남부 확산)는 원덕읍 마을 6곳 96명, 기준 배정 이동 불가 45명
+  assert.equal(s.scopeTargets, 96)
+  assert.equal(s.total, 45)
 })
 
-test('삼척시 견본: 실제 자료가 없는 칸은 시험용 가상 자료로 표시', () => {
+test('삼척시 실제 공개 자료: 견본 표시가 없고 출처와 산출 순서가 동해시와 같음', () => {
   const r = REGIONS.samcheok
-  assert.equal(r.sample, true)
-  for (const v of r.data.VILLAGES) assert.equal(v.sample, true)
-  for (const x of r.data.TEMP_SHELTERS) { assert.equal(x.sample, true); assert.match(x.name, /시험용 가상/) }
-  assert.match(r.data.LTC.period, /시험용 가상 자료/)
-  // 행정동 이름과 코드는 경계 자료(vuski/admdongkor)의 실제 값
+  assert.equal(r.sample, false)
+  for (const v of r.data.VILLAGES) { assert.equal(v.sample, undefined); assert.match(v.bdongCode, /^51230\d{5}$/) }
+  for (const x of r.data.TEMP_SHELTERS) { assert.equal(x.sample, undefined); assert.doesNotMatch(x.name, /가상/) }
+  assert.equal(r.data.LTC.period, '2025')
+  // 재가 수급자 = 급여이용 2,193 - 노인요양시설 527 - 공동생활가정 19
+  assert.equal(r.data.LTC.users['계'], 2193)
+  assert.equal(r.data.LTC.homeTotal, 2193 - 527 - 19)
+  assert.equal(r.data.VILLAGES.length, 128)
+  assert.equal(r.data.TEMP_SHELTERS.length, 22)
+  assert.equal(r.data.TEMP_SHELTERS.reduce((t, x) => t + x.capacity, 0), 5733)
+  // 행정동 경계와 같은 행정동 코드, 인구 합계는 행정안전부 삼척시 총계(2026년 9월 60,057명)
   assert.ok(r.map.dongGeo.every((g) => /^51230\d{5}$/.test(g.admCd)))
-  // 확인 전 행정 코드는 지어내지 않고 비워 둔다
-  assert.equal(r.codes.openGov, null)
+  assert.equal(Object.values(r.data.DONG_STATS).reduce((t, d) => t + d.total, 0), 60057)
+  // 행정 코드: 국가법령정보 지자체코드 목록의 삼척시 기관코드
+  assert.equal(r.codes.openGov, '4241000')
+  assert.equal(r.openData.ambulanceOrg, '4241000')
+  assert.deepEqual(r.openData.ems, { sido: '강원소방본부', station: '삼척소방서', sidoShort: '강원', sigun: '삼척' })
+  // 기관 조사 전 값은 가정으로 표시
+  assert.equal(r.fleetAssumed, true)
+  assert.match(r.fleetNote, /가정/)
 })
 
 test('공공데이터: 지역 인자로 시군 이름이 바뀌고 빈 인자는 상류를 부르지 않음', async () => {
@@ -154,11 +169,20 @@ test('공공데이터: 지역 인자로 시군 이름이 바뀌고 빈 인자는
     assert.equal(dh.body.region, 'donghae')
     await call({ kind: 'ltc', region: 'samcheok' })
     assert.match(url, /siGunGuCd=230/)
-    url = ''
+    // 삼척시 응급환자이송업 조회는 삼척시 개방자치단체코드로 부른다
     const amb = await call({ kind: 'ambulance', region: 'samcheok' })
-    assert.equal(amb.code, 503)
-    assert.equal(amb.body.error.code, 'REGION')
-    assert.equal(url, '')
+    assert.match(url, /OPN_ATMY_GRP_CD::EQ\]=4241000/)
+    assert.equal(amb.body.region, 'samcheok')
+    // 지역 인자가 비면 상류를 부르지 않고 503 REGION
+    const keepOrg = REGIONS.samcheok.openData.ambulanceOrg
+    REGIONS.samcheok.openData.ambulanceOrg = null
+    url = ''
+    try {
+      const empty = await call({ kind: 'ambulance', region: 'samcheok' })
+      assert.equal(empty.code, 503)
+      assert.equal(empty.body.error.code, 'REGION')
+      assert.equal(url, '')
+    } finally { REGIONS.samcheok.openData.ambulanceOrg = keepOrg }
     const bad = await call({ kind: 'fire', region: 'seoul' })
     assert.equal(bad.code, 400)
   } finally {

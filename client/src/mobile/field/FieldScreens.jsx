@@ -98,7 +98,7 @@ export function FieldStatusPage() {
         <List label="보내기">
           <ListRow lead={<MessageSquare size={22} />} title="현장 소식 남기기" chevron onClick={() => navigate('/m/f/note')} />
         </List>
-        <h2 className="mob-section-title">{scope.isDong ? '망상동 담당 마을, 기한 빠른 순' : '시 전체 마을, 기한 빠른 순'}</h2>
+        <h2 className="mob-section-title">{scope.isDong ? `${REGION.dongs.find((x) => x.code === REGION.demo.dongUser.dong)?.name || '우리 동'} 담당 마을, 기한 빠른 순` : '시 전체 마을, 기한 빠른 순'}</h2>
         <List label="늦는 마을, 기한이 빠른 순">
           {late.map((v, i) => (
             <ListRow key={v.code} lead={<Clock size={22} />} title={v.name} subtitle={`${v.left}명 남음${v.at ? `, ${hm(v.at)}까지` : ''}`}
