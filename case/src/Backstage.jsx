@@ -18,7 +18,7 @@ const CAR_ICON = { 침상: Ambulance, 휠체어: Accessibility, 부축: Car, 도
 const Txt = ({ badge, title, sub, light = false }) => (
   <div className={`txt-wrap${light ? ' on-dark' : ''}`}>
     <span className="badge">{badge}</span>
-    <p className="txt-title">{title.join(' ')}</p>
+    <p className="txt-title">{title.map((t, i) => <span key={i} className="tt-ph">{t}{i < title.length - 1 ? ' ' : ''}</span>)}</p>
     {sub?.map((s, i) => <p key={i} className="sub">{s}</p>)}
   </div>
 );
@@ -160,7 +160,7 @@ export function Roles() {
         ))}
       </div>
       <div className="feat">
-        <p className="dg-cap">이 사람들이 쓰는 기능 8가지</p>
+        <p className="dg-cap">주요 기능 8가지</p>
         <div className="feat-g">{FEATURES.map((f, i) => <div key={f.k}><em>{String(i + 1).padStart(2, '0')}</em><b>{f.k}</b><p>{f.v}</p></div>)}</div>
       </div>
     </section>
@@ -571,7 +571,7 @@ export function Impact() {
         {I.who.map((w) => { const Ic = ICON[w.icon]; return <div key={w.k} className="im-w"><Tile icon={Ic} tone="glass" /><b>{w.k}</b><ul>{w.v.map((v) => <li key={v}>{v}</li>)}</ul></div>; })}
       </div>
       <div className="im-org">
-        <div className="im-top"><img src="/v3/tile.webp" alt="" width="1240" height="1233" /><div><b>미리</b><span>같은 계획을 세 주체가 나눠 맡습니다.</span></div></div>
+        <div className="im-top"><img src="/v3/tile.webp" alt="" width="1240" height="1233" /><div><b>미리</b><span>동해시가 운영하는 이송 배정 서비스</span></div></div>
         <div className="im-cols">
           {I.model.map((m, i) => { const Ic = [Landmark, Building2, Smartphone][i]; return (
             <div key={m.k} className="im-c"><Tile icon={Ic} /><b>{m.k}</b><span>{m.v}</span></div>

@@ -15,7 +15,7 @@ export const OVERVIEW = {
   badge: 'Overview',
   title: ['산불이 나기 전에', '혼자 피하기 어려운 이웃마다', '도와줄 사람과 차를 정해 둡니다.'],
   sub: [
-    '미리는 동해시 재난 담당자가 평소에 이송 계획을 세우고 불이 난 날 도우미와 차를 바로 움직이게 하는 서비스입니다.',
+    '미리는 동해시 재난 담당자가 평소에 누가 어느 차로 갈지 정해 두고 불이 나면 도우미 휴대폰으로 배정 알림을 보내는 서비스입니다.',
     '담당자는 컴퓨터에서, 도우미와 현장 담당자는 휴대폰에서 같은 계획을 봅니다.',
   ],
   facts: [
@@ -41,7 +41,7 @@ export const CONTEXT = {
 
 export const INTERVIEW = {
   badge: 'User Research',
-  title: ['동해의 재난 담당과 돌봄 현장을', '직접 찾아갔습니다.'],
+  title: ['동해시 재난 담당 공무원과', '복지관 사회복지사를 직접 찾아가 만났습니다.'],
   sub: ['2026년 10월 26일 망상동 행정복지센터와 동해시노인종합복지관에서 면담했습니다. 시청 안전과 서면 답변과 소방관 면담을 더했습니다.'],
   chats: [
     { q: '만약에 연락이 안되면 더 이상 할 방도가 없죠', who: '망상동 재난 담당' },
@@ -52,7 +52,7 @@ export const INTERVIEW = {
 
 export const RESEARCH = {
   badge: 'Voices to Design',
-  title: ['현장에서 들은 말을', '계산 규칙과 화면에 옮겼습니다.'],
+  title: ['면담과 서면 답변으로 받은 지적을', '계산 규칙과 화면에 반영했습니다.'],
   cards: [
     { who: '동해시청 안전과', q: '지방정부의 일방적인 지정으로 실제 운용효과를 이룰 수 있을지 가능성이 높지 않다고 판단됨', c: '요청해야 오는 택시와 버스는 확인 전 차량으로 따로 세고 확정 차량 계산과 나눴습니다.' },
     { who: '동해시노인종합복지관 사회복지사', q: '가장 중요하게 짜셔야 될 거는 신체적인 데이터베이스가 있어야 된다라는 거죠.', c: '이송 등급을 도보와 부축, 휠체어, 침상으로 나누고 수락한 도우미에게만 탑승 메모를 보입니다.' },
@@ -131,13 +131,13 @@ export const PARTNERS = {
 
 export const DEFINE = {
   badge: 'Define',
-  title: ['도와줄 사람과 차는 이미 정해져 있었지만', '산불 발생 당일 올지는 불이 난 뒤에야 알게 됩니다.'],
+  title: ['도와줄 사람과 차는 이미 정해져 있었지만', '산불 발생 당일 올지는', '불이 난 뒤에야 알게 됩니다.'],
   sub: ['그래서 화면보다 먼저 사람과 기관이 평소에 맺는 약속 네 가지를 설계했습니다.'],
   boxes: [
-    { eng: 'Consent', icon: 'hand', img: '/v3/def-consent.webp', t: '도우미 본인의 약속', s: '할 수 있는 도움을 직접 고르고 동의합니다. 불이 난 날 한 번 더 수락해야 배정이 확정됩니다.' },
-    { eng: 'Contract', icon: 'car', img: '/v3/scr-06.webp', t: '차의 약속', s: '시 안전과와 교통과가 택시 운송조합과 평소에 승용차 협약을 맺습니다.' },
-    { eng: 'Condition', icon: 'pulse', img: '/v3/scr-05.webp', t: '몸 상태 소식', s: '요양보호사와 생활지원사가 아는 변화가 복지관을 거쳐 동 담당자에게 닿습니다.' },
-    { eng: 'Handover', icon: 'siren', img: '/v3/scr-08.webp', t: '소방에 미리 넘기기', s: '끝내 옮기지 못할 분은 불이 닿기 전에 위치와 함께 소방에 넘깁니다.' },
+    { eng: 'Consent', icon: 'hand', img: '/v3/def-consent.webp', t: '도우미 참여 동의', s: '할 수 있는 도움을 직접 고르고 동의합니다. 불이 난 날 한 번 더 수락해야 배정이 확정됩니다.' },
+    { eng: 'Contract', icon: 'car', img: '/v3/scr-06.webp', t: '승용차 사전 협약', s: '시 안전과와 교통과가 택시 운송조합과 평소에 승용차 협약을 맺습니다.' },
+    { eng: 'Condition', icon: 'pulse', img: '/v3/scr-05.webp', t: '거동 변화 보고', s: '요양보호사와 생활지원사가 본 거동 변화가 복지관을 거쳐 동 담당자에게 전달됩니다.' },
+    { eng: 'Handover', icon: 'siren', img: '/v3/scr-08.webp', t: '소방 사전 인계', s: '끝내 옮기지 못할 분은 불이 닿기 전에 위치와 함께 소방에 넘깁니다.' },
   ],
 };
 
@@ -154,7 +154,7 @@ export const DS = {
   badge: 'Design System',
   title: ['범정부 UI/UX 디자인 시스템(KRDS)에 맞춰', '화면을 만들었습니다.'],
   sub: [
-    '글꼴은 KRDS 표준인 Pretendard GOV를 쓰고 색과 상태 표시도 KRDS 규칙을 따랐습니다. 코드와 피그마는 같은 이름의 값과 부품을 씁니다.',
+    '글꼴은 KRDS 표준인 Pretendard GOV를 씁니다. 코드와 피그마는 같은 이름의 값과 부품을 씁니다.',
   ],
   font: { name: 'Pretendard GOV', note: 'KRDS 표준 서체' },
   weights: [
@@ -267,7 +267,7 @@ export const AI = {
 export const SHORTAGE = {
   badge: 'Shortage',
   title: ['승용차를 몇 대 더 약속하면', '모두 옮길 수 있는지 계산합니다.'],
-  sub: ['승용차가 한 대 늘 때마다 마을마다 남는 사람이 다시 계산됩니다.'],
+  sub: ['승용차를 한 대 더할 때마다 마을별로 남는 사람 수가 다시 계산됩니다.'],
   max: 30,
   ticks: [0, 5, 10, 15, 20, 25, 30],
   label: '더 약속하는 승용차',
@@ -343,17 +343,17 @@ export const CREDITS = {
 // ───── 더블 다이아몬드(2026. 11. 23. 사용자 지시로 장 순서를 이 네 단계에 맞춤) ─────
 export const DIAMOND = {
   badge: 'Process',
-  title: ['Discover에서 Deliver까지', '네 단계로 진행했습니다.'],
+  title: ['조사하고 문제를 정의한 뒤', '화면을 만들어 현장에서 검증했습니다.'],
   stages: [
     { id: 'discover', en: 'Discover', ko: '발견', did: ['산불 기록과 위성 영상 조사', '동해 현장 두 곳 대면 면담', '시청 안전과 서면 답변과 소방관 면담', '서면 자문 회신 30곳 정리'] },
     { id: 'define', en: 'Define', ko: '정의', did: ['이해관계자 지도와 끊긴 연결 세 곳', '처음 문제를 버리고 다시 쓴 문제 정의', 'HMW 세 가지', '지금과 미리 비교'] },
     { id: 'develop', en: 'Develop', ko: '전개', did: ['사람과 기관의 약속 네 가지', '담당자 웹과 휴대폰 화면', '청사진과 계산 규칙', 'AI 서류 읽기와 디자인 시스템'] },
-    { id: 'deliver', en: 'Deliver', ko: '전달', did: ['공개 주소로 서비스 배포', '현장과 전문가의 직접 사용', '의견을 반영한 화면과 계산', '운영 구조와 확산 단계'] },
+    { id: 'deliver', en: 'Deliver', ko: '전달', did: ['공개 주소로 서비스 배포', '현장 담당자와 전문가의 공개 화면 사용', '받은 의견으로 화면과 계산 수정', '운영 구조와 확산 단계'] },
   ],
 };
 
 export const CHAPTER = {
-  discover: { n: '01', en: 'Discover', ko: '발견', lead: '강릉에서 동해로 번진 산불 발생 당일의 대피를 먼저 조사했습니다.', cap: '2022년 3월 동해안 산불 연기 위성 영상, NASA MODIS' },
+  discover: { n: '01', en: 'Discover', ko: '발견', lead: '2022년 강릉 옥계에서 동해로 번진 산불 발생 당일 주민을 어떻게 대피시켰는지부터 조사했습니다.', cap: '2022년 3월 동해안 산불 연기 위성 영상, NASA MODIS' },
   define: { n: '02', en: 'Define', ko: '정의', lead: '면담과 서면 답변에 나온 기관과 사람을 지도로 그려 산불 발생 당일 확인되지 않는 연결 세 곳을 찾았습니다.' },
   develop: { n: '03', en: 'Develop', ko: '전개', lead: '사람과 기관의 약속을 청사진과 계산 규칙으로 옮겼습니다.' },
   deliver: { n: '04', en: 'Deliver', ko: '전달', lead: '공개한 화면을 현장과 전문가가 직접 써 보고 남긴 의견으로 화면과 계산을 고쳤습니다.' },
@@ -363,7 +363,7 @@ export const RESEARCH_N = [
   { t: '대면 면담', who: '망상동 행정복지센터 재난 담당과 노인종합복지관 사회복지사', got: '연락이 끊기면 다음 방도가 없다는 말과 와상 환자 좌석 조건' },
   { t: '서면 답변', who: '동해시청 안전과', got: '도우미를 1대1로 지정하고 차량은 발령 뒤에 요청하는 지금의 방식' },
   { t: '소방관 면담', who: '경기 파주소방서 현직 소방관', got: '소방 인계 목록에 들어갈 기준 시각과 위치 항목' },
-  { t: '서면 자문 회신', who: '기관과 대학 30곳이 답하고 19곳이 의견과 자료를 보냄', got: '탑승 시간과 동의서, 시간대 계산을 바꾼 의견' },
+  { t: '서면 자문 회신', who: '기관과 대학 30곳이 답하고 19곳이 의견과 자료를 보냄', got: '탑승 시간과 동의서 양식, 야간 계산을 바꾼 자문 답변' },
 ];
 
 export const HMW = {
@@ -438,8 +438,8 @@ export const PIPE = {
 // 상세기획서 협력 도식(그림 5)과 같은 네 갈래
 export const NETWORK = {
   badge: 'Partners',
-  title: ['공공기관과 8개 대학, 민간과 현장이', '기획과 개발에 참여했습니다.'],
-  sub: ['서면 자문과 면담, 전화, 공개 화면 직접 사용으로 받은 의견을 계산 규칙과 화면에 반영했습니다.'],
+  title: ['공공기관과 8개 대학, 민간기업과 현장 기관이', '서면 자문과 면담으로 의견을 주었습니다.'],
+  sub: ['공공기관은 제도와 공공 자료를, 학교는 AI 판독과 발령 시나리오를, 현장은 탑승 조건을 짚어 주었습니다.'],
   groups: [
     { id: 'pub', pos: 'top', name: '공공기관', chips: ['동해시청 안전과', '동해시 망상동 행정복지센터', '한국지능정보사회진흥원', '가명정보 지원 플랫폼', '한국정보접근성인증평가원'] },
     { id: 'uni', pos: 'left', name: '학교', chips: ['한림대', '강원대', '충북대', '아주대', '창신대', '세명대', '가톨릭관동대', '호남대'] },
@@ -456,25 +456,25 @@ export const SCREENS = [
     title: ['오늘 옮기지 못하는 사람을', '매일 아침 확인합니다.'],
     steps: [
       { say: '기준 배정으로 옮기지 못하는 291명이 맨 위 결론 줄에 뜹니다.', t: { text: '기한 초과 우려', find: 'span, p, div, strong' }, zoom: 1.6, do: 'point', ms: 2200 },
-      { say: '대피 대상 848명에서 협약 후까지 인원이 차례로 이어집니다.', t: { text: '대피 대상 인원', find: 'p' }, zoom: 1.45, do: 'point', ms: 2200 },
+      { say: '대피 대상 848명이 배정과 협약을 거쳐 몇 명으로 줄어드는지 차례로 보입니다.', t: { text: '대피 대상 인원', find: 'p' }, zoom: 1.45, do: 'point', ms: 2200 },
       { say: '등급을 누르면 그 등급의 마을별 인원만 남습니다.', t: { text: '부축291' }, do: 'click', zoom: 1.35 },
       { say: '이동 불가가 생기는 마을이 기한 빠른 순으로 모입니다.', t: { text: '이동 불가 발생 마을', find: 'h2' }, zoom: 1.4, do: 'point' },
-      { say: '처리할 일에는 확인을 기다리는 서류와 소식이 쌓입니다.', t: { text: '처리할 일', find: 'h2' }, zoom: 1.4, do: 'point' },
+      { say: '처리할 일 칸에 확인을 기다리는 서류와 현장 소식이 모입니다.', t: { text: '처리할 일', find: 'h2' }, zoom: 1.4, do: 'point' },
       { say: '처리할 일을 누르면 그 일을 하는 화면으로 바로 넘어갑니다.', t: { text: '서류 확인 대기' }, do: 'click', reset: true, ms: 2800 },
     ],
   },
   {
     id: 'map', route: '/console/map', poster: '/v3/scr-10.webp', name: '상황판', en: 'Situation Map',
-    title: ['불이 번지는 방향 위에', '마을별 인원을 올립니다.'],
+    title: ['지도에서 불이 번지는 방향과', '마을별 대상자 수를 함께 봅니다.'],
     steps: [
-      { say: '확산 가정 위에 마을별 대상자 수가 올라갑니다.', ms: 2600 },
+      { say: '불이 번진다고 가정한 범위 위에 마을마다 대상자 수가 표시됩니다.', ms: 2600 },
       { say: '마을을 누르면 그 마을의 이동 불가 인원과 도달 시각이 열립니다.', t: { text: '부곡동, 대상자' }, do: 'click', ms: 2800 },
       { say: '다른 마을을 눌러 견줘 봅니다.', t: { text: '발한동, 대상자' }, do: 'click', ms: 2800 },
     ],
   },
   {
     id: 'roster', route: '/console/roster', poster: '/v3/scr-05.webp', name: '대상자 명부', en: 'Roster',
-    title: ['마지막으로 확인한 날짜까지', '명부에 남깁니다.'],
+    title: ['명부에 사람마다', '마지막으로 확인한 날짜를 적어 둡니다.'],
     steps: [
       { say: '재확인 대상만 걸러 오래 확인하지 않은 사람을 먼저 봅니다.', t: { text: '재확인 대상' }, do: 'click', zoom: 1.35 },
       { say: '사람을 고르면 이송 등급과 돌봄 접근, 마지막 확인 날짜가 열립니다.', t: { text: 'BG-', find: 'main button' }, do: 'click', zoom: 1.2 },
@@ -483,7 +483,7 @@ export const SCREENS = [
   },
   {
     id: 'res', route: '/console/resources', poster: '/v3/scr-06.webp', name: '차량과 도우미', en: 'Resources',
-    title: ['약속된 차와 확인 전 차를', '따로 셉니다.'],
+    title: ['협약을 맺은 차와', '아직 확정되지 않은 차를 나눠 관리합니다.'],
     steps: [
       { say: '협약이 확정되지 않은 차량만 따로 걸러 봅니다.', t: { text: '미확정 차량만 보기' }, do: 'click', zoom: 1.35 },
       { say: '차량을 고르면 차종과 소속, 협약 만료일이 열립니다.', t: { text: 'V-07' }, do: 'click', zoom: 1.2 },
@@ -498,10 +498,10 @@ export const SCREENS = [
       { say: '서류 올리기를 엽니다.', t: { text: '서류 올리기' }, do: 'click', zoom: 1.4 },
       { say: '개인정보가 없는 자료인지 먼저 확인합니다.', t: { text: '개인정보 없는 자료임을 확인', find: 'label' }, do: 'click', zoom: 1.6 },
       { say: '예시 서류를 올리면 AI가 바로 읽기 시작합니다.', t: { text: '예시 서류 읽기' }, do: 'click', zoom: 1.5, ms: 300 },
-      { say: '글자 인식과 등급 판정, 근거 추출, 원문 대조가 차례로 지나갑니다.', t: { text: '서류 읽기 진행 중', find: 'p, span, div, h3' }, do: 'point', zoom: 1.7, ms: 2400, timeout: 1500 },
+      { say: '글자 인식과 등급 판정, 근거 추출, 원문 대조가 차례로 진행됩니다.', t: { text: '서류 읽기 진행 중', find: 'p, span, div, h3' }, do: 'point', zoom: 1.7, ms: 2400, timeout: 1500 },
       { say: '다 읽으면 새 서류가 확인 대기 목록에 올라옵니다.', t: { text: 'MH-02-302' }, do: 'click', zoom: 1.3, reset: true },
       { say: '원본 서류와 AI가 찾은 근거 문구를 나란히 봅니다.', t: { text: 'AI가 읽은 결과', find: 'p, span, div, h3' }, zoom: 1.5, do: 'point', ms: 2400 },
-      { say: 'AI 정보에서 쓴 모델과 AI가 하지 않는 일을 밝힙니다.', t: { text: 'AI 정보', exact: true }, do: 'click', ms: 2600 },
+      { say: 'AI 정보 창에서 사용한 모델과 AI가 하지 않는 일을 보여 줍니다.', t: { text: 'AI 정보', exact: true }, do: 'click', ms: 2600 },
       { say: '수락한 도우미에게만 보이는 탑승 메모를 적습니다.', esc: true, t: { sel: 'main input[placeholder^="예: 왼쪽"]' }, do: 'type', text: '왼쪽 편마비, 운전석 뒤 왼쪽 자리', zoom: 1.5 },
       { say: '담당자가 확인을 눌러야 명부에 들어갑니다.', t: { text: '확인', exact: true, find: 'main button' }, do: 'click', zoom: 1.35, ms: 2600 },
     ],

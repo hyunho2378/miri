@@ -808,8 +808,9 @@ img[src$="tile.webp"] { box-shadow: none !important; border-radius: 0 !important
 @media (max-width: 760px) { .sn-links { display: none; } }
 /* 부족분: 고정 스크롤 없이 자동 */
 .con15 { min-height: auto !important; }
-.sh-row { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) !important; }
+@media (min-width: 901px) { .sh-row { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) !important; } }
 .calc { min-width: 0; }
 /* 차 카드 위아래 잘림 방지 */
 .arc { padding-top: 10px; }
 .sn-links { box-shadow: none; margin-left: 10px; padding-left: 0; }
+.tt-ph { display: inline-block; max-width: 100%; white-space: pre-wrap; }

@@ -31,7 +31,7 @@ const Lines = ({ lines }) => lines.map((l, i) => <span key={i} className="ln">{l
 const Txt = ({ badge, title, sub, en = false, light = false }) => (
   <div className={`txt-wrap${light ? ' on-dark' : ''}`}>
     <span className="badge">{badge}</span>
-    <p className={`txt-title${en ? ' en' : ''}`}>{title.join(' ')}</p>
+    <p className={`txt-title${en ? ' en' : ''}`}>{title.map((t, i) => <span key={i} className="tt-ph">{t}{i < title.length - 1 ? ' ' : ''}</span>)}</p>
     {sub?.map((s, i) => <p key={i} className="sub">{s}</p>)}
   </div>
 );
@@ -918,7 +918,7 @@ export default function CaseV3() {
       {/* 03 Develop */}
       <section className="bg-bk con7" id="develop">
         <BigWord id="develop" />
-        <Txt badge="03 Develop  Concept" title={['끊긴 연결을 잇기 위해', '약속 네 가지를 세웠습니다.']} sub={['화면보다 먼저 사람과 기관이 불이 나기 전에 맺는 약속을 설계했습니다.']} light />
+        <Txt badge="03 Develop  Concept" title={['산불 발생 전에 맺어 두는', '약속 네 가지를 정했습니다.']} sub={['도우미 동의와 승용차 협약, 거동 변화 보고, 소방 사전 인계를 평소에 정해 둡니다.']} light />
         <div className="content boxes boxes2">
           {[[0, 1], [2, 3]].map((col, ci) => (
             <div className="box-wrap" key={ci}>
