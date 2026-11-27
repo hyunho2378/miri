@@ -1,8 +1,8 @@
 // 담당자 메뉴. 한 겹의 왼쪽 메뉴. M3 Navigation Rail Expanded(키트 58016:36670, 폭 220)를 기준으로 폭 220, 접으면 아이콘만 80.
 // 위에서부터 로고와 알림, 담당 업무, 기록과 설정, 공개 화면, 문서함, 맨 아래 사용자. 발령 준비 아래에는 하위 화면을 들여 쓴다.
 import clsx from 'clsx'
+import LogoMark from '../nav/LogoMark.jsx'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { Timer } from 'lucide-react'
 import useAuthStore from '../../store/useAuthStore.js'
 import useMiriStore from '../../store/useMiriStore.js'
 import AnomalyBell from '../miri/AnomalyBell.jsx'
@@ -69,7 +69,7 @@ export function SideNav({ collapsed = false, onNavigate, showHeader = true }) {
       {showHeader && (
         <div className={clsx('flex h-14 shrink-0 items-center', collapsed ? 'justify-center' : 'justify-between pl-5 pr-4')}>
           <Link to="/console" aria-label="미리 홈" className="inline-flex items-center gap-2 text-text-pri">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-text-inverse"><Timer size={18} aria-hidden="true" /></span>
+            <LogoMark size={32} />
             {!collapsed && <span className="type-h3">미리</span>}
           </Link>
           {!collapsed && <AnomalyBell />}
