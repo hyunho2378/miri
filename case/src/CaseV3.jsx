@@ -598,29 +598,46 @@ function Cars() {
   const drag = useRef({ on: false, x: 0, dx: 0 });
   useEffect(() => {
     const el = box.current; if (!el) return undefined;
-    const ro = new ResizeObserver(([e]) => setCw(Math.round(Math.max(200, Math.min(340, e.contentRect.width * 0.24)))));
+    const ro = new ResizeObserver(([e]) => setCw(Math.round(Math.max(180, Math.min(290, e.contentRect.width * 0.2)))));
     ro.observe(el); return () => ro.disconnect();
   }, []);
   const go = (dir) => { setFlip(-1); setActive((a) => a + dir); };
   const norm = ((active % N) + N) % N;
+  // 사람이 누르기 전까지 가운데 카드를 저절로 뒤집었다 되돌리고 다음 카드로 넘긴다
+  const [userCar, setUserCar] = useState(false); const [visCar, setVisCar] = useState(false);
+  useEffect(() => {
+    const io = new IntersectionObserver(([e]) => setVisCar(e.intersectionRatio > 0.3), { threshold: [0, 0.3] });
+    if (box.current) io.observe(box.current); return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!visCar || userCar || reduced()) return undefined;
+    let phase = 0;
+    const id = setInterval(() => {
+      if (phase === 0) setFlip(((active % N) + N) % N);
+      if (phase === 1) setFlip(-1);
+      if (phase === 2) { setActive((a) => a + 1); }
+      phase = (phase + 1) % 3;
+    }, 1700);
+    return () => clearInterval(id);
+  }, [visCar, userCar, active, N]);
   const dist = (i) => { let d = ((((i - active) % N) + N) % N); if (d > N / 2) d -= N; return d; };
   const onCard = (i) => { if (i === norm) setFlip((f) => (f === i ? -1 : i)); else { setFlip(-1); setActive(active + dist(i)); } };
   const ch = Math.round(cw * 1.4);
   return (
     <section className="bg-bk con16" id="cars-sec">
-      <Txt badge={CARS.badge} title={CARS.title} sub={['가운데 카드를 누르면 뒤집혀 누가 타는지 보입니다. 옆 카드를 누르거나 끌면 넘어갑니다.']} light />
+      <Txt badge={CARS.badge} title={CARS.title} sub={['카드가 저절로 뒤집히며 차마다 누가 타는지 보여 줍니다.']} light />
       <div
-        className="arc" ref={box} style={{ height: ch + Math.round(cw * 0.5) }}
+        className="arc" ref={box} style={{ height: ch + Math.round(cw * 1.0) }}
         tabIndex={0} aria-label="차종 카드. 화살표로 넘기고 Enter로 뒤집습니다."
-        onKeyDown={(e) => { if (e.key === 'ArrowLeft') go(-1); if (e.key === 'ArrowRight') go(1); if (e.key === 'Enter') onCard(norm); }}
-        onPointerDown={(e) => { drag.current = { on: true, x: e.clientX, dx: 0 }; }}
+        onKeyDown={(e) => { setUserCar(true); if (e.key === 'ArrowLeft') go(-1); if (e.key === 'ArrowRight') go(1); if (e.key === 'Enter') onCard(norm); }}
+        onPointerDown={(e) => { setUserCar(true); drag.current = { on: true, x: e.clientX, dx: 0 }; }}
         onPointerMove={(e) => { if (drag.current.on) drag.current.dx = e.clientX - drag.current.x; }}
         onPointerUp={() => { const { dx } = drag.current; drag.current.on = false; if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1); }}
       >
         {CARD_LIST.map((c, i) => {
           const d = dist(i); const ad = Math.abs(d); const I = CAR_ICON[i];
           return (
-            <div key={c.name} className="arc-slot" style={{ width: cw, height: ch, transformOrigin: `center ${Math.round(cw * 4.1)}px`, transform: `translateX(-50%) rotate(${d * ARC}deg)`, zIndex: 100 - ad }}>
+            <div key={c.name} className="arc-slot" style={{ width: cw, height: ch, transformOrigin: `center ${Math.round(cw * 4.1)}px`, transform: `translateX(-50%) rotate(${d * ARC}deg)`, zIndex: 100 - ad, opacity: ad >= 2 ? 0 : 1, pointerEvents: ad >= 2 ? 'none' : undefined }}>
               <button type="button" className={`flipcard${flip === i ? ' flipped' : ''}`} onClick={() => { if (Math.abs(drag.current.dx) < 6) onCard(i); }} aria-label={`${c.name} ${flip === i ? '앞면 보기' : '뒷면 보기'}`}>
                 <span className={`face front ${c.cls}`}>
                   <span className="tc-top"><span className="tc-ic"><I size={30} strokeWidth={1.8} /></span><span className="tc-g">{c.g}</span></span>
@@ -691,22 +708,30 @@ function ScreenSection({ sc, first = false }) {
 function ShortageScrub() {
   const ref = useRef(null);
   const [cars, setCars] = useState(0);
-  useLayoutEffect(() => {
-    if (reduced()) return undefined;
-    const st = ScrollTrigger.create({
-      trigger: ref.current, start: 'top top', end: '+=90%', pin: true, scrub: 0.6,
-      onUpdate: (self) => setCars(Math.round(self.progress * 20)),
-    });
-    return () => st.kill();
+  const [user, setUser] = useState(false);
+  const [vis, setVis] = useState(false);
+  useEffect(() => {
+    const io = new IntersectionObserver(([e]) => setVis(e.intersectionRatio > 0.35), { threshold: [0, 0.35] });
+    if (ref.current) io.observe(ref.current); return () => io.disconnect();
   }, []);
+  // 화면에 들어오면 승용차를 0대에서 20대까지 한 대씩 자동으로 늘리고, 20대에서 잠시 멈췄다 다시 처음부터 보여 준다
+  useEffect(() => {
+    if (!vis || user || reduced()) return undefined;
+    let n = 0; let hold = 0;
+    const id = setInterval(() => {
+      if (n < 20) { n += 1; setCars(n); return; }
+      hold += 1; if (hold > 8) { n = 0; hold = 0; setCars(0); }
+    }, 320);
+    return () => clearInterval(id);
+  }, [vis, user]);
   return (
     <section className="con15" id="shortage" ref={ref}>
       <div className="sh-row">
         <div>
           <Txt badge={SHORTAGE.badge} title={SHORTAGE.title} sub={SHORTAGE.sub} />
-          <p className="sh-hint">아래로 내리면 승용차가 한 대씩 늘어납니다.</p>
+          <p className="sh-hint">승용차가 한 대씩 자동으로 늘어납니다. 막대를 직접 움직여도 됩니다.</p>
         </div>
-        <ShortageCalc value={cars} onChange={setCars} />
+        <ShortageCalc value={cars} onChange={(v) => { setUser(true); setCars(v); }} />
       </div>
     </section>
   );
@@ -758,11 +783,21 @@ function StageNav() {
   const go = (id) => { const el = document.getElementById(id); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: 'smooth' }); };
   return (
     <nav className={`stage-nav${show ? ' on' : ''}`} aria-label="단계 이동">
-      {STAGES.map(([id, en], i) => (
-        <button key={id} type="button" className={cur === id ? 'cur' : ''} onClick={() => go(id)} aria-current={cur === id ? 'true' : undefined}>
-          <em>{String(i + 1).padStart(2, '0')}</em>{en}<i />
-        </button>
-      ))}
+      <button type="button" className="sn-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="맨 위로">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
+      <span className="sn-stages">
+        {STAGES.map(([id, en], i) => (
+          <button key={id} type="button" className={cur === id ? 'cur' : ''} onClick={() => go(id)} aria-current={cur === id ? 'true' : undefined}>
+            <em>{String(i + 1).padStart(2, '0')}</em>{en}<i />
+          </button>
+        ))}
+      </span>
+      <span className="sn-links">
+        <a href={LINKS.service} target="_blank" rel="noreferrer">Web<ArrowUpRight size={13} /></a>
+        <a href={LINKS.mobile} target="_blank" rel="noreferrer">Mobile<ArrowUpRight size={13} /></a>
+        <a href={LINKS.video} target="_blank" rel="noreferrer">Demo Video<ArrowUpRight size={13} /></a>
+      </span>
     </nav>
   );
 }

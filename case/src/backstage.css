@@ -795,3 +795,21 @@ img[src$="tile.webp"] { box-shadow: none !important; border-radius: 0 !important
 @media (max-width: 1100px) { .con7 .content.boxes2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
 @media (max-width: 600px) { .con7 .content.boxes2 { grid-template-columns: 1fr !important; } }
 .con7 .content.boxes2 { padding-bottom: 3vw !important; }
+
+/* 머리 메뉴: 위로 가기와 바로 가기 링크 */
+.stage-nav { align-items: center; gap: 6px; }
+.sn-top { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 11px; color: #fff; background: rgba(255,255,255,.1); }
+.sn-top:hover { background: var(--dg-b); }
+.sn-stages { display: flex; gap: 2px; }
+.sn-links { display: flex; gap: 2px; padding-left: 8px; margin-left: 4px; box-shadow: -1px 0 0 rgba(255,255,255,.14); }
+.sn-links a { display: inline-flex; align-items: center; gap: 4px; padding: 10px 12px; border-radius: 11px; font-size: 14px; font-weight: 800; color: #fff; white-space: nowrap; }
+.sn-links a:hover { background: var(--dg-b); }
+@media (max-width: 1100px) { .sn-links a { padding: 9px 8px; font-size: 13px; } .stage-nav button em { display: none; } }
+@media (max-width: 760px) { .sn-links { display: none; } }
+/* 부족분: 고정 스크롤 없이 자동 */
+.con15 { min-height: auto !important; }
+.sh-row { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) !important; }
+.calc { min-width: 0; }
+/* 차 카드 위아래 잘림 방지 */
+.arc { padding-top: 10px; }
+.sn-links { box-shadow: none; margin-left: 10px; padding-left: 0; }

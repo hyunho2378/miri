@@ -5,6 +5,7 @@
 export const LINKS = {
   service: 'https://miri-indol.vercel.app',
   mobile: 'https://miri-indol.vercel.app/m/h/demo',
+  video: 'https://youtu.be/lfojAwQRqic',
   figma: 'https://www.figma.com/design/aWTIYw8qx594JnY9EHZYr1/-Civic-Tech--Miri-Wildfire-Evacuation_DS?node-id=13-2',
 };
 
