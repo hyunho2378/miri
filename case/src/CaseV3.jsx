@@ -6,7 +6,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   Accessibility, Flame, Landmark, Bus, Car, Users, HeartHandshake, Building2, House, FileText, Map as MapIcon, Bell,
-  ClipboardCheck, Phone, Shield, Calendar, Send, Settings, X, ArrowUpRight, Hand, HeartPulse, Siren, GraduationCap,
+  ClipboardCheck, Phone, Shield, Calendar, Send, Settings, X, Hand, HeartPulse, Siren, GraduationCap,
   Handshake, Monitor, Server, Cpu, CircleCheck, TriangleAlert, CircleHelp, Truck, Database, Smartphone,
   ClipboardList, Calculator, Route, RefreshCw, ShieldCheck, Ambulance, PersonStanding, BedDouble, HandHelping, UserCheck, ScanText, EyeOff,
 } from './icons.jsx';
@@ -288,7 +288,7 @@ function HelperDemo() {
 const ScreenThumb = ({ s, onOpen }) => (
   <button type="button" className="thumb item" onClick={() => onOpen(s)}>
     <span className="thumb-frame"><img src={`/v3/scr-${s.id}.webp`} alt="" loading="lazy" width="1600" height="1000" /></span>
-    <span className="thumb-cap"><b>{s.name}</b><em>{s.cap}</em><ArrowUpRight size={16} strokeWidth={1.8} aria-hidden="true" /></span>
+    <span className="thumb-cap"><b>{s.name}</b><em>{s.cap}</em></span>
   </button>
 );
 
@@ -472,10 +472,10 @@ function Blueprint() {
 
 // 배정 규칙 인포그래픽: 등급별 주민 → 규칙 여섯 개 → 차 네 종류 → 남는 사람
 const GRADES = [
-  { k: '침상', I: BedDouble, c: '#BA1A1A', n: 12 },
+  { k: '침상', I: BedDouble, c: '#111111', n: 12 },
   { k: '휠체어', I: Accessibility, c: '#1E6EF4', n: 14 },
-  { k: '부축', I: HandHelping, c: '#C93400', n: 18 },
-  { k: '도보', I: PersonStanding, c: '#008932', n: 20 },
+  { k: '부축', I: HandHelping, c: '#6E6E73', n: 18 },
+  { k: '도보', I: PersonStanding, c: '#AEAEB2', n: 20 },
 ];
 const VEHICLES = [
   { k: '침상 승합차', s: '침상 2명', I: Ambulance, seats: 2 },
@@ -663,7 +663,7 @@ function DesignSystem() {
     <section className="con-ds" id="ds">
       <div className="ds-head">
         <Txt badge={DS.badge} title={DS.title} sub={DS.sub} />
-        <a className="ds-link" href={LINKS.figma} target="_blank" rel="noreferrer">피그마 디자인 시스템<ArrowUpRight size={16} strokeWidth={2} /></a>
+        <a className="ds-link" href={LINKS.figma} target="_blank" rel="noreferrer">피그마 디자인 시스템</a>
       </div>
       <div className="ds-grid">
         <div className="ds-cell ds-type image">
@@ -783,8 +783,8 @@ function StageNav() {
   const go = (id) => { const el = document.getElementById(id); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: 'smooth' }); };
   return (
     <nav className={`stage-nav${show ? ' on' : ''}`} aria-label="단계 이동">
-      <button type="button" className="sn-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="맨 위로">
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      <button type="button" className="sn-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="미리 처음으로">
+        <img src="/v3/tile.webp" alt="" width="1240" height="1233" />
       </button>
       <span className="sn-stages">
         {STAGES.map(([id, en], i) => (
@@ -794,9 +794,9 @@ function StageNav() {
         ))}
       </span>
       <span className="sn-links">
-        <a href={LINKS.service} target="_blank" rel="noreferrer">Web<ArrowUpRight size={13} /></a>
-        <a href={LINKS.mobile} target="_blank" rel="noreferrer">Mobile<ArrowUpRight size={13} /></a>
-        <a href={LINKS.video} target="_blank" rel="noreferrer">Demo Video<ArrowUpRight size={13} /></a>
+        <a href={LINKS.service} target="_blank" rel="noreferrer">Web</a>
+        <a href={LINKS.mobile} target="_blank" rel="noreferrer">Mobile</a>
+        <a href={LINKS.video} target="_blank" rel="noreferrer">Demo Video</a>
       </span>
     </nav>
   );
@@ -977,7 +977,7 @@ export default function CaseV3() {
             <div><dt>Members</dt><dd className="cr-team">{CREDITS.people.map((n) => <span key={n}>{n}</span>)}</dd></div>
             <div><dt>Course</dt><dd>{CREDITS.course}</dd></div>
           </dl>
-          <div className="cr-links">{CREDITS.links.map((l) => <a key={l.label} href={l.href} target="_blank" rel="noreferrer">{l.label}<ArrowUpRight size={14} strokeWidth={2} /></a>)}</div>
+          <div className="cr-links">{CREDITS.links.map((l) => <a key={l.label} href={l.href} target="_blank" rel="noreferrer">{l.label}</a>)}</div>
         </div>
       </section>
     </div>

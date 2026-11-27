@@ -72,7 +72,7 @@ function Wires({ box, links, deps = [] }) {
         </defs>
         {ps.map((p) => (
           <g key={p.i} className={`wire w-${p.l.tone || 'blue'}${p.l.on === false ? ' off' : ''}`}>
-            <path className="w-base" d={p.d} markerEnd={p.l.arrow === false ? undefined : `url(#ah-${p.l.tone || 'blue'})`} />
+            <path className="w-base" d={p.d}  />
             {p.l.flow === false ? null : (
               <circle r="4.5" className="w-dot">
                 <animateMotion dur={`${p.l.dur || 2.4}s`} repeatCount="indefinite" path={p.d} begin={`${(p.i % 5) * 0.35}s`} />
@@ -228,7 +228,7 @@ export function LogicLab() {
               {L.formula.map((f, i) => (
                 <div key={f.k} className="lg-step">
                   <div className="dg-blk col"><em>{String(i + 1).padStart(2, '0')}</em><b>{f.k}</b><code>{f.f}</code>{f.s ? <span>{f.s}</span> : null}</div>
-                  {i < L.formula.length - 1 ? <span className="dg-arrow" aria-hidden="true"><ArrowRight size={22} strokeWidth={2.6} /></span> : null}
+                  
                 </div>
               ))}
             </div>
@@ -257,7 +257,7 @@ export function LogicLab() {
                   </div>
                 ))}
               </div>
-              <div className="as-pick"><ArrowRight size={22} strokeWidth={2.6} /><Check size={18} strokeWidth={2.6} />교환 탐색으로 더 나은 계획만 남겨 이동 불가가 가장 적은 안을 추천</div>
+              <div className="as-pick"><Check size={18} strokeWidth={2.6} />교환 탐색으로 더 나은 계획만 남겨 이동 불가가 가장 적은 안을 추천</div>
             </div>
             <div className="as-side">
               <div className="as-goal"><p className="dg-cap">고르는 순서</p>{L.assign.goal.map((g, i) => <p key={g} className="as-g"><em>{i + 1}</em>{g}</p>)}</div>
@@ -269,7 +269,7 @@ export function LogicLab() {
                 <div key={n.k} className="as-n">
                   <b>{n.k}</b>
                   <i className="meter2"><i className="from" style={{ width: '100%' }} /><i className="to" style={{ width: `${(n.to / n.from) * 100}%` }} /></i>
-                  <p>{n.from}명<ArrowRight size={16} strokeWidth={2.6} />{n.to}명</p>
+                  <p>{n.from}명에서 {n.to}명</p>
                 </div>
               ))}
               <p className="dg-note">{L.assign.neckNote} {L.assign.same}</p>
@@ -354,7 +354,7 @@ export function AILab() {
             {A.rules.map((r) => (
               <div key={r.k} className="ar-r">
                 <p className="k">{r.k}</p>
-                <span className="dg-arrow" aria-hidden="true"><ArrowRight size={22} strokeWidth={2.6} /></span>
+                
                 <p className={`g${r.g === '휠체어' ? ' up' : ''}`}>{r.g === '휠체어' ? <Accessibility size={20} strokeWidth={2.2} /> : <Check size={20} strokeWidth={2.6} />}{r.g}</p>
                 <p className="s">{r.s}</p>
               </div>
@@ -370,7 +370,7 @@ export function AILab() {
             <div className="rb-core">
               <Cpu size={30} strokeWidth={1.8} />
               <b>언어 모델</b><span>차원별 점수와 원문 근거</span>
-              <ArrowRight size={22} strokeWidth={2.6} className="rb-ar" />
+              
               <b>코드 규칙</b><span>네 등급 계산, 차원끼리 다르면 높은 쪽</span>
             </div>
             <p className="dg-note">{A.rubricNote}</p>
@@ -553,7 +553,7 @@ export function Redesign() {
       <div className="rd">
         <div className="rd-h"><span>과업</span><span>재설계 전</span><span /><span>재설계 후</span></div>
         {REDESIGN.rows.map((r) => (
-          <div key={r.k} className="rd-r"><b>{r.k}</b><p className="a">{r.a}</p><span className="dg-arrow" aria-hidden="true"><ArrowRight size={20} strokeWidth={2.6} /></span><p className="b">{r.b}</p></div>
+          <div key={r.k} className="rd-r"><b>{r.k}</b><p className="a">{r.a}</p><p className="b">{r.b}</p></div>
         ))}
       </div>
       <p className="dg-note">{REDESIGN.study}</p>
